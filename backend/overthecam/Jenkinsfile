@@ -82,7 +82,7 @@ pipeline {
                                docker stop backend || true
                                docker rm backend || true
                                echo "====== 새 컨테이너 실행 중 ======"
-                               docker run -d --name backend -p 8080:18080 ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                               docker run -d --name backend -p 9090:9090 ${DOCKER_IMAGE}:${BUILD_NUMBER}
                                echo "====== 배포 완료 ======"
                                '
                            """
