@@ -34,6 +34,8 @@ pipeline {
                        sh '''
                            cd backend/overthecam
                            chmod +x gradlew
+                           rm -rf build          # 이 줄 추가
+                           ./gradlew clean       # 이 줄 추가
                            ./gradlew build -x test
                        '''
                        echo '====== Gradle Build 성공 ======'
