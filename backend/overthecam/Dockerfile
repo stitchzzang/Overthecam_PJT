@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk
+FROM openjdk:17-jdk-slim
 LABEL authors="SSAFY"
 
 WORKDIR /app
