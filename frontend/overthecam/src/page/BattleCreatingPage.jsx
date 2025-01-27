@@ -1,8 +1,11 @@
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-import BattleCreateForm from "./BattleCreatingForm";
+import BattleCreateForm from "../components/BattleRoom/BattleCreatingForm";
 
-function BattleCreate() {
+function BattleCreatingPage() {
+  const [battleId, setbattleId] = useState(undefined); // 배틀방 아이디(번호)
+
   const navigate = useNavigate();
 
   function createBattle() {
@@ -13,13 +16,13 @@ function BattleCreate() {
   }
 
   function createBattleRoomHandler(event) {
-    event.preventDefault();
+    // event.preventDefault();
     createBattle();
     console.log("방을 생성 합니다");
     // createBattle() 호출
 
     // 방 생성 후 방 아이디 받아오기
-    const battleId = "1234";
+    setbattleId("1234");
     // battle-room/:battleId 로 이동
     navigate(`/battle-room/${battleId}`);
   }
@@ -33,4 +36,4 @@ function BattleCreate() {
   );
 }
 
-export default BattleCreate;
+export default BattleCreatingPage;
