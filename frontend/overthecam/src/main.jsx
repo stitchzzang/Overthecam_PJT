@@ -4,8 +4,8 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
-import BattleCreate from "./page/BattleCreatingPage.jsx";
-import BattleWaiting from "./page/BattleWaitingPage.jsx";
+import BattleCreate from "./page/BattleRoom/BattleCreatingPage.jsx";
+import BattleWaiting from "./page/BattleRoom/BattleWaitingPage.jsx";
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },

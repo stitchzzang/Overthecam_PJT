@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-import BattleCreateForm from "../components/BattleRoom/BattleCreatingForm";
+import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
 
 function BattleCreatingPage() {
   const [battleId, setbattleId] = useState(undefined); // 배틀방 아이디(번호)
