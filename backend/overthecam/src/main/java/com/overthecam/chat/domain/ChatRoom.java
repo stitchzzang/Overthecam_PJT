@@ -35,6 +35,7 @@ public class ChatRoom extends TimeStampEntity {
     @JoinColumn(name = "battle_id", nullable = false)
     private Battle battle;
 
+    @Builder.Default
     @Column(name = "active")
     private boolean active = true;
 
