@@ -17,7 +17,7 @@ public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
 
-    @MessageMapping("/{chatRoomId}") // "클라이언트는 /publish/{chatRoomId}" 주소로 발행된 메시지를
+    @MessageMapping("/chat/{chatRoomId}") // "클라이언트는 /publish/chat/{chatRoomId}" 주소로 발행된 메시지를
     @SendTo("/subscribe/chat/{chatRoomId}") // "/subscribe/chat/{chatRoomId}"를 구독한 사용자에게 전달
     public ChatMessageResponse sendMessage(ChatMessageRequest request, @DestinationVariable Long chatRoomId){
 
