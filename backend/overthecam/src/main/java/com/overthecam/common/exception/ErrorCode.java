@@ -30,9 +30,9 @@ public enum ErrorCode {
     // 서버 에러 (500)
     SERVER_ERROR("500", "001", "서버 에러가 발생했습니다.", false);
 
-    private final String statusCode;
-    private final String code;
-    private final String message;
-    private final boolean success;
+    private boolean success;
+    private int statusCode;
+    private String message;
+    private T data;
 
 }
