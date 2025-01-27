@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
-import BattleCreate from './components/BattleRoom/BattleCreate.jsx'
+import BattleCreate from './components/BattleRoom/BattleCreating.jsx'
 
 const router = createBrowserRouter([
   { path: '/', element: <App /> },
