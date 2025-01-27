@@ -1,16 +1,19 @@
 package com.overthecam.common;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
-public class ErrorResponse {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ErrorResponse<T> {
 
     private boolean success;
-    private final int statusCode;
-    private final String code;
-    private final String message;
+    private int statusCode;
+    private String message;
+    private T data;
 
 }
