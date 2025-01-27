@@ -8,7 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class GlobalResponseDto<T> {
-    private boolean success;
     private String code;
     private String message;
     private T data;
