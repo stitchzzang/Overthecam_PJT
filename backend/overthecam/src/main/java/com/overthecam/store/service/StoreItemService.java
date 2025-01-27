@@ -15,7 +15,7 @@ public class StoreItemService {
     private final StoreItemRepository storeItemRepository;
 
     public List<StoreItemResponseDto> getAllItems() {
-        return storeItemRepository.findAll().stream()
+        return storeItemRepository.findByTypeLessThan(3).stream()
                 .map(item -> StoreItemResponseDto.builder()
                         .name(item.getName())
                         .price(item.getPrice())

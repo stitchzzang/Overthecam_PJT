@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface StoreItemRepository extends JpaRepository<StoreItem, Long> {
 
-   List<StoreItem> findAll();
+   List<StoreItem> findByTypeLessThan(int type);
 
 }
