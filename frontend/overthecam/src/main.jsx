@@ -9,7 +9,7 @@ import BattleWaiting from "./page/BattleRoom/BattleWaitingPage.jsx";
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
-  { path: "create-battle-room", element: <BattleCreate /> },
+  { path: "/create-battle-room", element: <BattleCreate /> },
   { path: "/battle-room/:battleId", element: <BattleWaiting /> },
 ]);
 
