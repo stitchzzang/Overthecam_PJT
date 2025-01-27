@@ -1,6 +1,5 @@
 package com.overthecam.store.controller;
 
-import com.overthecam.store.dto.ApiResponse;
 import com.overthecam.store.dto.StoreItemResponseDto;
 import com.overthecam.store.service.StoreItemService;
 import lombok.RequiredArgsConstructor;
