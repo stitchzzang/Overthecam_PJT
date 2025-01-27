@@ -9,6 +9,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ChatMessageResponse {
+    private Long battleId;
     private Long chatRoomId;
     private String username;
     private String content;

@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ChatMessageRequest {
-    private Long chatRoomId;
+    private Long battleId;
     private String username;
     private String content;
     private LocalDateTime timestamp;
