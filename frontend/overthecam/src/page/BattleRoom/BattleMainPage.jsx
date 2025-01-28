@@ -18,9 +18,6 @@ function BattleMainPage() {
     },
   ]);
 
-  const nickName = "고구마감자구황작물";
-  const sessionId = "session-1234";
-
   return (
     <>
       <Link to={"/create-battle-room"}>방만들기</Link>
