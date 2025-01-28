@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { OpenVidu } from "openvidu-browser";
 import axios from "axios";
+import UserVideoComponent from "../../components/BattleRoom/UserVideo";
 
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
@@ -202,6 +203,7 @@ function BattleRoomPage() {
       <p>방번호: {battleId}</p>
       <h1>대기실: {roomName}</h1>
       <p>방장: {roomMaster}</p>
+      <UserVideoComponent streamManager={publisher}/>
     </div>
   );
 }
