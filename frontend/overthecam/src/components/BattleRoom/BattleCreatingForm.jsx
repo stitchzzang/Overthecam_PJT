@@ -1,5 +1,3 @@
-import { Form } from "react-router-dom";
-
 function BattleCreateForm({ onCreateRoom }) {
   // creat 버튼 누르면면 세션 생성 됨, 생성한 사람한테 master(방장 부여)
   // webRTC 연결 후 다른 사람들이 들어 올 수 있게 해야함 방 id, 제목 등 post 보내고...
