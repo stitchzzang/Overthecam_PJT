@@ -14,7 +14,14 @@ public enum ErrorCode {
 
     // 회원 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다"),
-    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 등록된 이메일입니다");
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 등록된 이메일입니다"),
+
+
+    // 채팅 관련 에러 추가
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다"),
+    BATTLE_NOT_FOUND(HttpStatus.NOT_FOUND, "배틀이 존재하지 않습니다"),
+    UNAUTHORIZED_CHAT_ACCESS(HttpStatus.FORBIDDEN, "채팅방 접근 권한이 없습니다"),
+    CHAT_ROOM_INACTIVE(HttpStatus.BAD_REQUEST, "비활성화된 채팅방입니다");
 
 
     private final HttpStatus httpStatus;
