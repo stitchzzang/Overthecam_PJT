@@ -1,4 +1,4 @@
-package com.overthecam.common.exception;
+package com.overthecam.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
