@@ -14,122 +14,78 @@ function BattleRoomPage() {
   const location = useLocation();
   // create 를 통해 들어온 사람은 isMaster true값을 가짐
   const { sessionId, isMaster, token } = location.state;
-  const [publisher, setPublisher] = useState(null);
-  const [subscribers, setSubscribers] = useState([]);
+  // useState를 사용하여 state 관리
+  const [mySessionId, setMySessionId] = useState(sessionId);
+  const [myUserName, setMyUserName] = useState(
+    `Participant${Math.floor(Math.random() * 100)}`
+  );
   const [session, setSession] = useState(undefined);
   const [mainStreamManager, setMainStreamManager] = useState(undefined); // Main video of the page
+  const [publisher, setPublisher] = useState(undefined);
+  const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(null);
-  const [Master, setMaster] = useState(null); // 방장 정보
-  const [isPlaying, setIsPlaying] = useState(false); // false 대기실 모드
-  const [playersList, setPlayersList] = useState([]);
-  const [isBattler, setIsBattler] = useState(false); // 배틀러 인지 아닌지
-  const [speakingUsers, setSpeakingUsers] = useState(new Set()); // 말하는 사람 speak 효과과
-  const [isLoading, setIsLoading] = useState(false); // 로딩 처리리
-
+  const [participantMode, setParticipantMode] = useState(""); // 참가자 모드 상태 추가
+  const [speakingUsers, setSpeakingUsers] = useState(new Set());
   const navigate = useNavigate();
 
   const OV = useRef(null); // useRef를 사용하여 변수에 대한 참조를 저장, 컴포넌트가 리렌더링되어도 변수에 대한 참조가 유지(값을 유지)
 
+  // useEffect 훅을 사용해서 컴포넌트 렌더링 시 특정 작업 실행하는 hook
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (session) {
-        session.disconnect();
-        console.log("🔴 beforeunload 실행: OpenVidu 세션 종료");
-      }
-    };
-
+    // handleBeforeUnload 함수 생성
+    const handleBeforeUnload = () => leaveSession();
+    // 언마운트(페이지 이동 시, beforeunload) 시 세션 연결 해제(handleBeforeUnload 함수 실행)
     window.addEventListener("beforeunload", handleBeforeUnload);
+    joinSession();
 
     return () => {
+      // 언마운트 시 handleBeforeUnload 함수 실행하고 나서, 이전에 추가했던 이벤트 제거(메모리 누수 방지)
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [session]); // session이 바뀔 때마다 beforeunload 설정
+    // 빈 배열을 넣어주면 컴포넌트가 마운트될 때만 실행되고 언마운트될 때만 실행
+  }, []);
 
-  // isInMeeting 상태가 변경될 때만 OpenVidu 세션을 관리
-  useEffect(() => {
-    if (isPlaying && isBattler) {
-      // 게임모드드로 전환 시, OpenVidu 세션 생성
-      const newSession = createBattlerSesion();
-      // 세션 생성 함수
-      setSession(newSession);
-      console.log("🟢 회의 모드 ON: OpenVidu 세션 연결됨");
-    } else {
-      // 대기실로 돌아오면 세션 해제
-      if (session) {
-        session.disconnect();
-        setSession(null);
-        console.log("🛑 대기실 모드 ON: OpenVidu 세션 종료됨");
+  // usecallback을 사용해서 함수 재생성 방지, 불필요한 리랜더링 감소소
+  const joinSession = useCallback(
+    async (event) => {
+      if (event) {
+        event.preventDefault();
       }
-    }
-  }, [isPlaying, isBattler]); // isPlaying 값이 바뀔 때 실행
 
-  const createBattlerSesion = () => {
-    const OV = new OpenVidu();
-    const newSession = OV.initSession();
+      const mode = "talker";
+      setParticipantMode(mode);
 
-    const publisher = OV.initPublisher(undefined, {
-      videoSource: undefined, // 비디오 소스 설정 (undefined로 기본값 사용)
-      audioSource: undefined, // 오디오 소스 설정 (기본값 사용용)
-      publishAudio: true, // 오디오 활성화
-      publishVideo: true, // 초기에는 비디오 비활성화 (대기실 모드)
-      resolution: "640x480", // 해상도 설정 (필요에 맞게 조정)
-      frameRate: 30, // 초당 프레임 수 (필요에 맞게 조정)
-    });
+      OV.current = new OpenVidu();
+      const mySession = OV.current.initSession();
 
-    newSession.on("streamCreated", (event) => {
-      console.log("배틀러 모드로 스트림 시작");
-    });
-
-    newSession.on("streamDestroyed", (event) => {
-      console.log("배틀러 모드 스트림 파괴...");
-    });
-
-    return { newSession, publisher };
-  };
-
-  // 버튼으로 대기실 ↔ 회의실 모드 전환
-  const toggleMeeting = () => setIsInMeeting((prev) => !prev);
-
-  // 렌더링 시 오픈비두 띄우기 - 방장이 접속 하면, 오픈 비두 세션이 만들어 진다.
-  useEffect(() => {
-    const newOV = new OpenVidu();
-    // setOV(newOV);
-    const newSession = newOV.initSession();
-
-    newSession.on("streamCreated", (event) => {
-      const subscriber = newSession.subscribe(event.stream, undefined);
-      setSubscribers((subscribers) => {
-        console.log("새로운 참여자: ", subscribers);
-        return [...subscribers, subscriber];
+      // 세션 이벤트 핸들러 설정
+      mySession.on("streamCreated", (event) => {
+        const subscriber = mySession.subscribe(event.stream, undefined);
+        setSubscribers((subscribers) => [...subscribers, subscriber]);
       });
-    });
 
-    newSession.on("streamDestroyed", (event) => {
-      setSubscribers((subscribers) =>
-        subscribers.filter((sub) => sub !== event.stream.streamManager)
-      );
-    });
+      mySession.on("streamDestroyed", (event) => {
+        setSubscribers((subscribers) =>
+          subscribers.filter((sub) => sub !== event.stream.streamManager)
+        );
+      });
 
-    newSession.on("exception", (exception) => {
-      console.warn("세션 예외 발생:", exception);
-    });
+      mySession.on("exception", (exception) => {
+        console.warn("세션 예외 발생:", exception);
+      });
 
-    newSession.on("connectionDestroyed", (event) => {
-      // 커넥션 끊기면 서버에서 자동으로 사용자 종료하는 설정
-      console.log("사용자 연결 종료: ", event.connection);
-    });
+      setSession(mySession);
 
-    // 비동기적으로 connect()를 완료한 후에만 publish()를 호출
-    const connectAndPublish = async () => {
       try {
-        await newSession.connect(token); // 토큰으로 세션에 연결
-        console.log("세션 연결 성공");
+        const userData =
+          mode === "talker" ? `${myUserName}-Talker` : `${myUserName}-Watcher`;
 
-        // 퍼블리셔 초기화 후, 세션에 퍼블리셔를 퍼블리시
-        const publisher = newOV.initPublisher(undefined, {
-          audioSource: undefined,
+        await mySession.connect(token, { clientData: userData });
+
+        const publisher = await OV.current.initPublisherAsync(undefined, {
+          audioSource: mode === "talker" ? undefined : false,
           videoSource: undefined,
-          publishAudio: false,
+          publishAudio: mode === "talker",
           publishVideo: true,
           resolution: "640x480",
           frameRate: 30,
@@ -137,167 +93,228 @@ function BattleRoomPage() {
           mirror: false,
         });
 
-        // 퍼블리셔 퍼블리시
-        await newSession.publish(publisher);
+        // 발화 감지 설정
+        if (mode === "talker") {
+          publisher.on("publisherStartSpeaking", (event) => {
+            setSpeakingUsers((prev) =>
+              new Set(prev).add(publisher.stream.connection.connectionId)
+            );
+          });
+
+          publisher.on("publisherStopSpeaking", (event) => {
+            setSpeakingUsers((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(publisher.stream.connection.connectionId);
+              return newSet;
+            });
+          });
+        }
+
+        publisher.on("streamCreated", (event) => {
+          console.log("Publisher stream created:", event);
+        });
+
+        publisher.on("streamPlaying", () => {
+          console.log("Publisher stream playing");
+        });
+
+        await mySession.publish(publisher);
+
+        const devices = await OV.current.getDevices();
+        const videoDevices = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
+        const currentVideoDeviceId = publisher.stream
+          .getMediaStream()
+          .getVideoTracks()[0]
+          .getSettings().deviceId;
+        const currentVideoDevice = videoDevices.find(
+          (device) => device.deviceId === currentVideoDeviceId
+        );
+
+        setCurrentVideoDevice(currentVideoDevice);
+        setMainStreamManager(publisher);
         setPublisher(publisher);
       } catch (error) {
-        console.log("There was an error connecting to the session:", error);
+        console.error("세션 연결 중 오류 발생:", error);
       }
-    };
-
-    // 비동기 요청 함수 호출
-    connectAndPublish();
-
-    setSession(newSession);
-
-    return () => {
-      if (newSession && newSession.connection) {
-        newSession.disconnect();
-        setCurrentVideoDevice(null);
-        setPublisher(null);
-        setSession(null);
-      } else {
-        console.log(
-          "세션이 연결되지 않았습니다. disconnect 호출을 생략합니다."
-        );
-      }
-    };
-  }, [sessionId, token]);
-
-  // Add cleanup effect
-  useEffect(() => {
-    return () => {
-      subscribers.forEach((subscriber) => {
-        if (subscriber) {
-          try {
-            subscriber.stream?.dispose();
-          } catch (error) {
-            console.warn("Error disposing subscriber:", error);
-          }
-        }
-      });
-    };
-  }, [subscribers]);
-
+    },
+    [myUserName]
+  );
   // 세션 나가기 함수 수정
-  const leaveSession = useCallback(async () => {
-    try {
-      // Publisher MediaStream 정리
-      if (publisher) {
-        try {
-          const stream = publisher.stream.getMediaStream();
-          if (stream) {
-            stream.getTracks().forEach((track) => {
-              track.stop();
-            });
-          }
-          await publisher.stream?.dispose();
-          setPublisher(undefined);
-        } catch (e) {
-          console.warn("Publisher cleanup error:", e);
-        }
-      }
-
-      // Subscribers MediaStream 정리
-      for (const subscriber of subscribers) {
-        try {
-          const stream = subscriber.streamManager?.stream?.getMediaStream();
-          if (stream) {
-            stream.getTracks().forEach((track) => {
-              track.stop();
-            });
-          }
-          await subscriber.streamManager?.stream?.dispose();
-        } catch (e) {
-          console.warn("Subscriber cleanup error:", e);
-        }
-      }
-      setSubscribers([]);
-
-      // MainStreamManager 정리
-      setMainStreamManager(undefined);
-
-      // 세션 정리
-      if (session) {
-        try {
-          // silent 옵션 추가
-          await session.disconnect({ silent: true });
-          navigate("/battle-list");
-        } catch (e) {
-          console.warn("Session disconnect error:", e);
-        }
-      }
-      setSession(undefined);
-
-      // OpenVidu 객체 정리
-      if (OV.current) {
-        OV.current = null;
-      }
-    } catch (error) {
-      console.warn("Leave session error:", error);
-    } finally {
-      // 최종 상태 초기화
-      setSession(undefined);
-      setSubscribers([]);
-      setPublisher(undefined);
-      setMainStreamManager(undefined);
+  const leaveSession = useCallback(() => {
+    if (session) {
+      session.disconnect();
     }
-  }, [session, publisher, subscribers]);
 
-  // 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      if (session) {
-        session.disconnect();
-
-        if (publisher) {
-          publisher.stream.dispose();
-        }
-        setSession(null);
-      }
-    };
+    // 상태 초기화
+    OV.current = null;
+    setSession(undefined);
+    setSubscribers([]);
+    setMySessionId("SessionA");
+    setMyUserName(`Participant${Math.floor(Math.random() * 100)}`);
+    setMainStreamManager(undefined);
+    setPublisher(undefined);
   }, [session]);
+
+   // 구독자 타입 확인 함수 수정
+   const getSubscriberType = (subscriber) => {
+     try {
+       const data = JSON.parse(subscriber.stream.connection.data);
+       // 정확한 문자열 비교를 위해 수정
+       return data.clientData.toLowerCase().includes("talker")
+         ? "talker"
+         : "watcher";
+     } catch (error) {
+       console.error("구독자 정보 파싱 오류:", error);
+       return "watcher";
+     }
+   };
+
+   // 구독자의 발화 감지 이벤트 처리
+   useEffect(() => {
+     if (session) {
+       session.on("publisherStartSpeaking", (event) => {
+         setSpeakingUsers((prev) =>
+           new Set(prev).add(event.connection.connectionId)
+         );
+       });
+
+       session.on("publisherStopSpeaking", (event) => {
+         setSpeakingUsers((prev) => {
+           const newSet = new Set(prev);
+           newSet.delete(event.connection.connectionId);
+           return newSet;
+         });
+       });
+     }
+   }, [session]);
 
   return (
     <div className="container">
-      <h1>대기실</h1>
-      <div id="session">
-        <div id="session-header">
-          <h1 id="session-title">{sessionId}</h1>
-          <input
-            className="btn btn-large btn-danger"
-            type="button"
-            id="buttonLeaveSession"
-            onClick={leaveSession}
-            value="Leave session"
-          />
-        </div>
+        <div id="session">
+          <div id="session-header">
+            <h1 id="session-title">{mySessionId}</h1>
+            <input
+              className="btn btn-large btn-danger"
+              type="button"
+              id="buttonLeaveSession"
+              onClick={leaveSession}
+              value="Leave session"
+            />
+          </div>
 
-        <div id="video-container" className="col-12">
-          {/* Talker 섹션 */}
-          <div className="row mb-3">
-            {/* 내가 Talker인 경우 표시 */}
-            {publisher && (
-              <div className="col-md-6">
-                <div className="participant-name">
-                  <span>(발표자)</span>
-                </div>
-                <UserVideoComponent streamManager={publisher} />
-              </div>
-            )}
-            {subscribers.map((subscriber, i) => {
-              return (
-                <div key={i}>
-                  <div className="participant-name">
-                    <span>(다른 사람람)</span>
+          <div id="video-container" className="col-12">
+            {/* Talker 섹션 */}
+            <div className="row mb-3">
+              {/* 내가 Talker인 경우 표시 */}
+              {publisher && participantMode === "talker" && (
+                <div className="col-md-6">
+                  <div
+                    className={`talker-video-container ${
+                      speakingUsers.has(
+                        publisher.stream.connection.connectionId
+                      )
+                        ? "speaking"
+                        : ""
+                    }`}
+                  >
+                    <div className="participant-name">
+                      <span>{myUserName} (발표자)</span>
+                      {speakingUsers.has(
+                        publisher.stream.connection.connectionId
+                      ) && <span className="speaking-indicator">🎤</span>}
+                    </div>
+                    <UserVideoComponent streamManager={publisher} />
                   </div>
-                  <UserVideoComponent streamManager={subscriber} />
                 </div>
-              );
-            })}
+              )}
+
+              {/* 다른 Talker들 표시 */}
+              {subscribers
+                .filter(
+                  (subscriber) => getSubscriberType(subscriber) === "talker"
+                )
+                .map((subscriber, i) => {
+                  const subscriberData = JSON.parse(
+                    subscriber.stream.connection.data
+                  );
+                  const subscriberName =
+                    subscriberData.clientData.split("-")[0];
+                  const isSubscriberSpeaking = speakingUsers.has(
+                    subscriber.stream.connection.connectionId
+                  );
+
+                  return (
+                    <div className="col-md-6" key={i}>
+                      <div
+                        className={`talker-video-container ${
+                          isSubscriberSpeaking ? "speaking" : ""
+                        }`}
+                      >
+                        <div className="participant-name">
+                          <span>{subscriberName} (발표자)</span>
+                          {isSubscriberSpeaking && (
+                            <span className="speaking-indicator">🎤</span>
+                          )}
+                        </div>
+                        <UserVideoComponent streamManager={subscriber} />
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Watcher 섹션 */}
+            <div className="row">
+              {/* 내가 Watcher인 경우 표시 */}
+              {publisher && participantMode === "watcher" && (
+                <div className="col-md-3">
+                  <div className="watcher-video-container">
+                    <div className="participant-name">
+                      <span>{myUserName} (시청자)</span>
+                    </div>
+                    <UserVideoComponent streamManager={publisher} />
+                  </div>
+                </div>
+              )}
+
+              {/* 다른 Watcher들 표시 */}
+              {subscribers
+                .filter(
+                  (subscriber) => getSubscriberType(subscriber) === "watcher"
+                )
+                .map((subscriber, i) => {
+                  const subscriberData = JSON.parse(
+                    subscriber.stream.connection.data
+                  );
+                  const subscriberName =
+                    subscriberData.clientData.split("-")[0];
+                  return (
+                    <div
+                      className={`${
+                        participantMode === "watcher" ? "col-md-3" : "col-md-6"
+                      }`}
+                      key={i}
+                    >
+                      <div
+                        className={`${
+                          participantMode === "watcher"
+                            ? "watcher-video-container"
+                            : "talker-video-container"
+                        }`}
+                      >
+                        <div className="participant-name">
+                          <span>{subscriberName} (시청자)</span>
+                        </div>
+                        <UserVideoComponent streamManager={subscriber} />
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
