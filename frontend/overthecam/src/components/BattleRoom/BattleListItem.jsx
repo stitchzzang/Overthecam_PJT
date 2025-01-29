@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../../service/BattleRoom/api";
+import { getToken, getTokenForJoining } from "../../service/BattleRoom/api";
 
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
@@ -10,7 +10,7 @@ function BattleListItem(props) {
 
   const gotoBattleRoom = async (sessionId) => {
     try {
-      const token = await getToken(); // await로 토큰 값 받아오기
+      const token = await getToken(sessionId); // await로 토큰 값 받아오기
 
       navigate(`/battle-room/${sessionId}`, {
         state: {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { OpenVidu } from "openvidu-browser";
 import axios from "axios";
@@ -12,65 +12,120 @@ function BattleRoomPage() {
   // useState를 사용하여 state 관리
   const [myOV, setOV] = useState(null);
   const location = useLocation();
+  // create 를 통해 들어온 사람은 isMaster true값을 가짐
   const { sessionId, isMaster, token } = location.state;
   const [publisher, setPublisher] = useState(null);
   const [subscribers, setSubscribers] = useState([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playersList, setPlayersList] = useState([]);
   const [session, setSession] = useState(undefined);
   const [mainStreamManager, setMainStreamManager] = useState(undefined); // Main video of the page
   const [currentVideoDevice, setCurrentVideoDevice] = useState(null);
-  const [speakingUsers, setSpeakingUsers] = useState(new Set());
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [Master, setMaster] = useState(null); // 방장 정보
+  const [isPlaying, setIsPlaying] = useState(false); // false 대기실 모드
+  const [playersList, setPlayersList] = useState([]);
+  const [isBattler, setIsBattler] = useState(false); // 배틀러 인지 아닌지
+  const [speakingUsers, setSpeakingUsers] = useState(new Set()); // 말하는 사람 speak 효과과
+  const [isLoading, setIsLoading] = useState(false); // 로딩 처리리
 
-  const OV = useRef(null); // useRef를 사용하여 변수에 대한 참조를 저장, 컴포넌트가 리렌더링되어도 변수에 대한 참조가 유지(값을 유지지)
+  const navigate = useNavigate();
 
-  // useEffect 훅을 사용해서 컴포넌트 렌더링 시 특정 작업 실행하는 hook
+  const OV = useRef(null); // useRef를 사용하여 변수에 대한 참조를 저장, 컴포넌트가 리렌더링되어도 변수에 대한 참조가 유지(값을 유지)
+
   useEffect(() => {
-    // handleBeforeUnload 함수 생성
-    const handleBeforeUnload = () => leaveSession();
-    // 언마운트(페이지 이동 시, beforeunload) 시 세션 연결 해제(handleBeforeUnload 함수 실행)
+    const handleBeforeUnload = () => {
+      if (session) {
+        session.disconnect();
+        console.log("🔴 beforeunload 실행: OpenVidu 세션 종료");
+      }
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      // 언마운트 시 handleBeforeUnload 함수 실행하고 나서, 이전에 추가했던 이벤트 제거(메모리 누수 방지)
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-    // 빈 배열을 넣어주면 컴포넌트가 마운트될 때만 실행되고 언마운트될 때만 실행
-  }, []);
+  }, [session]); // session이 바뀔 때마다 beforeunload 설정
+
+  // isInMeeting 상태가 변경될 때만 OpenVidu 세션을 관리
+  useEffect(() => {
+    if (isPlaying && isBattler) {
+      // 게임모드드로 전환 시, OpenVidu 세션 생성
+      const newSession = createBattlerSesion();
+      // 세션 생성 함수
+      setSession(newSession);
+      console.log("🟢 회의 모드 ON: OpenVidu 세션 연결됨");
+    } else {
+      // 대기실로 돌아오면 세션 해제
+      if (session) {
+        session.disconnect();
+        setSession(null);
+        console.log("🛑 대기실 모드 ON: OpenVidu 세션 종료됨");
+      }
+    }
+  }, [isPlaying, isBattler]); // isPlaying 값이 바뀔 때 실행
+
+  const createBattlerSesion = () => {
+    const OV = new OpenVidu();
+    const newSession = OV.initSession();
+
+    const publisher = OV.initPublisher(undefined, {
+      videoSource: undefined, // 비디오 소스 설정 (undefined로 기본값 사용)
+      audioSource: undefined, // 오디오 소스 설정 (기본값 사용용)
+      publishAudio: true, // 오디오 활성화
+      publishVideo: true, // 초기에는 비디오 비활성화 (대기실 모드)
+      resolution: "640x480", // 해상도 설정 (필요에 맞게 조정)
+      frameRate: 30, // 초당 프레임 수 (필요에 맞게 조정)
+    });
+
+    newSession.on("streamCreated", (event) => {
+      console.log("배틀러 모드로 스트림 시작");
+    });
+
+    newSession.on("streamDestroyed", (event) => {
+      console.log("배틀러 모드 스트림 파괴...");
+    });
+
+    return { newSession, publisher };
+  };
+
+  // 버튼으로 대기실 ↔ 회의실 모드 전환
+  const toggleMeeting = () => setIsInMeeting((prev) => !prev);
 
   // 렌더링 시 오픈비두 띄우기 - 방장이 접속 하면, 오픈 비두 세션이 만들어 진다.
   useEffect(() => {
     const newOV = new OpenVidu();
-    setOV(newOV);
+    // setOV(newOV);
     const newSession = newOV.initSession();
 
     newSession.on("streamCreated", (event) => {
       const subscriber = newSession.subscribe(event.stream, undefined);
-      // 구독자의 connectionData에서 닉네임 파싱
-      console.log(event.stream.connection.data);
-      const connectionData = event.stream.connection.data;
-      const nickname = connectionData || "Anonymous";
-      setSubscribers((prevSubscribers) => [
-        ...prevSubscribers,
-        { streamManager: subscriber, nickname: nickname }, // 구독자 객체에 닉네임 추가
-      ]);
-
-      console.log("새로운 참여자: ", nickname);
+      setSubscribers((subscribers) => {
+        console.log("새로운 참여자: ", subscribers);
+        return [...subscribers, subscriber];
+      });
     });
 
     newSession.on("streamDestroyed", (event) => {
-      setSubscribers((prevSubscribers) =>
-        prevSubscribers.filter(
-          (sub) => sub.streamManager.stream.streamId !== event.stream.streamId
-        )
+      setSubscribers((subscribers) =>
+        subscribers.filter((sub) => sub !== event.stream.streamManager)
       );
     });
 
-    newSession
-      .connect(token)
-      .then(() => {
+    newSession.on("exception", (exception) => {
+      console.warn("세션 예외 발생:", exception);
+    });
+
+    newSession.on("connectionDestroyed", (event) => {
+      // 커넥션 끊기면 서버에서 자동으로 사용자 종료하는 설정
+      console.log("사용자 연결 종료: ", event.connection);
+    });
+
+    // 비동기적으로 connect()를 완료한 후에만 publish()를 호출
+    const connectAndPublish = async () => {
+      try {
+        await newSession.connect(token); // 토큰으로 세션에 연결
+        console.log("세션 연결 성공");
+
+        // 퍼블리셔 초기화 후, 세션에 퍼블리셔를 퍼블리시
         const publisher = newOV.initPublisher(undefined, {
           audioSource: undefined,
           videoSource: undefined,
@@ -81,39 +136,30 @@ function BattleRoomPage() {
           insertMode: "APPEND",
           mirror: false,
         });
-        newSession.publish(publisher);
-        setPublisher(publisher);
 
-        const nickname = "나";
-        setSubscribers((prevSubscribers) => [
-          ...prevSubscribers,
-          { streamManager: publisher, nickname: nickname },
-        ]);
-      })
-      .catch((error) =>
-        console.log("There was an error connecting to the session:", error)
-      );
+        // 퍼블리셔 퍼블리시
+        await newSession.publish(publisher);
+        setPublisher(publisher);
+      } catch (error) {
+        console.log("There was an error connecting to the session:", error);
+      }
+    };
+
+    // 비동기 요청 함수 호출
+    connectAndPublish();
 
     setSession(newSession);
 
-    // // 새로운 방장 정보를 처리하는 이벤트 리스너 추가
-    // newSession.on("signal:newModerator", (event) => {
-    //   const newModeratorNickname = event.data;
-    //   // 현재 사용자가 새로운 방장인지 확인하고 상태 업데이트
-    //   if (userNickname === newModeratorNickname) {
-    //     setIsModerator(true);
-    //     console.log("방장이 되었습니다.");
-    //   }
-    // });
-
     return () => {
-      if (newSession) {
+      if (newSession && newSession.connection) {
         newSession.disconnect();
-
         setCurrentVideoDevice(null);
         setPublisher(null);
         setSession(null);
-        // setSubscribers([]);
+      } else {
+        console.log(
+          "세션이 연결되지 않았습니다. disconnect 호출을 생략합니다."
+        );
       }
     };
   }, [sessionId, token]);
@@ -141,7 +187,7 @@ function BattleRoomPage() {
         try {
           const stream = publisher.stream.getMediaStream();
           if (stream) {
-            stream.getTracks().forEach(track => {
+            stream.getTracks().forEach((track) => {
               track.stop();
             });
           }
@@ -157,7 +203,7 @@ function BattleRoomPage() {
         try {
           const stream = subscriber.streamManager?.stream?.getMediaStream();
           if (stream) {
-            stream.getTracks().forEach(track => {
+            stream.getTracks().forEach((track) => {
               track.stop();
             });
           }
@@ -176,6 +222,7 @@ function BattleRoomPage() {
         try {
           // silent 옵션 추가
           await session.disconnect({ silent: true });
+          navigate("/battle-list");
         } catch (e) {
           console.warn("Session disconnect error:", e);
         }
@@ -202,6 +249,11 @@ function BattleRoomPage() {
     return () => {
       if (session) {
         session.disconnect();
+
+        if (publisher) {
+          publisher.stream.dispose();
+        }
+        setSession(null);
       }
     };
   }, [session]);
@@ -227,23 +279,22 @@ function BattleRoomPage() {
             {/* 내가 Talker인 경우 표시 */}
             {publisher && (
               <div className="col-md-6">
-                <div
-                  className={`talker-video-container ${
-                    speakingUsers.has(publisher.stream.connection.connectionId)
-                      ? "speaking"
-                      : ""
-                  }`}
-                >
-                  <div className="participant-name">
-                    <span>(발표자)</span>
-                    {speakingUsers.has(
-                      publisher.stream.connection.connectionId
-                    ) && <span className="speaking-indicator">🎤</span>}
-                  </div>
-                  <UserVideoComponent streamManager={publisher} />
+                <div className="participant-name">
+                  <span>(발표자)</span>
                 </div>
+                <UserVideoComponent streamManager={publisher} />
               </div>
             )}
+            {subscribers.map((subscriber, i) => {
+              return (
+                <div key={i}>
+                  <div className="participant-name">
+                    <span>(다른 사람람)</span>
+                  </div>
+                  <UserVideoComponent streamManager={subscriber} />
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
