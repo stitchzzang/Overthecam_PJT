@@ -21,8 +21,8 @@ function BattleRoomPage() {
   //  const token = queryParams.get("token");
   // useState를 사용하여 state 관리
   const [mySessionId, setMySessionId] = useState(sessionId);
-  const [myUserName, setMyUserName] = useState(
-    `Participant${Math.floor(Math.random() * 100)}`
+  const [myNickName, setmyNickName] = useState(
+    `별명${Math.floor(Math.random() * 100)}`
   );
   const [session, setSession] = useState(undefined);
   const [mainStreamManager, setMainStreamManager] = useState(undefined); // Main video of the page
@@ -30,6 +30,10 @@ function BattleRoomPage() {
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(null);
   const [isModerator, setisModerator] = useState(false); // 참가자 모드 상태 추가
+  const [isWaiting, setIsWaiting] = useState(true); // 대기실실
+  const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기기
+  const [isCoupleMode, setIsCoupleMode] = useState(true); // 둘이서 하는 건지? (둘이서 하는거면 ai 판정정)
+  const [battlers, setBattlers] = useState([]);
   const [speakingUsers, setSpeakingUsers] = useState(new Set());
   const navigate = useNavigate();
 
@@ -87,8 +91,8 @@ function BattleRoomPage() {
       try {
         const userData =
           isModerator === true
-            ? `${myUserName}-방장`
-            : `${myUserName}-참여자자`;
+            ? `${myNickName}-방장`
+            : `${myNickName}-참여자자`;
 
         await mySession.connect(token, { clientData: userData });
 
@@ -149,7 +153,7 @@ function BattleRoomPage() {
         console.error("세션 연결 중 오류 발생:", error);
       }
     },
-    [myUserName]
+    [myNickName]
   );
   // 세션 나가기 함수 수정
   const leaveSession = useCallback(() => {
@@ -157,15 +161,32 @@ function BattleRoomPage() {
       session.disconnect();
     }
 
+    // 방장이 나가면 새로운 방장을 선정하는 로직
+    if (isModerator && subscribers.length > 0) {
+      const newModerator = subscribers[0];
+      // 참여자들에게 방장이 바뀐 것을 알림으로 알려줌
+      session
+        .signal({
+          to: [],
+          type: "newModerator",
+          data: newModerator,
+        })
+        .then(() => {
+          console.log("New moderator signal sent");
+          console.log("새 방장: ", newModerator);
+        })
+        .catch(() => {
+          console.error("error sending new moderator signal", error);
+        });
+    }
     // 상태 초기화
     OV.current = null;
     setSession(undefined);
     setSubscribers([]);
-    setMySessionId("SessionA");
-    setMyUserName(`Participant${Math.floor(Math.random() * 100)}`);
+    setMySessionId("");
+    setmyNickName("");
     setMainStreamManager(undefined);
     setPublisher(undefined);
-
     navigate("/battle-list");
   }, [session]);
 
@@ -181,58 +202,90 @@ function BattleRoomPage() {
     }
   };
 
-  // 구독자의 발화 감지 이벤트 처리
-  useEffect(() => {
-    if (session) {
-      session.on("publisherStartSpeaking", (event) => {
-        setSpeakingUsers((prev) =>
-          new Set(prev).add(event.connection.connectionId)
-        );
-      });
+  //배틀러 선정 핸들러
+  const chooseBattlersHandler = (event) => {
+    const battler = event;
+    console.log("배틀러 선정");
+    // 배틀러 선정
+  };
 
-      session.on("publisherStopSpeaking", (event) => {
-        setSpeakingUsers((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(event.connection.connectionId);
-          return newSet;
-        });
-      });
+  // 배틀 시작, 방장에게 권한을 줌
+  const startBattle = async () => {
+    if (players.length <= 6 && players.length > 1) {
+      setIsCoupleMode(false);
+    } else if (players.length == 2) {
+      setIsCoupleMode(true);
+    } else if (players.length == 1) {
+      console.log("혼자서는 게임을 진행할 수 없습니다.");
     }
-  }, [session]);
+    // 배틀 시작 api 요청
+    // await start(sessionId);
+    // 2명이면 ai 판정 모드
+    // 2명 이상이면 판정단 있는 모드
+    setIsWaiting(false);
+  };
+
+  // 게임모드 진입 시
+  useEffect(()=>{
+
+  }, [isWaiting])
 
   return (
     <div className="container">
-      <div id="session">
-        <div id="session-header">
-          <h1 id="session-title">{sessionId}</h1>
-          <input
-            className="btn btn-large btn-danger"
-            type="button"
-            id="buttonLeaveSession"
-            onClick={leaveSession}
-            value="Leave session"
-          />
-        </div>
-
-        <div id="video-container" className="col-12">
-          <div className="participant-name">
-            <span>{myUserName} (나)</span>
+      {isWaiting ? (
+        <div id="session">
+          <div id="session-header">
+            <h1 id="session-title">{sessionId}</h1>
+            <input
+              className="btn btn-large btn-danger"
+              type="button"
+              id="buttonLeaveSession"
+              onClick={leaveSession}
+              value="Leave session"
+            />
           </div>
-          <UserVideoComponent streamManager={publisher} />
-        </div>
-        {/* 다른 참여자들들 표시 */}
-        {subscribers
-          .map((subscriber, i) => {
+          <button onClick={startBattle}>게임 시작하기</button>
+
+          <div id="video-container" className="col-12">
+            <div className="participant-name">
+              <span>{myNickName} (나)</span>
+              <UserVideoComponent streamManager={publisher} />
+            </div>
+          </div>
+          {/* 다른 참여자들 표시 */}
+          {subscribers.map((subscriber, i) => {
             return (
               <div className="col-md-6" key={i}>
-                  <div className="participant-name">
-                    <span>다른 사람람</span>
-                  </div>
+                <div className="participant-name">
+                  <span>다른 사람</span>
                   <UserVideoComponent streamManager={subscriber} />
+                </div>
               </div>
             );
           })}
-      </div>
+        </div>
+      ) : (
+        <div>
+          <h1>게임모드</h1>
+          <div id="video-container" className="col-12">
+            <div className="participant-name">
+              <span>{myNickName} (나)</span>
+              <UserVideoComponent streamManager={publisher} />
+            </div>
+          </div>
+          {/* 다른 참여자들 표시 */}
+          {subscribers.map((subscriber, i) => {
+            return (
+              <div className="col-md-6" key={i}>
+                <div className="participant-name">
+                  <span>다른 사람</span>
+                  <UserVideoComponent streamManager={subscriber} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
