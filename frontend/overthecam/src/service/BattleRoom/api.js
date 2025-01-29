@@ -3,6 +3,7 @@ import axios from "axios";
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
 
+// 세션 생성
 export const createSession = async (sessionId) => {
   try {
     const response = await axios.post(
@@ -44,15 +45,6 @@ export const getToken = async (sessionId) => {
     return await createToken(newSessionId);
   } catch (error) {
     console.error("토큰 획득 오류:", error);
-    throw error;
-  }
-};
-
-export const getTokenForJoining = async (sessionId) => {
-  try {
-    return await createToken(sessionId);
-  } catch (error) {
-    console.error("기존 세션 입장 오류:", error);
     throw error;
   }
 };

@@ -215,111 +215,23 @@ function BattleRoomPage() {
         </div>
 
         <div id="video-container" className="col-12">
-          {/* 방장장 섹션 */}
-          <div className="row mb-3">
-            {/* 내가 방장인인 경우 표시 */}
-            {publisher && isModerator === true && (
-              <div className="col-md-6">
-                <div
-                  className={`talker-video-container ${
-                    speakingUsers.has(publisher.stream.connection.connectionId)
-                      ? "speaking"
-                      : ""
-                  }`}
-                >
-                  <div className="participant-name">
-                    <span>{myUserName} (방장장)</span>
-                    {speakingUsers.has(
-                      publisher.stream.connection.connectionId
-                    ) && <span className="speaking-indicator">🎤</span>}
-                  </div>
-                  <UserVideoComponent streamManager={publisher} />
-                </div>
-              </div>
-            )}
-
-            {/* 다른 참여자들들 표시 */}
-            {subscribers
-              .filter(
-                (subscriber) => getSubscriberType(subscriber) === "Joiner"
-              )
-              .map((subscriber, i) => {
-                const subscriberData = JSON.parse(
-                  subscriber.stream.connection.data
-                );
-                const subscriberName = subscriberData.clientData.split("-")[0];
-                const isSubscriberSpeaking = speakingUsers.has(
-                  subscriber.stream.connection.connectionId
-                );
-
-                return (
-                  <div className="col-md-6" key={i}>
-                    <div
-                      className={`talker-video-container ${
-                        isSubscriberSpeaking ? "speaking" : ""
-                      }`}
-                    >
-                      <div className="participant-name">
-                        <span>{subscriberName} (발표자)</span>
-                        {isSubscriberSpeaking && (
-                          <span className="speaking-indicator">🎤</span>
-                        )}
-                      </div>
-                      <UserVideoComponent streamManager={subscriber} />
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="participant-name">
+            <span>{myUserName} (나)</span>
           </div>
-
-          {/* 참여자자 섹션 */}
-          <div className="row">
-            {/* 내가 참여자인인 경우 표시 */}
-            {publisher && isModerator === false && (
-              <div className="col-md-3">
-                <div className="watcher-video-container">
-                  <div className="participant-name">
-                    <span>{myUserName} (시청자)</span>
-                  </div>
-                  <UserVideoComponent streamManager={publisher} />
-                </div>
-              </div>
-            )}
-
-            {/* 다른 Watcher들 표시 */}
-            {subscribers
-              .filter(
-                (subscriber) => getSubscriberType(subscriber) === "watcher"
-              )
-              .map((subscriber, i) => {
-                const subscriberData = JSON.parse(
-                  subscriber.stream.connection.data
-                );
-                const subscriberName = subscriberData.clientData.split("-")[0];
-                return (
-                  <div
-                    className={`${
-                      isModerator === false ? "col-md-3" : "col-md-6"
-                    }`}
-                    key={i}
-                  >
-                    <div
-                      className={`${
-                        isModerator === false
-                          ? "watcher-video-container"
-                          : "talker-video-container"
-                      }`}
-                    >
-                      <div className="participant-name">
-                        <span>{subscriberName} (시청자)</span>
-                      </div>
-                      <UserVideoComponent streamManager={subscriber} />
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+          <UserVideoComponent streamManager={publisher} />
         </div>
+        {/* 다른 참여자들들 표시 */}
+        {subscribers
+          .map((subscriber, i) => {
+            return (
+              <div className="col-md-6" key={i}>
+                  <div className="participant-name">
+                    <span>다른 사람람</span>
+                  </div>
+                  <UserVideoComponent streamManager={subscriber} />
+              </div>
+            );
+          })}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken, getTokenForJoining } from "../../service/BattleRoom/api";
+import { getToken } from "../../service/BattleRoom/api";
 
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
