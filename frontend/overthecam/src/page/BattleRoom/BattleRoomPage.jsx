@@ -11,9 +11,14 @@ const APPLICATION_SERVER_URL =
 function BattleRoomPage() {
   // useState를 사용하여 state 관리
   const [myOV, setOV] = useState(null);
-  const location = useLocation();
   // create 를 통해 들어온 사람은 isMaster true값을 가짐
+  const location = useLocation();
   const { sessionId, isMaster, token } = location.state;
+  // 새탭 열기기
+  //  const queryParams = new URLSearchParams(location.search);
+  //  const sessionId = queryParams.get("sessionId");
+  //  const isMaster = queryParams.get("isMaster") === "true";
+  //  const token = queryParams.get("token");
   // useState를 사용하여 state 관리
   const [mySessionId, setMySessionId] = useState(sessionId);
   const [myUserName, setMyUserName] = useState(
@@ -58,7 +63,6 @@ function BattleRoomPage() {
         setisModerator(moderator);
       }
 
-
       OV.current = new OpenVidu();
       const mySession = OV.current.initSession();
 
@@ -82,7 +86,9 @@ function BattleRoomPage() {
 
       try {
         const userData =
-          isModerator === true ? `${myUserName}-방장` : `${myUserName}-참여자자`;
+          isModerator === true
+            ? `${myUserName}-방장`
+            : `${myUserName}-참여자자`;
 
         await mySession.connect(token, { clientData: userData });
 
@@ -160,167 +166,161 @@ function BattleRoomPage() {
     setMainStreamManager(undefined);
     setPublisher(undefined);
 
-    navigate('/battle-list')
+    navigate("/battle-list");
   }, [session]);
 
-   // 구독자 타입 확인 함수 수정
-   const getSubscriberType = (subscriber) => {
-     try {
-       const data = JSON.parse(subscriber.stream.connection.data);
-       // 정확한 문자열 비교를 위해 수정
-       return data.clientData
-         ? "Moderator"
-         : "Joiner";
-     } catch (error) {
-       console.error("구독자 정보 파싱 오류:", error);
-       return "Joiner";
-     }
-   };
+  // 구독자 타입 확인 함수 수정
+  const getSubscriberType = (subscriber) => {
+    try {
+      const data = JSON.parse(subscriber.stream.connection.data);
+      // 정확한 문자열 비교를 위해 수정
+      return data.clientData ? "Moderator" : "Joiner";
+    } catch (error) {
+      console.error("구독자 정보 파싱 오류:", error);
+      return "Joiner";
+    }
+  };
 
-   // 구독자의 발화 감지 이벤트 처리
-   useEffect(() => {
-     if (session) {
-       session.on("publisherStartSpeaking", (event) => {
-         setSpeakingUsers((prev) =>
-           new Set(prev).add(event.connection.connectionId)
-         );
-       });
+  // 구독자의 발화 감지 이벤트 처리
+  useEffect(() => {
+    if (session) {
+      session.on("publisherStartSpeaking", (event) => {
+        setSpeakingUsers((prev) =>
+          new Set(prev).add(event.connection.connectionId)
+        );
+      });
 
-       session.on("publisherStopSpeaking", (event) => {
-         setSpeakingUsers((prev) => {
-           const newSet = new Set(prev);
-           newSet.delete(event.connection.connectionId);
-           return newSet;
-         });
-       });
-     }
-   }, [session]);
+      session.on("publisherStopSpeaking", (event) => {
+        setSpeakingUsers((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(event.connection.connectionId);
+          return newSet;
+        });
+      });
+    }
+  }, [session]);
 
   return (
     <div className="container">
-        <div id="session">
-          <div id="session-header">
-            <h1 id="session-title">{mySessionId}</h1>
-            <input
-              className="btn btn-large btn-danger"
-              type="button"
-              id="buttonLeaveSession"
-              onClick={leaveSession}
-              value="Leave session"
-            />
+      <div id="session">
+        <div id="session-header">
+          <h1 id="session-title">{sessionId}</h1>
+          <input
+            className="btn btn-large btn-danger"
+            type="button"
+            id="buttonLeaveSession"
+            onClick={leaveSession}
+            value="Leave session"
+          />
+        </div>
+
+        <div id="video-container" className="col-12">
+          {/* 방장장 섹션 */}
+          <div className="row mb-3">
+            {/* 내가 방장인인 경우 표시 */}
+            {publisher && isModerator === true && (
+              <div className="col-md-6">
+                <div
+                  className={`talker-video-container ${
+                    speakingUsers.has(publisher.stream.connection.connectionId)
+                      ? "speaking"
+                      : ""
+                  }`}
+                >
+                  <div className="participant-name">
+                    <span>{myUserName} (방장장)</span>
+                    {speakingUsers.has(
+                      publisher.stream.connection.connectionId
+                    ) && <span className="speaking-indicator">🎤</span>}
+                  </div>
+                  <UserVideoComponent streamManager={publisher} />
+                </div>
+              </div>
+            )}
+
+            {/* 다른 참여자들들 표시 */}
+            {subscribers
+              .filter(
+                (subscriber) => getSubscriberType(subscriber) === "Joiner"
+              )
+              .map((subscriber, i) => {
+                const subscriberData = JSON.parse(
+                  subscriber.stream.connection.data
+                );
+                const subscriberName = subscriberData.clientData.split("-")[0];
+                const isSubscriberSpeaking = speakingUsers.has(
+                  subscriber.stream.connection.connectionId
+                );
+
+                return (
+                  <div className="col-md-6" key={i}>
+                    <div
+                      className={`talker-video-container ${
+                        isSubscriberSpeaking ? "speaking" : ""
+                      }`}
+                    >
+                      <div className="participant-name">
+                        <span>{subscriberName} (발표자)</span>
+                        {isSubscriberSpeaking && (
+                          <span className="speaking-indicator">🎤</span>
+                        )}
+                      </div>
+                      <UserVideoComponent streamManager={subscriber} />
+                    </div>
+                  </div>
+                );
+              })}
           </div>
 
-          <div id="video-container" className="col-12">
-            {/* 방장장 섹션 */}
-            <div className="row mb-3">
-              {/* 내가 방장인인 경우 표시 */}
-              {publisher && isModerator === true && (
-                <div className="col-md-6">
+          {/* 참여자자 섹션 */}
+          <div className="row">
+            {/* 내가 참여자인인 경우 표시 */}
+            {publisher && isModerator === false && (
+              <div className="col-md-3">
+                <div className="watcher-video-container">
+                  <div className="participant-name">
+                    <span>{myUserName} (시청자)</span>
+                  </div>
+                  <UserVideoComponent streamManager={publisher} />
+                </div>
+              </div>
+            )}
+
+            {/* 다른 Watcher들 표시 */}
+            {subscribers
+              .filter(
+                (subscriber) => getSubscriberType(subscriber) === "watcher"
+              )
+              .map((subscriber, i) => {
+                const subscriberData = JSON.parse(
+                  subscriber.stream.connection.data
+                );
+                const subscriberName = subscriberData.clientData.split("-")[0];
+                return (
                   <div
-                    className={`talker-video-container ${
-                      speakingUsers.has(
-                        publisher.stream.connection.connectionId
-                      )
-                        ? "speaking"
-                        : ""
+                    className={`${
+                      isModerator === false ? "col-md-3" : "col-md-6"
                     }`}
+                    key={i}
                   >
-                    <div className="participant-name">
-                      <span>{myUserName} (방장장)</span>
-                      {speakingUsers.has(
-                        publisher.stream.connection.connectionId
-                      ) && <span className="speaking-indicator">🎤</span>}
-                    </div>
-                    <UserVideoComponent streamManager={publisher} />
-                  </div>
-                </div>
-              )}
-
-              {/* 다른 참여자들들 표시 */}
-              {subscribers
-                .filter(
-                  (subscriber) => getSubscriberType(subscriber) === "Joiner"
-                )
-                .map((subscriber, i) => {
-                  const subscriberData = JSON.parse(
-                    subscriber.stream.connection.data
-                  );
-                  const subscriberName =
-                    subscriberData.clientData.split("-")[0];
-                  const isSubscriberSpeaking = speakingUsers.has(
-                    subscriber.stream.connection.connectionId
-                  );
-
-                  return (
-                    <div className="col-md-6" key={i}>
-                      <div
-                        className={`talker-video-container ${
-                          isSubscriberSpeaking ? "speaking" : ""
-                        }`}
-                      >
-                        <div className="participant-name">
-                          <span>{subscriberName} (발표자)</span>
-                          {isSubscriberSpeaking && (
-                            <span className="speaking-indicator">🎤</span>
-                          )}
-                        </div>
-                        <UserVideoComponent streamManager={subscriber} />
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-
-            {/* 참여자자 섹션 */}
-            <div className="row">
-              {/* 내가 참여자인인 경우 표시 */}
-              {publisher && isModerator === false && (
-                <div className="col-md-3">
-                  <div className="watcher-video-container">
-                    <div className="participant-name">
-                      <span>{myUserName} (시청자)</span>
-                    </div>
-                    <UserVideoComponent streamManager={publisher} />
-                  </div>
-                </div>
-              )}
-
-              {/* 다른 Watcher들 표시 */}
-              {subscribers
-                .filter(
-                  (subscriber) => getSubscriberType(subscriber) === "watcher"
-                )
-                .map((subscriber, i) => {
-                  const subscriberData = JSON.parse(
-                    subscriber.stream.connection.data
-                  );
-                  const subscriberName =
-                    subscriberData.clientData.split("-")[0];
-                  return (
                     <div
                       className={`${
-                        isModerator === false ? "col-md-3" : "col-md-6"
+                        isModerator === false
+                          ? "watcher-video-container"
+                          : "talker-video-container"
                       }`}
-                      key={i}
                     >
-                      <div
-                        className={`${
-                          isModerator === false
-                            ? "watcher-video-container"
-                            : "talker-video-container"
-                        }`}
-                      >
-                        <div className="participant-name">
-                          <span>{subscriberName} (시청자)</span>
-                        </div>
-                        <UserVideoComponent streamManager={subscriber} />
+                      <div className="participant-name">
+                        <span>{subscriberName} (시청자)</span>
                       </div>
+                      <UserVideoComponent streamManager={subscriber} />
                     </div>
-                  );
-                })}
-            </div>
+                  </div>
+                );
+              })}
           </div>
         </div>
+      </div>
     </div>
   );
 }
