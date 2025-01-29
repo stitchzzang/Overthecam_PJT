@@ -24,7 +24,7 @@ function BattleRoomPage() {
   const [publisher, setPublisher] = useState(undefined);
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(null);
-  const [participantMode, setParticipantMode] = useState(""); // 참가자 모드 상태 추가
+  const [isModerator, setisModerator] = useState(false); // 참가자 모드 상태 추가
   const [speakingUsers, setSpeakingUsers] = useState(new Set());
   const navigate = useNavigate();
 
@@ -52,8 +52,12 @@ function BattleRoomPage() {
         event.preventDefault();
       }
 
-      const mode = "talker";
-      setParticipantMode(mode);
+      let moderator = false;
+      if (isMaster) {
+        moderator = true;
+        setisModerator(moderator);
+      }
+
 
       OV.current = new OpenVidu();
       const mySession = OV.current.initSession();
@@ -78,14 +82,14 @@ function BattleRoomPage() {
 
       try {
         const userData =
-          mode === "talker" ? `${myUserName}-Talker` : `${myUserName}-Watcher`;
+          isModerator === true ? `${myUserName}-방장` : `${myUserName}-참여자자`;
 
         await mySession.connect(token, { clientData: userData });
 
         const publisher = await OV.current.initPublisherAsync(undefined, {
-          audioSource: mode === "talker" ? undefined : false,
+          audioSource: undefined,
           videoSource: undefined,
-          publishAudio: mode === "talker",
+          publishAudio: false,
           publishVideo: true,
           resolution: "640x480",
           frameRate: 30,
@@ -94,7 +98,7 @@ function BattleRoomPage() {
         });
 
         // 발화 감지 설정
-        if (mode === "talker") {
+        if (isModerator === true) {
           publisher.on("publisherStartSpeaking", (event) => {
             setSpeakingUsers((prev) =>
               new Set(prev).add(publisher.stream.connection.connectionId)
@@ -155,6 +159,8 @@ function BattleRoomPage() {
     setMyUserName(`Participant${Math.floor(Math.random() * 100)}`);
     setMainStreamManager(undefined);
     setPublisher(undefined);
+
+    navigate('/battle-list')
   }, [session]);
 
    // 구독자 타입 확인 함수 수정
@@ -162,12 +168,12 @@ function BattleRoomPage() {
      try {
        const data = JSON.parse(subscriber.stream.connection.data);
        // 정확한 문자열 비교를 위해 수정
-       return data.clientData.toLowerCase().includes("talker")
-         ? "talker"
-         : "watcher";
+       return data.clientData
+         ? "Moderator"
+         : "Joiner";
      } catch (error) {
        console.error("구독자 정보 파싱 오류:", error);
-       return "watcher";
+       return "Joiner";
      }
    };
 
@@ -205,10 +211,10 @@ function BattleRoomPage() {
           </div>
 
           <div id="video-container" className="col-12">
-            {/* Talker 섹션 */}
+            {/* 방장장 섹션 */}
             <div className="row mb-3">
-              {/* 내가 Talker인 경우 표시 */}
-              {publisher && participantMode === "talker" && (
+              {/* 내가 방장인인 경우 표시 */}
+              {publisher && isModerator === true && (
                 <div className="col-md-6">
                   <div
                     className={`talker-video-container ${
@@ -220,7 +226,7 @@ function BattleRoomPage() {
                     }`}
                   >
                     <div className="participant-name">
-                      <span>{myUserName} (발표자)</span>
+                      <span>{myUserName} (방장장)</span>
                       {speakingUsers.has(
                         publisher.stream.connection.connectionId
                       ) && <span className="speaking-indicator">🎤</span>}
@@ -230,10 +236,10 @@ function BattleRoomPage() {
                 </div>
               )}
 
-              {/* 다른 Talker들 표시 */}
+              {/* 다른 참여자들들 표시 */}
               {subscribers
                 .filter(
-                  (subscriber) => getSubscriberType(subscriber) === "talker"
+                  (subscriber) => getSubscriberType(subscriber) === "Joiner"
                 )
                 .map((subscriber, i) => {
                   const subscriberData = JSON.parse(
@@ -265,10 +271,10 @@ function BattleRoomPage() {
                 })}
             </div>
 
-            {/* Watcher 섹션 */}
+            {/* 참여자자 섹션 */}
             <div className="row">
-              {/* 내가 Watcher인 경우 표시 */}
-              {publisher && participantMode === "watcher" && (
+              {/* 내가 참여자인인 경우 표시 */}
+              {publisher && isModerator === false && (
                 <div className="col-md-3">
                   <div className="watcher-video-container">
                     <div className="participant-name">
@@ -293,13 +299,13 @@ function BattleRoomPage() {
                   return (
                     <div
                       className={`${
-                        participantMode === "watcher" ? "col-md-3" : "col-md-6"
+                        isModerator === false ? "col-md-3" : "col-md-6"
                       }`}
                       key={i}
                     >
                       <div
                         className={`${
-                          participantMode === "watcher"
+                          isModerator === false
                             ? "watcher-video-container"
                             : "talker-video-container"
                         }`}
