@@ -5,6 +5,7 @@ import { OpenVidu } from "openvidu-browser";
 import axios from "axios";
 import UserVideoComponent from "../../components/BattleRoom/UserVideo";
 import BattleChating from "../../components/BattleRoom/BattleChating";
+import BattleTimer from "../../components/BattleRoom/BattleTimer";
 
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
@@ -267,14 +268,11 @@ function BattleRoomPage() {
               onClick={leaveSession}
               value="Leave session"
             />
-            {isMaster ? (
-              <div>
-                <button onClick={startBattle}>게임 시작하기</button>
-                <button>투표 만들기</button>
-              </div>
-            ) : (
-              <div></div>
-            )}
+            <div>
+              <button onClick={startBattle}>게임 시작하기</button>
+              <button>투표 만들기</button>
+            </div>
+            {isMaster ? <></> : <div></div>}
           </div>
           <div id="video-container" className="col-12">
             <div className="participant-name">
@@ -299,6 +297,7 @@ function BattleRoomPage() {
         <div>
           <h1>게임모드</h1>
           <div id="video-container" className="col-12">
+            <div>{!isWaiting && <BattleTimer />}</div>
             <div className="participant-name">
               <span>{myNickName} (나)</span>
               <UserVideoComponent streamManager={publisher} />
