@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { OpenVidu } from "openvidu-browser";
 import axios from "axios";
 import UserVideoComponent from "../../components/BattleRoom/UserVideo";
+import BattleChating from "../../components/BattleRoom/BattleChating";
 
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
@@ -42,14 +43,39 @@ function BattleRoomPage() {
   // useEffect 훅을 사용해서 컴포넌트 렌더링 시 특정 작업 실행하는 hook
   useEffect(() => {
     // handleBeforeUnload 함수 생성
-    const handleBeforeUnload = () => leaveSession();
+    const handleBeforeUnload = (event) => {
+      // 새로고침 시 경고 창 띄우기
+      event.preventDefault();
+      event.returnValue = "";
+      leaveSession();
+    };
+
+    const handlePreventGoBack = (event) => {
+      event.preventDefault();
+      event.returnValue = ""; // Chrome, Edge에서는 이 부분이 필요합니다.
+      // confirm 대신 alert 사용
+      const userConfirmed = window.confirm("정말 나가시겠습니까?");
+      if (userConfirmed) {
+        leaveSession();
+      } else {
+        // 히스토리를 다시 pushState로 추가하여 뒤로 가기를 무력화
+        history.pushState(null, "", location.href);
+      }
+    };
+
     // 언마운트(페이지 이동 시, beforeunload) 시 세션 연결 해제(handleBeforeUnload 함수 실행)
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePreventGoBack);
+    history.pushState(null, "", location.href); // 뒤로 가기 방지
+
     joinSession();
 
     return () => {
       // 언마운트 시 handleBeforeUnload 함수 실행하고 나서, 이전에 추가했던 이벤트 제거(메모리 누수 방지)
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePreventGoBack);
+
+      leaveSession();
     };
     // 빈 배열을 넣어주면 컴포넌트가 마운트될 때만 실행되고 언마운트될 때만 실행
   }, []);
@@ -226,9 +252,7 @@ function BattleRoomPage() {
   };
 
   // 게임모드 진입 시
-  useEffect(()=>{
-
-  }, [isWaiting])
+  useEffect(() => {}, [isWaiting]);
 
   return (
     <div className="container">
@@ -243,9 +267,15 @@ function BattleRoomPage() {
               onClick={leaveSession}
               value="Leave session"
             />
+            {isMaster ? (
+              <div>
+                <button onClick={startBattle}>게임 시작하기</button>
+                <button>투표 만들기</button>
+              </div>
+            ) : (
+              <div></div>
+            )}
           </div>
-          <button onClick={startBattle}>게임 시작하기</button>
-
           <div id="video-container" className="col-12">
             <div className="participant-name">
               <span>{myNickName} (나)</span>
@@ -263,6 +293,7 @@ function BattleRoomPage() {
               </div>
             );
           })}
+          <BattleChating/>
         </div>
       ) : (
         <div>
