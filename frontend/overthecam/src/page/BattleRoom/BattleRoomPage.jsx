@@ -293,7 +293,7 @@ function BattleRoomPage() {
               </div>
             );
           })}
-          <BattleChating/>
+          <BattleChating />
         </div>
       ) : (
         <div>
@@ -315,6 +315,7 @@ function BattleRoomPage() {
               </div>
             );
           })}
+          <BattleChating />
         </div>
       )}
     </div>
