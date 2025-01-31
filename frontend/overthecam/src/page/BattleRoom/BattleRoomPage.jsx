@@ -296,6 +296,13 @@ function BattleRoomPage() {
       ) : (
         <div>
           <h1>게임모드</h1>
+          <input
+            className="btn btn-large btn-danger"
+            type="button"
+            id="buttonLeaveSession"
+            onClick={leaveSession}
+            value="Leave session"
+          />
           <div id="video-container" className="col-12">
             <div>{!isWaiting && <BattleTimer />}</div>
             <div className="participant-name">
