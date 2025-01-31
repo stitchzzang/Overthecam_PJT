@@ -12,13 +12,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config){
-        config.enableSimpleBroker("/subscribe"); // 구독(브로드캐스트)용 prefix
-        config.setApplicationDestinationPrefixes("/publish"); // 클라이언트에서 서버로 발행하는 메시지의 prefix
+        config.enableSimpleBroker("/api/subscribe"); // 구독(브로드캐스트)용 prefix
+        config.setApplicationDestinationPrefixes("/api/publish"); // 클라이언트에서 서버로 발행하는 메시지의 prefix
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-connect") // 초기 핸드셰이크 과정에서 사용할 endpoint 지정
+        registry.addEndpoint("/api/ws-connect") // 초기 핸드셰이크 과정에서 사용할 endpoint 지정
             .setAllowedOrigins("http://127.0.0.1:5500") // CORS 허용 설정
             .withSockJS(); // SockJS 지원 추가
     }
