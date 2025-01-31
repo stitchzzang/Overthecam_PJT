@@ -25,6 +25,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
@@ -39,7 +40,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/signup",
                                 "/api/auth/login",
-                                "/swagger-ui/**",
+                                "/api/auth/refresh",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated())
@@ -54,7 +55,12 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Refresh-Token"));
+        configuration.setAllowCredentials(true);  // 쿠키 허용을 위해 추가
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Refresh-Token",
+                "New-Access-Token"
+        ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

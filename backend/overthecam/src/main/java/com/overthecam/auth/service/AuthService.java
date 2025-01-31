@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.exception.GlobalException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,8 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
                 .gender(request.getGender())
+                .birth(request.getBirth())
+                .phoneNumber(request.getPhoneNumber())
                 .build();
 
         // 3. 사용자 저장 및 응답
@@ -43,7 +47,7 @@ public class AuthService {
         return CommonResponseDto.success("회원가입이 완료되었습니다", UserResponse.from(savedUser));
     }
 
-    public CommonResponseDto<TokenResponse> login(LoginRequest request) {
+    public CommonResponseDto<TokenResponse> login(LoginRequest request, HttpServletResponse response) {
         // 1. 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
@@ -57,10 +61,21 @@ public class AuthService {
 
         // 3. 토큰 생성 및 응답
         TokenResponse tokenResponse = jwtTokenProvider.createToken(user);
+        // Refresh Token을 DB에 저장
+        user.updateRefreshToken(tokenResponse.getRefreshToken());
+
+        // Refresh Token을 쿠키에 저장
+        Cookie refreshTokenCookie = new Cookie("refresh_token", tokenResponse.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true); // HTTPS에서만 전송
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7); // 7일
+        response.addCookie(refreshTokenCookie);
+
         return CommonResponseDto.success("로그인이 완료되었습니다", tokenResponse);
     }
 
-    public CommonResponseDto<Void> logout(String token) {
+    public CommonResponseDto<Void> logout(String token, HttpServletResponse response) {
         // 1. 토큰 형식 검증
         if (token == null || !token.startsWith("Bearer ")) {
             throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰 형식입니다");
@@ -72,7 +87,51 @@ public class AuthService {
             throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰입니다");
         }
 
-        // JWT 블랙리스트 처리 로직 추가 가능
+
+        // Refresh Token 삭제
+        String email = jwtTokenProvider.getEmail(accessToken);
+        userRepository.findByEmail(email).ifPresent(user -> {
+            user.clearRefreshToken();
+            userRepository.save(user);
+        });
+
+        // 쿠키에서 Refresh Token 제거
+        Cookie refreshTokenCookie = new Cookie("refresh_token", null);
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/");
+        response.addCookie(refreshTokenCookie);
+
         return CommonResponseDto.success("로그아웃이 완료되었습니다", null);
+    }
+
+    public CommonResponseDto<TokenResponse> refreshAccessToken(String refreshToken, HttpServletResponse response) {
+        // Refresh Token 유효성 검증
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 Refresh Token입니다");
+        }
+
+        // DB의 Refresh Token과 비교
+        String email = jwtTokenProvider.getEmail(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
+
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new GlobalException(ErrorCode.INVALID_TOKEN, "저장된 Refresh Token과 일치하지 않습니다");
+        }
+
+        // 새로운 Access Token 발급
+        String newAccessToken = jwtTokenProvider.recreateAccessToken(user);
+
+        // 응답 생성
+        TokenResponse tokenResponse = TokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .grantType("Bearer")
+                .accessTokenExpiresIn(System.currentTimeMillis() + 1800000)
+                .build();
+
+        response.setHeader("New-Access-Token", newAccessToken);
+
+        return CommonResponseDto.success("토큰이 갱신되었습니다", tokenResponse);
     }
 }
