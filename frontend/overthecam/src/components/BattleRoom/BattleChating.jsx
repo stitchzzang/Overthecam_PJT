@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Stomp } from "@stomp/stompjs";
+import { Client } from "@stomp/stompjs";
 import { WebSocket } from "ws";
 import SockJS from "sockjs-client";
 
@@ -11,14 +11,14 @@ function BattleChating() {
   const [chat, setChat] = useState(""); // 입력 받을 대화 내용
   const [chatList, setChatList] = useState([]); // 채팅 기록
 
-  const SOKET_BASE_URL = new SockJS("http://i12d204.p.ssafy.io//ws-connect");
+  const SOKET_BASE_URL = new SockJS("http://i12d204.p.ssafy.io/ws-connect");
   const PUB_ENDPOINT = "/publish/chat/";
   const SUB_ENDPOINT = "/subscribe/chat/";
 
 useEffect(() => {
   // 새로운 STOMP 클라이언트 생성
   const client = new Client({
-    webSocketFactory: () => new SockJS("http://i12d204.p.ssafy.io/ws-connect"),
+    webSocketFactory: () => SOKET_BASE_URL,
     onConnect: () => {
       console.log("WebSocket 연결 성공!");
       // 채팅방 입장
