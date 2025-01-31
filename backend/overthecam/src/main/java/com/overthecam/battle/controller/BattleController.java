@@ -4,6 +4,7 @@ import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,5 +29,13 @@ public class BattleController {
         return ResponseEntity.ok(CommonResponseDto.success("sessionId", sessionId));
     }
 
+    @PostMapping("/{battleId}/join")
+    public ResponseEntity<CommonResponseDto<String>> joinBattle(
+            @PathVariable Long battleId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String token = battleService.generateToken(battleId);
+        return ResponseEntity.ok(CommonResponseDto.success("token", token));
+    }
 
 }

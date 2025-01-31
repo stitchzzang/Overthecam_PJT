@@ -61,6 +61,30 @@ public class BattleService {
 
     }
 
+    public String generateToken(Long battleId) {
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new IllegalArgumentException("Battle not found"));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", getBasicAuth());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> tokenParams = new HashMap<>();
+        tokenParams.put("session", battle.getSessionId());
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(tokenParams, headers);
+
+        ResponseEntity<JsonNode> response = restTemplate.exchange(
+                OPENVIDU_URL + "/openvidu/api/tokens",
+                HttpMethod.POST,
+                request,
+                JsonNode.class
+        ); //Openvidu에게 session이 유효한지 검증 요청
+
+        return response.getBody().get("connectionId").asText();
+
+    }
+
     // Openvidu를 위한  Basic 인증 헤더 생성
     private String getBasicAuth() {
         return "Basic " + Base64.getEncoder().encodeToString(("OPENVIDUAPP:" + SECRET).getBytes());
