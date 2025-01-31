@@ -1,5 +1,6 @@
 package com.overthecam.battle.controller;
 
+import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/battles")
 @RequiredArgsConstructor
 public class BattleController {
+
+    private final BattleService battleService;
 
     @PostMapping // 맨 처음 한 번 방장이 방을 만들 때 secret-key 로 openvidu에게 방 생성 요청을 보내는 컨트롤러
     public ResponseEntity<?> createBattle(@AuthenticationPrincipal UserDetails userDetails) {

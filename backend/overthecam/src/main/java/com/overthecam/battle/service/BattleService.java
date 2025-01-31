@@ -2,6 +2,7 @@ package com.overthecam.battle.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.overthecam.battle.domain.Battle;
+import com.overthecam.battle.repository.BattleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
