@@ -41,7 +41,7 @@ pipeline {
 
       stage('Build Frontend') {
           steps {
-              dir('backend/overthecam') {
+              dir('frontend/overthecam') {
                   sh '''
                       npm install
                       npm run build
@@ -63,7 +63,7 @@ pipeline {
                   }
 
                   // Frontend
-                  dir('frontend') {
+                  dir('frontend/overthecam') {
                       sh """
                           docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
                           docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
