@@ -10,17 +10,18 @@ function BattleChating({ onDisconnect }) {
   const [chat, setChat] = useState(""); // 입력 받을 대화 내용
   const [chatList, setChatList] = useState([]); // 채팅 기록
 
-  const SOKET_BASE_URL = new SockJS("/api");
-  const CON_ENTPOINT = "/chat/rooms/";
+  const SOKET_BASE_URL = "http://i12d204.p.ssafy.io/api";
+  const CON_ENDPOINT = "/chat/rooms/";
   const PUB_ENDPOINT = "/publish/chat/";
   const SUB_ENDPOINT = "/subscribe/chat/";
 
   useEffect(() => {
+    console.log("websocket 연결을 시도합니다.");
     // 새로운 STOMP 클라이언트 생성
     const client = new Client({
       webSocketFactory: () => {
-        console.log("Creating WebSocket connection to:", `${SOKET_BASE_URL}${CON_ENTPOINT}`);
-        return `${SOKET_BASE_URL}${CON_ENTPOINT}${chatRoomId}`;
+        console.log("Creating WebSocket connection to:", SOKET_BASE_URL);
+        return new SockJS(SOKET_BASE_URL);
       },
       onConnect: () => {
         console.log("WebSocket 연결 성공!");
@@ -57,6 +58,7 @@ function BattleChating({ onDisconnect }) {
   // 부모 컴포넌트에서 호출할 수 있도록 onDisconnect 함수 설정
   useEffect(() => {
     if (onDisconnect) {
+      console.log("Setting onDisconnect callback");
       onDisconnect(() => {
         if (stompClient.current) {
           console.log("Deactivating WebSocket connection from onDisconnect");
@@ -74,13 +76,13 @@ function BattleChating({ onDisconnect }) {
         currentSubscription.unsubscribe();
       }
 
-      const newSubscription = stompClient.subscribe(
+      const newSubscription = stompClient.current.subscribe(
         `${SUB_ENDPOINT}${chatRoomId}`,
         (response) => {
           try {
             const message = JSON.parse(response.body);
             displayMessage(message);
-            console.log("subscrbe to ", path);
+            console.log("Subscribed to", `${SUB_ENDPOINT}${chatRoomId}`);
           } catch (error) {
             console.error("Message parsing error", error);
           }
@@ -96,18 +98,17 @@ function BattleChating({ onDisconnect }) {
   };
 
   const sendMessage = (roomId, userName, content) => {
-    const message = {
-      battleId: roomId,
-      username: userName,
-      content: content,
-      timestamp: new Date().toISOString(),
-    };
-
-    stompClient.send(
-      `${PUB_ENDPOINT}${chatRoomId}`,
-      {},
-      JSON.stringify(message)
-    );
+    if (stompClient.current && stompClient.current.connected) {
+      const message = {
+        roomId,
+        userName,
+        content,
+      };
+      stompClient.current.publish({
+        destination: `${PUB_ENDPOINT}${roomId}`,
+        body: JSON.stringify(message),
+      });
+    }
   };
 
   const sendChat = (event) => {
