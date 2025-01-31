@@ -5,11 +5,10 @@ import com.overthecam.auth.dto.SignUpRequest;
 import com.overthecam.auth.dto.TokenResponse;
 import com.overthecam.auth.dto.UserResponse;
 import com.overthecam.auth.service.AuthService;
+import com.overthecam.common.dto.CommonResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import com.overthecam.common.dto.CommonResponseDto;\
-import com.overthecam.exception.GlobalException;
 
 @RestController
 @RequestMapping("/api/auth")

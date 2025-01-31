@@ -1,86 +1,109 @@
 package com.overthecam.auth.security;
 
+import com.overthecam.auth.config.JwtProperties;
+import com.overthecam.auth.domain.User;
+import com.overthecam.auth.dto.TokenResponse;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
-import com.overthecam.auth.dto.TokenResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-    @Value("${jwt.secret}")
-    private String secretKey;
+    // JWT 토큰 생성 및 검증을 담당하는 컴포넌트
 
-    private final long accessTokenValidityInMilliseconds = 1000L * 60 * 30; // 30분
-    private final long refreshTokenValidityInMilliseconds = 1000L * 60 * 60 * 24 * 7; // 7일
-
+    private final JwtProperties jwtProperties;
     private Key key;
 
     @PostConstruct
     public void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        // Base64 디코딩된 비밀키를 사용하여 서명 키 초기화
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public TokenResponse createToken(String email) {
-        Claims claims = Jwts.claims().setSubject(email);
+    // 토큰 생성 메서드
+    public TokenResponse createToken(User user) {
+        // 사용자 정보로 클레임 생성
+        Map<String, Object> claims = createClaims(user);
+        // 토큰 만료 시간 설정
         Date now = new Date();
-        Date accessTokenValidity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
-        Date refreshTokenValidity = new Date(now.getTime() + refreshTokenValidityInMilliseconds);
+        Date accessTokenValidity = getExpirationTime(now, jwtProperties.getAccessTokenValidityInMilliseconds());
+        Date refreshTokenValidity = getExpirationTime(now, jwtProperties.getRefreshTokenValidityInMilliseconds());
 
-        String accessToken = Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(accessTokenValidity)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-
-        String refreshToken = Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(refreshTokenValidity)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+        // 액세스, 리프레시 토큰 발급
+        String accessToken = buildToken(claims, now, accessTokenValidity);
+        String refreshToken = buildToken(claims, now, refreshTokenValidity);
 
         return TokenResponse.builder()
-                .grantType("Bearer")
+                .grantType(jwtProperties.getTokenPrefix().trim())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .accessTokenExpiresIn(accessTokenValidity.getTime())
                 .build();
     }
 
-    public String recreateAccessToken(String email) {
-        Claims claims = Jwts.claims().setSubject(email);
+    public String recreateAccessToken(User user) {
+        Map<String, Object> claims = createClaims(user);
         Date now = new Date();
-        Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
+        Date validity = getExpirationTime(now, jwtProperties.getAccessTokenValidityInMilliseconds());
 
+        return buildToken(claims, now, validity);
+    }
+
+    private Map<String, Object> createClaims(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getUserId());
+        claims.put("email", user.getEmail());
+        return claims;
+    }
+
+    private String buildToken(Map<String, Object> claims, Date issuedAt, Date expiration) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(validity)
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiration)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
+    private Date getExpirationTime(Date now, long validityInMilliseconds) {
+        return new Date(now.getTime() + validityInMilliseconds);
+    }
+
+    public Long getUserId(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("userId", Long.class);
+    }
+
     public String getEmail(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("email", String.class);
+    }
+
+    private Claims getClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
 
+    // 토큰 검증 메서드
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            // 토큰 파싱 및 서명 검증
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
@@ -89,7 +112,7 @@ public class JwtTokenProvider {
 
     public boolean isExpiredToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            getClaims(token);
             return false;
         } catch (ExpiredJwtException e) {
             return true;
