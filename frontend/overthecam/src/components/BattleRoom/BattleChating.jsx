@@ -1,46 +1,70 @@
 import { useEffect, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
-import { WebSocket } from "ws";
 import SockJS from "sockjs-client";
 
-function BattleChating() {
+function BattleChating({ onDisconnect }) {
   const stompClient = useRef(null);
   const [myUserName, setMyUserName] = useState(""); // 사용자 이름
-  const [chatRoomId, setChatRoomId] = useState(null); // 채팅방 번호
+  const [chatRoomId, setChatRoomId] = useState(1); // 채팅방 번호
   const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장장
   const [chat, setChat] = useState(""); // 입력 받을 대화 내용
   const [chatList, setChatList] = useState([]); // 채팅 기록
 
-  const SOKET_BASE_URL = new SockJS("http://i12d204.p.ssafy.io/ws-connect");
+  const SOKET_BASE_URL = new SockJS("/api");
+  const CON_ENTPOINT = "/chat/rooms/";
   const PUB_ENDPOINT = "/publish/chat/";
   const SUB_ENDPOINT = "/subscribe/chat/";
 
-useEffect(() => {
-  // 새로운 STOMP 클라이언트 생성
-  const client = new Client({
-    webSocketFactory: () => SOKET_BASE_URL,
-    onConnect: () => {
-      console.log("WebSocket 연결 성공!");
-      // 채팅방 입장
-      enterRoom();
-    },
-    onDisconnect: () => {
-      console.log("WebSocket 연결 해제!");
-    },
-    debug: (str) => {
-      console.log(str);
-    },
-  });
+  useEffect(() => {
+    // 새로운 STOMP 클라이언트 생성
+    const client = new Client({
+      webSocketFactory: () => {
+        console.log("Creating WebSocket connection to:", `${SOKET_BASE_URL}${CON_ENTPOINT}`);
+        return `${SOKET_BASE_URL}${CON_ENTPOINT}${chatRoomId}`;
+      },
+      onConnect: () => {
+        console.log("WebSocket 연결 성공!");
+        // 채팅방 입장
+        enterRoom();
+      },
+      onDisconnect: () => {
+        console.log("WebSocket 연결 해제!");
+      },
+      onStompError: (frame) => {
+        console.error("Broker reported error:", frame.headers['message']);
+        console.error("Additional details:", frame.body);
+      },
+      onWebSocketError: (event) => {
+        console.error("WebSocket error observed:", event);
+      },
+      debug: (str) => {
+        console.log("STOMP debug:", str);
+      },
+    });
 
-  stompClient.current = client;
-  client.activate();
+    stompClient.current = client;
+    client.activate();
 
-  return () => {
-    if (client.connected) {
-      client.deactivate();
+    // 컴포넌트 언마운트 시 WebSocket 연결 해제
+    return () => {
+      if (stompClient.current) {
+        console.log("Deactivating WebSocket connection");
+        stompClient.current.deactivate();
+      }
+    };
+  }, []);
+
+  // 부모 컴포넌트에서 호출할 수 있도록 onDisconnect 함수 설정
+  useEffect(() => {
+    if (onDisconnect) {
+      onDisconnect(() => {
+        if (stompClient.current) {
+          console.log("Deactivating WebSocket connection from onDisconnect");
+          stompClient.current.deactivate();
+        }
+      });
     }
-  };
-}, []);
+  }, [onDisconnect]);
 
   // 채팅방 입장 함수 추가
   const enterRoom = () => {

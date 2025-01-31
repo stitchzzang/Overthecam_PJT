@@ -7,4 +7,13 @@ export default defineConfig({
   define: {
     global: 'globalThis', // 🔥 글로벌 객체를 globalThis로 대체
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://i12d204.p.ssafy.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
+      }
+    }
+  }
 })
