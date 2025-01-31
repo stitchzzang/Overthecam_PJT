@@ -22,7 +22,7 @@ public class Battle extends TimeStampEntity {
     //@ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "user_id", nullable = false)
     //private User user;  // 방장 사용자
-    private Long userId;
+    private String sessionId;
 
     @Column(nullable = false)
     private String title;
