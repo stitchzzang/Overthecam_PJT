@@ -39,22 +39,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+        HttpServletResponse response,
+        FilterChain filterChain) throws ServletException, IOException {
+
         try {
-            // 1. Authorization 헤더에서 토큰 추출
+            // 1. 인증 불필요 URI면 통과
+            if (isPermitAllEndpoint(request.getRequestURI())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 2. 토큰 없으면 예외
             String accessToken = resolveToken(request);
+            if (accessToken == null) {
+                throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND,
+                    "인증 토큰이 필요합니다");
+            }
 
-            // 2. 토큰 검증 및 처리
+            // 3. 토큰 처리 및 다음 필터로
             processToken(accessToken, request, response);
-
-            // 3. 다음 필터로 진행
             filterChain.doFilter(request, response);
+
         } catch (GlobalException e) {
-            // 인증 오류 발생 시 에러 응답 설정
-            log.error("인증 오류: {}", e.getMessage());
+            // 4. 예외는 여기서 처리됨
             setErrorResponse(response, e);
         }
+    }
+
+    private boolean isPermitAllEndpoint(String uri) {
+        return uri.startsWith("/api/auth/signup") ||
+            uri.startsWith("/api/auth/login");
     }
 
     /**
@@ -62,16 +76,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 1. 토큰 유효성 검증
      * 2. 만료된 경우 리프레시 토큰으로 갱신
      */
-    private void processToken(String accessToken, HttpServletRequest request,
-                              HttpServletResponse response) {
+    private void processToken(String accessToken, HttpServletRequest request, HttpServletResponse response) {
         if (accessToken != null) {
             if (tokenProvider.isExpiredToken(accessToken)) {
-                // 만료된 토큰인 경우 리프레시 토큰으로 갱신 시도
                 processRefreshToken(request, response);
             }
             if (tokenProvider.validateToken(accessToken)) {
-                // 유효한 토큰인 경우 인증 정보 설정
                 setAuthentication(accessToken);
+            } else {
+                throw new GlobalException(ErrorCode.INVALID_TOKEN_SIGNATURE,
+                    "토큰의 서명이 유효하지 않습니다");
             }
         }
     }
@@ -83,23 +97,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 3. 새로운 액세스 토큰 발급
      */
     private void processRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        // 쿠키에서 리프레시 토큰 추출
         String refreshToken = extractRefreshTokenFromCookie(request);
-
-        if (refreshToken != null && tokenProvider.validateToken(refreshToken)) {
-            // 리프레시 토큰이 유효한 경우
-            String email = tokenProvider.getEmail(refreshToken);
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
-                            "인증 정보가 유효하지 않습니다"));
-
-            // 새로운 액세스 토큰 발급
-            String newAccessToken = tokenProvider.recreateAccessToken(user);
-            response.setHeader("New-Access-Token", newAccessToken);
-            setAuthentication(newAccessToken);
-        } else {
-            throw new GlobalException(ErrorCode.EXPIRED_TOKEN, "재로그인이 필요합니다");
+        if (refreshToken == null) {
+            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND,
+                "리프레시 토큰이 쿠키에 존재하지 않습니다");
         }
+
+        if (!tokenProvider.validateToken(refreshToken)) {
+            throw new GlobalException(ErrorCode.EXPIRED_REFRESH_TOKEN,
+                "리프레시 토큰이 만료되었습니다. 재로그인이 필요합니다");
+        }
+
+        String email = tokenProvider.getEmail(refreshToken);
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
+                "인증 정보가 유효하지 않습니다"));
+
+        String newAccessToken = tokenProvider.recreateAccessToken(user);
+        response.setHeader("New-Access-Token", newAccessToken);
+        setAuthentication(newAccessToken);
     }
 
     // 쿠키에서 리프레시 토큰 추출

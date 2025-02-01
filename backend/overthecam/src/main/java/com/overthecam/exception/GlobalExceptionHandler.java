@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -57,5 +59,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
             .body(CommonResponseDto.error(ErrorCode.INVALID_INPUT_VALUE));
+    }
+
+    // 지원하지 않는 http 메서드를 요청한 경우
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)  // 405 상태 코드
+    public CommonResponseDto<?> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        return CommonResponseDto.error(ErrorCode.METHOD_NOT_ALLOWED);
     }
 }
