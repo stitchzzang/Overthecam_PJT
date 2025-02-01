@@ -24,7 +24,6 @@ public class BattleController {
     @PostMapping("/room/create")
     public ResponseEntity<BattleResponse> createBattleRoom(@RequestBody BattleCreateRequest request,
                                                            @RequestHeader("Authorization") String authToken) {
-
         BattleResponse response = battleService.createBattleRoom(request, authToken);
         return ResponseEntity.ok(response);
 
