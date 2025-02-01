@@ -3,6 +3,7 @@ package com.overthecam.battle.controller;
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
 import com.overthecam.battle.dto.BattleStartResponse;
+import com.overthecam.battle.dto.RandomVoteTopicResponse;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.exception.ErrorCode;
@@ -70,5 +71,16 @@ public class BattleController {
             return CommonResponseDto.error(ErrorCode.BATTLE_NOT_FOUND);
         }
     }
-    
+
+
+    /**
+     * 랜덤 주제 생성 API
+     */
+    @PostMapping("/random")
+    public CommonResponseDto<RandomVoteTopicResponse> createRandomVoteTopic() {
+        RandomVoteTopicResponse response = battleService.createRandomVoteTopic();
+        return CommonResponseDto.success("랜덤 주제가 생성되었습니다.", response);
+    }
+
+
 }

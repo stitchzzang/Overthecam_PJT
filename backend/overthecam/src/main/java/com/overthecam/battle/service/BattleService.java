@@ -3,10 +3,7 @@ package com.overthecam.battle.service;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
-import com.overthecam.battle.dto.BattleCreateRequest;
-import com.overthecam.battle.dto.BattleResponse;
-import com.overthecam.battle.dto.BattleStartResponse;
-import com.overthecam.battle.dto.ParticipantSessionInfo;
+import com.overthecam.battle.dto.*;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import io.openvidu.java.client.OpenViduHttpException;
@@ -25,6 +22,35 @@ public class BattleService {
     private final OpenViduService openViduService;
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
+    private final String[] topics = {
+            "더 괴로운 상황은?\n" +
+                    "• 나 빼고 모두가 브레인인 팀에서 자괴감 느끼기\n" +
+                    "• 내가 유일한 브레인인 팀에서 혼자 일하기",
+
+            "똥 쌌는데, 더 괴로운 상황은?\n" +
+                    "• 썸남썸녀 집 변기 막기\n" +
+                    "• 싸피 변기 막고 소문나기",
+
+            "더 끔찍한 상황은?\n" +
+                    "• 회사 송년회에서 깜짝 고백 받기\n" +
+                    "• 전 애인이 회사 사람들 앞에서 울며 매달리기",
+
+            "애인의 더 거슬리는 모습은?\n" +
+                    "• 쩝쩝 소리내기\n" +
+                    "• 식탐 부리기",
+
+            "배우자가 또 도박해서 5억을 따왔다면?\n" +
+                    "• 이혼한다.\n" +
+                    "• 용서한다.",
+
+            "더 최악은?\n" +
+                    "• 내가 준 선물 당근에 판매\n" +
+                    "• 내게 줄 선물 당근에서 구매",
+
+            "소개팅에서 만취 후 다음 날 눈 떴을 때 더 최악의 장소는?\n" +
+                    "• 나 홀로 공원 벤치\n" +
+                    "• 나 홀로 MT"
+    };
 
     /**
      * 배틀 방을 생성하고 방장을 등록하는 메서드
@@ -176,7 +202,13 @@ public class BattleService {
         }
 
         return new BattleStartResponse(battleId, battle.getSessionId(), sessionInfos);
+    } //여기까지가 배틀방이 생성된 후에 6명의 참가자가 모여서 배틀러 정하고 방 생성까지 완료한 상태
 
+    public RandomVoteTopicResponse createRandomVoteTopic() {
+        int randomIdx = (int) (Math.random() * topics.length);
+
+        return RandomVoteTopicResponse.builder()
+                .title(topics[randomIdx])
+                .build();
     }
-
 }
