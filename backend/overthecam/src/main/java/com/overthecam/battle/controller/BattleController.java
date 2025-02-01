@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 1. 방제 입력후 create 버튼 누를 때 배틀방 생성 (방제랑 사용자 access-token을 받음)
- * 2. 배틀 시작하기를 누를 때 post 요청 (userId. 토큰 값. battle 테이블에서 status waiting -> progress
- * battle_participant도 배틀러 선정된거에 맞게 변경)
+ * 2. 배틀러 선정 후 배틀 시작하기를 누르면 배틍방 시작(status waiting -> progress)
  */
 
 @RestController

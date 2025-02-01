@@ -66,7 +66,11 @@ public class BattleService {
                 .roomUrl(savedBattle.getRoomUrl()) //방 초대 url
                 .build();
 
-    }
+    } //여기까지가 처음에 방이 생성되고 방장의 role만 설정된 상태
+
+    /**
+     * 배틀러 선정 및 배틀 시작 메서드
+     */
 
 
 }
