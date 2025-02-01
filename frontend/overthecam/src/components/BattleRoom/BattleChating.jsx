@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Client } from "@stomp/stompjs";
+import { Client,Stomp } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
 function BattleChating({ onDisconnect }) {
   const stompClient = useRef(null);
   const [myUserName, setMyUserName] = useState(""); // 사용자 이름
   const [chatRoomId, setChatRoomId] = useState(1); // 채팅방 번호
-  const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장장
+  const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장
   const [chat, setChat] = useState(""); // 입력 받을 대화 내용
   const [chatList, setChatList] = useState([]); // 채팅 기록
 
@@ -16,98 +16,43 @@ function BattleChating({ onDisconnect }) {
   const SUB_ENDPOINT = "/subscribe/chat/";
 
   useEffect(() => {
-    console.log("websocket 연결을 시도합니다.");
-    // 새로운 STOMP 클라이언트 생성
-    const client = new Client({
-      webSocketFactory: () => {
-        console.log("Creating WebSocket connection to:", SOKET_BASE_URL);
-        return new SockJS(SOKET_BASE_URL);
-      },
-      onConnect: () => {
-        console.log("WebSocket 연결 성공!");
-        // 채팅방 입장
-        enterRoom();
-      },
-      onDisconnect: () => {
-        console.log("WebSocket 연결 해제!");
-      },
-      onStompError: (frame) => {
-        console.error("Broker reported error:", frame.headers['message']);
-        console.error("Additional details:", frame.body);
-      },
-      onWebSocketError: (event) => {
-        console.error("WebSocket error observed:", event);
-      },
-      debug: (str) => {
-        console.log("STOMP debug:", str);
-      },
+  // 첫 마운트 시 웹 소켓 연결
+  const soket = new SockJS(`${SOKET_BASE_URL}${CON_ENDPOINT}${chatRoomId}`);
+  stompClient.current = Stomp.over(soket);
+
+    stompClient.current.connect({}, () => {
+      console.log("webSoket 연결 성공!");
+      stompClient.current?.subscribe(`${SUB_ENDPOINT}${chatRoomId}`, (message) => {
+        const chatMessage = JSON.parse(message.body);
+        console.log("새 메세지 수신", chatMessage);
+        displayMessage(message.body);
+      });
+    }, (error) => {
+      console.error("webSoket 연결 실패", error);
     });
 
-    stompClient.current = client;
-    client.activate();
-
-    // 컴포넌트 언마운트 시 WebSocket 연결 해제
+    // 언마운트할 때 해제
     return () => {
       if (stompClient.current) {
-        console.log("Deactivating WebSocket connection");
-        stompClient.current.deactivate();
+        stompClient.current.disconnect();
       }
     };
   }, []);
 
-  // 부모 컴포넌트에서 호출할 수 있도록 onDisconnect 함수 설정
-  useEffect(() => {
-    if (onDisconnect) {
-      console.log("Setting onDisconnect callback");
-      onDisconnect(() => {
-        if (stompClient.current) {
-          console.log("Deactivating WebSocket connection from onDisconnect");
-          stompClient.current.deactivate();
-        }
-      });
-    }
-  }, [onDisconnect]);
-
-  // 채팅방 입장 함수 추가
-  const enterRoom = () => {
-    if (!isNaN(chatRoomId) && chatRoomId > 0) {
-      // 기존 구독 시 취소
-      if (currentSubscription) {
-        currentSubscription.unsubscribe();
-      }
-
-      const newSubscription = stompClient.current.subscribe(
-        `${SUB_ENDPOINT}${chatRoomId}`,
-        (response) => {
-          try {
-            const message = JSON.parse(response.body);
-            displayMessage(message);
-            console.log("Subscribed to", `${SUB_ENDPOINT}${chatRoomId}`);
-          } catch (error) {
-            console.error("Message parsing error", error);
-          }
-        }
-      );
-
-      setCurrentSubscription(newSubscription);
-    }
-  };
 
   const displayMessage = (newMessage) => {
     setChatList((prev) => [...prev, newMessage]);
   };
 
-  const sendMessage = (roomId, userName, content) => {
+  const sendMessage = (battleId, username, content) => {
     if (stompClient.current && stompClient.current.connected) {
       const message = {
-        roomId,
-        userName,
+        battleId,
+        username,
         content,
+        timestamp: new Date().toISOString()
       };
-      stompClient.current.publish({
-        destination: `${PUB_ENDPOINT}${roomId}`,
-        body: JSON.stringify(message),
-      });
+      stompClient.send(`${PUB_ENDPOINT}${battleId}`, {}, JSON.stringify(message));
     }
   };
 
