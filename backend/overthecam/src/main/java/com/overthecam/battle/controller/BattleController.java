@@ -82,5 +82,22 @@ public class BattleController {
         return CommonResponseDto.success("랜덤 주제가 생성되었습니다.", response);
     }
 
+    /**
+     * 방제목 변경 API
+     */
+    @PutMapping("room/{battleId}/title")
+    public CommonResponseDto<BattleResponse> updateTitle(
+            @PathVariable Long battleId,
+            @RequestBody String newTitle,
+            @RequestHeader("Authorization") String authToken) {
+        try {
+            // userId는 나중에 토큰에서 추출
+            BattleResponse response = battleService.updateTitle(battleId, newTitle);
+            return CommonResponseDto.success("방제가 성공적으로 변경되었습니다.", response);
+        } catch (RuntimeException e) {
+            return CommonResponseDto.error(ErrorCode.BATTLE_TITLE_UPDATE_FAILED);
+        }
+    }
+
 
 }

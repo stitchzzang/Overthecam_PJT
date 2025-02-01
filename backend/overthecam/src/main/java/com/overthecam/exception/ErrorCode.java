@@ -30,7 +30,11 @@ public enum ErrorCode {
     // Battle 관련 에러
     BATTLE_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "이미 시작된 배틀입니다."),
     //BATTLE_NOT_FOUND(HttpStatus.NOT_FOUND, "배틀이 존재하지 않습니다"),
-    INVALID_PARTICIPANT_COUNT(HttpStatus.BAD_REQUEST, "참가자 수가 올바르지 않습니다.");
+    INVALID_PARTICIPANT_COUNT(HttpStatus.BAD_REQUEST, "참가자 수가 올바르지 않습니다."),
+
+    // 방제 변경 관련 에러
+    TOPIC_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "주제 생성에 실패했습니다"),
+    BATTLE_TITLE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "방제 변경에 실패했습니다");
 
 
     private final HttpStatus httpStatus;

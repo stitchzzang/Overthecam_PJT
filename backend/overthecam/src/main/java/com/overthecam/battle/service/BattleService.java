@@ -211,4 +211,27 @@ public class BattleService {
                 .title(topics[randomIdx])
                 .build();
     }
+
+    public BattleResponse updateTitle(Long battleId, String newTitle) {
+        // 1. 배틀방 조회
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
+
+        // 2. 진행중인 배틀인지 확인
+        if (battle.getStatus() == 1) {
+            throw new RuntimeException("진행 중인 배틀은 방제를 변경할 수 없습니다");
+        }
+
+        // 3. 방제 변경
+        battle.updateTitle(newTitle);
+        battleRepository.save(battle);
+
+        // 4. 변경된 정보 반환
+        return BattleResponse.builder()
+                .battleId(battle.getId())
+                .title(battle.getTitle())
+                .sessionId(battle.getSessionId())
+                .roomUrl(battle.getRoomUrl())
+                .build();
+    }
 }
