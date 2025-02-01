@@ -36,7 +36,5 @@ public class BattleParticipant extends TimeStampEntity {
     public void updateRole(int role) {
         this.role = role;
     }
-    }
-
 
 }
