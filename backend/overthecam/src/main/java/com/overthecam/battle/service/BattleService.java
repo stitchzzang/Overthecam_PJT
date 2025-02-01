@@ -5,6 +5,7 @@ import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
+import com.overthecam.battle.dto.BattleStartResponse;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import io.openvidu.java.client.OpenViduHttpException;
@@ -12,6 +13,8 @@ import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +74,8 @@ public class BattleService {
     /**
      * 배틀러 선정 및 배틀 시작 메서드
      */
+    public BattleStartResponse selectBattlesAndStart(Long battleId, List<Long> selectedBattlerIds) {
 
+    }
 
 }

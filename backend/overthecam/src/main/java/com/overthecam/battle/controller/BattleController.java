@@ -2,12 +2,15 @@ package com.overthecam.battle.controller;
 
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
+import com.overthecam.battle.dto.BattleStartResponse;
 import com.overthecam.battle.service.BattleService;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 1. 방제 입력후 create 버튼 누를 때 배틀방 생성 (방제랑 사용자 access-token을 받음)
@@ -21,7 +24,9 @@ public class BattleController {
 
     private final BattleService battleService;
 
-
+    /**
+     * 배틀방 생성 API
+     */
     @PostMapping("/room/create")
     public ResponseEntity<BattleResponse> createBattleRoom(@RequestBody BattleCreateRequest request,
                                                            @RequestHeader("Authorization") String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
@@ -30,5 +35,16 @@ public class BattleController {
 
     }
 
+    /**
+     * 배틀러 선정 및 배틀 시작 API
+     */
+    //파라미터: 배틀방 id, battle_participant의 userId 리스트(프론트엔드가 배틀러로 선택한 두 명의 user_id를 받는다.)
+    @PostMapping("/room/{battleId}/start")
+    public ResponseEntity<BattleStartResponse> startBattle(@PathVariable Long battleId, @RequestBody List<Long> selectedBattlerIds) {
+
+        BattleStartResponse response = battleService.selectBattlersAndStart(battleId, selectedBattlerIds);
+        return ResponseEntity.ok(response);
+
+    }
 
 }
