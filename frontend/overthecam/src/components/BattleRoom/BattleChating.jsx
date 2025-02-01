@@ -1,89 +1,59 @@
 import { useEffect, useRef, useState } from "react";
-import { Stomp } from "@stomp/stompjs";
-import { WebSocket } from "ws";
+import { Client,Stomp } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
-function BattleChating() {
+function BattleChating({ onDisconnect }) {
   const stompClient = useRef(null);
   const [myUserName, setMyUserName] = useState(""); // 사용자 이름
-  const [chatRoomId, setChatRoomId] = useState(null); // 채팅방 번호
-  const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장장
+  const [chatRoomId, setChatRoomId] = useState(1); // 채팅방 번호
+  const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장
   const [chat, setChat] = useState(""); // 입력 받을 대화 내용
   const [chatList, setChatList] = useState([]); // 채팅 기록
 
-  const SOKET_BASE_URL = new SockJS("http://i12d204.p.ssafy.io//ws-connect");
+  const SOKET_BASE_URL = "http://i12d204.p.ssafy.io/api";
+  const CON_ENDPOINT = "/chat/rooms/";
   const PUB_ENDPOINT = "/publish/chat/";
   const SUB_ENDPOINT = "/subscribe/chat/";
 
-useEffect(() => {
-  // 새로운 STOMP 클라이언트 생성
-  const client = new Client({
-    webSocketFactory: () => new SockJS("http://i12d204.p.ssafy.io/ws-connect"),
-    onConnect: () => {
-      console.log("WebSocket 연결 성공!");
-      // 채팅방 입장
-      enterRoom();
-    },
-    onDisconnect: () => {
-      console.log("WebSocket 연결 해제!");
-    },
-    debug: (str) => {
-      console.log(str);
-    },
-  });
+  useEffect(() => {
+  // 첫 마운트 시 웹 소켓 연결
+  const soket = new SockJS(`${SOKET_BASE_URL}${CON_ENDPOINT}${chatRoomId}`);
+  stompClient.current = Stomp.over(soket);
 
-  stompClient.current = client;
-  client.activate();
+    stompClient.current.connect({}, () => {
+      console.log("webSoket 연결 성공!");
+      stompClient.current?.subscribe(`${SUB_ENDPOINT}${chatRoomId}`, (message) => {
+        const chatMessage = JSON.parse(message.body);
+        console.log("새 메세지 수신", chatMessage);
+        displayMessage(message.body);
+      });
+    }, (error) => {
+      console.error("webSoket 연결 실패", error);
+    });
 
-  return () => {
-    if (client.connected) {
-      client.deactivate();
-    }
-  };
-}, []);
-
-  // 채팅방 입장 함수 추가
-  const enterRoom = () => {
-    if (!isNaN(chatRoomId) && chatRoomId > 0) {
-      // 기존 구독 시 취소
-      if (currentSubscription) {
-        currentSubscription.unsubscribe();
+    // 언마운트할 때 해제
+    return () => {
+      if (stompClient.current) {
+        stompClient.current.disconnect();
       }
+    };
+  }, []);
 
-      const newSubscription = stompClient.subscribe(
-        `${SUB_ENDPOINT}${chatRoomId}`,
-        (response) => {
-          try {
-            const message = JSON.parse(response.body);
-            displayMessage(message);
-            console.log("subscrbe to ", path);
-          } catch (error) {
-            console.error("Message parsing error", error);
-          }
-        }
-      );
-
-      setCurrentSubscription(newSubscription);
-    }
-  };
 
   const displayMessage = (newMessage) => {
     setChatList((prev) => [...prev, newMessage]);
   };
 
-  const sendMessage = (roomId, userName, content) => {
-    const message = {
-      battleId: roomId,
-      username: userName,
-      content: content,
-      timestamp: new Date().toISOString(),
-    };
-
-    stompClient.send(
-      `${PUB_ENDPOINT}${chatRoomId}`,
-      {},
-      JSON.stringify(message)
-    );
+  const sendMessage = (battleId, username, content) => {
+    if (stompClient.current && stompClient.current.connected) {
+      const message = {
+        battleId,
+        username,
+        content,
+        timestamp: new Date().toISOString()
+      };
+      stompClient.send(`${PUB_ENDPOINT}${battleId}`, {}, JSON.stringify(message));
+    }
   };
 
   const sendChat = (event) => {

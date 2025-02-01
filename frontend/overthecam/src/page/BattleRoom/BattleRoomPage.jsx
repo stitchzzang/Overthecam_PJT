@@ -36,11 +36,12 @@ function BattleRoomPage() {
   const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기기
   const [isCoupleMode, setIsCoupleMode] = useState(true); // 둘이서 하는 건지? (둘이서 하는거면 ai 판정정)
   const [battlers, setBattlers] = useState([]);
+  const [disconnectWebSocket, setDisconnectWebSocket] = useState(null);
   const [speakingUsers, setSpeakingUsers] = useState(new Set());
   const navigate = useNavigate();
 
   const OV = useRef(null); // useRef를 사용하여 변수에 대한 참조를 저장, 컴포넌트가 리렌더링되어도 변수에 대한 참조가 유지(값을 유지)
-
+  const battleChatingRef = useRef(null); // BattleChating 컴포넌트에 대한 ref
   // useEffect 훅을 사용해서 컴포넌트 렌더링 시 특정 작업 실행하는 hook
   useEffect(() => {
     // handleBeforeUnload 함수 생성
@@ -188,6 +189,11 @@ function BattleRoomPage() {
       session.disconnect();
     }
 
+    // WebSocket 연결 해제
+    if (disconnectWebSocket) {
+      disconnectWebSocket();
+    }
+
     // 방장이 나가면 새로운 방장을 선정하는 로직
     if (isModerator && subscribers.length > 0) {
       const newModerator = subscribers[0];
@@ -215,7 +221,7 @@ function BattleRoomPage() {
     setMainStreamManager(undefined);
     setPublisher(undefined);
     navigate("/battle-list");
-  }, [session]);
+  }, [session, isModerator, subscribers, disconnectWebSocket]);
 
   // 구독자 타입 확인 함수 수정
   const getSubscriberType = (subscriber) => {
@@ -291,7 +297,7 @@ function BattleRoomPage() {
               </div>
             );
           })}
-          <BattleChating />
+          <BattleChating onDisconnect={setDisconnectWebSocket} />
         </div>
       ) : (
         <div>
@@ -321,7 +327,7 @@ function BattleRoomPage() {
               </div>
             );
           })}
-          <BattleChating />
+          <BattleChating onDisconnect={setDisconnectWebSocket} />
         </div>
       )}
     </div>
