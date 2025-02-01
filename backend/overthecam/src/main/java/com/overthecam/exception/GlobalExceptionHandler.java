@@ -4,14 +4,17 @@ import com.overthecam.common.dto.CommonResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Global 예외 처리
     @ExceptionHandler(value = GlobalException.class)
     public ResponseEntity<CommonResponseDto<Object>> handleGlobalException(GlobalException e) {
         log.error("Global Exception occurred: {} - {}", e.getErrorCode(), e.getDetail());
@@ -19,6 +22,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(e.getErrorCode().getHttpStatus())
             .body(CommonResponseDto.error(e.getErrorCode()));
+    }
+
+    // 입력값 검증 예외 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<CommonResponseDto<Object>> handleValidationExceptions(
+            MethodArgumentNotValidException e) {
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        ErrorCode errorCode = fieldError != null && fieldError.getField().equals("password")
+                ? ErrorCode.PASSWORD_VALIDATION_ERROR
+                : ErrorCode.INVALID_INPUT_VALUE;
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(CommonResponseDto.error(errorCode));
     }
 
     // 기본 예외 처리 추가

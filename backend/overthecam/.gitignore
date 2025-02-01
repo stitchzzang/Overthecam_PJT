@@ -39,3 +39,7 @@ out/
 ### macOS ###
 .DS_Store
 **/.DS_Store
+
+### JWT 토큰값 ###
+application-secret.properties
+application-local.properties
