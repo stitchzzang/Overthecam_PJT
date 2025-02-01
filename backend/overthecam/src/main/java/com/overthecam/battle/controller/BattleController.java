@@ -5,18 +5,13 @@ import com.overthecam.battle.dto.BattleResponse;
 import com.overthecam.battle.dto.BattleStartResponse;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
+import com.overthecam.exception.ErrorCode;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-/**
- * 1. 방제 입력후 create 버튼 누를 때 배틀방 생성 (방제랑 사용자 access-token을 받음)
- * 2. 배틀러 선정 후 배틀 시작하기를 누르면 배틍방 시작(status waiting -> progress)
- */
 
 @RestController
 @RequestMapping("/api/battle")
@@ -75,6 +70,5 @@ public class BattleController {
             return CommonResponseDto.error(ErrorCode.BATTLE_NOT_FOUND);
         }
     }
-}
-
+    
 }

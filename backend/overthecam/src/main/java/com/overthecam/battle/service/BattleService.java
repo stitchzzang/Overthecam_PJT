@@ -73,6 +73,53 @@ public class BattleService {
 
     } //여기까지가 처음에 방이 생성되고 방장의 role만 설정된 상태
 
+
+    /**
+     * 배틀방 참가 메서드
+     */
+    public BattleResponse joinBattle(Long battleId, String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
+
+        // 1. 배틀방 조회
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
+
+        // 2. 방 상태 확인
+        if (battle.getStatus() == 1) {  // 진행중 상태
+            throw new RuntimeException("이미 시작된 배틀입니다");
+        }
+
+        // 3. 현재 참가자 수 확인
+        long participantCount = battleRepository.countUsersByBattleId(battleId);
+        if (participantCount >= 6) {
+            throw new RuntimeException("방이 가득 찼습니다");
+        }
+
+        // 4. 참가자로 등록 (PARTICIPANT = 2)
+        BattleParticipant participant = BattleParticipant.builder()
+                .id(battleId)
+                //.user(user)
+                .role(ParticipantRole.PARTICIPANT)
+                .build();
+
+        battleParticipantRepository.save(participant);
+
+        // 5. 참가자수 증가
+        battle.updateTotalUsers(battle.getTotalUsers() + 1);
+        battleRepository.save(battle);
+
+        // 6. OpenVidu 토큰 생성 (비디오/오디오 OFF 상태)
+        String connectionToken = openViduService.createConnection(battle.getSessionId());
+
+        return BattleResponse.builder()
+                .battleId(battle.getId())
+                .title(battle.getTitle())
+                .sessionId(battle.getSessionId())
+                .connectionToken(connectionToken)
+                .roomUrl(battle.getRoomUrl())
+                .build();
+
+    } //여기까지가 배틀방이 생성된 후에 6명의 참가자가 모이는 상태
+
     /**
      * 배틀러 선정 및 배틀 시작 메서드
      */
@@ -81,22 +128,25 @@ public class BattleService {
         Battle battle = battleRepository.findById(battleId)
                 .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
 
-
-        // 2. 현재 방의 모든 참가자 조회 (방 번호로 조회)
+        // 2. 현재 방의 모든 참가자 조회
         List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleId(battleId);
 
-        // 3. 배틀러로 지정된 탐가들을 배틀러로 업데이트
+        // 3. 배틀러 선정 (2명만 선택되었는지 체크)
+        if (selectedBattlerIds.size() != 2) {
+            throw new RuntimeException("배틀러는 2명만 선택해야 합니다");
+        }
+
+        // 4. 배틀러로 지정된 참가자 role 업데이트
         for (BattleParticipant participant : participants) {
-            // 3.1. 선택된 배틀러 ID들을 받아서
-            if (selectedBattlerIds.contains(participant.getUser().getId())) {
+            if (selectedBattlerIds.contains(participant.getUserId())) {
                 int newRole;
                 if (participant.getRole() == ParticipantRole.HOST) {
-                    // 3.2. 해당 사용자들의 role을 배틀러로 업데이트
                     newRole = ParticipantRole.HOST | ParticipantRole.BATTLER; // 5: 방장+배틀러
                 } else {
                     newRole = ParticipantRole.PARTICIPANT | ParticipantRole.BATTLER; // 6: 참가자+배틀러
                 }
                 participant.updateRole(newRole);
+                battleParticipantRepository.save(participant);
             }
         }
 
@@ -105,12 +155,20 @@ public class BattleService {
         battleRepository.save(battle);
 
 
-        // 5. 모든 참가자의 세션 정보 생성
+        // 6. 모든 참가자의 세션 정보 생성 (배틀러는 비디오/오디오 ON 가능, 나머지는 OFF)
         List<ParticipantSessionInfo> sessionInfos = new ArrayList<>();
         for (BattleParticipant participant : participants) {
-            String connectionToken = openViduService.createConnection(battle.getSessionId());
+            String connectionToken;
+            // 배틀러인 경우 PUBLISHER 권한으로 토큰 생성
+            if ((participant.getRole() & ParticipantRole.BATTLER) != 0) {
+                connectionToken = openViduService.createPublisherConnection(battle.getSessionId());
+            } else {
+                // 일반 참가자는 SUBSCRIBER 권한으로 토큰 생성
+                connectionToken = openViduService.createConnection(battle.getSessionId());
+            }
+
             sessionInfos.add(new ParticipantSessionInfo(
-                    participant.getUser().getId(),
+                    participant.getUserId(),
                     participant.getRole(),
                     battle.getSessionId(),
                     connectionToken

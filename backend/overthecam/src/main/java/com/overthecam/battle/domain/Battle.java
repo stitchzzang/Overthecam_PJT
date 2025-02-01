@@ -42,8 +42,16 @@ public class Battle extends TimeStampEntity {
     @Column(name = "status")
     private Integer status = 0;
 
+    @Column(name = "total_users")
+    private int totalUsers;
+
     public void updateStatus(int status) {
         this.status = status;
+    }
+
+    // totalUsers 업데이트 메서드 추가
+    public void updateTotalUsers(int totalUsers) {
+        this.totalUsers = totalUsers;
     }
 
 }
