@@ -1,5 +1,6 @@
 package com.overthecam.battle.domain;
 
+import com.overthecam.auth.domain.User;
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,9 +25,9 @@ public class BattleParticipant extends TimeStampEntity {
     @JoinColumn(name = "battle_id")
     private Battle battle;
 
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "user_id")
-    //private User user; 구현되면 주석 품
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @JoinColumn(name = "role")
     private Integer role;

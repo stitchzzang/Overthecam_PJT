@@ -163,8 +163,8 @@ public class BattleService {
         }
 
         // 4. 배틀러로 지정된 참가자 role 업데이트
-        for (BattleParticipant participant : participants) {
-            if (selectedBattlerIds.contains(participant.getUserId())) {
+        for (BattleParticipant participant : participants) { //참가자들 중에서
+            if (selectedBattlerIds.contains(participant.getUser().getUserId())) { //배틀러로 지목한  userId랑 같은 경우 역할 부여
                 int newRole;
                 if (participant.getRole() == ParticipantRole.HOST) {
                     newRole = ParticipantRole.HOST | ParticipantRole.BATTLER; // 5: 방장+배틀러
@@ -194,7 +194,7 @@ public class BattleService {
             }
 
             sessionInfos.add(new ParticipantSessionInfo(
-                    participant.getUserId(),
+                    participant.getUser().getUserId(),
                     participant.getRole(),
                     battle.getSessionId(),
                     connectionToken
