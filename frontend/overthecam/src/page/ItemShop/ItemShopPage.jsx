@@ -1,4 +1,5 @@
 import ItemList from "../../components/ItemShop/ItemList";
+import MyInventory from "../../components/ItemShop/MyInventory";
 
 function ItemShopPage() {
 
@@ -7,6 +8,7 @@ function ItemShopPage() {
       <div>
         <h1>상점 페이지: Store</h1>
       </div>
+      <MyInventory/>
       <div>
         <h3>내 인벤토리</h3>
       </div>
