@@ -27,7 +27,7 @@ public class BattleService {
     @Value("${openvidu.secret}")
     private String SECRET;
 
-    //인증된 사용자로 부터 얻은 userId
+    //인증된 사용자로 부터 얻은 userId로 배틀방을 생성한 후 sessionId를 db에 저장
     public String createBattleSession(Long userId) {
 
 
