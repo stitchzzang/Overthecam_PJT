@@ -38,7 +38,7 @@ public class User extends TimeStampEntity {
     private Integer point = 0;
 
     @Column(length = 500)
-    private String refreshToken;
+    private String refreshToken; // Refresh Token 저장
 
     @Builder
     public User(String nickname, String email, Integer gender, String password, LocalDate birth, String phoneNumber) {
@@ -51,7 +51,7 @@ public class User extends TimeStampEntity {
         this.supportScore = 50000;
     }
 
-    // Refresh Token 관리를 위한 메서드들
+    // Refresh Token 관리
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }

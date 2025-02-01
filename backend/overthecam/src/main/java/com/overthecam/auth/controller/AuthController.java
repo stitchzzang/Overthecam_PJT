@@ -7,6 +7,7 @@ import com.overthecam.auth.dto.UserResponse;
 import com.overthecam.auth.service.AuthService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.exception.ErrorCode;
+import com.overthecam.exception.GlobalException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,12 +23,14 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
 
+    // 회원가입
     @PostMapping("/signup")
     public CommonResponseDto<UserResponse> signup(
             @Valid @RequestBody SignUpRequest request) {
         return authService.signup(request);
     }
 
+    // 로그인
     @PostMapping("/login")
     public CommonResponseDto<TokenResponse> login(
             @Valid @RequestBody LoginRequest request,
@@ -35,19 +38,18 @@ public class AuthController {
         return authService.login(request, response);
     }
 
+    // 토큰 갱신
     @PostMapping("/refresh")
     public CommonResponseDto<TokenResponse> refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) {
         log.info("토큰 갱신 요청 수신");
 
-        // 쿠키에서 refresh token 추출
-        Cookie[] cookies = request.getCookies();
         String refreshToken = null;
+        Cookie[] cookies = request.getCookies();
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                log.info("쿠키 발견: {} = {}", cookie.getName(), cookie.getValue());
                 if ("refresh_token".equals(cookie.getName())) {
                     refreshToken = cookie.getValue();
                     break;
@@ -56,8 +58,7 @@ public class AuthController {
         }
 
         if (refreshToken == null) {
-            log.error("Refresh Token이 없습니다");
-            return CommonResponseDto.error(ErrorCode.INVALID_TOKEN);
+            throw new GlobalException(ErrorCode.INVALID_TOKEN, "Refresh Token이 없습니다");
         }
 
         return authService.refreshAccessToken(refreshToken, response);
@@ -68,9 +69,9 @@ public class AuthController {
             @RequestHeader(value = "Authorization", required = false) String token,
             HttpServletResponse response) {
         if (token == null || !token.startsWith("Bearer ")) {
-            log.error("유효하지 않은 토큰 형식입니다: {}", token);
-            return CommonResponseDto.error(ErrorCode.INVALID_TOKEN);
+            throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰 형식입니다");
         }
+
         return authService.logout(token, response);
     }
 }

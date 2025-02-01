@@ -24,26 +24,25 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                // CSRF 보호 비활성화 (JWT 사용으로 인해)
                 .csrf(AbstractHttpConfigurer::disable)
+                // CORS 설정 활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // 세션 비활성화 (JWT 사용)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // URL 별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/signup",
-                                "/api/auth/login",
-                                "/api/auth/refresh",
-                                "/v3/api-docs/**"
+                                "/api/auth/signup",  // 회원가입
+                                "/api/auth/login",   // 로그인
+                                "/api/auth/refresh", // 토큰 갱신
+                                "/v3/api-docs/**"    // API 문서
                         ).permitAll()
                         .anyRequest().authenticated())
+                // JWT 필터 추가
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
                 .build();
