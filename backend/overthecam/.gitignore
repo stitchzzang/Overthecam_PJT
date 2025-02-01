@@ -40,6 +40,5 @@ out/
 .DS_Store
 **/.DS_Store
 
-### JWT 토큰값 ###
+### 서버 환경변수 ###
 application-secret.properties
-application-local.properties
