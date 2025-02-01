@@ -5,6 +5,7 @@ import { OpenVidu } from "openvidu-browser";
 import axios from "axios";
 import UserVideoComponent from "../../components/BattleRoom/UserVideo";
 import BattleChating from "../../components/BattleRoom/BattleChating";
+import BattleTimer from "../../components/BattleRoom/BattleTimer";
 
 const APPLICATION_SERVER_URL =
   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
@@ -35,11 +36,12 @@ function BattleRoomPage() {
   const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기기
   const [isCoupleMode, setIsCoupleMode] = useState(true); // 둘이서 하는 건지? (둘이서 하는거면 ai 판정정)
   const [battlers, setBattlers] = useState([]);
+  const [disconnectWebSocket, setDisconnectWebSocket] = useState(null);
   const [speakingUsers, setSpeakingUsers] = useState(new Set());
   const navigate = useNavigate();
 
   const OV = useRef(null); // useRef를 사용하여 변수에 대한 참조를 저장, 컴포넌트가 리렌더링되어도 변수에 대한 참조가 유지(값을 유지)
-
+  const battleChatingRef = useRef(null); // BattleChating 컴포넌트에 대한 ref
   // useEffect 훅을 사용해서 컴포넌트 렌더링 시 특정 작업 실행하는 hook
   useEffect(() => {
     // handleBeforeUnload 함수 생성
@@ -187,6 +189,11 @@ function BattleRoomPage() {
       session.disconnect();
     }
 
+    // WebSocket 연결 해제
+    if (disconnectWebSocket) {
+      disconnectWebSocket();
+    }
+
     // 방장이 나가면 새로운 방장을 선정하는 로직
     if (isModerator && subscribers.length > 0) {
       const newModerator = subscribers[0];
@@ -214,7 +221,7 @@ function BattleRoomPage() {
     setMainStreamManager(undefined);
     setPublisher(undefined);
     navigate("/battle-list");
-  }, [session]);
+  }, [session, isModerator, subscribers, disconnectWebSocket]);
 
   // 구독자 타입 확인 함수 수정
   const getSubscriberType = (subscriber) => {
@@ -267,14 +274,11 @@ function BattleRoomPage() {
               onClick={leaveSession}
               value="Leave session"
             />
-            {isMaster ? (
-              <div>
-                <button onClick={startBattle}>게임 시작하기</button>
-                <button>투표 만들기</button>
-              </div>
-            ) : (
-              <div></div>
-            )}
+            <div>
+              <button onClick={startBattle}>게임 시작하기</button>
+              <button>투표 만들기</button>
+            </div>
+            {isMaster ? <></> : <div></div>}
           </div>
           <div id="video-container" className="col-12">
             <div className="participant-name">
@@ -293,12 +297,20 @@ function BattleRoomPage() {
               </div>
             );
           })}
-          <BattleChating />
+          <BattleChating onDisconnect={setDisconnectWebSocket} />
         </div>
       ) : (
         <div>
           <h1>게임모드</h1>
+          <input
+            className="btn btn-large btn-danger"
+            type="button"
+            id="buttonLeaveSession"
+            onClick={leaveSession}
+            value="Leave session"
+          />
           <div id="video-container" className="col-12">
+            <div>{!isWaiting && <BattleTimer />}</div>
             <div className="participant-name">
               <span>{myNickName} (나)</span>
               <UserVideoComponent streamManager={publisher} />
@@ -315,7 +327,7 @@ function BattleRoomPage() {
               </div>
             );
           })}
-          <BattleChating />
+          <BattleChating onDisconnect={setDisconnectWebSocket} />
         </div>
       )}
     </div>

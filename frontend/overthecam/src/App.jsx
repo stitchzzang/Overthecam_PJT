@@ -1,15 +1,13 @@
-import { useState } from 'react'
-import './App.css'
+import NavBar from "./components/Layout/NavBar";
+import './App.css';
+import './index.css';
 
 function App() {
-
   return (
     <>
-    <div>
-      <h1>캠건너 불구경에 오신 것을 환영 합니다.</h1>
-    </div>
+      <NavBar />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
