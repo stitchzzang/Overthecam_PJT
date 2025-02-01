@@ -42,5 +42,9 @@ public class Battle extends TimeStampEntity {
     @Column(name = "status")
     private Integer status = 0;
 
+    public void updateStatus(int status) {
+        this.status = status;
+    }
+
 }
 

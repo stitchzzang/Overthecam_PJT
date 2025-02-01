@@ -6,6 +6,7 @@ import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
 import com.overthecam.battle.dto.BattleStartResponse;
+import com.overthecam.battle.dto.ParticipantSessionInfo;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import io.openvidu.java.client.OpenViduHttpException;
@@ -14,6 +15,7 @@ import io.openvidu.java.client.Session;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -74,7 +76,48 @@ public class BattleService {
     /**
      * 배틀러 선정 및 배틀 시작 메서드
      */
-    public BattleStartResponse selectBattlesAndStart(Long battleId, List<Long> selectedBattlerIds) {
+    public BattleStartResponse selectBattlersAndStart(Long battleId, List<Long> selectedBattlerIds) throws OpenViduJavaClientException, OpenViduHttpException {
+        // 1. 배틀방 조회
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
+
+
+        // 2. 현재 방의 모든 참가자 조회 (방 번호로 조회)
+        List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleId(battleId);
+
+        // 3. 배틀러로 지정된 탐가들을 배틀러로 업데이트
+        for (BattleParticipant participant : participants) {
+            // 3.1. 선택된 배틀러 ID들을 받아서
+            if (selectedBattlerIds.contains(participant.getUser().getId())) {
+                int newRole;
+                if (participant.getRole() == ParticipantRole.HOST) {
+                    // 3.2. 해당 사용자들의 role을 배틀러로 업데이트
+                    newRole = ParticipantRole.HOST | ParticipantRole.BATTLER; // 5: 방장+배틀러
+                } else {
+                    newRole = ParticipantRole.PARTICIPANT | ParticipantRole.BATTLER; // 6: 참가자+배틀러
+                }
+                participant.updateRole(newRole);
+            }
+        }
+
+        // 4. 배틀 상태를 진행중으로 변경
+        battle.updateStatus(1);
+        battleRepository.save(battle);
+
+
+        // 5. 모든 참가자의 세션 정보 생성
+        List<ParticipantSessionInfo> sessionInfos = new ArrayList<>();
+        for (BattleParticipant participant : participants) {
+            String connectionToken = openViduService.createConnection(battle.getSessionId());
+            sessionInfos.add(new ParticipantSessionInfo(
+                    participant.getUser().getId(),
+                    participant.getRole(),
+                    battle.getSessionId(),
+                    connectionToken
+            ));
+        }
+
+        return new BattleStartResponse(battleId, battle.getSessionId(), sessionInfos);
 
     }
 
