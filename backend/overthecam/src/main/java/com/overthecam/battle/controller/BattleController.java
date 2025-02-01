@@ -3,6 +3,8 @@ package com.overthecam.battle.controller;
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
 import com.overthecam.battle.service.BattleService;
+import io.openvidu.java.client.OpenViduHttpException;
+import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class BattleController {
 
     @PostMapping("/room/create")
     public ResponseEntity<BattleResponse> createBattleRoom(@RequestBody BattleCreateRequest request,
-                                                           @RequestHeader("Authorization") String authToken) {
+                                                           @RequestHeader("Authorization") String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
         BattleResponse response = battleService.createBattleRoom(request, authToken);
         return ResponseEntity.ok(response);
 
