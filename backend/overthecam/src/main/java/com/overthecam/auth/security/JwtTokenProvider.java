@@ -39,16 +39,16 @@ public class JwtTokenProvider {
         // 토큰 만료 시간 설정
         Date now = new Date();
         Date accessTokenValidity = getExpirationTime(now,
-                jwtProperties.getAccessTokenValidityInMilliseconds());
+                jwtProperties.getAccessExpiration());
         Date refreshTokenValidity = getExpirationTime(now,
-                jwtProperties.getRefreshTokenValidityInMilliseconds());
+                jwtProperties.getRefreshExpiration());
 
         // 액세스, 리프레시 토큰 발급
         String accessToken = buildToken(claims, now, accessTokenValidity);
         String refreshToken = buildToken(claims, now, refreshTokenValidity);
 
         return TokenResponse.builder()
-                .grantType(jwtProperties.getTokenPrefix().trim())
+                .grantType(JwtProperties.TYPE.trim())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .accessTokenExpiresIn(accessTokenValidity.getTime())
@@ -60,7 +60,7 @@ public class JwtTokenProvider {
     public String recreateAccessToken(User user) {
         Map<String, Object> claims = createClaims(user);
         Date now = new Date();
-        Date validity = getExpirationTime(now, jwtProperties.getAccessTokenValidityInMilliseconds());
+        Date validity = getExpirationTime(now, jwtProperties.getAccessExpiration());
 
         return buildToken(claims, now, validity);
     }
@@ -112,11 +112,7 @@ public class JwtTokenProvider {
     // 토큰 검증 메서드
     public boolean validateToken(String token) {
         try {
-            // 토큰 파싱 및 서명 검증
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            getClaims(token);  // 한 번의 파싱으로 검증
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
@@ -130,8 +126,8 @@ public class JwtTokenProvider {
             return false;
         } catch (ExpiredJwtException e) {
             return true;
-        } catch (Exception e) {
-            return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;  // 만료가 아닌 다른 이유로 유효하지 않은 경우
         }
     }
 }

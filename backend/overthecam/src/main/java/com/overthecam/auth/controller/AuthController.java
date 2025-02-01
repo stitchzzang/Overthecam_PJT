@@ -38,32 +38,6 @@ public class AuthController {
         return authService.login(request, response);
     }
 
-    // 토큰 갱신
-    @PostMapping("/refresh")
-    public CommonResponseDto<TokenResponse> refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response) {
-        log.info("토큰 갱신 요청 수신");
-
-        String refreshToken = null;
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("refresh_token".equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (refreshToken == null) {
-            throw new GlobalException(ErrorCode.INVALID_TOKEN, "Refresh Token이 없습니다");
-        }
-
-        return authService.refreshAccessToken(refreshToken, response);
-    }
-
     @PostMapping("/logout")
     public CommonResponseDto<Void> logout(
             @RequestHeader(value = "Authorization", required = false) String token,

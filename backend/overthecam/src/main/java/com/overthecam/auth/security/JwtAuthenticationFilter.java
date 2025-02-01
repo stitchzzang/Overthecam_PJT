@@ -65,12 +65,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void processToken(String accessToken, HttpServletRequest request,
                               HttpServletResponse response) {
         if (accessToken != null) {
+            if (tokenProvider.isExpiredToken(accessToken)) {
+                // 만료된 토큰인 경우 리프레시 토큰으로 갱신 시도
+                processRefreshToken(request, response);
+            }
             if (tokenProvider.validateToken(accessToken)) {
                 // 유효한 토큰인 경우 인증 정보 설정
                 setAuthentication(accessToken);
-            } else if (tokenProvider.isExpiredToken(accessToken)) {
-                // 만료된 토큰인 경우 리프레시 토큰으로 갱신 시도
-                processRefreshToken(request, response);
             }
         }
     }

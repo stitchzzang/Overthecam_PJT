@@ -86,46 +86,6 @@ public class AuthService {
     }
 
     /**
-     * Access Token 갱신
-     * 1. Refresh Token 유효성 검증
-     * 2. DB의 Refresh Token과 비교
-     * 3. 새로운 Access Token 발급
-     */
-    @Transactional
-    public CommonResponseDto<TokenResponse> refreshAccessToken(
-            String refreshToken, HttpServletResponse response) {
-        // Refresh Token 검증
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new GlobalException(ErrorCode.INVALID_TOKEN,
-                    "유효하지 않은 토큰입니다");
-        }
-
-        // 사용자 조회 및 토큰 비교
-        String email = jwtTokenProvider.getEmail(refreshToken);
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
-                        "사용자를 찾을 수 없습니다"));
-
-        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
-            throw new GlobalException(ErrorCode.INVALID_TOKEN,
-                    "유효하지 않은 토큰입니다");
-        }
-
-
-        // 새로운 Access Token 발급
-        String newAccessToken = jwtTokenProvider.recreateAccessToken(user);
-        TokenResponse tokenResponse = TokenResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
-                .grantType("Bearer")
-                .accessTokenExpiresIn(System.currentTimeMillis() + 1800000)
-                .build();
-
-        response.setHeader("New-Access-Token", newAccessToken);
-        return CommonResponseDto.success("토큰이 갱신되었습니다", tokenResponse);
-    }
-
-    /**
      * 로그아웃 처리
      * 1. Access Token 검증
      * 2. DB의 Refresh Token 제거
