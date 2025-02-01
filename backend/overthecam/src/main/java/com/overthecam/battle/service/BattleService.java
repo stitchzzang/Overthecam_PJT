@@ -115,7 +115,7 @@ public class BattleService {
         }
 
         // 3. 현재 참가자 수 확인
-        long participantCount = battleRepository.countUsersByBattleId(battleId);
+        long participantCount = battleRepository.countUsersById(battleId);
         if (participantCount >= 6) {
             throw new RuntimeException("방이 가득 찼습니다");
         }
