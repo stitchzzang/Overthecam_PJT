@@ -25,27 +25,19 @@ public class AuthController {
 
     // 회원가입
     @PostMapping("/signup")
-    public CommonResponseDto<UserResponse> signup(
-            @Valid @RequestBody SignUpRequest request) {
+    public CommonResponseDto<UserResponse> signup(@Valid @RequestBody SignUpRequest request) {
         return authService.signup(request);
     }
 
     // 로그인
     @PostMapping("/login")
-    public CommonResponseDto<TokenResponse> login(
-            @Valid @RequestBody LoginRequest request,
-            HttpServletResponse response) {
+    public CommonResponseDto<TokenResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         return authService.login(request, response);
     }
 
     @PostMapping("/logout")
-    public CommonResponseDto<Void> logout(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            HttpServletResponse response) {
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰 형식입니다");
-        }
-
-        return authService.logout(token, response);
+    public CommonResponseDto<Void> logout(HttpServletResponse response) {
+        return authService.logout(response);
     }
+
 }

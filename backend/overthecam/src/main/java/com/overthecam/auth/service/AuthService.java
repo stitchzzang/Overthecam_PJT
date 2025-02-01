@@ -9,6 +9,8 @@ import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.auth.security.JwtTokenProvider;
 import com.overthecam.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,27 +89,22 @@ public class AuthService {
 
     /**
      * 로그아웃 처리
-     * 1. Access Token 검증
-     * 2. DB의 Refresh Token 제거
-     * 3. 쿠키의 Refresh Token 제거
+     * 1. DB의 Refresh Token 삭제
+     * 2. 쿠키의 Refresh Token 삭제
      */
     @Transactional
-    public CommonResponseDto<Void> logout(String token, HttpServletResponse response) {
-        // Bearer 토큰 형식 검증
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰 형식입니다");
-        }
+    public CommonResponseDto<Void> logout(HttpServletResponse response) {
+        // 현재 인증된 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // 토큰 추출 및 유효성 검증
-        String accessToken = token.substring(7);
-        if (!jwtTokenProvider.validateToken(accessToken)) {
-            throw new GlobalException(ErrorCode.INVALID_TOKEN, "유효하지 않은 토큰입니다");
+        if (authentication == null || authentication.getPrincipal() == "anonymousUser") {
+            throw new GlobalException(ErrorCode.USER_NOT_FOUND, "로그인된 사용자가 없습니다.");
         }
 
         // 토큰에서 사용자 이메일 추출 후 사용자 조회
-        String email = jwtTokenProvider.getEmail(accessToken);
+        String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
+            .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
 
         // DB에서 Refresh Token 제거
         user.clearRefreshToken();
@@ -118,8 +115,11 @@ public class AuthService {
         refreshTokenCookie.setPath("/");        // 모든 경로에서 접근 가능하도록 설정
         refreshTokenCookie.setMaxAge(0);        // 쿠키 즉시 만료
         refreshTokenCookie.setHttpOnly(true);   // JavaScript에서 접근 불가능하도록 설정
-        refreshTokenCookie.setSecure(true);     // HTTPS에서만 전송되도록 설정
+        refreshTokenCookie.setSecure(false);    // HTTPS 환경이 아니면 false
         response.addCookie(refreshTokenCookie);
+
+        // SecurityContext 초기화 (로그아웃 효과)
+        SecurityContextHolder.clearContext();
 
         return CommonResponseDto.success("로그아웃이 완료되었습니다", null);
     }
