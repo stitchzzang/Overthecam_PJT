@@ -7,6 +7,19 @@ pipeline {
        DOCKERHUB_CREDENTIALS = credentials('docker')
        DOCKER_IMAGE = 'ghkdtnql/overthecam'
        DOCKER_IMAGE_FRONTEND = 'ghkdtnql/overthecam-front'
+
+       // MySQL 환경변수
+       MYSQL_DB_URL = credentials('mysql-url')        // 전체 JDBC URL
+       MYSQL_CRED = credentials('mysql-credentials')
+       MYSQL_DB_USERNAME = "${MYSQL_CRED_USR}"
+       MYSQL_DB_PASSWORD = "${MYSQL_CRED_PSW}"
+
+       // JWT Secret
+       JWT_SECRET = credentials('jwt-secret')
+
+       // OpenVidu 설정
+       OPENVIDU_URL = credentials('openvidu-url')     // 전체 OpenVidu URL
+       OPENVIDU_SECRET = credentials('openvidu-secret')
    }
 
    stages {
