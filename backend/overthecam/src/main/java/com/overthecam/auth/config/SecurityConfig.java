@@ -45,9 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/signup",  // 회원가입
-                                "/api/auth/login",   // 로그인
-                                "/api/auth/refresh", // 토큰 갱신
-                                "/v3/api-docs/**"    // API 문서
+                                "/api/auth/login"   // 로그인
                         ).permitAll()
                         .anyRequest().authenticated())
 
@@ -63,12 +61,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // CORS 기본 설정
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
 
         // 클라이언트가 접근할 수 있는 헤더 설정
         configuration.setExposedHeaders(Arrays.asList(
