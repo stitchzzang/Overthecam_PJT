@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function NavBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -8,14 +9,14 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo section */}
         <div className="flex-shrink-0">
-          <img src="public/images/Logo.png" alt="Logo" className="h-12" />
+          <Link to={"/"}><img src="public/images/Logo.png" alt="Logo" className="h-12"/></Link>
         </div>
 
         {/* Search section */}
         <div className="flex-grow max-w-3xl">
           <div className="flex items-center bg-gray-100 rounded-[30px] h-[50px] px-6 py-2">
             <div className="flex items-center gap-6 flex-grow">
-              <span className="text-gray-700 font-medium">배틀 방 보기</span>
+              <Link to={"/battle-list"} className="text-gray-700 font-medium">배틀 방 보기</Link>
               <div className="h-5 w-[1px] bg-gray-300"></div>
               <div className="relative">
                 <button
@@ -27,17 +28,17 @@ export default function NavBar() {
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute top-full mt-1 w-32 bg-white shadow-lg rounded-md py-1 z-50">
-                    <a href="#" className="block px-4 py-2 hover:bg-gray-100">
+                    <Link to={"/"} className="block px-4 py-2 hover:bg-gray-100">
                       진행중인 투표
-                    </a>
-                    <a href="#" className="block px-4 py-2 hover:bg-gray-100">
+                    </Link>
+                    <Link to={"/"} className="block px-4 py-2 hover:bg-gray-100">
                       종료된 투표
-                    </a>
+                    </Link>
                   </div>
                 )}
               </div>
               <div className="h-5 w-[1px] bg-gray-300"></div>
-              <span className="text-gray-700 font-medium">상점</span>
+              <Link to={"/store"} className="text-gray-700 font-medium">상점</Link>
             </div>
             <div className="flex items-center gap-2 ml-4">
               <input
@@ -54,12 +55,12 @@ export default function NavBar() {
 
         {/* Action buttons */}
         <div className="flex flex-col gap-1">
-          <button className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium whitespace-nowrap">
+          <Link to={"/create-battle-room"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium whitespace-nowrap">
             방 만들기
-          </button>
-          <button className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium whitespace-nowrap">
+          </Link>
+          <Link to={"/"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium whitespace-nowrap">
             투표 만들기
-          </button>
+          </Link>
         </div>
 
         {/* User section */}
