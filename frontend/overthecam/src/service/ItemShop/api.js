@@ -28,6 +28,6 @@ export const postPurchase = async (itemId) => {
     });
     return response;    
   } catch (error) {
-    
+    console.error("구매 실패", error);
   }
 }
