@@ -68,25 +68,26 @@ pipeline {
             }
         }
 
-    stage('Deploy to EC2') {
-        steps {
-            script {
-                try {
-                    echo '====== EC2 배포 시작 ======'
-                    sshagent(['ssh']) {
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '\
-                            docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} && \
-                            docker stop frontend || true && \
-                            docker rm frontend || true && \
-                            docker run -d --name frontend -p 5173:80 ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} && \
-                            docker system prune -f'
-                        '''
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    try {
+                        echo '====== EC2 배포 시작 ======'
+                        sshagent(['ssh']) {
+                            sh '''
+                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '\
+                                docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} && \
+                                docker stop frontend || true && \
+                                docker rm frontend || true && \
+                                docker run -d --name frontend -p 5173:80 ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} && \
+                                docker system prune -f'
+                            '''
+                        }
+                        echo '====== EC2 배포 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== EC2 배포 실패 ======'
+                        error "Deployment failed: ${e.message}"
                     }
-                    echo '====== EC2 배포 성공 ======'
-                } catch (Exception e) {
-                    echo '====== EC2 배포 실패 ======'
-                    error "Deployment failed: ${e.message}"
                 }
             }
         }
