@@ -19,7 +19,7 @@ pipeline {
                 sh 'pwd'
                 sh 'ls -la'
                 
-                dir('backend/overthecam') {  // 경로 수정
+                dir('overthecam') {  // 경로 수정
                     // 디렉토리 내용 확인
                     sh 'pwd'
                     sh 'ls -la'
@@ -37,7 +37,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        dir('backend/overthecam') {
+                        dir('overthecam') {
                             sh """
                                 # 이전 빌드 이미지 정리
                                 docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
