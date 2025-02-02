@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
         stage('Build FE') {
             steps {
                 dir('frontend/overthecam') {
@@ -20,29 +26,55 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend/overthecam') {
-                    sh """
-                        docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                        docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                    """
+                script {
+                    try {
+                        dir('frontend/overthecam') {
+                            sh """
+                                # 이전 빌드 이미지 정리
+                                docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
+                                
+                                # 새 이미지 빌드 및 푸시
+                                docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
+                                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                            """
+                        }
+                    } catch (Exception e) {
+                        echo "Docker build/push failed: ${e.getMessage()}"
+                        sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+                        throw e
+                    }
                 }
             }
         }
 
         stage('Deploy to EC2') {
             steps {
-                sshagent(['ssh']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                            docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                            docker stop frontend || true
-                            docker rm frontend || true
-                            docker run -d --name frontend -p 5173:80 ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                        '
-                    """
+                script {
+                    try {
+                        sshagent(['ssh']) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
+                                    docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                    docker stop frontend || true
+                                    docker rm frontend || true
+                                    docker run -d --name frontend -p 5173:80 ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                    docker system prune -f
+                                '
+                            """
+                        }
+                    } catch (Exception e) {
+                        echo "Deployment failed: ${e.getMessage()}"
+                        throw e
+                    }
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
         }
     }
 }
