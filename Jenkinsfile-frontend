@@ -15,7 +15,7 @@ pipeline {
 
         stage('Build FE') {
             steps {
-                dir('overthecam') {
+                dir('frontend/overthecam') {
                     sh '''
                         npm install
                         npm run build
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        dir('overthecam') {
+                        dir('frontend/overthecam') {
                             sh """
                                 # 이전 빌드 이미지 정리
                                 docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
