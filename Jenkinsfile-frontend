@@ -73,6 +73,10 @@ pipeline {
     }
 
     post {
+        always {
+            sh "docker logout || true"
+            cleanWs()
+        }
         failure {
             sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
         }
