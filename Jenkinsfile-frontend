@@ -3,23 +3,43 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('docker')
-        DOCKER_IMAGE_FRONTEND = 'ghkdtnql/overthecam-front'
+        DOCKER_IMAGE_FRONTEND = 'ghkdtnql/overthecam-frontend'
     }
 
     stages {
-        stage('Clean Workspace') {
+        stage('Git Clone') {
             steps {
-                cleanWs()
+                script {
+                    try {
+                        echo '====== Git Clone 시작 ======'
+                        git branch: 'S12P11D204-224-server',
+                            url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
+                            credentialsId: 'gitlab-user'
+                        echo '====== Git Clone 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== Git Clone 실패 ======'
+                        error "Git clone failed: ${e.message}"
+                    }
+                }
             }
         }
 
         stage('Build FE') {
             steps {
-                dir('frontend/overthecam') {
-                    sh '''
-                        npm install
-                        npm run build
-                    '''
+                script {
+                    try {
+                        echo '====== React Build 시작 ======'
+                        dir('frontend/overthecam') {
+                            sh '''
+                                npm install
+                                CI=false npm run build
+                            '''
+                        }
+                        echo '====== React Build 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== React Build 실패 ======'
+                        error "Build failed: ${e.message}"
+                    }
                 }
             }
         }
@@ -28,21 +48,21 @@ pipeline {
             steps {
                 script {
                     try {
+                        echo '====== Docker Build 시작 ======'
                         dir('frontend/overthecam') {
                             sh """
-                                # 이전 빌드 이미지 정리
                                 docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
-                                
-                                # 새 이미지 빌드 및 푸시
                                 docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
                                 echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                                 docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                docker logout
                             """
                         }
+                        echo '====== Docker Build & Push 완료 ======'
                     } catch (Exception e) {
-                        echo "Docker build/push failed: ${e.getMessage()}"
+                        echo '====== Docker Build/Push 실패 ======'
+                        error "Docker build/push failed: ${e.message}"
                         sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
-                        throw e
                     }
                 }
             }
@@ -52,20 +72,24 @@ pipeline {
             steps {
                 script {
                     try {
+                        echo '====== EC2 배포 시작 ======'
                         sshagent(['ssh']) {
                             sh """
                                 ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                    docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                                    docker stop frontend || true
-                                    docker rm frontend || true
-                                    docker run -d --name frontend -p 5173:80 ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                                    docker system prune -f
+                                docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                docker stop frontend || true
+                                docker rm frontend || true
+                                docker run -d --name frontend \
+                                    -p 5173:80 \
+                                    ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                docker system prune -f
                                 '
                             """
                         }
+                        echo '====== EC2 배포 성공 ======'
                     } catch (Exception e) {
-                        echo "Deployment failed: ${e.getMessage()}"
-                        throw e
+                        echo '====== EC2 배포 실패 ======'
+                        error "Deployment failed: ${e.message}"
                     }
                 }
             }
@@ -74,11 +98,16 @@ pipeline {
 
     post {
         always {
+            echo '====== 파이프라인 종료 ======'
             sh "docker logout || true"
             cleanWs()
         }
         failure {
+            echo '====== 파이프라인 실패 ======'
             sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+        }
+        success {
+            echo '====== 파이프라인 성공 ======'
         }
     }
 }
