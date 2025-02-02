@@ -12,7 +12,7 @@ pipeline {
                 script {
                     try {
                         echo '====== Git Clone 시작 ======'
-                        git branch: 'S12P11D204-224-server',
+                        git branch: 'main',
                             url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
                             credentialsId: 'gitlab-user'
                         echo '====== Git Clone 성공 ======'
