@@ -40,5 +40,5 @@ out/
 .DS_Store
 **/.DS_Store
 
-### 서버 환경변수 ###
-application-secret.properties
+### 로컬 환경변수 ###
+application-local.properties
