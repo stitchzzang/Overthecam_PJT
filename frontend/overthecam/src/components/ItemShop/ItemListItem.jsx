@@ -1,16 +1,29 @@
+import { useRef, useState } from "react";
+import PurchaesConfirmModal from "./PurchaesConfirmModal";
+
 function ItemListItem({ itemInfo }) {
-    const onPurchase = ()=>{
-        // 모달 띄우기
-        // 모달 확인 시
-        // 구매 axios 함수
-    }
+  const purchaseDialog = useRef();
+  const onPurchase = () => {
+    purchaseDialog.current.showModal();
+    // 모달 띄우기
+    // 모달 확인 시
+    // 구매 axios 함수
+  };
   return (
     <>
-      <h5>{itemInfo.name}</h5>
-      <img src={itemInfo.imageURL} alt=""/>
-      <p>{itemInfo.detail}</p>
+      <PurchaesConfirmModal
+      ref={purchaseDialog}
+        itemName={itemInfo.name}
+        itemDetail={itemInfo.detail}
+        itemImg={itemInfo.imageURL}
+      />
       <div>
-        <button onClick={onPurchase}>{itemInfo.price}</button>
+        <h5>{itemInfo.name}</h5>
+        <img src={itemInfo.imageURL} alt="" />
+        <p>{itemInfo.detail}</p>
+        <div>
+          <button onClick={onPurchase}>{itemInfo.price}</button>
+        </div>
       </div>
     </>
   );
