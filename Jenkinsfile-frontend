@@ -80,7 +80,6 @@ pipeline {
                                 docker stop frontend || true
                                 docker rm frontend || true
                                 docker run -d --name frontend \
-                                    --network nginx-network \
                                     -p 5173:80 \
                                     ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
                                 docker system prune -f
