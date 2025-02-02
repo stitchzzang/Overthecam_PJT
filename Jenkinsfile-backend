@@ -29,6 +29,7 @@ pipeline {
        stage('Build BE') {
            steps {
                    sh '''
+                       cd S12P11D204-224-server/backend/overthecam
                        chmod +x gradlew
                        rm -rf build
                        ./gradlew clean build -x test
