@@ -64,7 +64,6 @@ pipeline {
                     } catch (Exception e) {
                         echo '====== Docker Build/Push 실패 ======'
                         error "Docker build/push failed: ${e.message}"
-                        sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
                     }
                 }
             }
@@ -92,7 +91,7 @@ pipeline {
                                     docker rm backend || true && \
                                     echo '새 컨테이너 시작 중...' && \
                                     docker run -d --name backend \\
-                                        -p 8080:8080 \\
+                                        -p 8081:8080 \\
                                         -e SPRING_PROFILES_ACTIVE=prod \\
                                         -e MYSQL_DB_URL='${MYSQL_DB_URL}' \\
                                         -e MYSQL_DB_USERNAME='${MYSQL_DB_USERNAME}' \\
@@ -116,6 +115,7 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         always {
