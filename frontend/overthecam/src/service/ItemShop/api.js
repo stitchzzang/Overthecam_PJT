@@ -31,3 +31,13 @@ export const postPurchase = async (itemId) => {
     console.error("구매 실패", error);
   }
 }
+
+export const postExchangePoints = async (score) => {
+  try {
+    const response = await authAxios.post("/points/convert ", {
+      score,
+    })
+  } catch (error) {
+    console.error("환전 실패", error);
+  }
+}

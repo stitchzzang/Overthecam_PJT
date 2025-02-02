@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMyInventory } from "../../service/ItemShop/api";
+import PointExchangeModal from "./PointExchangeModal";
 
 function MyInventory() {
+  const exchangeDialog = useRef();
   const [isLoading, setIsLoading] = useState(true);
   const [myPoints, setMyPoints] = useState(200);
   const [myCheerScore, setMyCheerScore] = useState(1000);
@@ -38,18 +40,14 @@ function MyInventory() {
       });
   }, []);
 
-  // 여기 구현만 해두고 나중에 모달창으로 옮김
-  const pointExchange = () => {
-    const newScore = 100;
-    const newPoint = 10;
-    // 환전 수식
-    if (myCheerScore >= 1000) {
-      // 1000이상일 때만 전환 진행 입력값 (1000단위 입력) 나눠서 newPoint에 입력
-    }
-    // 요청 후 값 수정
-    setMyCheerScore((prev) => prev - newScore);
-    setMyPoints((prev) => prev + newPoint);
-    // 계산 된 값 score 차감, point 더해서 post 요청
+  const onShowModal = () => {
+    exchangeDialog.current.showModal();
+  };
+
+  // 환전 이후 값 받기
+  const handleExchange = (convertedPoint, remainingScore) => {
+    setMyCheerScore(remainingScore);
+    setMyPoints(convertedPoint);
   };
 
   const filteredMyItems =
@@ -64,7 +62,13 @@ function MyInventory() {
           <div>
             <p>응원 점수</p>
             <p>{myCheerScore}</p>
-            <button onClick={pointExchange}>전환하기</button>
+            <button onClick={onShowModal}>전환하기</button>
+            <PointExchangeModal
+              ref={exchangeDialog}
+              myCheerScore={myCheerScore}
+              myPoints={myPoints}
+              onSuccess={handleExchange}
+            />
           </div>
           <div>
             <p>포인트</p>
