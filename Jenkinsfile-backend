@@ -28,7 +28,7 @@ pipeline {
 
        stage('Build BE') {
            steps {
-               dir('S12P11D204/backend/overthecam') {
+               dir('backend/overthecam') {
                    sh '''
                        echo "Build directory:"
                        pwd
