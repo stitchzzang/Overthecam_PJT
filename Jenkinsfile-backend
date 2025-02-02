@@ -15,12 +15,10 @@ pipeline {
 
         stage('Build BE') {
             steps {
-                // 현재 workspace 확인
                 sh 'pwd'
                 sh 'ls -la'
                 
-                dir('backend/overthecam') {  // 경로 수정
-                    // 디렉토리 내용 확인
+                dir('backend/overthecam') {  
                     sh 'pwd'
                     sh 'ls -la'
                     
