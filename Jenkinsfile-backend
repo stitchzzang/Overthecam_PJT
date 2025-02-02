@@ -1,91 +1,116 @@
 pipeline {
-    agent any
+   agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker')
-        DOCKER_IMAGE_BACKEND = 'ghkdtnql/overthecam-backend'
-    }
+   environment {
+       DOCKERHUB_CREDENTIALS = credentials('docker')
+       DOCKER_IMAGE_BACKEND = 'ghkdtnql/overthecam-backend'
 
-    stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
+       // MySQL 환경변수
+       MYSQL_DB_URL = credentials('mysql-url')        // 전체 JDBC URL
+       MYSQL_CRED = credentials('mysql-credentials')
+       MYSQL_DB_USERNAME = "${MYSQL_CRED_USR}"
+       MYSQL_DB_PASSWORD = "${MYSQL_CRED_PSW}"
 
-        stage('Build BE') {
-            steps {
-                sh 'pwd'
-                sh 'ls -la'
-                
-                dir('backend/overthecam') {  
-                    sh 'pwd'
-                    sh 'ls -la'
-                    
-                    sh '''
-                        chmod +x gradlew
-                        rm -rf build
-                        ./gradlew clean build -x test
-                    '''
-                }
-            }
-        }
+       // JWT Secret
+       JWT_SECRET = credentials('jwt-secret')
 
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    try {
-                        dir('backend/overthecam') {
-                            sh """
-                                # 이전 빌드 이미지 정리
-                                docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
-                                
-                                # 새 이미지 빌드 및 푸시
-                                docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
-                                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                            """
-                        }
-                    } catch (Exception e) {
-                        echo "Docker build/push failed: ${e.getMessage()}"
-                        sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
-                        throw e
-                    }
-                }
-            }
-        }
+       // OpenVidu 설정
+       OPENVIDU_URL = credentials('openvidu-url')     // 전체 OpenVidu URL
+       OPENVIDU_SECRET = credentials('openvidu-secret')
+   }
 
-        stage('Deploy to EC2') {
-            steps {
-                script {
-                    try {
-                        sshagent(['ssh']) {
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                    docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                    docker stop backend || true
-                                    docker rm backend || true
-                                    docker run -d --name backend -p 8080:8080 ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                    docker system prune -f
-                                '
-                            """
-                        }
-                    } catch (Exception e) {
-                        echo "Deployment failed: ${e.getMessage()}"
-                        throw e
-                    }
-                }
-            }
-        }
-    }
+   stages {
+       stage('Clean Workspace') {
+           steps {
+               cleanWs()
+               checkout scm
+           }
+       }
 
-    post {
-        always {
-            sh "docker logout || true"
-            cleanWs()
-        }
-        failure {
-            sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
-        }
-    }
+       stage('Build BE') {
+           steps {
+               sh '''
+                   echo "Current workspace:"
+                   pwd
+                   echo "Workspace contents:"
+                   ls -la
+               '''
+               
+               dir('S12P11D204/backend/overthecam') {
+                   sh '''
+                       echo "Build directory:"
+                       pwd
+                       echo "Directory contents:"
+                       ls -la
+                       chmod +x gradlew
+                       rm -rf build
+                       ./gradlew clean build -x test
+                   '''
+               }
+           }
+       }
+
+       stage('Docker Build & Push') {
+           steps {
+               script {
+                   try {
+                       dir('S12P11D204/backend/overthecam') {
+                           sh """
+                               docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
+                               docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
+                               echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                               docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                               docker logout
+                           """
+                       }
+                   } catch (Exception e) {
+                       echo "Docker build/push failed: ${e.getMessage()}"
+                       sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
+                       throw e
+                   }
+               }
+           }
+       }
+
+       stage('Deploy to EC2') {
+           steps {
+               script {
+                   try {
+                       sshagent(['ssh']) {
+                           sh """
+                               ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
+                                   docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                                   docker stop backend || true
+                                   docker rm backend || true
+                                   docker run -d --name backend \
+                                       -p 8080:8080 \
+                                       -e MYSQL_DB_URL=${MYSQL_DB_URL} \
+                                       -e MYSQL_DB_USERNAME=${MYSQL_DB_USERNAME} \
+                                       -e MYSQL_DB_PASSWORD=${MYSQL_DB_PASSWORD} \
+                                       -e JWT_SECRET=${JWT_SECRET} \
+                                       -e OPENVIDU_URL=${OPENVIDU_URL} \
+                                       -e OPENVIDU_SECRET=${OPENVIDU_SECRET} \
+                                       ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                                   docker system prune -f
+                               '
+                           """
+                       }
+                   } catch (Exception e) {
+                       echo "Deployment failed: ${e.getMessage()}"
+                       throw e
+                   }
+               }
+           }
+       }
+   }
+
+   post {
+       always {
+           sh "docker logout || true"
+           cleanWs()
+       }
+       failure {
+           sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
+       }
+   }
 }
