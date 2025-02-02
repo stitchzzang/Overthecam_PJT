@@ -28,17 +28,11 @@ pipeline {
 
        stage('Build BE') {
            steps {
-               dir('backend/overthecam') {
                    sh '''
-                       echo "Build directory:"
-                       pwd
-                       echo "Directory contents:"
-                       ls -la
                        chmod +x gradlew
                        rm -rf build
                        ./gradlew clean build -x test
                    '''
-               }
            }
        }
 
@@ -46,15 +40,13 @@ pipeline {
            steps {
                script {
                    try {
-                       dir('backend/overthecam') {
                            sh """
                                docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
                                docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
                                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                                docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
                                docker logout
-                           """
-                       }
+                           """ 
                    } catch (Exception e) {
                        echo "Docker build/push failed: ${e.getMessage()}"
                        sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
