@@ -2,21 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker')
         DOCKER_IMAGE_BACKEND = 'ghkdtnql/overthecam-backend'
-        
-        // MySQL 환경변수
-        MYSQL_DB_URL = credentials('mysql-url')
-        MYSQL_CRED = credentials('mysql-credentials')
-        MYSQL_DB_USERNAME = "${MYSQL_CRED_USR}"
-        MYSQL_DB_PASSWORD = "${MYSQL_CRED_PSW}"
-        
-        // JWT Secret
-        JWT_SECRET = credentials('jwt-secret')
-        
-        // OpenVidu 설정
-        OPENVIDU_URL = credentials('openvidu-url')
-        OPENVIDU_SECRET = credentials('openvidu-secret')
     }
 
     stages {
@@ -64,13 +50,15 @@ pipeline {
                     try {
                         echo '====== Docker Build 시작 ======'
                         dir('backend/overthecam') {
-                            sh """
-                                docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
-                                docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
-                                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                docker logout
-                            """
+                            withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                                sh """
+                                    docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
+                                    docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
+                                    echo '${DOCKERHUB_CREDENTIALS_PSW}' | docker login -u '${DOCKERHUB_CREDENTIALS_USR}' --password-stdin
+                                    docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                                    docker logout
+                                """
+                            }
                         }
                         echo '====== Docker Build & Push 완료 ======'
                     } catch (Exception e) {
@@ -88,23 +76,31 @@ pipeline {
                     try {
                         echo '====== EC2 배포 시작 ======'
                         sshagent(['ssh']) {
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                docker stop backend || true
-                                docker rm backend || true
-                                docker run -d --name backend \
-                                    -p 8080:8080 \
-                                    -e MYSQL_DB_URL=${MYSQL_DB_URL} \
-                                    -e MYSQL_DB_USERNAME=${MYSQL_DB_USERNAME} \
-                                    -e MYSQL_DB_PASSWORD=${MYSQL_DB_PASSWORD} \
-                                    -e JWT_SECRET=${JWT_SECRET} \
-                                    -e OPENVIDU_URL=${OPENVIDU_URL} \
-                                    -e OPENVIDU_SECRET=${OPENVIDU_SECRET} \
-                                    ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                docker system prune -f
-                                '
-                            """
+                            withCredentials([
+                                string(credentialsId: 'mysql-url', variable: 'MYSQL_DB_URL'),
+                                usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'MYSQL_DB_USERNAME', passwordVariable: 'MYSQL_DB_PASSWORD'),
+                                string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
+                                string(credentialsId: 'openvidu-url', variable: 'OPENVIDU_URL'),
+                                string(credentialsId: 'openvidu-secret', variable: 'OPENVIDU_SECRET')
+                            ]) {
+                                sh """
+                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
+                                    docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                                    docker stop backend || true
+                                    docker rm backend || true
+                                    docker run -d --name backend \
+                                        -p 8080:8080 \
+                                        -e MYSQL_DB_URL=${MYSQL_DB_URL} \
+                                        -e MYSQL_DB_USERNAME=${MYSQL_DB_USERNAME} \
+                                        -e MYSQL_DB_PASSWORD=${MYSQL_DB_PASSWORD} \
+                                        -e JWT_SECRET=${JWT_SECRET} \
+                                        -e OPENVIDU_URL=${OPENVIDU_URL} \
+                                        -e OPENVIDU_SECRET=${OPENVIDU_SECRET} \
+                                        ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                                    docker system prune -f
+                                    '
+                                """
+                            }
                         }
                         echo '====== EC2 배포 성공 ======'
                     } catch (Exception e) {
