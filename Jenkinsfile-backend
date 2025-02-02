@@ -83,34 +83,29 @@ pipeline {
                                 string(credentialsId: 'openvidu-url', variable: 'OPENVIDU_URL'),
                                 string(credentialsId: 'openvidu-secret', variable: 'OPENVIDU_SECRET')
                             ]) {
-                                sh """
-                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                    echo "새 이미지 가져오는 중..."
-                                    docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-
-                                    echo "기존 컨테이너 중지 중..."
-                                    docker stop backend || true
-                                    docker rm backend || true
-
-                                    echo "새 컨테이너 시작 중..."
-                                    docker run -d --name backend \
-                                        -p 8080:8080 \
-                                        -e SPRING_PROFILES_ACTIVE=prod \
-                                        -e MYSQL_DB_URL=${MYSQL_DB_URL} \
-                                        -e MYSQL_DB_USERNAME=${MYSQL_DB_USERNAME} \
-                                        -e MYSQL_DB_PASSWORD=${MYSQL_DB_PASSWORD} \
-                                        -e JWT_SECRET=${JWT_SECRET} \
-                                        -e OPENVIDU_URL=${OPENVIDU_URL} \
-                                        -e OPENVIDU_SECRET=${OPENVIDU_SECRET} \
-                                        ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                    docker system prune -f
-
-
-                                    echo "컨테이너 로그:"
-                                    sleep 10
-                                    docker logs backend
-                                    '
-                                """
+                                sh '''
+                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
+                                    echo '새 이미지 가져오는 중...' && \
+                                    docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
+                                    echo '기존 컨테이너 중지 중...' && \
+                                    docker stop backend || true && \
+                                    docker rm backend || true && \
+                                    echo '새 컨테이너 시작 중...' && \
+                                    docker run -d --name backend \\
+                                        -p 8080:8080 \\
+                                        -e SPRING_PROFILES_ACTIVE=prod \\
+                                        -e MYSQL_DB_URL='${MYSQL_DB_URL}' \\
+                                        -e MYSQL_DB_USERNAME='${MYSQL_DB_USERNAME}' \\
+                                        -e MYSQL_DB_PASSWORD='${MYSQL_DB_PASSWORD}' \\
+                                        -e JWT_SECRET='${JWT_SECRET}' \\
+                                        -e OPENVIDU_URL='${OPENVIDU_URL}' \\
+                                        -e OPENVIDU_SECRET='${OPENVIDU_SECRET}' \\
+                                        ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
+                                    docker system prune -f && \
+                                    echo '컨테이너 로그:' && \
+                                    sleep 10 && \
+                                    docker logs backend"
+                                '''
                             }
                         }
                         echo '====== EC2 배포 성공 ======'
@@ -121,7 +116,6 @@ pipeline {
                 }
             }
         }
-    }
 
     post {
         always {
