@@ -4,8 +4,8 @@ import com.overthecam.chat.domain.ChatRoom;
 import com.overthecam.chat.dto.ChatMessageRequest;
 import com.overthecam.chat.dto.ChatMessageResponse;
 import com.overthecam.chat.repository.ChatRoomRepository;
-import com.overthecam.exception.ErrorCode;
-import com.overthecam.exception.GlobalException;
+import com.overthecam.exception.websocket.WebSocketErrorCode;
+import com.overthecam.exception.websocket.WebSocketException;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,31 +30,31 @@ public class ChatMessageService {
 
     private void validateChatRoom(Long battleId, Long chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-            .orElseThrow(() -> new GlobalException(
-                ErrorCode.CHAT_ROOM_NOT_FOUND,
+            .orElseThrow(() -> new WebSocketException(
+                WebSocketErrorCode.CHAT_ROOM_NOT_FOUND,
                 "채팅방 ID: " + chatRoomId
             ));
 
         // 배틀 존재 여부 확인
         if (chatRoom.getBattle() == null) {
-            throw new GlobalException(
-                ErrorCode.BATTLE_NOT_FOUND,
+            throw new WebSocketException(
+                WebSocketErrorCode.BATTLE_NOT_FOUND,
                 "채팅방 ID: " + chatRoomId + "에 연결된 배틀이 없습니다"
             );
         }
 
         // 배틀 ID 일치 여부 확인
         if (!battleId.equals(chatRoom.getBattle().getId())) {
-            throw new GlobalException(
-                ErrorCode.UNAUTHORIZED_CHAT_ACCESS,
+            throw new WebSocketException(
+                WebSocketErrorCode.UNAUTHORIZED_CHAT_ACCESS,
                 "요청된 배틀 ID: " + battleId + ", 실제 배틀 ID: " + chatRoom.getBattle().getId()
             );
         }
 
         // 채팅방 활성화 상태 확인
         if (!chatRoom.isActive()) {
-            throw new GlobalException(
-                ErrorCode.CHAT_ROOM_INACTIVE,
+            throw new WebSocketException(
+                WebSocketErrorCode.CHAT_ROOM_INACTIVE,
                 "채팅방 ID: " + chatRoomId + "는 현재 비활성화 상태입니다"
             );
         }
