@@ -74,17 +74,15 @@ pipeline {
                     try {
                         echo '====== EC2 배포 시작 ======'
                         sshagent(['ssh']) {
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                                docker stop frontend || true
-                                docker rm frontend || true
-                                docker run -d --name frontend \
-                                    -p 5173:80 \
-                                    ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                                docker system prune -f
-                                '
-                            """
+                            def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
+                            sh '''
+                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '\
+                                docker pull ${dockerImageTag} && \
+                                docker stop frontend || true && \
+                                docker rm frontend || true && \
+                                docker run -d --name frontend -p 5173:80 ${dockerImageTag} && \
+                                docker system prune -f'
+                            '''
                         }
                         echo '====== EC2 배포 성공 ======'
                     } catch (Exception e) {
