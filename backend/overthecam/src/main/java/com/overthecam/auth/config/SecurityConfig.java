@@ -42,12 +42,18 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // URL 별 접근 권한 설정
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/signup",  // 회원가입
-                                "/api/auth/login"   // 로그인
-                        ).permitAll()
-                        .anyRequest().authenticated())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/api/auth/signup",
+                    "/api/auth/login",
+                    "/api/ws-connect/**",
+                    "/api/ws-connect",
+                    "/api/ws-connect/info",
+                    "/api/ws-connect/**/**",  // SockJS의 모든 하위 경로
+                    "/api/publish/**",
+                    "/api/subscribe/**"
+                ).permitAll()
+                .anyRequest().authenticated())
 
                 // JWT 인증 필터 추가
                 .addFilterBefore(jwtAuthenticationFilter,
@@ -59,23 +65,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // CORS 기본 설정
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5500"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-
-        // 클라이언트가 접근할 수 있는 헤더 설정
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Refresh-Token",
-                "New-Access-Token"
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "X-Requested-With",
+            "remember-me",
+            "X-CSRF-Token"
         ));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Refresh-Token", "New-Access-Token"));
 
-        // 모든 경로에 대해 CORS 설정 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/api/ws-connect/**", configuration);
 
         return source;
     }
