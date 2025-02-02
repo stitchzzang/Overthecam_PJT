@@ -8,7 +8,11 @@ import BattleCreate from "./page/BattleRoom/BattleCreatingPage.jsx";
 import BattleWaiting from "./page/BattleRoom/BattleRoomPage.jsx";
 import BattleMainPage from "./page/BattleRoom/BattleMainPage.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage.jsx";
-
+import Login from "./components/Login/Login.jsx";
+import Signup from "./components/Login/Signup.jsx";
+import FindAccount from "./components/Login/FindAccount.jsx";
+import NavBar from "./components/Layout/NavBar";
+import MyPage from "./page/Mypage/MyPage.jsx";
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
   {
@@ -36,6 +40,10 @@ const router = createBrowserRouter([
       </HeaderLayout>
     ),
   },
+  { path: "/login", element: <Login /> },
+  { path: "/signup", element: <Signup /> },
+  { path: "/find-account", element: <FindAccount /> },
+  { path: "/mypage", element: <MyPage /> },
 ]);
 
 createRoot(document.getElementById("root")).render(
