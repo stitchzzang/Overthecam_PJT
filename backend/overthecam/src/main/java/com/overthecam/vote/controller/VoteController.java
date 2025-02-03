@@ -1,6 +1,8 @@
 package com.overthecam.vote.controller;
 
 import com.overthecam.common.dto.CommonResponseDto;
+import com.overthecam.exception.ErrorCode;
+import com.overthecam.exception.GlobalException;
 import com.overthecam.security.service.UserDetailsImpl;
 import com.overthecam.vote.dto.CommentRequestDto;
 import com.overthecam.vote.dto.VoteCommentDto;
@@ -31,6 +33,10 @@ public class VoteController {
             @Valid @RequestBody VoteRequestDto requestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+        if (userDetails == null) {
+            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND, "로그인이 필요한 서비스입니다.");
+        }
+
         VoteResponseDto responseDto = voteService.createVote(requestDto, userDetails.getUser().getUserId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CommonResponseDto.success("투표가 생성되었습니다", responseDto));
@@ -54,6 +60,10 @@ public class VoteController {
             @PathVariable Long optionId,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+        if (userDetails == null) {
+            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND, "로그인이 필요한 서비스입니다.");
+        }
+
         VoteResponseDto responseDto = voteService.vote(voteId, optionId, userDetails.getUser().getUserId());
         return ResponseEntity.ok(CommonResponseDto.success("투표가 완료되었습니다", responseDto));
     }
@@ -74,6 +84,10 @@ public class VoteController {
             @Valid @RequestBody CommentRequestDto request,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+        if (userDetails == null) {
+            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND, "로그인이 필요한 서비스입니다.");
+        }
+
         VoteCommentDto responseDto = voteService.createComment(
                 voteId,
                 request.getContent(),
@@ -90,6 +104,10 @@ public class VoteController {
             @Valid @RequestBody CommentRequestDto request,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+        if (userDetails == null) {
+            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND, "로그인이 필요한 서비스입니다.");
+        }
+
         VoteCommentDto responseDto = voteService.updateComment(
                 commentId,
                 request.getContent(),
@@ -104,6 +122,10 @@ public class VoteController {
             @PathVariable Long commentId,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
+        if (userDetails == null) {
+            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND, "로그인이 필요한 서비스입니다.");
+        }
+
         voteService.deleteComment(commentId, userDetails.getUser().getUserId());
         return ResponseEntity.ok(CommonResponseDto.success("댓글이 삭제되었습니다", null));
     }
