@@ -15,7 +15,9 @@ import NavBar from "./components/Layout/NavBar";
 import MyPage from "./page/Mypage/MyPage.jsx";
 import OtherUserPage from "./page/Mypage/OtherUserPage.jsx";
 import MyPageReport from "./page/Mypage/MypageReport.jsx";
+import TestPage from "./page/WS-TEST/TestPage.jsx";
 const router = createBrowserRouter([
+  { path: "/websocket", element: <TestPage /> },
   { path: "/", element: <App /> },
   {
     path: "/battle-list",

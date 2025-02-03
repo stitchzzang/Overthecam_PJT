@@ -1,105 +1,109 @@
-import { useEffect, useRef, useState } from "react";
-import { Client,Stomp } from "@stomp/stompjs";
+import React, { useState, useRef, useEffect } from "react";
 import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
 
-function BattleChating({ onDisconnect }) {
-  const stompClient = useRef(null);
-  const [myUserName, setMyUserName] = useState(""); // 사용자 이름
-  const [chatRoomId, setChatRoomId] = useState(1); // 채팅방 번호
-  const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장
-  const [chat, setChat] = useState(""); // 입력 받을 대화 내용
-  const [chatList, setChatList] = useState([]); // 채팅 기록
+const BattleChatting = () => {
+  const [chatMessages, setChatMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [url, setUrl] = useState("http://i12d204.p.ssafy.io/api/ws-connect");
+  const [token, setToken] = useState("");
+  const [username, setUsername] = useState("");
+  const stompClientRef = useRef(null);
 
-  const SOKET_BASE_URL = "http://i12d204.p.ssafy.io/api";
-  const CON_ENDPOINT = "/chat/rooms/";
-  const PUB_ENDPOINT = "/publish/chat/";
-  const SUB_ENDPOINT = "/subscribe/chat/";
+  const connectWebSocket = () => {
+    if (!token || !username) {
+      alert("토큰과 사용자 이름을 입력하세요");
+      return;
+    }
 
-  useEffect(() => {
-  // 첫 마운트 시 웹 소켓 연결
-  const soket = new SockJS(`${SOKET_BASE_URL}${CON_ENDPOINT}${chatRoomId}`);
-  stompClient.current = Stomp.over(soket);
+    const socket = new SockJS(url);
+    const stomp = Stomp.over(socket);
 
-    stompClient.current.connect({}, () => {
-      console.log("webSoket 연결 성공!");
-      stompClient.current?.subscribe(`${SUB_ENDPOINT}${chatRoomId}`, (message) => {
-        const chatMessage = JSON.parse(message.body);
-        console.log("새 메세지 수신", chatMessage);
-        displayMessage(message.body);
-      });
-    }, (error) => {
-      console.error("webSoket 연결 실패", error);
+    stomp.configure({
+      connectHeaders: { 
+        Authorization: `Bearer ${token.replace("Bearer ", "")}`
+      },
+      onConnect: () => {
+        stompClientRef.current = stomp;
+        
+        stomp.subscribe("/api/subscribe/chat/1", (message) => {
+          const chatMessage = JSON.parse(message.body);
+          // 현재 사용자가 보낸 메시지가 아닌 경우만 추가
+          if (chatMessage.sender !== username) {
+            setChatMessages(prev => [...prev, {
+              sender: chatMessage.sender,
+              content: chatMessage.content,
+              timestamp: new Date().toLocaleTimeString()
+            }]);
+          }
+        });
+      },
+      onStompError: (error) => {
+        console.error("연결 오류:", error);
+      }
     });
 
-    // 언마운트할 때 해제
-    return () => {
-      if (stompClient.current) {
-        stompClient.current.disconnect();
-      }
-    };
-  }, []);
-
-
-  const displayMessage = (newMessage) => {
-    setChatList((prev) => [...prev, newMessage]);
+    stomp.activate();
   };
 
-  const sendMessage = (battleId, username, content) => {
-    if (stompClient.current && stompClient.current.connected) {
-      const message = {
-        battleId,
-        username,
-        content,
-        timestamp: new Date().toISOString()
-      };
-      stompClient.send(`${PUB_ENDPOINT}${battleId}`, {}, JSON.stringify(message));
-    }
-  };
+  const sendMessage = () => {
+    const client = stompClientRef.current;
+    if (!client || !inputMessage.trim()) return;
 
-  const sendChat = (event) => {
-    console.log("채팅을 보냅니다.", chat);
-    event.preventDefault();
-    // 채팅 내용 publish
-    sendMessage(chatRoomId, myUserName, chat);
-    setChat("");
-  };
+    client.publish({
+      destination: "/api/publish/chat/1",
+      body: JSON.stringify({
+        content: inputMessage,
+        sender: username
+      })
+    });
 
-  // 입력되는 chat 값을 상태 관리 계속 업뎃
-  const handleChatChange = (event) => {
-    setChat(event.target.value);
-  };
-
-  // 엔터키 = 보내지게
-  const handleOnKeyDown = (event) => {
-    if (event.key.toLowerCase() === "enter") {
-      sendChat(event);
-    }
+    setInputMessage("");
   };
 
   return (
     <div>
-      <p>실시간 채팅</p>
+      <div style={{ height: "400px", overflowY: "scroll", border: "1px solid #ccc" }}>
+        {chatMessages.map((msg, index) => (
+          <div key={index} style={{ 
+            padding: "10px", 
+            borderBottom: "1px solid #eee",
+            backgroundColor: "#f0f0f0"
+          }}>
+            <strong>{msg.sender}</strong>
+            <span style={{ marginLeft: "10px", color: "gray", fontSize: "0.8em" }}>
+              {msg.timestamp}
+            </span>
+            <p>{msg.content}</p>
+          </div>
+        ))}
+      </div>
       <div>
-        <div>
-          {/* 채팅 대화 기록 보여주기 css로 지정 크기 넘어가면 스크롤하게 수정할 것 */}
-          {chatList.map((item, index) => (
-            <p key={index}>{item}</p>
-          ))}
-        </div>
-        <div>
-          {/* 채팅 입력창 */}
-          <input
-            type="text"
-            placeholder="내용을 입력하세요..."
-            onChange={handleChatChange}
-            onKeyDown={handleOnKeyDown}
-            value={chat}
-          />
-          <input type="button" value="보내기" onClick={sendChat} />
-        </div>
+        <input 
+          type="text" 
+          placeholder="사용자 이름" 
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input 
+          type="text" 
+          placeholder="인증 토큰" 
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+        />
+        <button onClick={connectWebSocket}>연결</button>
+      </div>
+      <div>
+        <input 
+          type="text"
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+          placeholder="메시지 입력"
+        />
+        <button onClick={sendMessage}>전송</button>
       </div>
     </div>
   );
-}
+};
 
-export default BattleChating;
+export default BattleChatting;
