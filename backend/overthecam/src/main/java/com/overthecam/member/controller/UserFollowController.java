@@ -44,4 +44,15 @@ public class UserFollowController {
         return CommonResponseDto.success(userFollowService.getMyFollowerList(userId));
     }
 
+
+    @GetMapping("/other-following/{userId}")
+    public CommonResponseDto<?> getOthersFollowingList(@PathVariable Long userId){
+        return CommonResponseDto.success(userFollowService.getMyFollowingList(userId));
+    }
+
+    @GetMapping("/other-follower/{userId}")
+    public CommonResponseDto<?> getOthersFollowerList(@PathVariable Long userId){
+        return CommonResponseDto.success(userFollowService.getMyFollowerList(userId));
+    }
+
 }
