@@ -7,6 +7,9 @@ import com.overthecam.chat.repository.ChatRoomRepository;
 import com.overthecam.exception.websocket.WebSocketErrorCode;
 import com.overthecam.exception.websocket.WebSocketException;
 import java.time.LocalDateTime;
+
+import com.overthecam.websocket.dto.UserPrincipal;
+import com.overthecam.websocket.dto.WebSocketResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,16 +19,18 @@ public class ChatMessageService {
 
     private final ChatRoomRepository chatRoomRepository;
 
-    public ChatMessageResponse sendMessage(ChatMessageRequest request, Long chatRoomId) {
+    public WebSocketResponseDto<?> sendMessage(ChatMessageRequest request, Long chatRoomId,
+                                               UserPrincipal user) {
         validateChatRoom(request.getBattleId(), chatRoomId);
 
-        return ChatMessageResponse.builder()
-            .battleId(request.getBattleId())
-            .chatRoomId(chatRoomId)
-            .username(request.getUsername())
-            .content(request.getContent())
-            .timestamp(LocalDateTime.now())
-            .build();
+        return WebSocketResponseDto.messageSendSuccess(
+                ChatMessageResponse.builder()
+                        .battleId(request.getBattleId())
+                        .chatRoomId(chatRoomId)
+                        .nickname(user.getNickname())  // UserPrincipal에서 직접 가져오기
+                        .content(request.getContent())
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 
     private void validateChatRoom(Long battleId, Long chatRoomId) {
