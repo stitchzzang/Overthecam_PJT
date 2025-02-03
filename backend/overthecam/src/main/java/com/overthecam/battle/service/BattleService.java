@@ -1,5 +1,7 @@
 package com.overthecam.battle.service;
 
+import com.overthecam.auth.domain.User;
+import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
@@ -22,6 +24,8 @@ public class BattleService {
     private final OpenViduService openViduService;
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
+    private final UserRepository userRepository;
+
     private final String[] topics = {
             "더 괴로운 상황은?\n" +
                     "• 나 빼고 모두가 브레인인 팀에서 자괴감 느끼기\n" +
@@ -55,14 +59,19 @@ public class BattleService {
     /**
      * 배틀 방을 생성하고 방장을 등록하는 메서드
      */
-    public BattleResponse createBattleRoom(BattleCreateRequest request, String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
+    public BattleResponse createBattleRoom(BattleCreateRequest request, Long userId) throws OpenViduJavaClientException, OpenViduHttpException {
 
-        // 1. 토큰으로 사용자 인증 확인
-        // User user = userService.validateUser(authToken);
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        System.out.println("사용자 조회 완료 후 방 생성 대기중 !");
 
         // 2. OpenVidu 세션 생성
         Session session = openViduService.createSession();
         String sessionId = session.getSessionId();
+
+        System.out.println("세션 생성 완료!");
 
         // 3. 배틀방 생성
         Battle battle = Battle.builder()
@@ -78,7 +87,7 @@ public class BattleService {
         // 4. 방장 등록
         BattleParticipant host = BattleParticipant.builder()
                 .battle(savedBattle)
-                //.user(user)
+                .user(user)  // 최소한의 User 객체
                 .role(ParticipantRole.HOST)   // 방장 역할만 부여
                 .build();
 
@@ -103,7 +112,7 @@ public class BattleService {
     /**
      * 배틀방 참가 메서드
      */
-    public BattleResponse joinBattle(Long battleId, String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
+    public BattleResponse joinBattle(Long battleId) throws OpenViduJavaClientException, OpenViduHttpException {
 
         // 1. 배틀방 조회
         Battle battle = battleRepository.findById(battleId)
