@@ -12,7 +12,15 @@ public enum SecurityPath {
 
     // Messaging 관련 경로
     PUBLISH("/api/publish/**"),
-    SUBSCRIBE("/api/subscribe/**");
+    SUBSCRIBE("/api/subscribe/**"),
+
+    // 커뮤니티 투표 관련 경로
+    COMMUNITY_VOTE_CREATE("/api/community/votes"),            // 커뮤니티 투표 생성
+    COMMUNITY_VOTE_LIST("/api/community/votes"),              // 커뮤니티 투표 목록 조회
+    COMMUNITY_VOTE_DETAIL("/api/community/votes/{voteId}"),   // 특정 커뮤니티 투표 상세 조회
+    COMMUNITY_VOTE_PARTICIPATE("/api/community/votes/{voteId}/vote"),  // 커뮤니티 투표 참여
+    COMMUNITY_VOTE_COMMENT("/api/community/votes/{voteId}/comments"); // 커뮤니티 투표 댓글 관련
+
 
 
     private final String path;
