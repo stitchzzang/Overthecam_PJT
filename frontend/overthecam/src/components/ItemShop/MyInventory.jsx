@@ -5,6 +5,7 @@ import PointExchangeModal from "./PointExchangeModal";
 function MyInventory() {
   const exchangeDialog = useRef();
   const [isLoading, setIsLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [myPoints, setMyPoints] = useState(200);
   const [myCheerScore, setMyCheerScore] = useState(1000);
   const [filter, setFilter] = useState(3);
@@ -50,6 +51,22 @@ function MyInventory() {
     setMyPoints(convertedPoint);
   };
 
+  const handlePlay = () => {
+    const audioElement = document.getElementById("audio-player");
+    if (audioElement) {
+      audioElement.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handlePause = () => {
+    const audioElement = document.getElementById("audio-player");
+    if (audioElement) {
+      audioElement.pause();
+      setIsPlaying(false);
+    }
+  };
+
   const filteredMyItems =
     filter === 3 ? myItems : myItems.filter((item) => item.type === filter);
   return (
@@ -90,7 +107,18 @@ function MyInventory() {
               ) : filteredMyItems.length > 0 ? (
                 filteredMyItems.map((item, i) => (
                   <div key={i}>
-                    <p>{item.name}</p>
+                    {item.type === 1 ? (
+                      <>
+                        <p>{item.name}</p> <audio id="audio-player" />
+                        <button onClick={isPlaying ? handlePause : handlePlay}>
+                          {isPlaying ? "⏸️" : "▶️"}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p>{item.name}</p> <img />
+                      </>
+                    )}
                   </div>
                 ))
               ) : (
