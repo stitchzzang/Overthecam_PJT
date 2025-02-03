@@ -1,4 +1,4 @@
-package com.overthecam.auth.config;
+package com.overthecam.security.jwt;
 // JWT 관련 설정값을 주입받는 클래스
 
 import lombok.Getter;

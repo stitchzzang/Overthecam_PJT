@@ -1,7 +1,6 @@
-package com.overthecam.auth.security;
+package com.overthecam.security.jwt;
 // JWT 토큰의 생성, 검증, 파싱 등 토큰 관련 모든 작업을 처리
 
-import com.overthecam.auth.config.JwtProperties;
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.dto.TokenResponse;
 import io.jsonwebtoken.*;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
