@@ -17,7 +17,9 @@ public enum WebSocketErrorCode {
     TOKEN_NOT_FOUND("WS-401", "Authorization 헤더가 없습니다"),
     INVALID_TOKEN_FORMAT("WS-402", "잘못된 토큰 형식입니다"),
     INVALID_TOKEN("WS-403", "유효하지 않은 토큰입니다"),
-    EXPIRED_TOKEN("WS-404", "만료된 토큰입니다");
+    EXPIRED_TOKEN("WS-404", "만료된 토큰입니다"),
+
+    UNAUTHORIZED_USER_ACCESS("WS-405", "올바르지 않은 사용자 정보입니다");
 
     private final String code;
     private final String message;
