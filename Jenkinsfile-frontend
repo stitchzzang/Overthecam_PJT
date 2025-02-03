@@ -1,0 +1,110 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('docker')
+        DOCKER_IMAGE_FRONTEND = 'ghkdtnql/overthecam-frontend'
+    }
+
+    stages {
+        stage('Git Clone') {
+            steps {
+                script {
+                    try {
+                        echo '====== Git Clone 시작 ======'
+                        git branch: 'main',
+                            url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
+                            credentialsId: 'gitlab-user'
+                        echo '====== Git Clone 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== Git Clone 실패 ======'
+                        error "Git clone failed: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Build FE') {
+            steps {
+                script {
+                    try {
+                        echo '====== React Build 시작 ======'
+                        dir('frontend/overthecam') {
+                            sh '''
+                                npm install
+                                CI=false npm run build
+                            '''
+                        }
+                        echo '====== React Build 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== React Build 실패 ======'
+                        error "Build failed: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    try {
+                        echo '====== Docker Build 시작 ======'
+                        dir('frontend/overthecam') {
+                            sh """
+                                docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
+                                docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
+                                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                docker logout
+                            """
+                        }
+                        echo '====== Docker Build & Push 완료 ======'
+                    } catch (Exception e) {
+                        echo '====== Docker Build/Push 실패 ======'
+                        error "Docker build/push failed: ${e.message}"
+                        sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    try {
+                        echo '====== EC2 배포 시작 ======'
+                        def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
+                        sshagent(['ssh']) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io 'docker pull ${dockerImageTag}; \
+                                docker stop frontend || true; \
+                                docker rm frontend || true; \
+                                docker run -d --name frontend -p 5173:80 ${dockerImageTag}; \
+                                docker system prune -f'
+                            """
+                        }
+                        echo '====== EC2 배포 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== EC2 배포 실패 ======'
+                        error "Deployment failed: ${e.message}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo '====== 파이프라인 종료 ======'
+            sh "docker logout || true"
+            cleanWs()
+        }
+        failure {
+            echo '====== 파이프라인 실패 ======'
+            sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+        }
+        success {
+            echo '====== 파이프라인 성공 ======'
+        }
+    }
+}
