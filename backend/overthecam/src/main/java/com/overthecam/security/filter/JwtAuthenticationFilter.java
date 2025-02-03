@@ -1,7 +1,9 @@
-package com.overthecam.auth.security;
+package com.overthecam.security.filter;
 // 모든 요청에 대한 JWT 토큰 검증
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.overthecam.security.jwt.JwtTokenProvider;
+import com.overthecam.security.config.SecurityPath;
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.common.dto.CommonResponseDto;
@@ -19,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 import java.util.Collections;
 
@@ -27,14 +28,16 @@ import java.util.Collections;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    // 상수 정의
-    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
     // 필수 의존성 주입
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // 상수 정의
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -66,8 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPermitAllEndpoint(String uri) {
-        return uri.startsWith("/api/auth/signup") ||
-                uri.startsWith("/api/auth/login") || uri.startsWith("/api/battle/random");
+        return SecurityPath.matches(uri);
     }
 
     /**

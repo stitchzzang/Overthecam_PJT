@@ -1,6 +1,5 @@
 package com.overthecam.battle.controller;
 
-import com.overthecam.auth.security.JwtTokenProvider;
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
 import com.overthecam.battle.dto.BattleStartResponse;
@@ -8,6 +7,7 @@ import com.overthecam.battle.dto.RandomVoteTopicResponse;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.exception.ErrorCode;
+import com.overthecam.security.jwt.JwtTokenProvider;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;

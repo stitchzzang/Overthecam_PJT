@@ -32,6 +32,8 @@ pipeline {
                         dir('frontend/overthecam') {
                             sh '''
                                 npm install
+                                npm uninstall rollup
+                                npm install rollup
                                 CI=false npm run build
                             '''
                         }

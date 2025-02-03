@@ -6,7 +6,7 @@ import com.overthecam.auth.dto.SignUpRequest;
 import com.overthecam.auth.dto.TokenResponse;
 import com.overthecam.auth.dto.UserResponse;
 import com.overthecam.auth.repository.UserRepository;
-import com.overthecam.auth.security.JwtTokenProvider;
+import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
