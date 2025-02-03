@@ -5,7 +5,6 @@ LABEL authors="SSAFY"
 
 # 환경 변수 정의
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_OPTS=""
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -18,4 +17,4 @@ HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # 애플리케이션 실행
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
