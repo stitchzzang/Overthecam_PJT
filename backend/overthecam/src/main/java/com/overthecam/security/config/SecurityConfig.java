@@ -1,4 +1,4 @@
-package com.overthecam.auth.config;
+package com.overthecam.security.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
-import com.overthecam.auth.security.JwtAuthenticationFilter;
+import com.overthecam.security.filter.JwtAuthenticationFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -43,10 +43,7 @@ public class SecurityConfig {
 
                 // URL 별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/signup",  // 회원가입
-                                "/api/auth/login"   // 로그인
-                        ).permitAll()
+                        .requestMatchers(SecurityPath.getAllPublicPaths()).permitAll()
                         .anyRequest().authenticated())
 
                 // JWT 인증 필터 추가
