@@ -1,5 +1,6 @@
 package com.overthecam.battle.controller;
 
+import com.overthecam.auth.security.JwtTokenProvider;
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
 import com.overthecam.battle.dto.BattleStartResponse;
@@ -20,17 +21,21 @@ import java.util.List;
 public class BattleController {
 
     private final BattleService battleService;
-
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 배틀방 생성 API
      */
     @PostMapping("/room")
     public CommonResponseDto<BattleResponse> createBattleRoom(
-            @RequestBody BattleCreateRequest request,
-            @RequestHeader("Authorization") String authToken) {
+            @RequestHeader("Authorization") String token,
+            @RequestBody BattleCreateRequest request) {
         try {
-            BattleResponse response = battleService.createBattleRoom(request, authToken);
+            // 1. 토큰에서 사용자 ID 추출
+            String bearerToken = token.substring(7);  // "Bearer " 제거
+            Long userId = jwtTokenProvider.getUserId(bearerToken);
+
+            BattleResponse response = battleService.createBattleRoom(request, userId);
             return CommonResponseDto.success("배틀방이 성공적으로 생성되었습니다.", response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
@@ -42,10 +47,9 @@ public class BattleController {
      */
     @PostMapping("room/{battleId}/join")
     public CommonResponseDto<BattleResponse> joinBattle(
-            @PathVariable Long battleId,
-            @RequestHeader("Authorization") String authToken) {
+            @PathVariable Long battleId) {
         try {
-            BattleResponse response = battleService.joinBattle(battleId, authToken);
+            BattleResponse response = battleService.joinBattle(battleId);
             return CommonResponseDto.success("배틀방 참가에 성공했습니다.", response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
@@ -76,7 +80,7 @@ public class BattleController {
     /**
      * 랜덤 주제 생성 API
      */
-    @PostMapping("/random")
+    @GetMapping("/random")
     public CommonResponseDto<RandomVoteTopicResponse> createRandomVoteTopic() {
         RandomVoteTopicResponse response = battleService.createRandomVoteTopic();
         return CommonResponseDto.success("랜덤 주제가 생성되었습니다.", response);

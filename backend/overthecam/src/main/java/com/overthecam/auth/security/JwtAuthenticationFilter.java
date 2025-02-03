@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 import java.util.Collections;
 
@@ -26,21 +27,19 @@ import java.util.Collections;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    // 상수 정의
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
     // 필수 의존성 주입
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 상수 정의
-    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
-
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain) throws ServletException, IOException {
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
         try {
             // 1. 인증 불필요 URI면 통과
@@ -53,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String accessToken = resolveToken(request);
             if (accessToken == null) {
                 throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND,
-                    "인증 토큰이 필요합니다");
+                        "인증 토큰이 필요합니다");
             }
 
             // 3. 토큰 처리 및 다음 필터로
@@ -68,7 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isPermitAllEndpoint(String uri) {
         return uri.startsWith("/api/auth/signup") ||
-            uri.startsWith("/api/auth/login");
+                uri.startsWith("/api/auth/login") || uri.startsWith("/api/battle/random");
     }
 
     /**
@@ -85,7 +84,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 setAuthentication(accessToken);
             } else {
                 throw new GlobalException(ErrorCode.INVALID_TOKEN_SIGNATURE,
-                    "토큰의 서명이 유효하지 않습니다");
+                        "토큰의 서명이 유효하지 않습니다");
             }
         }
     }
@@ -100,18 +99,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
             throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND,
-                "리프레시 토큰이 쿠키에 존재하지 않습니다");
+                    "리프레시 토큰이 쿠키에 존재하지 않습니다");
         }
 
         if (!tokenProvider.validateToken(refreshToken)) {
             throw new GlobalException(ErrorCode.EXPIRED_REFRESH_TOKEN,
-                "리프레시 토큰이 만료되었습니다. 재로그인이 필요합니다");
+                    "리프레시 토큰이 만료되었습니다. 재로그인이 필요합니다");
         }
 
         String email = tokenProvider.getEmail(refreshToken);
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
-                "인증 정보가 유효하지 않습니다"));
+                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
+                        "인증 정보가 유효하지 않습니다"));
 
         String newAccessToken = tokenProvider.recreateAccessToken(user);
         response.setHeader("New-Access-Token", newAccessToken);
