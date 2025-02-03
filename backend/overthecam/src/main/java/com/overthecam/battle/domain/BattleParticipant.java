@@ -21,7 +21,7 @@ public class BattleParticipant extends TimeStampEntity {
     @Column(name = "battle_participant_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "battle_id")
     private Battle battle;
 
