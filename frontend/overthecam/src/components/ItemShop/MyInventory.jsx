@@ -6,6 +6,7 @@ import PointExchangeModal from "./PointExchangeModal";
 function MyInventory() {
   const exchangeDialog = useRef();
   const [isLoading, setIsLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [myPoints, setMyPoints] = useState(200);
   const [myCheerScore, setMyCheerScore] = useState(1000);
   const [filter, setFilter] = useState(3);
@@ -67,6 +68,21 @@ function MyInventory() {
 
   const onShowModal = () => {
     exchangeDialog.current.showModal();
+  };
+  const handlePlay = () => {
+    const audioElement = document.getElementById("audio-player");
+    if (audioElement) {
+      audioElement.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handlePause = () => {
+    const audioElement = document.getElementById("audio-player");
+    if (audioElement) {
+      audioElement.pause();
+      setIsPlaying(false);
+    }
   };
 
   // 환전 이후 값 받기
@@ -141,7 +157,18 @@ function MyInventory() {
               ) : currentList.length > 0 ? (
                 currentList.map((item, i) => (
                   <div key={i}>
-                    <p>{item.name}</p>
+                    {item.type === 1 ? (
+                      <>
+                        <p>{item.name}</p> <audio id="audio-player" />
+                        <button onClick={isPlaying ? handlePause : handlePlay}>
+                          {isPlaying ? "⏸️" : "▶️"}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p>{item.name}</p> <img />
+                      </>
+                    )}
                   </div>
                 ))
               ) : (
