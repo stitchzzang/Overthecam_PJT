@@ -1,7 +1,7 @@
 package com.overthecam.websocket.interceptor;
 
-import com.overthecam.auth.config.JwtProperties;
-import com.overthecam.auth.security.JwtTokenProvider;
+import com.overthecam.security.jwt.JwtProperties;
+import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.exception.websocket.WebSocketErrorCode;
 import com.overthecam.exception.websocket.WebSocketException;
 import java.util.Map;
