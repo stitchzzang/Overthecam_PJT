@@ -13,6 +13,8 @@ import Signup from "./components/Login/Signup.jsx";
 import FindAccount from "./components/Login/FindAccount.jsx";
 import NavBar from "./components/Layout/NavBar";
 import MyPage from "./page/Mypage/MyPage.jsx";
+import OtherUserPage from "./page/Mypage/OtherUserPage.jsx";
+import MyPageReport from "./page/Mypage/MypageReport.jsx";
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
   {
@@ -44,6 +46,10 @@ const router = createBrowserRouter([
   { path: "/signup", element: <Signup /> },
   { path: "/find-account", element: <FindAccount /> },
   { path: "/mypage", element: <MyPage /> },
+  { path: "/other-user/:userId", element: <OtherUserPage /> },
+  { path: "/mypagereport", element: <MyPageReport /> },
+  // { path: "/mypagevote", element: <MyPageVote /> },
+  // { path: "/mypagebattle", element: <MyPageBattle /> },
 ]);
 
 createRoot(document.getElementById("root")).render(
