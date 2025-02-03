@@ -26,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config){
-        config.enableSimpleBroker("/api/subscribe", "/api/queue"); // 구독(브로드캐스트)용 prefix
+        config.enableSimpleBroker("/api/subscribe", "/queue"); // 구독(브로드캐스트)용 prefix
         config.setApplicationDestinationPrefixes("/api/publish"); // 클라이언트에서 서버로 발행하는 메시지의 prefix
         config.setUserDestinationPrefix("/api/user"); // 사용자별 메시지 라우팅을 위한 prefix
     }
