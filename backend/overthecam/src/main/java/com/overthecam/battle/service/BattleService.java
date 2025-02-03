@@ -1,0 +1,237 @@
+package com.overthecam.battle.service;
+
+import com.overthecam.battle.domain.Battle;
+import com.overthecam.battle.domain.BattleParticipant;
+import com.overthecam.battle.domain.ParticipantRole;
+import com.overthecam.battle.dto.*;
+import com.overthecam.battle.repository.BattleParticipantRepository;
+import com.overthecam.battle.repository.BattleRepository;
+import io.openvidu.java.client.OpenViduHttpException;
+import io.openvidu.java.client.OpenViduJavaClientException;
+import io.openvidu.java.client.Session;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class BattleService {
+
+    private final OpenViduService openViduService;
+    private final BattleRepository battleRepository;
+    private final BattleParticipantRepository battleParticipantRepository;
+    private final String[] topics = {
+            "더 괴로운 상황은?\n" +
+                    "• 나 빼고 모두가 브레인인 팀에서 자괴감 느끼기\n" +
+                    "• 내가 유일한 브레인인 팀에서 혼자 일하기",
+
+            "똥 쌌는데, 더 괴로운 상황은?\n" +
+                    "• 썸남썸녀 집 변기 막기\n" +
+                    "• 싸피 변기 막고 소문나기",
+
+            "더 끔찍한 상황은?\n" +
+                    "• 회사 송년회에서 깜짝 고백 받기\n" +
+                    "• 전 애인이 회사 사람들 앞에서 울며 매달리기",
+
+            "애인의 더 거슬리는 모습은?\n" +
+                    "• 쩝쩝 소리내기\n" +
+                    "• 식탐 부리기",
+
+            "배우자가 또 도박해서 5억을 따왔다면?\n" +
+                    "• 이혼한다.\n" +
+                    "• 용서한다.",
+
+            "더 최악은?\n" +
+                    "• 내가 준 선물 당근에 판매\n" +
+                    "• 내게 줄 선물 당근에서 구매",
+
+            "소개팅에서 만취 후 다음 날 눈 떴을 때 더 최악의 장소는?\n" +
+                    "• 나 홀로 공원 벤치\n" +
+                    "• 나 홀로 MT"
+    };
+
+    /**
+     * 배틀 방을 생성하고 방장을 등록하는 메서드
+     */
+    public BattleResponse createBattleRoom(BattleCreateRequest request, String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
+
+        // 1. 토큰으로 사용자 인증 확인
+        // User user = userService.validateUser(authToken);
+
+        // 2. OpenVidu 세션 생성
+        Session session = openViduService.createSession();
+        String sessionId = session.getSessionId();
+
+        // 3. 배틀방 생성
+        Battle battle = Battle.builder()
+                .title(request.getTitle())
+                .sessionId(sessionId)
+                .status(0)  // WAITING 상태
+                .roomUrl("https://1dan2gulro.hapsida~~")
+                .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/frame1.png")
+                .build();
+
+        Battle savedBattle = battleRepository.save(battle);
+
+        // 4. 방장 등록
+        BattleParticipant host = BattleParticipant.builder()
+                .battle(savedBattle)
+                //.user(user)
+                .role(ParticipantRole.HOST)   // 방장 역할만 부여
+                .build();
+
+        battleParticipantRepository.save(host);
+
+
+        // 5. OpenVidu 토큰 생성
+        String connectionToken = openViduService.createConnection(sessionId);
+
+
+        return BattleResponse.builder()
+                .battleId(savedBattle.getId()) //배틀방 번호
+                .title(savedBattle.getTitle()) //방제
+                .sessionId(sessionId) //세션 ID
+                .connectionToken(connectionToken) //사용자별 고유한 TOKEN
+                .roomUrl(savedBattle.getRoomUrl()) //방 초대 url
+                .build();
+
+    } //여기까지가 처음에 방이 생성되고 방장의 role만 설정된 상태
+
+
+    /**
+     * 배틀방 참가 메서드
+     */
+    public BattleResponse joinBattle(Long battleId, String authToken) throws OpenViduJavaClientException, OpenViduHttpException {
+
+        // 1. 배틀방 조회
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
+
+        // 2. 방 상태 확인
+        if (battle.getStatus() == 1) {  // 진행중 상태
+            throw new RuntimeException("이미 시작된 배틀입니다");
+        }
+
+        // 3. 현재 참가자 수 확인
+        long participantCount = battleRepository.countUsersById(battleId);
+        if (participantCount >= 6) {
+            throw new RuntimeException("방이 가득 찼습니다");
+        }
+
+        // 4. 참가자로 등록 (PARTICIPANT = 2)
+        BattleParticipant participant = BattleParticipant.builder()
+                .id(battleId)
+                //.user(user)
+                .role(ParticipantRole.PARTICIPANT)
+                .build();
+
+        battleParticipantRepository.save(participant);
+
+        // 5. 참가자수 증가
+        battle.updateTotalUsers(battle.getTotalUsers() + 1);
+        battleRepository.save(battle);
+
+        // 6. OpenVidu 토큰 생성 (비디오/오디오 OFF 상태)
+        String connectionToken = openViduService.createConnection(battle.getSessionId());
+
+        return BattleResponse.builder()
+                .battleId(battle.getId())
+                .title(battle.getTitle())
+                .sessionId(battle.getSessionId())
+                .connectionToken(connectionToken)
+                .roomUrl(battle.getRoomUrl())
+                .build();
+
+    } //여기까지가 배틀방이 생성된 후에 6명의 참가자가 모이는 상태
+
+    /**
+     * 배틀러 선정 및 배틀 시작 메서드
+     */
+    public BattleStartResponse selectBattlersAndStart(Long battleId, List<Long> selectedBattlerIds) throws OpenViduJavaClientException, OpenViduHttpException {
+        // 1. 배틀방 조회
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
+
+        // 2. 현재 방의 모든 참가자 조회
+        List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleId(battleId);
+
+        // 3. 배틀러 선정 (2명만 선택되었는지 체크)
+        if (selectedBattlerIds.size() != 2) {
+            throw new RuntimeException("배틀러는 2명만 선택해야 합니다");
+        }
+
+        // 4. 배틀러로 지정된 참가자 role 업데이트
+        for (BattleParticipant participant : participants) { //참가자들 중에서
+            if (selectedBattlerIds.contains(participant.getUser().getUserId())) { //배틀러로 지목한  userId랑 같은 경우 역할 부여
+                int newRole;
+                if (participant.getRole() == ParticipantRole.HOST) {
+                    newRole = ParticipantRole.HOST | ParticipantRole.BATTLER; // 5: 방장+배틀러
+                } else {
+                    newRole = ParticipantRole.PARTICIPANT | ParticipantRole.BATTLER; // 6: 참가자+배틀러
+                }
+                participant.updateRole(newRole);
+                battleParticipantRepository.save(participant);
+            }
+        }
+
+        // 4. 배틀 상태를 진행중으로 변경
+        battle.updateStatus(1);
+        battleRepository.save(battle);
+
+
+        // 6. 모든 참가자의 세션 정보 생성 (배틀러는 비디오/오디오 ON 가능, 나머지는 OFF)
+        List<ParticipantSessionInfo> sessionInfos = new ArrayList<>();
+        for (BattleParticipant participant : participants) {
+            String connectionToken;
+            // 배틀러인 경우 PUBLISHER 권한으로 토큰 생성
+            if ((participant.getRole() & ParticipantRole.BATTLER) != 0) {
+                connectionToken = openViduService.createPublisherConnection(battle.getSessionId());
+            } else {
+                // 일반 참가자는 SUBSCRIBER 권한으로 토큰 생성
+                connectionToken = openViduService.createConnection(battle.getSessionId());
+            }
+
+            sessionInfos.add(new ParticipantSessionInfo(
+                    participant.getUser().getUserId(),
+                    participant.getRole(),
+                    battle.getSessionId(),
+                    connectionToken
+            ));
+        }
+
+        return new BattleStartResponse(battleId, battle.getSessionId(), sessionInfos);
+    } //여기까지가 배틀방이 생성된 후에 6명의 참가자가 모여서 배틀러 정하고 방 생성까지 완료한 상태
+
+    public RandomVoteTopicResponse createRandomVoteTopic() {
+        int randomIdx = (int) (Math.random() * topics.length);
+
+        return RandomVoteTopicResponse.builder()
+                .title(topics[randomIdx])
+                .build();
+    }
+
+    public BattleResponse updateTitle(Long battleId, String newTitle) {
+        // 1. 배틀방 조회
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
+
+        // 2. 진행중인 배틀인지 확인
+        if (battle.getStatus() == 1) {
+            throw new RuntimeException("진행 중인 배틀은 방제를 변경할 수 없습니다");
+        }
+
+        // 3. 방제 변경
+        battle.updateTitle(newTitle);
+        battleRepository.save(battle);
+
+        // 4. 변경된 정보 반환
+        return BattleResponse.builder()
+                .battleId(battle.getId())
+                .title(battle.getTitle())
+                .sessionId(battle.getSessionId())
+                .roomUrl(battle.getRoomUrl())
+                .build();
+    }
+}
