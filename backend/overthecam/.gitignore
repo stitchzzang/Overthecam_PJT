@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### macOS ###
+.DS_Store
+**/.DS_Store
+
+### 로컬 환경변수 ###
+application-local.properties
