@@ -32,4 +32,15 @@ public class UserFollowController {
         return CommonResponseDto.success(userFollowService.unfollow(userId, targetId));
     }
 
+    @GetMapping("/my-following")
+    public CommonResponseDto<?> getMyFollowerList(Authentication authentication){
+        Long userId = securityUtils.getCurrentUserId(authentication);
+        return CommonResponseDto.success(userFollowService.getMyFollowingList(userId));
+    }
+
+    @GetMapping("/my-follower")
+    public CommonResponseDto<?> getMyFollowingList(Authentication authentication){
+        Long userId = securityUtils.getCurrentUserId(authentication);
+        return CommonResponseDto.success(userFollowService.getMyFollowerList(userId));
+    }
 }

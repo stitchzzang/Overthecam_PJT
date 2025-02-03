@@ -6,7 +6,10 @@ import com.overthecam.exception.ErrorCode;
 import com.overthecam.exception.GlobalException;
 import com.overthecam.member.domain.UserFollow;
 import com.overthecam.member.dto.FollowResponse;
+import com.overthecam.member.dto.UserProfileInfo;
 import com.overthecam.member.repository.UserFollowRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,4 +69,27 @@ public class UserFollowService {
             .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
                 userType + " ID: " + userId + "를 찾을 수 없습니다"));
     }
+
+    // 내가(follower) → 팔로우하는 사람들(following)
+    public List<UserProfileInfo> getMyFollowingList(Long userId) {
+        return userFollowRepository.findFollowedUsersByUserId(userId).stream()
+            .map(following -> UserProfileInfo.builder()
+                .userId(following.getUserId())
+                .nickname(following.getNickname())
+                .profileImage(following.getProfileImage())
+                .build())
+            .collect(Collectors.toList());
+    }
+
+    // 나를(following) → 팔로우하는 사람들(follower)
+    public List<UserProfileInfo> getMyFollowerList(Long userId) {
+        return userFollowRepository.findFollowersByUserId(userId).stream()
+            .map(follower -> UserProfileInfo.builder()
+                .userId(follower.getUserId())
+                .nickname(follower.getNickname())
+                .profileImage(follower.getProfileImage())
+                .build())
+            .collect(Collectors.toList());
+    }
+
 }
