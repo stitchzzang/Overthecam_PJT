@@ -9,16 +9,17 @@ const WebSocketChat = () => {
   const [token, setToken] = useState(`${import.meta.env.VITE_TOKEN}`);
   const [destination, setDestination] = useState("/chat/1");
   const [message, setMessage] = useState("");
+  const [chatId, setChatId]= useState(1);
   const stompClientRef = useRef(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     connectWebSocket();
     subscribeToChannel();
 
-    return (()=>{
+    return () => {
       disconnectWebSocket();
-    })
-  },[])
+    };
+  }, []);
 
   const addMessage = (msg, type) => {
     setMessages((prev) => [...prev, { text: msg, type }]);
@@ -111,7 +112,11 @@ const WebSocketChat = () => {
     }
 
     try {
-      const messageObj = JSON.parse(message);
+      const messageObj = {
+        "battleId":chatId,
+        "content": message,
+        "timestamp": new Date().toISOString()
+      }
       const sendPath = destination.startsWith("/api/publish")
         ? destination
         : `/api/publish${destination}`;
@@ -140,10 +145,11 @@ const WebSocketChat = () => {
     <div>
       <h2>WebSocket 채팅</h2>
       <div>
-        <textarea
+        <input
+          type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="JSON 메시지 입력"
+          placeholder="메시지를 입력하세요."
         />
         <button onClick={sendMessage}>전송</button>
       </div>
