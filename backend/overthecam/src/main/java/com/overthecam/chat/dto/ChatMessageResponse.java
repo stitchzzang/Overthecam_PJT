@@ -11,7 +11,7 @@ import lombok.Getter;
 public class ChatMessageResponse {
     private Long battleId;
     private Long chatRoomId;
-    private String username;
+    private String nickname;
     private String content;
     private LocalDateTime timestamp;
 }

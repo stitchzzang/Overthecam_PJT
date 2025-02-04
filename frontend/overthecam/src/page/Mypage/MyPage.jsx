@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import NavBar from "../../components/Layout/NavBar";
+import { useState, useRef } from "react"
+import NavBar from "../../components/Layout/NavBar"
 
 function MyPage() {
   const [userData, setUserData] = useState({
-    id: '',
-    password: '',
-    name: '',
-    nickname: '',
-    birthDate: '',
-    email: '',
+    id: "",
+    password: "",
+    name: "",
+    nickname: "",
+    birthDate: "",
+    email: "",
     stats: {
       cheerPoints: 0,
       points: 0,
@@ -18,35 +18,37 @@ function MyPage() {
         wins: 0,
         draws: 0,
         losses: 0,
-      }
-    }
-  });
+      },
+    },
+  })
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState({...userData});
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedData, setEditedData] = useState({ ...userData })
+  const [profileImage, setProfileImage] = useState("/placeholder.svg")
+  const fileInputRef = useRef(null)
 
   const handleChange = (e) => {
-    setEditedData({ ...editedData, [e.target.name]: e.target.value });
-  };
+    setEditedData({ ...editedData, [e.target.name]: e.target.value })
+  }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setUserData({...userData, ...editedData});
-    setIsEditing(false);
-    console.log('Updated user data:', editedData);
-  };
+    e.preventDefault()
+    setUserData({ ...userData, ...editedData })
+    setIsEditing(false)
+    console.log("Updated user data:", editedData)
+  }
 
   const handleCancel = () => {
-    setEditedData({...userData});
-    setIsEditing(false);
-  };
+    setEditedData({ ...userData })
+    setIsEditing(false)
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
       <NavBar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6 text-center">My Page</h1>
-        
+
         {/* 프로필 및 통계 섹션 */}
         <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6 max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row gap-8">
@@ -54,12 +56,31 @@ function MyPage() {
             <div className="flex-shrink-0 w-full md:w-40">
               <div className="w-40 h-40 bg-gray-200 rounded-lg overflow-hidden mx-auto">
                 <img
-                  src="/placeholder.svg"
+                  src={profileImage || "/placeholder.svg"}
                   alt="프로필 이미지"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <button className="mt-2 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0]
+                  if (file) {
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                      setProfileImage(e.target.result)
+                    }
+                    reader.readAsDataURL(file)
+                  }
+                }}
+              />
+              <button
+                className="mt-2 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
+                onClick={() => fileInputRef.current.click()}
+              >
                 이미지 변경
               </button>
             </div>
@@ -103,7 +124,13 @@ function MyPage() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 text-center mt-2">
-                  {userData.nickname} 님의 승률은 {((userData.stats.record.wins / (userData.stats.record.wins + userData.stats.record.draws + userData.stats.record.losses)) * 100).toFixed(1)}% 입니다.
+                  {userData.nickname} 님의 승률은{" "}
+                  {(
+                    (userData.stats.record.wins /
+                      (userData.stats.record.wins + userData.stats.record.draws + userData.stats.record.losses)) *
+                    100
+                  ).toFixed(1)}
+                  % 입니다.
                 </p>
               </div>
             </div>
@@ -143,7 +170,7 @@ function MyPage() {
                 <button
                   type="button"
                   className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  onClick={() => alert('비밀번호 변경 로직을 구현해주세요.')}
+                  onClick={() => alert("비밀번호 변경 로직을 구현해주세요.")}
                 >
                   변경
                 </button>
@@ -154,7 +181,7 @@ function MyPage() {
                 이름
               </label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && 'bg-gray-100'}`}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
                 id="name"
                 type="text"
                 name="name"
@@ -168,7 +195,7 @@ function MyPage() {
                 닉네임
               </label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && 'bg-gray-100'}`}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
                 id="nickname"
                 type="text"
                 name="nickname"
@@ -182,7 +209,7 @@ function MyPage() {
                 생년월일
               </label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && 'bg-gray-100'}`}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
                 id="birthDate"
                 type="date"
                 name="birthDate"
@@ -196,7 +223,7 @@ function MyPage() {
                 이메일
               </label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && 'bg-gray-100'}`}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
                 id="email"
                 type="email"
                 name="email"
@@ -236,7 +263,8 @@ function MyPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default MyPage;
+export default MyPage
+

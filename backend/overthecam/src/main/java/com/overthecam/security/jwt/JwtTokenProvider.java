@@ -67,7 +67,8 @@ public class JwtTokenProvider {
     private Map<String, Object> createClaims(User user) {
         return Map.of(
                 "userId", user.getUserId(),
-                "email", user.getEmail()
+                "email", user.getEmail(),
+                "nickname", user.getNickname()
         );
     }
 
@@ -86,16 +87,21 @@ public class JwtTokenProvider {
         return new Date(now.getTime() + validityInMilliseconds);
     }
 
-    // 토큰에서 이메일 추출
+    // 토큰에서 사용자 ID 추출
     public Long getUserId(String token) {
         Claims claims = getClaims(token);
         return claims.get("userId", Long.class);
     }
 
-    // 토큰에서 사용자 ID 추출
+    // 토큰에서 사용자 이메일 추출
     public String getEmail(String token) {
         Claims claims = getClaims(token);
         return claims.get("email", String.class);
+    }
+
+    public String getNickname(String token){
+        Claims claims = getClaims(token);
+        return claims.get("nickname", String.class);
     }
 
     // 토큰 검증 및 클레임 추출
