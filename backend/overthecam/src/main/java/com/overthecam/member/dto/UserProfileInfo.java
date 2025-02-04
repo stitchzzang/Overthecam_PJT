@@ -9,4 +9,5 @@ public class UserProfileInfo {
     private Long userId;
     private String nickname;
     private String profileImage;
+    private boolean follow;
 }
