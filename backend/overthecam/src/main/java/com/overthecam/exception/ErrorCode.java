@@ -36,6 +36,11 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다"),
 
+    // 팔로우 관련 에러
+    SELF_FOLLOW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다"),
+    ALREADY_FOLLOWING(HttpStatus.CONFLICT, "이미 팔로우한 사용자입니다"),
+    FOLLOW_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 관계가 존재하지 않습니다"),
+
 
     // OpenVidu 관련 에러
     OPENVIDU_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "OpenVidu 서버 연동 중 오류가 발생했습니다."),
