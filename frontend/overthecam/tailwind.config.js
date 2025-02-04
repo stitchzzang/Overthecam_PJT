@@ -7,25 +7,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        red:{
+        cusRed:{
           DEFAULT:"rgb(255, 92, 92)",
         },
-        pink:{
+        cusPink:{
           DEFAULT:"rgb(255, 92, 92)",
         },
-        blue:{
+        cusBlue:{
           DEFAULT:"rgb(92, 157, 255)"
         },
-        lightBlue:{
-          DEFAULT: "rgb(182, 212, 253)"
+        cusLightBlue:{
+          DEFAULT: "rgb(182, 212, 253)",
+          light: "rgb(200, 230, 255)"
         },
-        gray:{
+        cusGray:{
           DEFAULT: "rgb(238,238,238)",
         },
-        yellow:{
+        cusYellow:{
           DEFAULT: "rgb(255, 249, 163)",
         },
-        black:{
+        cusBlack:{
           DEFAULT: "rgb(33, 33, 33)",
         },
         success:{
