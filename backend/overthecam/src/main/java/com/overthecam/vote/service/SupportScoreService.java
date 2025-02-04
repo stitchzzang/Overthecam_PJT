@@ -12,15 +12,21 @@ import org.springframework.stereotype.Service;
 public class SupportScoreService {
     private final UserRepository userRepository;
 
-    // 1. 유저의 응원점수 차감
+    /**
+    * 유저의 응원점수 차감
+     */
     public void deductSupportScore(User user, int amount) {
+        // 1. 잔여 점수 확인
         if (user.getSupportScore() < amount) {
             throw new InsufficientSupportScoreException("응원 점수가 부족합니다");
         }
+        // 2. 점수 차감
         user.setSupportScore(user.getSupportScore() - amount);
     }
 
-    // 2. 유저의 응원점수 추가
+    /**
+     * 유저의 응원점수 추가
+     */
     public void addSupportScore(User user, int amount) {
         user.setSupportScore(user.getSupportScore() + amount);
     }

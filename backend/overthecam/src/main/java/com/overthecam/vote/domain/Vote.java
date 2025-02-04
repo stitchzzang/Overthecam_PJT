@@ -1,4 +1,6 @@
 package com.overthecam.vote.domain;
+// - 투표의 기본 정보(제목, 내용, 종료일 등) 관리
+// - 투표 옵션들과 1:N 관계
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.common.entity.TimeStampEntity;
@@ -35,7 +37,7 @@ public class Vote extends TimeStampEntity {
     @Column
     private Long battleId;
 
-    @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VoteOption> options = new ArrayList<>();
 
     @Builder

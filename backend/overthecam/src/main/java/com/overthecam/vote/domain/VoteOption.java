@@ -1,4 +1,6 @@
 package com.overthecam.vote.domain;
+// - 각 투표의 선택지 정보 관리
+// - 득표수 카운팅
 
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;

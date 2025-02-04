@@ -10,9 +10,10 @@ import java.util.List;
 
 @Repository
 public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
+    // 중복 투표 확인
     boolean existsByUser_UserIdAndVote_VoteId(Long userId, Long voteId);
 
-    // Native Query 사용 - 가장 효율적인 방법
+    // 연령대별 통계 조회
     @Query(nativeQuery = true,
             value = "SELECT " +
                     "CASE " +
@@ -30,6 +31,7 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
                     "GROUP BY age_group")
     List<Object[]> findAgeGroupDistribution(@Param("voteId") Long voteId);
 
+    // 성별 통계 조회
     @Query(nativeQuery = true,
             value = "SELECT " +
                     "CASE u.gender WHEN 1 THEN '남성' ELSE '여성' END AS gender, " +
@@ -39,4 +41,7 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
                     "WHERE vr.vote_id = :voteId " +
                     "GROUP BY gender")
     List<Object[]> findGenderDistribution(@Param("voteId") Long voteId);
+
+    // 투표 삭제 시 기록 삭제
+    void deleteByVote_VoteId(Long voteId);
 }

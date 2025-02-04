@@ -9,15 +9,18 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class VoteCommentDto {
+    // 댓글 정보 응답을 위한 DTO
     private Long commentId;
+    private Long voteId;
     private String content;
     private String userNickname;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public static VoteCommentDto from(VoteComment entity) {
-        return VoteCommentDto.builder()
+        return builder()
                 .commentId(entity.getVoteCommentId())
+                .voteId(entity.getVote().getVoteId())
                 .content(entity.getContent())
                 .userNickname(entity.getUser().getNickname())
                 .createdAt(entity.getCreatedAt())

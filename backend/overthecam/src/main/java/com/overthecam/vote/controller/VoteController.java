@@ -41,33 +41,23 @@ public class VoteController {
         return CommonResponseDto.success("투표가 생성되었습니다", responseDto);
     }
 
-    // 2. 투표 목록 조회 (키워드 검색 및 정렬 지원)
+    // 2. 투표 조회 및 검색
     @GetMapping("/list")
     public ResponseEntity<CommonResponseDto<Page<VoteResponseDto>>> getVotes(
             Authentication authentication,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
+
         Page<VoteResponseDto> votes = voteService.getVotes(keyword, sortBy, pageable);
         return ResponseEntity.ok(CommonResponseDto.success(votes));
     }
 
-    // 3. 투표 검색
-    @GetMapping("/search")
-    public ResponseEntity<CommonResponseDto<Page<VoteResponseDto>>> searchVotes(
-            Authentication authentication,
-            @RequestParam String keyword,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        Long userId = securityUtils.getCurrentUserId(authentication);
-        Page<VoteResponseDto> votes = voteService.searchVotes(keyword, pageable);
-        return ResponseEntity.ok(CommonResponseDto.success(votes));
-    }
 
     // 4. 특정 투표 상세 조회
-    @GetMapping("/{voteId}/detail")
+    @GetMapping("/{voteId}")
     public ResponseEntity<CommonResponseDto<VoteResponseDto>> getVoteDetail(
             Authentication authentication,
             @PathVariable Long voteId
@@ -77,7 +67,7 @@ public class VoteController {
         return ResponseEntity.ok(CommonResponseDto.success(detailDto));
     }
 
-    // 5. 특정 투표에 대한 투표 참여
+    // 5. 투표 참여
     @PostMapping("/{voteId}/vote/{optionId}")
     public ResponseEntity<CommonResponseDto<VoteResponseDto>> vote(
             Authentication authentication,

@@ -1,4 +1,6 @@
 package com.overthecam.vote.domain;
+// - 사용자의 투표 이력 관리
+// - 중복 투표 방지에 사용
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.common.entity.TimeStampEntity;
