@@ -12,7 +12,7 @@ export default function NavBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <header className="w-full px-4 py-3 bg-white">
+    <header className="w-full px-4 py-3 bg-">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo section */}
         <div className="flex-shrink-0">
