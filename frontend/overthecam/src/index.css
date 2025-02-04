@@ -1,34 +1,30 @@
-html, body, #root {
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: rgb(200, 230, 255);
+  width: 100%; /* html과 body의 너비를 100%로 설정 */
 }
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-html,
-body,
 #root {
-  margin: 0 auto;
-  padding: 0 auto;
+  height: 100vh; /* root 영역을 화면 전체 높이로 설정 */
+  width: 100%; /* root 영역의 너비를 화면 전체로 설정 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 전체 페이지 스크롤 방지 */
 }
 
 .main-content {
-  flex-grow: 1;
+  flex-grow: 1; /* main 영역이 남은 공간을 차지하도록 */
+  overflow-y: auto; /* main 콘텐츠 영역에만 스크롤이 생기도록 설정 */
 }
+
+footer {
+  color: white; /* footer 텍스트 색 */
+  padding: 10px;
+  text-align: center;
+}
+
 
 /* src/index.css */
 @tailwind base;
