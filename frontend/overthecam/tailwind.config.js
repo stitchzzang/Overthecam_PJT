@@ -7,38 +7,38 @@ export default {
   theme: {
     extend: {
       colors: {
-        cusRed:{
-          DEFAULT:"rgb(255, 92, 92)",
+        cusRed: {
+          DEFAULT: "rgb(255, 92, 92)",
         },
-        cusPink:{
-          DEFAULT:"rgb(255, 92, 92)",
+        cusPink: {
+          DEFAULT: "rgb(255, 210, 210)",
         },
-        cusBlue:{
-          DEFAULT:"rgb(92, 157, 255)"
+        cusBlue: {
+          DEFAULT: "rgb(92, 157, 255)",
         },
-        cusLightBlue:{
+        cusLightBlue: {
           DEFAULT: "rgb(182, 212, 253)",
-          light: "rgb(200, 230, 255)"
+          light: "rgb(200, 230, 255)",
         },
-        cusGray:{
+        cusGray: {
           DEFAULT: "rgb(238,238,238)",
         },
-        cusYellow:{
+        cusYellow: {
           DEFAULT: "rgb(255, 249, 163)",
         },
-        cusBlack:{
+        cusBlack: {
           DEFAULT: "rgb(33, 33, 33)",
         },
-        success:{
+        success: {
           bg: "rgb(182, 212, 253)",
           DEFAULT: "rgb(92, 157, 255)",
         },
-        error:{
+        error: {
           bg: "rgb(255, 210, 210)",
           DEFAULT: "rgb(255, 92, 92)",
-        }
-      }
+        },
+      },
     }, // 테마 확장
   },
   plugins: [], // 플러그인 추가
-}
+};
