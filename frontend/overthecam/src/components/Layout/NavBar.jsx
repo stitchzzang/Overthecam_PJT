@@ -5,7 +5,7 @@ export default function NavBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <nav className="w-full px-4 py-3 bg-white">
+    <header className="w-full px-4 py-3 bg-white">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo section */}
         <div className="flex-shrink-0">
@@ -73,6 +73,6 @@ export default function NavBar() {
           </span>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }
