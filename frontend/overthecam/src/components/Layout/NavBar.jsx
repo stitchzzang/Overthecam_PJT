@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function NavBar() {
+  const location = useLocation();
+  const isBattleRoomPage = location.pathname.startsWith("/battle-room");
+
+  if (isBattleRoomPage) {
+    return null;
+  }
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
