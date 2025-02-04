@@ -34,7 +34,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/api/ws-connect") // 초기 핸드셰이크 과정에서 사용할 endpoint 지정
-            .setAllowedOrigins("http://127.0.0.1:5173", "http://127.0.0.1:5500", "http://i12d204.p.ssafy.io") // CORS 허용 설정
+            .setAllowedOrigins(
+                "http://127.0.0.1:5173",
+                "http://localhost:5173",
+                "http://127.0.0.1:5174",
+                "http://localhost:5174",
+                "http://127.0.0.1:5175",
+                "http://localhost:5175",
+                "http://i12d204.p.ssafy.io"
+            )
             .withSockJS(); // SockJS 지원 추가
     }
 

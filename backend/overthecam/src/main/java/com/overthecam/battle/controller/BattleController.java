@@ -13,8 +13,6 @@ import io.openvidu.java.client.OpenViduJavaClientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/battle")
 @RequiredArgsConstructor
@@ -45,11 +43,15 @@ public class BattleController {
     /**
      * 배틀방 참가 API
      */
-    @PostMapping("room/{battleId}/join")
+    @PostMapping("/room/{battleId}/join")
     public CommonResponseDto<BattleResponse> joinBattle(
-            @PathVariable Long battleId) {
+            @PathVariable("battleId") Long battleId, @RequestHeader("Authorization") String token) {
         try {
-            BattleResponse response = battleService.joinBattle(battleId);
+
+            String bearerToken = token.substring(7);  // "Bearer " 제거
+            Long userId = jwtTokenProvider.getUserId(bearerToken);
+
+            BattleResponse response = battleService.joinBattle(battleId, userId);
             return CommonResponseDto.success("배틀방 참가에 성공했습니다.", response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
@@ -62,12 +64,13 @@ public class BattleController {
      * 배틀러 선정 및 배틀 시작 API
      */
     //파라미터: 배틀방 id, battle_participant의 userId 리스트(프론트엔드가 배틀러로 선택한 두 명의 user_id를 받는다.)
-    @PostMapping("/room/{battleId}/start")
+    @GetMapping("/room/{battleId}/start/{battler1}/{battler2}")
     public CommonResponseDto<BattleStartResponse> startBattle(
-            @PathVariable Long battleId,
-            @RequestBody List<Long> selectedBattlerIds) {
+            @PathVariable("battleId") Long battleId,
+            @PathVariable("battler1") String battler1,
+            @PathVariable("battler2") String battler2) {
         try {
-            BattleStartResponse response = battleService.selectBattlersAndStart(battleId, selectedBattlerIds);
+            BattleStartResponse response = battleService.selectBattlersAndStart(battleId, battler1, battler2);
             return CommonResponseDto.success("배틀이 성공적으로 시작되었습니다.", response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
@@ -91,11 +94,9 @@ public class BattleController {
      */
     @PutMapping("room/{battleId}/title")
     public CommonResponseDto<BattleResponse> updateTitle(
-            @PathVariable Long battleId,
-            @RequestBody String newTitle,
-            @RequestHeader("Authorization") String authToken) {
+            @PathVariable("battleId") Long battleId,
+            @RequestBody String newTitle) {
         try {
-            // userId는 나중에 토큰에서 추출
             BattleResponse response = battleService.updateTitle(battleId, newTitle);
             return CommonResponseDto.success("방제가 성공적으로 변경되었습니다.", response);
         } catch (RuntimeException e) {
