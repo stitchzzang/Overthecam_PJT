@@ -40,5 +40,7 @@ export default {
       },
     }, // 테마 확장
   },
-  plugins: [], // 플러그인 추가
+  plugins: [
+    require('tailwind-scrollbar-hide'),
+  ], // 플러그인 추가
 };
