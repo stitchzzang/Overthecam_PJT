@@ -15,9 +15,7 @@ public enum SecurityPath {
     SUBSCRIBE("/api/subscribe/**"),
 
     // 투표 관련 경로
-    VOTE_LIST("/api/v1/votes"),          // 목록 조회 (인증 불필요)
-    VOTE_DETAIL("/api/v1/votes/*/detail"), // 상세 조회 (인증 불필요)
-    VOTE_API("/api/v1/votes/**");        // 나머지 투표 관련 모든 경로 (인증 필요)
+    VOTE_LIST("/api/vote/list");
 
 
     private final String path;

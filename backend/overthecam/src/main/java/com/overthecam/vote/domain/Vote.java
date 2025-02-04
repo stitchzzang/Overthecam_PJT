@@ -32,15 +32,19 @@ public class Vote extends TimeStampEntity {
     @Column(nullable = false)
     private boolean isActive = true;
 
+    @Column
+    private Long battleId;
+
     @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL)
     private List<VoteOption> options = new ArrayList<>();
 
     @Builder
-    public Vote(User user, String title, String content, LocalDateTime endDate) {
+    public Vote(User user, String title, String content, LocalDateTime endDate, Long battleId) {
         this.user = user;
         this.title = title;
         this.content = content;
         this.endDate = endDate;
+        this.battleId = battleId;
     }
 
     public void addOption(VoteOption option) {

@@ -47,20 +47,7 @@ public enum ErrorCode {
 
     // 방제 변경 관련 에러
     TOPIC_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "주제 생성에 실패했습니다"),
-    BATTLE_TITLE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "방제 변경에 실패했습니다"),
-
-    // 투표 관련 에러
-    VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "투표를 찾을 수 없습니다"),
-    VOTE_EXPIRED(HttpStatus.BAD_REQUEST, "종료된 투표입니다"),
-    DUPLICATE_VOTE(HttpStatus.CONFLICT, "이미 투표했습니다"),
-    VOTE_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "투표 옵션을 찾을 수 없습니다"),
-
-    // 댓글 관련 에러
-    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다"),
-    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "댓글 수정/삭제 권한이 없습니다"),
-
-    // 점수/포인트 관련 에러
-    INSUFFICIENT_SCORE(HttpStatus.BAD_REQUEST, "응원 점수가 부족합니다");
+    BATTLE_TITLE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "방제 변경에 실패했습니다");
 
 
     private final HttpStatus httpStatus;

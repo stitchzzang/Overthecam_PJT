@@ -26,6 +26,6 @@ public class VoteRequestDto {
     private LocalDateTime endDate;
 
     @NotEmpty(message = "2개의 옵션이 필요합니다")
-    @Size(min = 2, max = 2, message = "정확히 2개의 옵션만 가능합니다")
+    @Size(min = 2, max = 2, message = "2개의 옵션만 가능합니다")
     private List<String> options;
 }

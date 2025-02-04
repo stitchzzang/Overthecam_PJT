@@ -31,7 +31,7 @@ public class VoteComment extends TimeStampEntity {
 
     public void updateContent(String content) {
         this.content = content;
-        super.updatedAt = LocalDateTime.now(); // 부모 클래스의 필드 직접 접근
+        super.updatedAt = LocalDateTime.now();
     }
 
     @Builder
@@ -39,6 +39,6 @@ public class VoteComment extends TimeStampEntity {
         this.vote = vote;
         this.user = user;
         this.content = content;
-        super.createdAt = LocalDateTime.now(); // 부모 클래스의 필드 직접 접근
+        super.createdAt = LocalDateTime.now();
     }
 }
