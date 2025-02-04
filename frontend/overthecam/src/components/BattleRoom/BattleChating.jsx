@@ -1,15 +1,24 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
 const WebSocketChat = () => {
   const [subscriptions, setSubscriptions] = useState({});
   const [messages, setMessages] = useState([]);
-  const [url, setUrl] = useState("");
-  const [token, setToken] = useState("");
+  const [url, setUrl] = useState(`${import.meta.env.VITE_BASE_URL}/ws-connect`);
+  const [token, setToken] = useState(`${import.meta.env.VITE_TOKEN}`);
   const [destination, setDestination] = useState("/chat/1");
   const [message, setMessage] = useState("");
   const stompClientRef = useRef(null);
+
+  useEffect(()=>{
+    connectWebSocket();
+    subscribeToChannel();
+
+    return (()=>{
+      disconnectWebSocket();
+    })
+  },[])
 
   const addMessage = (msg, type) => {
     setMessages((prev) => [...prev, { text: msg, type }]);
@@ -55,7 +64,7 @@ const WebSocketChat = () => {
       addMessage("WebSocket 연결 중 오류 발생", "error");
     }
   };
-
+  // 에러 알림 구독, onConnect 내부에서 호출됨
   const subscribeToErrors = (client) => {
     const errorSubscription = client.subscribe(
       "/api/user/queue/errors",
@@ -130,31 +139,6 @@ const WebSocketChat = () => {
   return (
     <div>
       <h2>WebSocket 채팅</h2>
-      <div>
-        <input
-          type="text"
-          placeholder="WebSocket URL"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="인증 토큰"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-        />
-        <button onClick={connectWebSocket}>연결</button>
-        <button onClick={disconnectWebSocket}>연결 해제</button>
-      </div>
-      <div>
-        <input
-          type="text"
-          placeholder="구독 경로"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-        />
-        <button onClick={subscribeToChannel}>구독</button>
-      </div>
       <div>
         <textarea
           value={message}
