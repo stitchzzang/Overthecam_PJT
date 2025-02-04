@@ -136,7 +136,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void setAuthentication(String token) {
         String email = tokenProvider.getEmail(token);
         Authentication auth = new UsernamePasswordAuthenticationToken(
-                email, null, Collections.emptyList());
+                email, token, Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
