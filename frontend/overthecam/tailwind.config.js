@@ -5,7 +5,39 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}", // React 컴포넌트 파일 경로
   ],
   theme: {
-    extend: {}, // 테마 확장
+    extend: {
+      colors: {
+        red:{
+          DEFAULT:"rgb(255, 92, 92)",
+        },
+        pink:{
+          DEFAULT:"rgb(255, 92, 92)",
+        },
+        blue:{
+          DEFAULT:"rgb(92, 157, 255)"
+        },
+        lightBlue:{
+          DEFAULT: "rgb(182, 212, 253)"
+        },
+        gray:{
+          DEFAULT: "rgb(238,238,238)",
+        },
+        yellow:{
+          DEFAULT: "rgb(255, 249, 163)",
+        },
+        black:{
+          DEFAULT: "rgb(33, 33, 33)",
+        },
+        success:{
+          bg: "rgb(182, 212, 253)",
+          DEFAULT: "rgb(92, 157, 255)",
+        },
+        error:{
+          bg: "rgb(255, 210, 210)",
+          DEFAULT: "rgb(255, 92, 92)",
+        }
+      }
+    }, // 테마 확장
   },
   plugins: [], // 플러그인 추가
 }
