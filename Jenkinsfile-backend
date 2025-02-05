@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE_BACKEND = 'ghkdtnql/overthecam-backend'
+        NETWORK_NAME = 'my_network'
     }
 
     stages {
@@ -84,13 +85,16 @@ pipeline {
                             ]) {
                                 sh '''
                                     ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
+                                    # ✅ my_network이 없으면 생성 (이미 존재하면 에러 안 남)
+                                    docker network inspect ${NETWORK_NAME} >/dev/null 2>&1 || docker network create ${NETWORK_NAME};
+
                                     echo '새 이미지 가져오는 중...' && \
                                     docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
                                     echo '기존 컨테이너 중지 중...' && \
                                     docker stop backend || true && \
                                     docker rm backend || true && \
                                     echo '새 컨테이너 시작 중...' && \
-                                    docker run -d --name backend \\
+                                    docker run -d --name backend --network ${NETWORK_NAME} \\
                                         -p 8080:8080 \\
                                         -e SPRING_PROFILES_ACTIVE=prod \\
                                         -e MYSQL_DB_URL='${MYSQL_DB_URL}' \\

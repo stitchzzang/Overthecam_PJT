@@ -10,7 +10,6 @@ function ItemShopPage() {
       </div>
       <MyInventory/>
       <div>
-        <h3>내 인벤토리</h3>
       </div>
       <div>
         <h3>상품 목록</h3>
