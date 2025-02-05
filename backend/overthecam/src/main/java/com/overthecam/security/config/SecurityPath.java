@@ -12,7 +12,10 @@ public enum SecurityPath {
 
     // Messaging 관련 경로
     PUBLISH("/api/publish/**"),
-    SUBSCRIBE("/api/subscribe/**");
+    SUBSCRIBE("/api/subscribe/**"),
+
+    // 투표 관련 경로
+    VOTE_LIST("/api/vote/list");
 
 
     private final String path;
