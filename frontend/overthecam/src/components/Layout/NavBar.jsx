@@ -1,11 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function NavBar() {
+  const location = useLocation();
+  const isBattleRoomPage = location.pathname.startsWith("/battle-room");
+
+  if (isBattleRoomPage) {
+    return null;
+  }
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <nav className="w-full px-4 py-3 bg-white">
+    <header className="w-full px-4 py-3 bg-">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo section */}
         <div className="flex-shrink-0">
@@ -73,6 +80,6 @@ export default function NavBar() {
           </span>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }
