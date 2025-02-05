@@ -23,13 +23,9 @@ public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
 
-    @MessageMapping("/chat/{chatRoomId}")
-    @SendTo("/api/subscribe/chat/{chatRoomId}")
-    public WebSocketResponseDto<?> sendMessage(
-            ChatMessageRequest request,
-            @DestinationVariable Long chatRoomId,
-            SimpMessageHeaderAccessor headerAccessor
-    ){
+    @MessageMapping("/chat/{battleId}")
+    @SendTo("/api/subscribe/chat/{battleId}")
+    public WebSocketResponseDto<?> sendMessage(ChatMessageRequest request, @DestinationVariable Long battleId, SimpMessageHeaderAccessor headerAccessor){
         log.debug("Message received - Headers: {}", headerAccessor.getMessageHeaders());
         UserPrincipal user = (UserPrincipal) headerAccessor.getUser();
         Map<String, Object> sessionAttributes = headerAccessor.getSessionAttributes();
@@ -41,18 +37,17 @@ public class ChatMessageController {
             Long userId = (Long) sessionAttributes.get("userId");
             String email = (String) sessionAttributes.get("email");
             String nickname = (String) sessionAttributes.get("nickname");
+
             if (userId != null && email != null && nickname != null) {
                 user = new UserPrincipal(userId, email, nickname);
             }
         }
 
         if (user == null) {
-            throw new WebSocketException(
-                    WebSocketErrorCode.UNAUTHORIZED_CHAT_ACCESS,
-                    "사용자 정보를 찾을 수 없습니다."
+            throw new WebSocketException(WebSocketErrorCode.UNAUTHORIZED_CHAT_ACCESS, "사용자 정보를 찾을 수 없습니다."
             );
         }
 
-        return chatMessageService.sendMessage(request, chatRoomId, user);
+        return chatMessageService.sendMessage(request, battleId, user);
     }
 }
