@@ -19,9 +19,6 @@ public class Battle extends TimeStampEntity {
     @Column(name = "battle_id")
     private Long id;
 
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "user_id", nullable = false)
-    //private User user;  // 방장 사용자
     private String sessionId;
 
     @Column(nullable = false)
@@ -36,16 +33,18 @@ public class Battle extends TimeStampEntity {
     @Column(name = "total_time")
     private Integer totalTime;
 
+    @Builder.Default
     @Column(name = "user_count")
     private Integer userCount = 0;
 
+    @Builder.Default
     @Column(name = "status")
-    private Integer status = 0;
+    private Status status = Status.WAITING;
 
     @Column(name = "total_users")
     private int totalUsers;
 
-    public void updateStatus(int status) {
+    public void updateStatus(Status status) {
         this.status = status;
     }
 

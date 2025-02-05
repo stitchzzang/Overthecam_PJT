@@ -5,10 +5,10 @@ import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
+import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.dto.*;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.chat.service.ChatRoomService;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.Session;
@@ -29,7 +29,6 @@ public class BattleService {
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
     private final UserRepository userRepository;
-    private final ChatRoomService chatRoomService;
 
     private final String[] topics = {
             "더 괴로운 상황은?\n" +
@@ -82,14 +81,11 @@ public class BattleService {
         Battle battle = Battle.builder()
                 .title(request.getTitle())
                 .sessionId(sessionId)
-                .status(0)  // WAITING 상태
                 .roomUrl("https://1dan2gulro.hapsida~~")
                 .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/frame1.png")
                 .build();
 
         Battle savedBattle = battleRepository.save(battle);
-        chatRoomService.createChatRoom(savedBattle);
-
 
         // 4. 방장 등록
         BattleParticipant host = BattleParticipant.builder()
@@ -139,7 +135,7 @@ public class BattleService {
 
         //2. 배틀방 status 체크
         log.info("배틀방 상태 체크. status: {}", battle.getStatus());
-        if (battle.getStatus() == 1) {
+        if (battle.getStatus() == Status.PROGRESS) {
             log.error("이미 시작된 배틀. battleId: {}", battleId);
             throw new RuntimeException("이미 시작된 배틀입니다");
         }
@@ -221,7 +217,7 @@ public class BattleService {
         log.info("배틀러 role 업데이트 완료 - 업데이트된 참가자 수: {}", updatedCount);
 
         // 4. 배틀 상태를 진행중으로 변경
-        battle.updateStatus(1);
+        battle.updateStatus(Status.PROGRESS);
         battleRepository.save(battle);
         log.info("배틀 상태 업데이트 완료 - battleId: {}, 변경된 status: {}", battle.getId(), battle.getStatus());
 
@@ -262,7 +258,7 @@ public class BattleService {
                 .orElseThrow(() -> new RuntimeException("배틀방을 찾을 수 없습니다"));
 
         // 2. 진행중인 배틀인지 확인
-        if (battle.getStatus() == 1) {
+        if (battle.getStatus() == Status.PROGRESS) {
             throw new RuntimeException("진행 중인 배틀은 방제를 변경할 수 없습니다");
         }
 
