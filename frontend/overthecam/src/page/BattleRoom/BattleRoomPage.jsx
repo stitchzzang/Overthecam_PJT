@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import { OpenVidu } from "openvidu-browser";
-import axios from "axios";
 import UserVideoComponent from "../../components/BattleRoom/UserVideo";
 import BattleChating from "../../components/BattleRoom/BattleChating";
 import BattleTimer from "../../components/BattleRoom/BattleTimer";
-
-const APPLICATION_SERVER_URL =
-  process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
 
 function BattleRoomPage() {
   // useState를 사용하여 state 관리
