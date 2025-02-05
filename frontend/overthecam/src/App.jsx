@@ -11,7 +11,7 @@ import Signup from "./components/Login/Signup";
 import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
 import OtherUserPage from "./page/Mypage/OtherUserPage.jsx";
-import MyPageReport from "./page/Mypage/MypageReport.jsx";
+import MyPageReport from "./page/Mypage/MyPageReport.jsx";
 
 function App() {
   return (
