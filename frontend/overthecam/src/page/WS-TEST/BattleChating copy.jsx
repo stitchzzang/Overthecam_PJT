@@ -1,36 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
 const WebSocketChat = () => {
   const [subscriptions, setSubscriptions] = useState({});
   const [messages, setMessages] = useState([]);
-  const [url, setUrl] = useState(`${import.meta.env.VITE_BASE_URL}/ws-connect`);
-  const [token, setToken] = useState(`${import.meta.env.VITE_TOKEN}`);
+  const [url, setUrl] = useState("");
+  const [token, setToken] = useState("");
   const [destination, setDestination] = useState("/chat/1");
   const [message, setMessage] = useState("");
-  const [chatId, setChatId]= useState(1);
   const stompClientRef = useRef(null);
 
-  useEffect(() => {
-    // connectWebSocket();
-    // subscribeToChannel();
-
-    return () => {
-      disconnectWebSocket();
-    };
-  }, []);
-
-  const addMessage = (msg, nickname) => {
-    setMessages(prev => [...prev, {
-      content: msg,
-      nickname: nickname
-    }]);
+  const addMessage = (msg, type) => {
+    setMessages((prev) => [...prev, { text: msg, type }]);
   };
 
   const connectWebSocket = () => {
     if (!url || !token) {
-      console.log("토큰, url 입력해주세요")
+      addMessage("URL과 토큰을 모두 입력해주세요.", "error");
       return;
     }
 
@@ -39,41 +26,45 @@ const WebSocketChat = () => {
       const stomp = Stomp.over(socket);
 
       stomp.configure({
-        connectHeaders: {
-          Authorization: `Bearer ${token.replace("Bearer ", "")}`,
+        connectHeaders: { 
+          Authorization: `Bearer ${token.replace("Bearer ", "")}`
         },
         debug: (str) => {
-          console.log("STOMP Debug:", str);
+          console.log('STOMP Debug:', str);
         },
         onConnect: (frame) => {
           console.log("Connected successfully:", frame);
           stompClientRef.current = stomp;
+          addMessage("WebSocket 연결 성공", "success");
           subscribeToErrors(stomp);
         },
         onStompError: (frame) => {
-          console.error("Broker reported error:", frame.headers["message"]);
-          console.error("Additional details:", frame.body);
+          console.error('Broker reported error:', frame.headers['message']);
+          console.error('Additional details:', frame.body);
+          addMessage(`연결 실패: ${frame.headers['message']}`, "error");
         },
         onWebSocketError: (error) => {
           console.error("WebSocket 연결 오류:", error);
-        },
+          addMessage("WebSocket 연결 실패", "error");
+        }
       });
 
       stomp.activate();
     } catch (error) {
       console.error("WebSocket 연결 중 예외 발생:", error);
+      addMessage("WebSocket 연결 중 오류 발생", "error");
     }
   };
-  // 에러 알림 구독, onConnect 내부에서 호출됨
+
   const subscribeToErrors = (client) => {
     const errorSubscription = client.subscribe(
       "/api/user/queue/errors",
       (response) => {
         try {
           const errorResponse = JSON.parse(response.body);
-          console.log(errorResponse.message);
+          addMessage(errorResponse.message || "알 수 없는 오류", "error");
         } catch (parseError) {
-          console.log("에러 응답 파싱 실패");
+          addMessage("에러 응답 파싱 실패", "error");
         }
       }
     );
@@ -83,21 +74,20 @@ const WebSocketChat = () => {
   const subscribeToChannel = () => {
     const client = stompClientRef.current;
     if (!client) {
+      addMessage("WebSocket 연결이 되어있지 않습니다.", "error");
       return;
     }
 
-    const subscriptionPath = destination.startsWith("/api/subscribe")
-      ? destination
+    const subscriptionPath = destination.startsWith("/api/subscribe") 
+      ? destination 
       : `/api/subscribe${destination}`;
 
     const subscription = client.subscribe(subscriptionPath, (response) => {
       try {
-        // 구독을 통해서 브로드캐스팅하는 메시지를 받음
         const responseDto = JSON.parse(response.body);
-        console.log(responseDto)
-        addMessage(responseDto.data.content, responseDto.data.nickname);
+        addMessage(responseDto.message || "메시지 수신", "success");
       } catch (parseError) {
-        console.log("응답 파싱 실패");
+        addMessage("응답 파싱 실패", "error");
       }
     });
 
@@ -107,30 +97,25 @@ const WebSocketChat = () => {
   const sendMessage = () => {
     const client = stompClientRef.current;
     if (!client) {
-      console.log("연결이 되어있지 않습니다.");
+      addMessage("WebSocket 연결이 되어있지 않습니다.", "error");
       return;
     }
 
     try {
-      const messageObj = {
-        "battleId":chatId,
-        "content": message,
-        "timestamp": new Date().toISOString()
-      }
+      const messageObj = JSON.parse(message);
       const sendPath = destination.startsWith("/api/publish")
         ? destination
         : `/api/publish${destination}`;
 
       client.publish({
         destination: sendPath,
-        body: JSON.stringify(messageObj),
+        body: JSON.stringify(messageObj)
       });
 
+      addMessage(`메시지 전송: ${messageObj.content}`, "info");
     } catch (error) {
-      console.log("유효하지 않은 메시지 형식입니다.");
+      addMessage("유효하지 않은 메시지 형식", "error");
     }
-
-    setMessage("");
   };
 
   const disconnectWebSocket = () => {
@@ -138,27 +123,21 @@ const WebSocketChat = () => {
     if (client) {
       client.deactivate();
       stompClientRef.current = null;
-      console.log("WebSocket 연결 해제");
+      addMessage("WebSocket 연결 해제", "info");
     }
   };
 
   return (
-    <div id="chating-box">
+    <div>
       <h2>WebSocket 채팅</h2>
-      <div id="show-chat">
-        <div>
-          <h3>메시지 로그</h3>
-          <ul>
-            {messages.map((msg, index) => (
-              <li
-                key={index}
-              >
-                {msg.nickname}:<strong>{msg.content}</strong>
-              </li>
-            ))}
-          </ul>
-        </div>
-      <input
+      <div>
+        <input
+          type="text"
+          placeholder="WebSocket URL"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        <input
           type="text"
           placeholder="인증 토큰"
           value={token}
@@ -166,16 +145,40 @@ const WebSocketChat = () => {
         />
         <button onClick={connectWebSocket}>연결</button>
         <button onClick={disconnectWebSocket}>연결 해제</button>
-        <button onClick={subscribeToChannel}>구독</button>
       </div>
       <div>
         <input
           type="text"
+          placeholder="구독 경로"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+        />
+        <button onClick={subscribeToChannel}>구독</button>
+      </div>
+      <div>
+        <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="메시지를 입력하세요."
+          placeholder="JSON 메시지 입력"
         />
         <button onClick={sendMessage}>전송</button>
+      </div>
+      <div>
+        <h3>메시지 로그</h3>
+        <ul>
+          {messages.map((msg, index) => (
+            <li
+              key={index}
+              style={{ 
+                color: 
+                  msg.type === "error" ? "red" : 
+                  msg.type === "success" ? "green" : "black" 
+              }}
+            >
+              {msg.text}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
