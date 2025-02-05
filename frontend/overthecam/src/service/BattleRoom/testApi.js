@@ -1,11 +1,8 @@
 import { authAxios } from "../../common/axiosinstance";
 import axios from "axios";
-// const APPLICATION_SERVER_URL =
-//   process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
 
-const APPLICATION_SERVER_URL = "http://i12d204.p.ssafy.io:8443/";
-const accessToken =
-  "Bearer eyJhbGciOiJIUzI1NiJ9.eyJuaWNrbmFtZSI6Iu2FjOyKpO2EsDEiLCJlbWFpbCI6InRlc3QxQGdtYWlsLmNvbSIsInVzZXJJZCI6MSwiaWF0IjoxNzM4NjUzOTczLCJleHAiOjE3Mzg2NTU3NzN9.O79BIqeMXD9Sf2EUNlaoJj4h0-lhwnLur28LUCvbqSg";
+const APPLICATION_SERVER_URL = import.meta.env.VITE_OPENVIDU_URL;
+const accessToken = "";
 const newTitle = "test";
 // 세션 생성
 export const createSession = async () => {

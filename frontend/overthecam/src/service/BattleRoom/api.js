@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const APPLICATION_SERVER_URL =
-  process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
+const APPLICATION_SERVER_URL = import.meta.env.OPENVIDU_SERVER;
 
 // 세션 생성
 export const createSession = async (sessionId) => {
