@@ -2,7 +2,7 @@ import { authAxios } from "../../common/axiosinstance";
 import axios from "axios";
 
 const APPLICATION_SERVER_URL = import.meta.env.VITE_OPENVIDU_URL;
-const accessToken = "";
+const accessToken = import.meta.env.VITE_TOKEN;
 const newTitle = "test";
 // 세션 생성
 export const createSession = async () => {
@@ -10,12 +10,11 @@ export const createSession = async () => {
     const response = await axios.post(
       `${APPLICATION_SERVER_URL}api/chat/battle/room`,
       {
+        title: newTitle, // POST 요청 본문 (Body)
+      },
+      {
         headers: {
-          // "Content-Type": "application/json",
-          Authorization: accessToken,
-        },
-        data: {
-          title: newTitle,
+          Authorization: `Bearer ${accessToken}`, // 헤더는 세 번째 인자로 전달
         },
       }
     );
@@ -25,6 +24,7 @@ export const createSession = async () => {
     console.error("세션 생성 오류:", error);
     throw error;
   }
+
 };
 
 // export const createToken = async (sessionId) => {

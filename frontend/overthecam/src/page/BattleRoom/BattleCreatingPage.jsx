@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../../service/BattleRoom/api";
+import { getToken } from "../../service/BattleRoom/testApi";
 
 import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
 
 function BattleCreatingPage() {
-  const [battleId, setBattleId] = useState("감자메롱"); // 배틀방 아이디(번호)
+  const [battleId, setBattleId] = useState(""); // 배틀방 아이디(번호)
   const navigate = useNavigate();
 
   const createBattleRoomHandler = async (event) => {
