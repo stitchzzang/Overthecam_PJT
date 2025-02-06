@@ -2,20 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Pagination from "react-js-pagination";
 import BattleListItem from "../../components/BattleRoom/BattleListItem";
+import { readRooms } from "../../service/BattleRoom/api";
 
 function BattleMainPage() {
-  const [battles, setBattles] = useState([
-    {
-      id: 1234,
-      battleId: 21,
-      BattleName: "깻잎 논쟁",
-    },
-    {
-      id: 2345,
-      battleId: 22,
-      BattleName: "피자 vs 치킨",
-    },
-  ]);
+  const [battles, setBattles] = useState([]);
+
+  // 화면 렌더링 시 메인 페이지 read
+  useEffect(async ()=>{
+    const response = await readRooms();
+  }, [])
   
   // 페이지네이션 용
   // 현재 페이지
