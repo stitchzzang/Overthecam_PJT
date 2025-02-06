@@ -39,8 +39,8 @@ const Login = () => {
       const response = await publicAxios.post("/auth/login", loginData)
       console.log("서버 응답 (상세):", JSON.stringify(response.data, null, 2))
       if (response.data.data.accessToken) {
-        localStorage.setItem("accessToken", response.data.data.accessToken)
-        localStorage.setItem("refreshToken", response.data.data.refreshToken)
+        localStorage.setItem("token", response.data.data.accessToken)
+        // localStorage.setItem("refreshToken", response.data.data.refreshToken)
         console.log("토큰이 로컬 스토리지에 저장되었습니다.")
 
         if (formData.rememberMe) {

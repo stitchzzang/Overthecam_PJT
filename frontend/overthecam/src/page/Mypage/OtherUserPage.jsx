@@ -15,7 +15,7 @@ function OtherUserPage() {
       const response = await authAxios.get(`/member/${userId}`);
       setUserData(response.data);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('Error fetching user data:', error.response?.data || error.message);
       alert('사용자 정보를 불러오는 데 실패했습니다.');
     }
   }, [userId]);
@@ -25,7 +25,7 @@ function OtherUserPage() {
       const response = await authAxios.get('/member/my-following');
       setIsFollowing(response.data.some(following => following.id === userId));
     } catch (error) {
-      console.error('Error checking follow status:', error);
+      console.error('Error checking follow status:', error.response?.data || error.message);
     }
   }, [userId]);
 
@@ -36,7 +36,7 @@ function OtherUserPage() {
       setFollowersCount(followersResponse.data.length);
       setFollowingCount(followingResponse.data.length);
     } catch (error) {
-      console.error('Error fetching follow counts:', error);
+      console.error('Error fetching follow counts:', error.response?.data || error.message);
     }
   }, [userId]);
 
@@ -57,7 +57,7 @@ function OtherUserPage() {
       }
       setIsFollowing(!isFollowing);
     } catch (error) {
-      console.error('Error toggling follow:', error);
+      console.error('Error toggling follow:', error.response?.data || error.message);
       alert('팔로우 상태를 변경하는 데 문제가 발생했습니다. 다시 시도해주세요.');
     }
   };
@@ -147,7 +147,6 @@ function OtherUserPage() {
           <h2 className="text-2xl font-semibold mb-4 text-center">User Information</h2>
           <div className="max-w-md mx-auto">
             <div className="mb-4">
-              
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 Name
               </label>
