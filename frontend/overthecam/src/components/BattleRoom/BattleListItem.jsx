@@ -2,10 +2,11 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { JoinRoom } from "../../service/BattleRoom/api";
 
-function BattleListItem(props) {
+function BattleListItem({battleId, BattleName}) {
   const navigate = useNavigate();
 
   const gotoBattleRoom = async (battleId) => {
+    console.log(battleId)
     try {
        const data = await JoinRoom(battleId);
       navigate(`/battle-room/${battleId}`, {
@@ -25,8 +26,8 @@ function BattleListItem(props) {
 
   return (
     <div>
-      <p>{props.BattleName}</p>
-      <button onClick={() => gotoBattleRoom(props.battleId)}>입장하기</button>
+      <p>{BattleName}</p>
+      <button onClick={() => gotoBattleRoom(battleId)}>입장하기</button>
     </div>
   );
 }

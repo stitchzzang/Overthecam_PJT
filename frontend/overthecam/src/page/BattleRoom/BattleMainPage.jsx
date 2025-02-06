@@ -7,7 +7,7 @@ function BattleMainPage() {
   const [battles, setBattles] = useState([
     {
       id: 1234,
-      battleId: 4,
+      battleId: 14,
       BattleName: "깻잎 논쟁",
     },
     {

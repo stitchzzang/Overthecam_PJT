@@ -11,13 +11,14 @@ function BattleCreatingPage() {
   const createBattleRoomHandler = async (title) => {
     setBattleTitle(title)
     try {
-      const data = await createRoom(battleTitle);
-      navigate(`/battle-room/${data.battleId}`, {
+      const response = await createRoom(battleTitle);
+      console.log(response)
+      navigate(`/battle-room/${response.data.battleId}`, {
         state: {
-          battleId: data.battleId,
-          title: data.title,
-          sessionId: data.sessionId,
-          connectionToken: data.connectionToken,
+          battleId: response.data.battleId,
+          title: response.data.title,
+          sessionId: response.data.sessionId,
+          connectionToken: response.data.connectionToken,
           isMaster: true,
         },
       });

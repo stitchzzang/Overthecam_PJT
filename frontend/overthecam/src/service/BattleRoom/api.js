@@ -9,7 +9,7 @@ export const createRoom = async (newTitle) => {
       },
     );
     console.log("세션 id", response.data);
-    return data;
+    return response;
   } catch (error) {
     console.error("세션 생성 오류:", error);
     throw error;
@@ -22,7 +22,7 @@ export const JoinRoom = async (battleId) => {
        `/battle/room/${battleId}/join`,
        {} // 보낼 data 없음
      );
-     console.log("세션 id", response.data);
+     console.log("세션 id", response);
      return data;
    } catch (error) {
      console.error("세션 생성 오류:", error);
