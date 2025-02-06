@@ -8,7 +8,7 @@ const newTitle = "test";
 export const createSession = async () => {
   try {
     const response = await axios.post(
-      `${APPLICATION_SERVER_URL}api/chat/battle/room`,
+      `${APPLICATION_SERVER_URL}api/battle/room`,
       {
         title: newTitle, // POST 요청 본문 (Body)
       },
