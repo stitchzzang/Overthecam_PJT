@@ -82,8 +82,8 @@ pipeline {
                                 string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
                             ]) {
 
-                            sh 'echo "VITE_OPENVIDU_URL=${VITE_OPENVIDU_URL}" > /home/ubuntu/.env'
-                            sh 'echo "VITE_BASE_URL=${VITE_BASE_URL}" >> /home/ubuntu/.env'
+                            sh 'echo "VITE_OPENVIDU_URL=${VITE_OPENVIDU_URL}" > .env'
+                            sh 'echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env'
 
                             sh 'cat /home/ubuntu/.env'
                             sh 'env'
