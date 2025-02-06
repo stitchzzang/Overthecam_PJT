@@ -41,9 +41,9 @@ public class BattleBroadcastController {
                     MessageType.BATTLE_START,
                     battleDataService.handleBattleStart(battleId)
                 );
-            
+
             case BATTLER_SELECT -> WebSocketResponseDto.success(
-                MessageType.CHAT,
+                MessageType.BATTLER_SELECT,
                 battleDataService.getBattlerParticipants(battleId)
             );
 
