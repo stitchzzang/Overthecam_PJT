@@ -9,12 +9,12 @@ function BattleMainPage() {
   const [battles, setBattles] = useState([
     {
       id: 1234,
-      sessionId: "session-1234",
+      battleId: 1,
       BattleName: "깻잎 논쟁",
     },
     {
       id: 2345,
-      sessionId: "session-2345",
+      battleId: "ses_HI7UYbuCCe",
       BattleName: "피자 vs 치킨",
     },
   ]);
@@ -45,7 +45,7 @@ function BattleMainPage() {
         {currentList.map((post) => (
           <BattleListItem
             key={post.id}
-            sessionId={post.sessionId}
+            battleId={post.battleId}
             BattleName={post.BattleName}
           />
         ))}
