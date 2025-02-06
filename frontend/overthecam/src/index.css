@@ -38,11 +38,22 @@ footer {
 }
 
 .btn {
-  @apply relative bg-cusBlue-light text-white font-bold px-6 rounded-2xl border-transparent
+  @apply relative text-white font-bold px-6 rounded-2xl border-transparent
   shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
   transition-all duration-300 ease-in-out transform scale-100 
-  hover:scale-105 hover:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
-  active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
+.btn:hover {
+  @apply hover:scale-105 hover:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
+.btn:active {
+  @apply active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
+.btn-disabled {
+  @apply relative bg-cusBlack-light text-white font-bold px-6 rounded-2xl border-transparent
+  shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
 }
 
 .clay {
