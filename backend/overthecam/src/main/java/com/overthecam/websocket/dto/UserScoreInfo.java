@@ -11,12 +11,10 @@ public class UserScoreInfo {
 
     // static factory methods
     public static UserScoreInfo updateSupportScore(int score) {
-        UserScoreInfo data = new UserScoreInfo(score, null);
-        return data;
+        return new UserScoreInfo(score, null);
     }
 
     public static UserScoreInfo updatePoints(int points) {
-        UserScoreInfo data = new UserScoreInfo(null, points);
-        return data;
+        return new UserScoreInfo(null, points);
     }
 }
