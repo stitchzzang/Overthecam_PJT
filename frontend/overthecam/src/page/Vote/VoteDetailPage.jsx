@@ -1,7 +1,12 @@
 import React from 'react'
+import VoteDetail from '../../components/Vote/VoteDetail';
+import VoteDetailComment from '../../components/Vote/VoteDetailComment';
 
 export default function VoteDetailPage() {
   return (
-    <div>VoteDetailPage</div>
+    <div>
+      <VoteDetail />
+      <VoteDetailComment />
+    </div>
   )
 }

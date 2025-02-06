@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import VoteCreatingForm from "../../components/Vote/VoteCreatingForm";
 
 export default function VoteCreatingPage() {
-  const [voteId, setVoteId] = useState("exampleVoteId"); // 투표 아이디(번호)
+  const [voteId, setVoteId] = useState("voteId"); // 투표 아이디(번호)
   const navigate = useNavigate();
 
   const createVoteHandler = async (event) => {
@@ -11,7 +11,7 @@ export default function VoteCreatingPage() {
 
     try {
       console.log("투표를 생성합니다");
-      navigate(`/vote-room/${voteId}`, {
+      navigate(`/vote-detail/${voteId}`, {
         state: {
           sessionId: voteId,
           isMaster: true,
