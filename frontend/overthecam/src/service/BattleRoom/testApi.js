@@ -15,6 +15,7 @@ export const createSession = async () => {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`, // 헤더는 세 번째 인자로 전달
+          "Content-Type": "application/json",
         },
       }
     );
