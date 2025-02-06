@@ -1,17 +1,14 @@
-package com.overthecam.battle.service;
+package com.overthecam.websocket.service;
 
-import com.overthecam.auth.dto.UserScoreDto;
+import com.overthecam.websocket.dto.UserScoreInfo;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.Status;
-import com.overthecam.battle.dto.BattleData;
-import com.overthecam.battle.dto.BattleDataType;
-import com.overthecam.battle.dto.BattleWebSocketMessage;
-import com.overthecam.battle.dto.ParticipantInfo;
+import com.overthecam.websocket.dto.*;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.websocket.dto.WebSocketResponseDto;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +18,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BattleWebSocketService {
+public class BattleDataService {
 
     private final UserRepository userRepository;
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
 
-    public WebSocketResponseDto<?> handleBattleStart(BattleWebSocketMessage<?> message, Long battleId) {
+    public BattleData handleBattleStart(Long battleId) {
         Battle battle = battleRepository.findById(battleId)
             .orElseThrow(() -> new RuntimeException("Battle not found"));
 
@@ -56,53 +53,29 @@ public class BattleWebSocketService {
         log.info("배틀 상태 업데이트 완료 - battleId: {}, 변경된 status: {}", battle.getId(), battle.getStatus());
 
 
-        return WebSocketResponseDto.success(
-            BattleWebSocketMessage.builder()
-                .type(BattleDataType.BATTLE_START)
-                .battleId(battleId)
-                .data(battleStartInfo)
-                .build()
-        );
+        return battleStartInfo;
     }
 
 
     // redis로 상태 관리 후, 배틀이 종료되면 DB에 업데이트 로직 필요
-    public WebSocketResponseDto<?> handleCheerUpdate(BattleWebSocketMessage<UserScoreDto> message, Long userId) {
-        log.debug("Handling cheer score update for battle: {}", message.getBattleId());
-
-        Integer score = message.getData().getSupportScore();
+    public UserScoreInfo handleCheerUpdate(Integer score, Long userId) {
+        // log.debug("Handling cheer score update for battle: {}", message.getBattleId());
 
         // 응원점수 업데이트 로직
-        BattleData data = BattleData.updateSupportScore(score);
+        UserScoreInfo data = UserScoreInfo.updateSupportScore(score);
         userRepository.updateSupportScore(userId, score);
 
-        return WebSocketResponseDto.success(
-            BattleWebSocketMessage.builder()
-                .type(BattleDataType.CHEER_UPDATE)
-                .battleId(message.getBattleId())
-                .userId(message.getUserId())
-                .data(data)
-                .build()
-        );
+        return data;
     }
 
     // redis로 상태 관리 후, 배틀이 종료되면 DB에 업데이트 로직 필요
-    public WebSocketResponseDto<?> handlePointUpdate(BattleWebSocketMessage<UserScoreDto> message, Long userId) {
-        log.debug("Handling point update for battle: {}", message.getBattleId());
-
-        Integer point = message.getData().getPoint();
+    public UserScoreInfo handlePointUpdate(Integer point, Long userId) {
+//        log.debug("Handling point update for battle: {}", message.getBattleId());
 
         // 포인트 업데이트 로직
-        BattleData data = BattleData.updatePoints(point);
+        UserScoreInfo data = UserScoreInfo.updatePoints(point);
         userRepository.updatePoint(userId, point);
 
-        return WebSocketResponseDto.success(
-            BattleWebSocketMessage.builder()
-                .type(BattleDataType.POINT_UPDATE)
-                .battleId(message.getBattleId())
-                .userId(message.getUserId())
-                .data(data)
-                .build()
-        );
+        return data;
     }
 }

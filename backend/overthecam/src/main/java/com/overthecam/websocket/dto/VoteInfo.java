@@ -1,4 +1,4 @@
-package com.overthecam.battle.dto;
+package com.overthecam.websocket.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
