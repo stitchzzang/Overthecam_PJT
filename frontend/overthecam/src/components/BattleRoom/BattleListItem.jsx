@@ -1,21 +1,21 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../../service/BattleRoom/api";
+import { getToken } from "../../service/BattleRoom/testApi";
 
 function BattleListItem(props) {
   const navigate = useNavigate();
 
-  const gotoBattleRoom = async (sessionId) => {
+  const gotoBattleRoom = async (battleId) => {
     try {
-      const token = await getToken(sessionId); // await로 토큰 값 받아오기
+      const token = await getToken(battleId); // await로 토큰 값 받아오기
       //   const url = `/battle-room/${sessionId}?isMaster=false&token=${encodeURIComponent(
       //     token
       //   )}`;
       //   window.open(url, "_blank", "noopener,noreferrer");
 
-      navigate(`/battle-room/${sessionId}`, {
+      navigate(`/battle-room/${battleId}`, {
         state: {
-          sessionId: sessionId,
+          sessionId: battleId,
           isMaster: false,
           token: token,
         },
@@ -29,7 +29,7 @@ function BattleListItem(props) {
   return (
     <div>
       <p>{props.BattleName}</p>
-      <button onClick={() => gotoBattleRoom(props.sessionId)}>입장하기</button>
+      <button onClick={() => gotoBattleRoom(props.battleId)}>입장하기</button>
     </div>
   );
 }

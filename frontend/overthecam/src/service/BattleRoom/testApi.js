@@ -2,26 +2,25 @@ import { authAxios } from "../../common/axiosinstance";
 import axios from "axios";
 
 const APPLICATION_SERVER_URL = import.meta.env.VITE_OPENVIDU_URL;
-const accessToken = "";
+const accessToken = import.meta.env.VITE_TOKEN;
 const newTitle = "test";
 // 세션 생성
-export const createSession = async () => {
+export const createSession = async (battleId) => {
   try {
     const response = await axios.post(
-      `${APPLICATION_SERVER_URL}api/chat/battle/room`,
+      `${APPLICATION_SERVER_URL}api/battle/room/${battleId}/join`,
+      {},
       {
         headers: {
-          // "Content-Type": "application/json",
-          Authorization: accessToken,
-        },
-        data: {
-          title: newTitle,
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRlc3QxQGdtYWlsLmNvbSIsIm5pY2tuYW1lIjoi7YWM7Iqk7YSwMSIsInVzZXJJZCI6MSwiaWF0IjoxNzM4ODE5ODU0LCJleHAiOjE3Mzg4MjE2NTR9.BXW2WxPy8IW4v3qMaxPI8csOOzx6gPM8elfxoypFQR0`,
+          "Content-Type": "application/json",
         },
       }
     );
     console.log("세션 id", response.data);
     return response.data;
   } catch (error) {
+    console.log(accessToken)
     console.error("세션 생성 오류:", error);
     throw error;
   }
@@ -45,9 +44,9 @@ export const createSession = async () => {
 //   }
 // };
 
-export const getToken = async () => {
+export const getToken = async (battleId) => {
   try {
-    const response = await createSession();
+    const response = await createSession(battleId);
     return await response.data.connectionToken;
   } catch (error) {
     console.error("토큰 획득 오류:", error);
