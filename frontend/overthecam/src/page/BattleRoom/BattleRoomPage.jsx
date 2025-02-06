@@ -10,14 +10,11 @@ function BattleRoomPage() {
   const [myOV, setOV] = useState(null);
   // create 를 통해 들어온 사람은 isMaster true값을 가짐
   const location = useLocation();
-  const { sessionId, isMaster, token } = location.state;
-  // 새탭 열기기
-  //  const queryParams = new URLSearchParams(location.search);
-  //  const sessionId = queryParams.get("sessionId");
-  //  const isMaster = queryParams.get("isMaster") === "true";
-  //  const token = queryParams.get("token");
-  // useState를 사용하여 state 관리
+  const { battleId, title, sessionId, connectionToken, isMaster } =
+    location.state;
+  const [roomTitle, setRoomTitle] = useState(title);
   const [mySessionId, setMySessionId] = useState(sessionId);
+  const [token, setToken] = useState(connectionToken);
   const [myNickName, setmyNickName] = useState(
     `별명${Math.floor(Math.random() * 100)}`
   );
@@ -27,9 +24,8 @@ function BattleRoomPage() {
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(null);
   const [isModerator, setisModerator] = useState(false); // 참가자 모드 상태 추가
-  const [isWaiting, setIsWaiting] = useState(true); // 대기실실
-  const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기기
-  const [isCoupleMode, setIsCoupleMode] = useState(true); // 둘이서 하는 건지? (둘이서 하는거면 ai 판정정)
+  const [isWaiting, setIsWaiting] = useState(true); // 대기실
+  const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기
   const [battlers, setBattlers] = useState([]);
   const [disconnectWebSocket, setDisconnectWebSocket] = useState(null);
   const [speakingUsers, setSpeakingUsers] = useState(new Set());
@@ -64,7 +60,7 @@ function BattleRoomPage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePreventGoBack);
     history.pushState(null, "", location.href); // 뒤로 가기 방지
-
+    console.log(token)
     joinSession();
 
     return () => {

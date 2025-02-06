@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const APPLICATION_SERVER_URL = import.meta.env.OPENVIDU_SERVER;
+const APPLICATION_SERVER_URL = import.meta.env.VITE_OPENVIDU_URL;
 
 // 세션 생성
 export const createSession = async (sessionId) => {

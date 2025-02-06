@@ -4,20 +4,22 @@ import Pagination from "react-js-pagination";
 import BattleListItem from "../../components/BattleRoom/BattleListItem";
 
 function BattleMainPage() {
-  // 현재 페이지
-  const [page, setPage] = useState(1);
   const [battles, setBattles] = useState([
     {
       id: 1234,
-      battleId: 1,
+      battleId: 4,
       BattleName: "깻잎 논쟁",
     },
     {
       id: 2345,
-      battleId: "ses_HI7UYbuCCe",
+      battleId: 5,
       BattleName: "피자 vs 치킨",
     },
   ]);
+  
+  // 페이지네이션 용
+  // 현재 페이지
+  const [page, setPage] = useState(1);
   const [currentList, setCurrentList] = useState(battles);
   // 한 페이지당 8개 보여준다
   const itemsPerPage = 1;

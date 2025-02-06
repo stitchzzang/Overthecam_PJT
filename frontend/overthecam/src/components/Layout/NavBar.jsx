@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export default function NavBar() {
@@ -14,13 +14,25 @@ export default function NavBar() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+      />
       <div className="flex flex-grow overflow-hidden mt-16">
-        <Sidebar isMenuOpen={isMenuOpen} isDropdownOpen={isDropdownOpen} setIsDropdownOpen={setIsDropdownOpen} />
-        <main className={`transition-all flex-grow overflow-y-auto ${isMenuOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="p-4">
-            {/* Your main content goes here */}
-          </div>
+        <Sidebar
+          isMenuOpen={isMenuOpen}
+          isDropdownOpen={isDropdownOpen}
+          setIsDropdownOpen={setIsDropdownOpen}
+          isLoggedIn={isLoggedIn}
+        />
+        <main
+          className={`transition-all flex-grow overflow-y-auto ${
+            isMenuOpen ? "ml-64" : "ml-0"
+          }`}
+        >
+          <div className="p-4">{/* Your main content goes here */}</div>
         </main>
       </div>
     </div>
@@ -75,6 +87,13 @@ function Sidebar({ isMenuOpen, isDropdownOpen, setIsDropdownOpen }) {
 }
 
 function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
+
+  const isAuth = !!localStorage.getItem("token");
+  useEffect(()=>{
+    setIsLoggedIn(isAuth)
+  }, [isAuth])
+
+  
   return (
     <header className="p-3 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
