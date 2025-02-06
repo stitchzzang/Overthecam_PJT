@@ -105,7 +105,7 @@ function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
             ☰
           </button>
           <Link to={"/"}>
-            <img src="public/images/Logo.png" alt="Logo" className="h-12" style={{ width: 'auto', maxWidth: '200px' }} />
+            <img src="images/Logo.png" alt="Logo" className="h-12" style={{ width: 'auto', maxWidth: '200px' }} />
           </Link>
         </div>
         <div className="flex-grow max-w-md mx-auto">

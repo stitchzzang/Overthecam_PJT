@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const VoteDetail = () => {
+  const navigate = useNavigate();
   const [voteData, setVoteData] = useState({
     voteId: 10,
     battleId: 300,
@@ -65,8 +67,8 @@ const VoteDetail = () => {
         ))}
       </div>
       <p>Participants: {voteData.options.reduce((acc, option) => acc + option.voteCount, 0)} | Comments: {voteData.comments}</p>
-      <button>Edit</button>
-      <button>Delete</button>
+      <button onClick={() => navigate(`/edit-vote/${voteData.voteId}`)}>Edit</button>
+      <button onClick={() => navigate(`/delete-vote/${voteData.voteId}`)}>Delete</button>
     </div>
   );
 }
