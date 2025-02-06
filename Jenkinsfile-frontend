@@ -82,9 +82,12 @@ pipeline {
                                 string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
                             ]) {
 
-                            sh 'echo "VITE_OPENVIDU_URL=${VITE_OPENVIDU_URL}" > .env'
-                            sh 'echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env'
-                            
+                            sh 'echo "VITE_OPENVIDU_URL=${VITE_OPENVIDU_URL}" > $WORKSPACE/.env'
+                            sh 'echo "VITE_BASE_URL=${VITE_BASE_URL}" >> $WORKSPACE/.env'
+
+                            sh 'cat $WORKSPACE/.env'
+                            sh 'env'
+
                             sh """
                                 ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io 'docker pull ${dockerImageTag}; \
                                 docker stop frontend || true; \
