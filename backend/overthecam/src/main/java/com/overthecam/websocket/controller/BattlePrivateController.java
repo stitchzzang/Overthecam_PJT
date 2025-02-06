@@ -1,5 +1,6 @@
 package com.overthecam.websocket.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.websocket.dto.UserScoreInfo;
 import com.overthecam.websocket.dto.*;
 import com.overthecam.websocket.service.BattleDataService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BattlePrivateController {
 
     private final BattleDataService battleDataService;
+    private final ObjectMapper objectMapper;
 
     // 배틀 개인 공지 - 포인트, 응원 점수, 투표
     @MessageMapping("/battle/private/{battleId}")
@@ -28,18 +30,18 @@ public class BattlePrivateController {
         UserPrincipal user = WebSocketSecurityUtils.getUser(headerAccessor);
         log.debug("User authenticated - userId: {}, email: {}", user.getUserId(), user.getEmail());
 
-        UserScoreInfo userScoreInfo = (UserScoreInfo) request.getData();
+        UserScoreInfo userScoreInfo = objectMapper.convertValue(request.getData(), UserScoreInfo.class);
 
         return switch (request.getType()) {
             case CHEER_UPDATE ->
                     WebSocketResponseDto.success(
                             MessageType.CHEER_UPDATE,
-                            battleDataService.handleCheerUpdate(userScoreInfo.getSupportScore(), battleId)
+                            battleDataService.handleCheerUpdate(userScoreInfo.getSupportScore(), user.getUserId())
                     );
             case POINT_UPDATE ->
                     WebSocketResponseDto.success(
                             MessageType.POINT_UPDATE,
-                            battleDataService.handlePointUpdate(userScoreInfo.getPoint(), battleId)
+                            battleDataService.handlePointUpdate(userScoreInfo.getPoint(), user.getUserId())
                     );
             default -> throw new IllegalArgumentException("Unknown request type: " + request.getType());
         };
