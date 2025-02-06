@@ -1,5 +1,6 @@
 package com.overthecam.websocket.service;
 
+import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.websocket.dto.UserScoreInfo;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
@@ -9,6 +10,7 @@ import com.overthecam.websocket.dto.*;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +42,7 @@ public class BattleDataService {
                     p.getUser().getNickname(),
                     p.getUser().getProfileImage(),
                     p.getRole(),
-                    p.getConnectionToken(),
-                    p.getUser().getSupportScore(),
-                    p.getUser().getPoint()
+                    p.getConnectionToken()
                 ))
                 .collect(Collectors.toList()))
             .build();
@@ -54,6 +54,24 @@ public class BattleDataService {
 
 
         return battleStartInfo;
+    }
+
+    public ChatMessageResponse getBattlerParticipants(Long battleId) {
+        List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleIdWithUser(battleId);
+
+        List<String> battlerNames = participants.stream()
+            .filter(p -> ParticipantRole.isBattler(p.getRole()))
+            .map(p -> p.getUser().getNickname())
+            .toList();
+
+        String content = String.format("%s님과 %s님 배틀러 선정!\n건강하고 유쾌한 논쟁 되시길 바랍니다!",
+            battlerNames.get(0), battlerNames.get(1));
+
+        return ChatMessageResponse.builder()
+            .nickname("System")
+            .content(content)
+            .timestamp(LocalDateTime.now())
+            .build();
     }
 
 
