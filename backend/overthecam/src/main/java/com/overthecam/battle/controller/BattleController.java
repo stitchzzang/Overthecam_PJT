@@ -104,7 +104,7 @@ public class BattleController {
     /**
      * 배틀방 조화하기
      */
-    @PostMapping("/room/all")
+    @GetMapping("/room/all")
     public CommonResponseDto<BattleRoomAllResponse> getAllBattleRooms() {
         try {
             BattleRoomAllResponse response = battleService.getAllBattleRooms();

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -274,7 +275,9 @@ public class BattleService {
 
     public BattleRoomAllResponse getAllBattleRooms() {
 
-        List<Battle> battles = battleRepository.findAll();
+        // status 0, 1인 배틀방만 조회
+        List<Battle> battles = battleRepository.findByStatusIn(Arrays.asList(Status.WAITING, Status.PROGRESS));
+
 
         List<BattleInfo> battleInfos = battles.stream()
                 .map(battle -> BattleInfo.builder()
@@ -288,7 +291,6 @@ public class BattleService {
         return BattleRoomAllResponse.builder()
                 .battleInfo(battleInfos)
                 .build();
-
 
     }
 }
