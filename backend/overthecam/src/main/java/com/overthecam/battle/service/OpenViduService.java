@@ -57,18 +57,18 @@ public class OpenViduService {
      * 일반 참가자용 토큰 생성 (SUBSCRIBER - 시청자 모드)
      * 비디오/오디오 OFF 상태로 시작
      */
-    public String createConnection(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
-        Session session = openVidu.getActiveSession(sessionId);
-
-        ConnectionProperties properties = new ConnectionProperties.Builder()
-                .type(ConnectionType.WEBRTC)
-                .role(OpenViduRole.SUBSCRIBER)  // 시청자 권한
-                .data("{\"clientData\": \"Subscriber\"}")
-                .build();
-
-        Connection connection = session.createConnection(properties);
-        return connection.getToken();
-    }
+//    public String createConnection(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+//        Session session = openVidu.getActiveSession(sessionId);
+//
+//        ConnectionProperties properties = new ConnectionProperties.Builder()
+//                .type(ConnectionType.WEBRTC)
+//                .role(OpenViduRole.SUBSCRIBER)  // 시청자 권한
+//                .data("{\"clientData\": \"Subscriber\"}")
+//                .build();
+//
+//        Connection connection = session.createConnection(properties);
+//        return connection.getToken();
+//    }
 
     /**
      * 배틀러용 토큰 생성 (PUBLISHER - 방송 송출 모드)
