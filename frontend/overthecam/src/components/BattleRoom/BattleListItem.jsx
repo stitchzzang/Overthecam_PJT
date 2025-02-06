@@ -1,17 +1,20 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { JoinRoom } from "../../service/BattleRoom/api";
 
 function BattleListItem(props) {
   const navigate = useNavigate();
 
   const gotoBattleRoom = async (battleId) => {
     try {
-      const token = await getToken(battleId); // await로 토큰 값 받아오기
+       const data = await JoinRoom(battleId);
       navigate(`/battle-room/${battleId}`, {
         state: {
-          sessionId: battleId,
+          battleId: data.battleId,
+          title: data.title,
+          sessionId: data.sessionId,
+          connectionToken: data.connectionToken,
           isMaster: false,
-          token: token,
         },
       });
     } catch (error) {

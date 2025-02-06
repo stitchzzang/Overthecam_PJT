@@ -12,7 +12,6 @@ function BattleCreatingPage() {
     setBattleTitle(title)
     try {
       const data = await createRoom(battleTitle);
-      console.log(data)
       navigate(`/battle-room/${data.battleId}`, {
         state: {
           battleId: data.battleId,
