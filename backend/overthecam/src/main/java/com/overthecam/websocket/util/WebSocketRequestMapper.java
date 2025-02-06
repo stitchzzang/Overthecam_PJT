@@ -3,6 +3,7 @@ package com.overthecam.websocket.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.websocket.dto.ChatMessageRequest;
+import com.overthecam.websocket.dto.InvitationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,5 +18,9 @@ public class WebSocketRequestMapper {
 
     public ChatMessageRequest mapToChatMessageRequest(Object data) {
         return objectMapper.convertValue(data, ChatMessageRequest.class);
+    }
+
+    public InvitationRequest mapToInvitationRequest(Object data){
+        return objectMapper.convertValue(data, InvitationRequest.class);
     }
 }
