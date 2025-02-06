@@ -35,7 +35,7 @@ function Sidebar({ isMenuOpen, isDropdownOpen, setIsDropdownOpen }) {
           <Link to={"/create-battle-room"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
             방 만들기
           </Link>
-          <Link to={"/"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
+          <Link to={"/vote/create"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
             투표 만들기
           </Link>
         </div>
