@@ -49,3 +49,25 @@ footer {
   @apply rounded-lg shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
   transition-all duration-300 ease-in-out transform scale-100 
 }
+
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+
+  > * {
+    cursor: pointer;
+  }
+}
+
+.pagination__link {
+  transition: all 0.25s;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.3rem;
+}
+
+.pagination__link__active {
+  background-color: #bbb;
+  color: #fefefe;
+}
