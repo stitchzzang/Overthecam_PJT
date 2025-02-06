@@ -52,8 +52,10 @@ public enum ErrorCode {
 
     // 방제 변경 관련 에러
     TOPIC_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "주제 생성에 실패했습니다"),
-    BATTLE_TITLE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "방제 변경에 실패했습니다");
+    BATTLE_TITLE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "방제 변경에 실패했습니다"),
 
+    // 방 조회 관련 에러
+    BATTLE_ROOM_READ_FAILED(HttpStatus.NOT_FOUND, "만들어진 배틀방이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
