@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class BattleWebSocketMessage {
+public class BattleWebSocketMessage<T> {
     private Long battleId;
     private Long userId;
     private BattleDataType type;
-    private BattleData data;
+    private T data;
 }

@@ -30,9 +30,9 @@ public class BattleWebSocketController {
         log.debug("User authenticated - userId: {}, email: {}", user.getUserId(), user.getEmail());
 
         WebSocketResponseDto<?> response = switch (message.getType()) {
-            case INITIAL_DATA -> {
-                log.debug("Processing INITIAL_DATA request");
-                yield battleWebSocketService.handleInitialData(message, user.getUserId());
+            case BATTLE_START -> {
+                log.debug("Processing BATTLE_START request");
+                yield battleWebSocketService.handleBattleStart(message, user.getUserId());
             }
             case CHEER_UPDATE -> {
                 log.debug("Processing CHEER_UPDATE request");
