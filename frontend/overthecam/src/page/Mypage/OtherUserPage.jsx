@@ -1,38 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import NavBar from "../../components/Layout/NavBar";
+import { authAxios } from '../../common/axiosinstance';
 
 function OtherUserPage() {
-  // This would typically come from an API call or props
-  const userData = {
-    name: 'Jane Doe',
-    nickname: 'JD',
-    birthDate: '1992-05-15',
-    email: 'jane.doe@example.com',
-    stats: {
-      cheerPoints: 150,
-      points: 4500,
-      followers: 250,
-      following: 100,
-      record: {
-        wins: 3,
-        draws: 1,
-        losses: 1
+  const { userId } = useParams();
+  const [userData, setUserData] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      const response = await authAxios.get(`/member/${userId}`);
+      setUserData(response.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      alert('사용자 정보를 불러오는 데 실패했습니다.');
+    }
+  }, [userId]);
+
+  const checkFollowStatus = useCallback(async () => {
+    try {
+      const response = await authAxios.get('/member/my-following');
+      setIsFollowing(response.data.some(following => following.id === userId));
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+    }
+  }, [userId]);
+
+  const fetchFollowCounts = useCallback(async () => {
+    try {
+      const followersResponse = await authAxios.get(`/member/other-follower/${userId}`);
+      const followingResponse = await authAxios.get(`/member/other-following/${userId}`);
+      setFollowersCount(followersResponse.data.length);
+      setFollowingCount(followingResponse.data.length);
+    } catch (error) {
+      console.error('Error fetching follow counts:', error);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserData();
+    checkFollowStatus();
+    fetchFollowCounts();
+  }, [userId, fetchUserData, checkFollowStatus, fetchFollowCounts]);
+
+  const handleFollowToggle = async () => {
+    try {
+      if (isFollowing) {
+        await authAxios.delete(`/member/follow/${userId}`);
+        setFollowersCount(prev => prev - 1);
+      } else {
+        await authAxios.post(`/member/follow/${userId}`);
+        setFollowersCount(prev => prev + 1);
       }
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+      alert('팔로우 상태를 변경하는 데 문제가 발생했습니다. 다시 시도해주세요.');
     }
   };
+
+  if (!userData) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100">
       <NavBar />
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <div className="w-24"></div> {/* Spacer */}
+          <div className="w-24"></div>
           <h1 className="text-3xl font-bold text-center flex-grow">User Profile</h1>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs focus:outline-none focus:shadow-outline w-24"
-            type="button"
+            className={`${
+              isFollowing ? 'bg-red-500 hover:bg-red-700' : 'bg-blue-500 hover:bg-blue-700'
+            } text-white font-bold py-1 px-3 rounded text-xs focus:outline-none focus:shadow-outline w-24`}
+            onClick={handleFollowToggle}
           >
-            Follow
+            {isFollowing ? 'Unfollow' : 'Follow'}
           </button>
         </div>
         
@@ -43,7 +88,7 @@ function OtherUserPage() {
             <div className="flex-shrink-0 w-full md:w-40">
               <div className="w-40 h-40 bg-gray-200 rounded-lg overflow-hidden mx-auto">
                 <img
-                  src="/placeholder.svg"
+                  src={userData.profileImageUrl || "/placeholder.svg"}
                   alt="Profile Image"
                   className="w-full h-full object-cover"
                 />
@@ -56,19 +101,19 @@ function OtherUserPage() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Cheer Points</p>
-                  <p className="text-2xl font-bold">{userData.stats.cheerPoints}</p>
+                  <p className="text-2xl font-bold">{userData.cheerPoints}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Points</p>
-                  <p className="text-2xl font-bold">{userData.stats.points}</p>
+                  <p className="text-2xl font-bold">{userData.points}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Followers</p>
-                  <p className="text-2xl font-bold">{userData.stats.followers}</p>
+                  <p className="text-2xl font-bold">{followersCount}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Following</p>
-                  <p className="text-2xl font-bold">{userData.stats.following}</p>
+                  <p className="text-2xl font-bold">{followingCount}</p>
                 </div>
               </div>
 
@@ -77,20 +122,20 @@ function OtherUserPage() {
                 <h3 className="text-lg font-semibold mb-2">Battle Record</h3>
                 <div className="flex justify-around items-center">
                   <div className="text-center">
-                    <p className="text-blue-500 text-2xl font-bold">{userData.stats.record.wins}</p>
+                    <p className="text-blue-500 text-2xl font-bold">{userData.wins}</p>
                     <p className="text-sm text-gray-600">Wins</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-gray-500 text-2xl font-bold">{userData.stats.record.draws}</p>
+                    <p className="text-gray-500 text-2xl font-bold">{userData.draws}</p>
                     <p className="text-sm text-gray-600">Draws</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-red-500 text-2xl font-bold">{userData.stats.record.losses}</p>
+                    <p className="text-red-500 text-2xl font-bold">{userData.losses}</p>
                     <p className="text-sm text-gray-600">Losses</p>
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 text-center mt-2">
-                  {userData.nickname}'s win rate is {((userData.stats.record.wins / (userData.stats.record.wins + userData.stats.record.draws + userData.stats.record.losses)) * 100).toFixed(1)}%
+                  {userData.nickname}'s win rate is {((userData.wins / (userData.wins + userData.draws + userData.losses)) * 100).toFixed(1)}%
                 </p>
               </div>
             </div>
@@ -102,14 +147,7 @@ function OtherUserPage() {
           <h2 className="text-2xl font-semibold mb-4 text-center">User Information</h2>
           <div className="max-w-md mx-auto">
             <div className="mb-4">
-              {/* <label className="block text-gray-700 text-sm font-bold mb-2">
-                User ID */}
-              {/* </label> */}
-              {/* <p className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight bg-gray-100">
-                {userData.id} */}
-              {/* </p> */}
-            </div>
-            <div className="mb-4">
+              
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 Name
               </label>

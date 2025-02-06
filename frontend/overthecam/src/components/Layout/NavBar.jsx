@@ -70,14 +70,14 @@ export default function NavBar() {
           </Link>
         </div>
 
-        {/* User section */}
-        <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-full">
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-          <span className="text-gray-700 whitespace-nowrap text-sm">
-            우끼끼정해기 님,
-            <br />
-            안녕하세요!
-          </span>
+        {/* Login and Signup section */}
+        <div className="flex items-center gap-3">
+          <Link to="/login" className="px-4 py-2 bg-gray-50 text-gray-700 rounded-full hover:bg-gray-100 text-sm font-medium whitespace-nowrap">
+            로그인
+          </Link>
+          <Link to="/signup" className="px-4 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium whitespace-nowrap">
+            회원가입
+          </Link>
         </div>
       </div>
     </header>
