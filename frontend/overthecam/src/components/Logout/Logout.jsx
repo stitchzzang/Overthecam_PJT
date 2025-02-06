@@ -10,13 +10,13 @@ const Logout = () => {
     try {
       const response = await authAxios.post("/auth/logout")
 
-      if (response.data.code === 200) {
+      if (response.code === 200) {
         // 로컬 스토리지에서 토큰 제거
         localStorage.removeItem("accessToken")
         localStorage.removeItem("refreshToken")
         localStorage.removeItem("rememberMe")
 
-        console.log(response.data.message) // "로그아웃이 완료되었습니다" 출력
+        console.log(response.message) // "로그아웃이 완료되었습니다" 출력
 
         // 로그인 페이지로 리다이렉트
         navigate("/login")

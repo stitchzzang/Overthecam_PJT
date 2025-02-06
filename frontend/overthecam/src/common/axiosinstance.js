@@ -18,7 +18,7 @@ authAxios.interceptors.request.use(
 
 authAxios.interceptors.response.use(
   (response) => {
-    return response.data.data;
+    return response.data;
   },
   (error) => {
     return Promise.reject(error);
@@ -39,7 +39,7 @@ publicAxios.interceptors.request.use(
 
 publicAxios.interceptors.response.use(
   (response) => {
-    return response.data.data;
+    return response.data;
   },
   (error) => {
     return Promise.reject(error);

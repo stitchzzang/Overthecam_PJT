@@ -38,24 +38,24 @@ const Login = () => {
     try {
       const response = await publicAxios.post("/auth/login", loginData)
       console.log("서버 응답 (상세):", JSON.stringify(response.data, null, 2))
-      if (response.data.data.accessToken) {
-        localStorage.setItem("token", response.data.data.accessToken)
+      if (response.data.accessToken) {
+        localStorage.setItem("token", response.data.accessToken);
         // localStorage.setItem("refreshToken", response.data.data.refreshToken)
-        console.log("토큰이 로컬 스토리지에 저장되었습니다.")
+        console.log("토큰이 로컬 스토리지에 저장되었습니다.");
 
         if (formData.rememberMe) {
-          localStorage.setItem("rememberMe", "true")
-          console.log("로그인 유지 설정됨")
+          localStorage.setItem("rememberMe", "true");
+          console.log("로그인 유지 설정됨");
         }
-        console.log("로그인 성공, 메인 페이지로 이동")
+        console.log("로그인 성공, 메인 페이지로 이동");
 
         // 메인 페이지로 리다이렉트
-        window.location.href = "http://localhost:5173/"
+        window.location.href = "http://localhost:5173/";
       }
     } catch (err) {
       console.error("로그인 에러 (상세):", JSON.stringify(err.response?.data, null, 2))
       console.error("전체 에러 객체:", err)
-      setError(err.response?.data?.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.")
+      setError(err.response?.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.")
     }
   }
 
