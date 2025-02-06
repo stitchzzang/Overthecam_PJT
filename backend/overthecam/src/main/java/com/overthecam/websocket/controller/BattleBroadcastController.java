@@ -24,16 +24,7 @@ public class BattleBroadcastController {
     private final BattleDataService battleDataService;
     private final ObjectMapper objectMapper;
 
-    // 1. 시스템 알림
-//    @MessageExceptionHandler(WebSocketException.class)
-//    @SendToUser("/queue/notifications")
-//    public NotificationResponse<?> handleWebSocketException(WebSocketException ex) {
-//        return NotificationResponse.builder()
-//                .type(MessageType.ERROR)
-//                .code(ex.getErrorCode().getCode())
-//                .message(ex.getMessage())
-//                .build();
-//    }
+
 
     // 배틀 브로드캐스트 - 채팅, 배틀 초기 데이터
     @MessageMapping("/battle/{battleId}")
@@ -46,11 +37,15 @@ public class BattleBroadcastController {
         log.debug("User authenticated - userId: {}, email: {}", user.getUserId(), user.getEmail());
 
         return switch (request.getType()) {
-            case BATTLE_START ->
-                WebSocketResponseDto.success(
+            case BATTLE_START -> WebSocketResponseDto.success(
                     MessageType.BATTLE_START,
                     battleDataService.handleBattleStart(battleId)
                 );
+            
+            case BATTLER_SELECT -> WebSocketResponseDto.success(
+                MessageType.CHAT,
+                battleDataService.getBattlerParticipants(battleId)
+            );
 
             case CHAT -> {
                 // Object를 ChatMessageRequest로 안전하게 변환
