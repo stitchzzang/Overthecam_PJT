@@ -9,7 +9,6 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ChatMessageResponse {
-    private Long battleId;
     private String nickname;
     private String content;
     private LocalDateTime timestamp;
