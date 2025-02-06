@@ -5,6 +5,10 @@ import Layout from "./components/Layout/Layout";
 import BattleMainPage from "./page/BattleRoom/BattleMainPage";
 import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
 import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
+import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
+import VoteInProgressPage from "./page/Vote/VoteInProgressPage.jsx";
+import VoteClosedPage from "./page/Vote/VoteClosedPage.jsx";
+import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage";
 import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
@@ -21,6 +25,10 @@ function App() {
           <Route path="/battle-list" element={<BattleMainPage />} />
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
+          <Route path="/create-vote" element={<VoteCreatingPage />} />
+          <Route path="/vote-inprogress" element={<VoteInProgressPage />} />
+          <Route path="/vote-closed" element={<VoteClosedPage />} />
+          <Route path="/vote-detail" element={<VoteDetailPage />} />
           <Route path="/store" element={<ItemShopPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
