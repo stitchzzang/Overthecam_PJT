@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import "./index.css";
 import Layout from "./components/Layout/Layout";
-import BattleMainPage from "./page/BattleRoom/BattleMainPage";
+import BattleMainPage from "./page/Main/BattleMainPage";
 import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
 import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
 import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
