@@ -50,7 +50,7 @@ const Login = () => {
         console.log("로그인 성공, 메인 페이지로 이동")
 
         // 메인 페이지로 리다이렉트
-        window.location.href = "http://i12d204.p.ssafy.io/"
+        window.location.href = "http://localhost:5173/"
       }
     } catch (err) {
       console.error("로그인 에러 (상세):", JSON.stringify(err.response?.data, null, 2))
