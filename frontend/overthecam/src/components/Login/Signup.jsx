@@ -8,11 +8,13 @@ const Signup = () => {
     password: "",
     passwordConfirm: "",
     nickname: "",
+    username: "",
     gender: "",
     birth: "",
     phoneNumber: "",
   })
   const [message, setMessage] = useState("")
+  const [isError, setIsError] = useState(false)
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -24,7 +26,9 @@ const Signup = () => {
       const response = await publicAxios.post("/auth/signup", userData)
       return response.data
     } catch (error) {
-      if (error.response) {
+      if (error.code === "ERR_NETWORK") {
+        throw new Error("서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.")
+      } else if (error.response) {
         throw new Error(error.response.data.message || "회원가입에 실패했습니다.")
       } else if (error.request) {
         throw new Error("서버로부터 응답을 받지 못했습니다.")
@@ -36,8 +40,12 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setMessage("")
+    setIsError(false)
+
     if (formData.password !== formData.passwordConfirm) {
       setMessage("비밀번호가 일치하지 않습니다.")
+      setIsError(true)
       return
     }
 
@@ -46,14 +54,16 @@ const Signup = () => {
         email: formData.email,
         password: formData.password,
         nickname: formData.nickname,
-        gender: formData.gender === "male" ? 1 : 2,
+        username: formData.username,
+        gender: formData.gender,
         birth: formData.birth,
         phoneNumber: formData.phoneNumber,
       }
 
       const result = await registerUser(newUser)
 
-      setMessage(result.message)
+      setMessage(result.message || "회원가입에 성공했습니다.")
+      setIsError(false)
       console.log("회원가입 성공:", result.data)
 
       setTimeout(() => {
@@ -61,6 +71,8 @@ const Signup = () => {
       }, 3000)
     } catch (error) {
       setMessage(error.message || "회원가입 중 오류가 발생했습니다. 다시 시도해주세요.")
+      setIsError(true)
+      console.error("회원가입 에러:", error)
     }
   }
 
@@ -71,9 +83,9 @@ const Signup = () => {
         {message && (
           <p
             style={{
-              color: "#721c24",
-              backgroundColor: "#f8d7da",
-              border: "1px solid #f5c6cb",
+              color: isError ? "#721c24" : "#155724",
+              backgroundColor: isError ? "#f8d7da" : "#d4edda",
+              border: `1px solid ${isError ? "#f5c6cb" : "#c3e6cb"}`,
               borderRadius: "4px",
               padding: "10px",
               margin: "0",
@@ -101,12 +113,19 @@ const Signup = () => {
           onChange={handleChange}
           required
         />
-
         <input
           type="text"
           id="nickname"
           placeholder="닉네임"
           value={formData.nickname}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          id="username"
+          placeholder="사용자 이름"
+          value={formData.username}
           onChange={handleChange}
           required
         />
