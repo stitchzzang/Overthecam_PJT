@@ -16,10 +16,16 @@ public class OpenViduService {
     //OpenVidu 화상 채팅 세션 생성
     public Session createSession() {
         try {
-            // 세션 속성 설정
             SessionProperties properties = new SessionProperties.Builder()
-                    .mediaMode(MediaMode.ROUTED)  // 기본값이지만 명시적으로 설정
-                    .recordingMode(RecordingMode.MANUAL)  // 기본값이지만 명시적으로 설정
+                    .mediaMode(MediaMode.ROUTED)
+                    .recordingMode(RecordingMode.MANUAL)
+                    .defaultRecordingProperties(new RecordingProperties.Builder()
+                            .outputMode(Recording.OutputMode.COMPOSED)
+                            .hasAudio(true)
+                            .hasVideo(true)
+                            .resolution("1280x720")
+                            .frameRate(25)
+                            .build())
                     .build();
 
             // 세션 생성 시도
@@ -76,6 +82,10 @@ public class OpenViduService {
      */
     public String createPublisherConnection(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
         Session session = openVidu.getActiveSession(sessionId);
+
+        if (session == null) {
+            log.warn("세션 {}이(가) 메모리에 존재하지 않음. OpenVidu 서버에서 다시 가져옵니다.", sessionId);
+        }
 
         ConnectionProperties properties = new ConnectionProperties.Builder()
                 .type(ConnectionType.WEBRTC)
