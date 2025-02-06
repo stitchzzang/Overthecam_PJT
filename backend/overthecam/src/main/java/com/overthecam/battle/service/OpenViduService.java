@@ -96,6 +96,4 @@ public class OpenViduService {
         Connection connection = session.createConnection(properties);
         return connection.getToken();
     }
-
-
 }

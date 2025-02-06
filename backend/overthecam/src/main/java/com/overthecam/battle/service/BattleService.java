@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -103,7 +104,6 @@ public class BattleService {
         battleParticipantRepository.save(host);
 
 
-
         return BattleResponse.builder()
                 .battleId(savedBattle.getId()) //배틀방 번호
                 .title(savedBattle.getTitle()) //방제
@@ -122,7 +122,7 @@ public class BattleService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //1. 배틀방 조회
+//1. 배틀방 조회
         log.info("배틀방 조회 시도. ID: {}", battleId);
         Optional<Battle> battleOptional = battleRepository.findById(battleId);
         log.info("배틀방 존재 여부: {}", battleOptional.isPresent());
@@ -270,5 +270,25 @@ public class BattleService {
                 .sessionId(battle.getSessionId())
                 .roomUrl(battle.getRoomUrl())
                 .build();
+    }
+
+    public BattleRoomAllResponse getAllBattleRooms() {
+
+        List<Battle> battles = battleRepository.findAll();
+
+        List<BattleInfo> battleInfos = battles.stream()
+                .map(battle -> BattleInfo.builder()
+                        .thumbnailUrl(battle.getThumbnailUrl())
+                        .title(battle.getTitle())
+                        .status(battle.getStatus().getCode())
+                        .totalUsers(battle.getTotalUsers())
+                        .build())
+                .collect(Collectors.toList());
+
+        return BattleRoomAllResponse.builder()
+                .battleInfo(battleInfos)
+                .build();
+
+
     }
 }
