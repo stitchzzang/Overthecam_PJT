@@ -35,7 +35,7 @@ function Sidebar({ isMenuOpen, isDropdownOpen, setIsDropdownOpen }) {
           <Link to={"/create-battle-room"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
             방 만들기
           </Link>
-          <Link to={"/vote/create"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
+          <Link to={"/create-vote"} className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
             투표 만들기
           </Link>
         </div>
@@ -55,10 +55,10 @@ function Sidebar({ isMenuOpen, isDropdownOpen, setIsDropdownOpen }) {
             </button>
             {isDropdownOpen && (
               <div className="ml-4">
-                <Link to={"/"} className="block p-2 hover:bg-gray-100 rounded">
+                <Link to={"/vote-inprogress"} className="block p-2 hover:bg-gray-100 rounded">
                   진행중인 투표
                 </Link>
-                <Link to={"/"} className="block p-2 hover:bg-gray-100 rounded">
+                <Link to={"/vote-closed"} className="block p-2 hover:bg-gray-100 rounded">
                   종료된 투표
                 </Link>
               </div>
