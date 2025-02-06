@@ -8,13 +8,14 @@ function BattleListItem({battleId, BattleName}) {
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId)
     try {
-       const data = await JoinRoom(battleId);
+       const response = await JoinRoom(battleId);
+       console.log(response.data)
       navigate(`/battle-room/${battleId}`, {
         state: {
-          battleId: data.battleId,
-          title: data.title,
-          sessionId: data.sessionId,
-          connectionToken: data.connectionToken,
+          battleId: response.data.battleId,
+          title: response.data.title,
+          sessionId: response.data.sessionId,
+          connectionToken: response.data.connectionToken,
           isMaster: false,
         },
       });

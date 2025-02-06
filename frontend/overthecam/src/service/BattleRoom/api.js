@@ -23,7 +23,7 @@ export const JoinRoom = async (battleId) => {
        {} // 보낼 data 없음
      );
      console.log("세션 id", response);
-     return data;
+     return response;
    } catch (error) {
      console.error("세션 생성 오류:", error);
      throw error;
