@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createRoom } from "../../service/BattleRoom/testApi";
+import { createRoom } from "../../service/BattleRoom/api";
 
 import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
 
@@ -12,7 +12,6 @@ function BattleCreatingPage() {
     setBattleTitle(title)
     try {
       const data = await createRoom(battleTitle);
-      console.log(data)
       navigate(`/battle-room/${data.battleId}`, {
         state: {
           battleId: data.battleId,
