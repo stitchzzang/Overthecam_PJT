@@ -12,6 +12,7 @@ public enum MessageType {
     BATTLER_SELECT,  // 배틀러 선정
 
     // 개인 메시지
+    USER_SCORE, // 사용자 총 점수
     CHEER_UPDATE,    // 응원 점수
     POINT_UPDATE,    // 포인트
     VOTE_UPDATE,     // 투표
