@@ -3,7 +3,6 @@ import { authAxios } from "../../common/axiosinstance";
 export const readRooms = async () => {
   try {
     const response = await authAxios.get('/battle/room/all');
-    console.log(response.live)
     return response
   } catch (error) {
     console.log(error);
