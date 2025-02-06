@@ -2,8 +2,8 @@ package com.overthecam.battle.controller;
 
 import com.overthecam.battle.dto.BattleCreateRequest;
 import com.overthecam.battle.dto.BattleResponse;
-import com.overthecam.battle.dto.BattleStartResponse;
 import com.overthecam.battle.dto.RandomVoteTopicResponse;
+import com.overthecam.battle.dto.SelectBattlerResponse;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.exception.ErrorCode;
@@ -61,16 +61,16 @@ public class BattleController {
     }
 
     /**
-     * 배틀러 선정 및 배틀 시작 API
+     * 배틀러 선정 API
      */
     //파라미터: 배틀방 id, battle_participant의 userId 리스트(프론트엔드가 배틀러로 선택한 두 명의 user_id를 받는다.)
     @GetMapping("/room/{battleId}/start/{battler1}/{battler2}")
-    public CommonResponseDto<BattleStartResponse> startBattle(
+    public CommonResponseDto<SelectBattlerResponse> startBattle(
             @PathVariable("battleId") Long battleId,
             @PathVariable("battler1") String battler1,
             @PathVariable("battler2") String battler2) {
         try {
-            BattleStartResponse response = battleService.selectBattlersAndStart(battleId, battler1, battler2);
+            SelectBattlerResponse response = battleService.selectBattlers(battleId, battler1, battler2);
             return CommonResponseDto.success("배틀이 성공적으로 시작되었습니다.", response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);

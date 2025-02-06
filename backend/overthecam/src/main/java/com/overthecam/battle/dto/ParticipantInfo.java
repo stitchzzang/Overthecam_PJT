@@ -1,17 +1,21 @@
 package com.overthecam.battle.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-//참가자 1명의 정보
+@Builder
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ParticipantSessionInfo {
+public class ParticipantInfo {
     private Long userId;
+    private String nickname;
+    private String profileImage;
     private int role; //1:방장, 2:참가자, 5:방장+배틀러, 6:참가자+배틀러)
-    private String sessionId;
     private String connectionToken;
+    private Integer supportScore;
+    private Integer point;
 
 }
