@@ -3,7 +3,7 @@ package com.overthecam.websocket.service;
 import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.repository.VoteRepository;
-import com.overthecam.websocket.dto.UserScoreInfo;
+import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
@@ -94,7 +94,9 @@ public class BattleDataService {
             .build();
     }
 
-
+    public UserScoreInfo getUserScoreInfo(Long userId){
+        return userRepository.findUserScores(userId);
+    }
 
     // redis로 상태 관리 후, 배틀이 종료되면 DB에 업데이트 로직 필요
     public UserScoreInfo handleCheerUpdate(Integer score, Long userId) {

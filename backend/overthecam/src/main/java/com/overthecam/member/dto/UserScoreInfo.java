@@ -1,4 +1,4 @@
-package com.overthecam.websocket.dto;
+package com.overthecam.member.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
