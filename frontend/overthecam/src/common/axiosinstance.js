@@ -2,6 +2,7 @@ import axios from "axios";
 
 const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
+  withCredentials: true
 });
 
 authAxios.interceptors.request.use(
@@ -11,7 +12,7 @@ authAxios.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
       config.headers["Content-Type"] = "application/json";
     }
-    console.log(import.meta.env.VITE_BASE_URL,)
+    // console.log(import.meta.env.VITE_BASE_URL,)
     return config;
   },
   (error) => Promise.reject(error)

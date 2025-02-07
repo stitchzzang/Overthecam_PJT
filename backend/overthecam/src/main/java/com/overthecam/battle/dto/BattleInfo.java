@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BattleInfo {
+    private Long battleId;
     private String thumbnailUrl;
     private int status;
     private String title;
