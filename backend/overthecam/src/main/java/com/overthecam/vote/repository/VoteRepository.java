@@ -40,6 +40,5 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     // 만료된 투표 조회
     List<Vote> findAllByEndDateBeforeAndIsActiveTrue(LocalDateTime now);
-    Vote findByBattleId(Long battleId);
     Optional<Vote> findByBattleId(Long battleId);
 }
