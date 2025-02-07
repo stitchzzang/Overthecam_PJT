@@ -30,6 +30,7 @@ authAxios.interceptors.response.use(
 
 const publicAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
+  withCredentials: true,
 });
 
 publicAxios.interceptors.request.use(
