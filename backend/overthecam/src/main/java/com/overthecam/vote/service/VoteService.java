@@ -53,15 +53,33 @@ public class VoteService {
         // 투표 요청 데이터 유효성 검증
         validateVoteRequest(requestDto);
 
-        // 투표 엔티티 생성 및 옵션 추가
-        Vote vote = createVoteEntity(requestDto, user);
-        addOptionsToVote(vote, requestDto.getOptions());
+        // 현재 시점으로부터 14일 후를 endDate로 설정
+        LocalDateTime endDate = LocalDateTime.now().plusDays(14);
+
+        // 투표 엔티티 생성
+        Vote vote = Vote.builder()
+                .user(user)
+                .title(requestDto.getTitle())
+                .content(requestDto.getContent())
+                .battleId(requestDto.getBattleId())
+                .endDate(endDate)
+                .isActive(true)
+                .build();
+
+        // 옵션 추가
+        requestDto.getOptions().forEach(optionTitle -> {
+            VoteOption option = VoteOption.builder()
+                    .optionTitle(optionTitle)
+                    .build();
+            vote.addOption(option);
+        });
 
         // 사용자 응원 점수 적립
         supportScoreService.addSupportScore(user, 500);
 
         // 투표 저장 및 응답 DTO 변환
-        return convertToResponseDto(voteRepository.save(vote));
+        Vote savedVote = voteRepository.save(vote);
+        return convertToResponseDto(savedVote);
     }
 
     /**
@@ -73,23 +91,23 @@ public class VoteService {
         if (requestDto.getOptions().size() < 2) {
             throw new VoteException(VoteErrorCode.INVALID_VOTE_OPTIONS, "투표 옵션은 2개 입니다.");
         }
-
-        if (requestDto.getEndDate().isBefore(LocalDateTime.now())) {
-            throw new VoteException(VoteErrorCode.INVALID_END_DATE, "종료일은 현재 이후의 날짜여야 합니다");
-        }
     }
 
     /**
      * 투표 엔티티 생성
+     * - 일반 투표와 배틀 투표를 구분하여 처리
      */
     private Vote createVoteEntity(VoteRequestDto requestDto, User user) {
-        return Vote.builder()
+        Vote.VoteBuilder builder = Vote.builder()
                 .user(user)
                 .title(requestDto.getTitle())
-                .content(requestDto.getContent())
-                .endDate(requestDto.getEndDate())
-                .battleId(requestDto.getBattleId())
-                .build();
+                .content(requestDto.getContent());
+        // battleId가 존재하는 경우에만 설정
+        if (requestDto.getBattleId() != null) {
+            builder.battleId(requestDto.getBattleId());
+        }
+
+        return builder.build();
     }
 
     /**
