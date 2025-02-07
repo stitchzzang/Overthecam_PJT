@@ -9,12 +9,14 @@ import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
 import VoteInProgressPage from "./page/Vote/VoteInProgressPage.jsx";
 import VoteClosedPage from "./page/Vote/VoteClosedPage.jsx";
 import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
+import VoteEditPage from "./page/Vote/VoteEditPage.jsx";
+import VoteDeleteModal from "./components/Vote/VoteDeleteModal.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage";
 import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
 import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
-import OtherUserPage from "./page/Mypage/OtherUserPage.jsx";
+import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
 
 function App() {
@@ -28,13 +30,15 @@ function App() {
           <Route path="/create-vote" element={<VoteCreatingPage />} />
           <Route path="/vote-inprogress" element={<VoteInProgressPage />} />
           <Route path="/vote-closed" element={<VoteClosedPage />} />
-          <Route path="/vote-detail" element={<VoteDetailPage />} />
+          <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
+          <Route path="/edit-vote/:voteId" element={<VoteEditPage />} />
+          <Route path="/delete-vote/:voteId" element={<VoteDeleteModal />} />
           <Route path="/store" element={<ItemShopPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/other-user/:userId" element={<OtherUserPage />} />
+          <Route path="/my-following" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
           {/* <Route path="/mypagevote" element={<MyPageVote />} />
           <Route path="/mypagebattle" element={<MyPageBattle />} /> */}

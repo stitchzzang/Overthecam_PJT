@@ -1,7 +1,7 @@
 package com.overthecam.auth.repository;
 
 import com.overthecam.auth.domain.User;
-import com.overthecam.auth.dto.UserScoreDto;
+import com.overthecam.member.dto.UserScoreInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,8 +16,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     // 특정 유저의 응원점수와 포인트 조회
-    @Query("SELECT new com.overthecam.auth.dto.UserScoreDto(u.supportScore, u.point) FROM User u WHERE u.id = :userId")
-    Optional<UserScoreDto> findScoreAndPointByUserId(Long userId);
+    @Query("SELECT new com.overthecam.member.dto.UserScoreInfo(u.supportScore, u.point) FROM User u WHERE u.id = :userId")
+    Optional<UserScoreInfo> findScoreAndPointByUserId(Long userId);
 
     // 응원점수 업데이트
     @Modifying

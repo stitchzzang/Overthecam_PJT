@@ -1,6 +1,7 @@
 package com.overthecam.vote.repository;
 
 import com.overthecam.vote.domain.Vote;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +20,8 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     Page<Vote> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     // BattleId로 투표 검색
-    Page<Vote> findByBattleId(Long battleId, Pageable pageable);
+    @Query("SELECT v FROM Vote v LEFT JOIN FETCH v.options WHERE v.battleId = :battleId")
+    Optional<Vote> findByBattleId(Long battleId);
 
     // 키워드와 Battle ID로 복합 검색
     @Query("SELECT v FROM Vote v WHERE " +
