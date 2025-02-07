@@ -2,7 +2,11 @@ package com.overthecam.auth.domain;
 
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 @Entity
@@ -10,8 +14,10 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends TimeStampEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Long id;
 
     @Column(nullable = false)
     private String nickname;
@@ -53,6 +59,11 @@ public class User extends TimeStampEntity {
         this.birth = birth;
         this.phoneNumber = phoneNumber;
         this.supportScore = 50000;
+    }
+
+    @Builder(builderMethodName = "userIdBuilder")
+    public User(Long id) {
+        this.id = id;
     }
 
     public void setSupportScore(Integer supportScore) {

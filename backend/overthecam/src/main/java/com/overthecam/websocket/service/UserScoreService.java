@@ -8,18 +8,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserScoreService {
     private final UserRepository userRepository;
 
-    public UserScoreInfo getUserScore(Long userId) {
-        return userRepository.findUserScores(userId);
+    public Optional<UserScoreInfo> getUserScore(Long userId) {
+        return userRepository.findScoreAndPointByUserId(userId);
     }
 
     @Transactional
     public UserScoreInfo updateSupportScore(Long userId, Integer score) {
-        UserScoreInfo userScoreInfo = userRepository.findUserScores(userId);
+        UserScoreInfo userScoreInfo = userRepository.findScoreAndPointByUserId(userId).get();
         int newScore = userScoreInfo.getSupportScore() - score;
         if (newScore < 0) {
             throw new WebSocketException(WebSocketErrorCode.INSUFFICIENT_SCORE, "응원 점수가 부족합니다.");
@@ -30,7 +32,7 @@ public class UserScoreService {
 
     @Transactional
     public UserScoreInfo updatePoints(Long userId, Integer points) {
-        UserScoreInfo userScoreInfo = userRepository.findUserScores(userId);
+        UserScoreInfo userScoreInfo = userRepository.findScoreAndPointByUserId(userId).get();
         int newPoints = userScoreInfo.getPoint() - points;
         if (newPoints < 0) {
             throw new WebSocketException(WebSocketErrorCode.INSUFFICIENT_POINTS, "포인트가 부족합니다.");

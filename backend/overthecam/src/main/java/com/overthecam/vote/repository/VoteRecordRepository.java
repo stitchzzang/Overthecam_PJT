@@ -20,7 +20,7 @@ import java.util.List;
 @Repository
 public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     // 중복 투표 확인
-    boolean existsByUser_UserIdAndVote_VoteId(Long userId, Long voteId);
+    boolean existsByUser_IdAndVote_VoteId(Long userId, Long voteId);
 
     // 연령대별 통계 조회
     @Query(nativeQuery = true,

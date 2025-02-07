@@ -55,7 +55,11 @@ public enum ErrorCode {
     BATTLE_TITLE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "방제 변경에 실패했습니다"),
 
     // 방 조회 관련 에러
-    BATTLE_ROOM_READ_FAILED(HttpStatus.NOT_FOUND, "만들어진 배틀방이 없습니다.");
+    BATTLE_ROOM_READ_FAILED(HttpStatus.NOT_FOUND, "만들어진 배틀방이 없습니다."),
+
+    // Store 관련 에러 코드 추가
+    STORE_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
+    ALREADY_PURCHASED_ITEM(HttpStatus.CONFLICT, "이미 구매한 상품입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
