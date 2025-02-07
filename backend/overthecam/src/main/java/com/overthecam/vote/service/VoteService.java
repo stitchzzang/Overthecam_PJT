@@ -6,9 +6,17 @@ import com.overthecam.exception.ErrorCode;
 import com.overthecam.exception.GlobalException;
 import com.overthecam.exception.vote.VoteErrorCode;
 import com.overthecam.exception.vote.VoteException;
-import com.overthecam.vote.domain.*;
-import com.overthecam.vote.dto.*;
-import com.overthecam.vote.repository.*;
+import com.overthecam.vote.domain.Vote;
+import com.overthecam.vote.domain.VoteComment;
+import com.overthecam.vote.domain.VoteOption;
+import com.overthecam.vote.domain.VoteRecord;
+import com.overthecam.vote.dto.VoteCommentDto;
+import com.overthecam.vote.dto.VoteRequestDto;
+import com.overthecam.vote.dto.VoteResponseDto;
+import com.overthecam.vote.repository.VoteCommentRepository;
+import com.overthecam.vote.repository.VoteOptionRepository;
+import com.overthecam.vote.repository.VoteRecordRepository;
+import com.overthecam.vote.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +49,7 @@ public class VoteService {
      * 투표 생성 메서드
      * requestDto 투표 생성 요청 정보
      * userId 투표 생성 요청자 ID
+     *
      * @return 생성된 투표 정보
      */
     @Transactional
@@ -84,6 +95,7 @@ public class VoteService {
      * keyword 검색 키워드
      * sortBy 정렬 기준
      * pageable 페이징 정보
+     *
      * @return 페이징된 투표 목록
      */
     public Page<VoteResponseDto> getVotes(String keyword, String sortBy, Pageable pageable) {
@@ -112,6 +124,7 @@ public class VoteService {
     /**
      * 투표의 상세 정보를 조회하는 메서드
      * voteId 조회할 투표 ID
+     *
      * @return 투표 상세 정보
      */
     private Pageable getSortedPageable(String sortBy, Pageable pageable) {
@@ -136,6 +149,7 @@ public class VoteService {
         // 기본정렬
         return voteRepository.findAll(pageable);
     }
+
     public VoteResponseDto getVoteDetail(Long voteId) {
         Vote vote = voteRepository.findById(voteId)
                 .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
@@ -210,12 +224,13 @@ public class VoteService {
 
 
     /**
-    * 투표하는 메서드
-    * voteId 참여할 투표 ID
-    * optionId 선택한 옵션 ID
-    * userId 투표 참여자 ID
-    * @return 투표 결과 정보
-    */
+     * 투표하는 메서드
+     * voteId 참여할 투표 ID
+     * optionId 선택한 옵션 ID
+     * userId 투표 참여자 ID
+     *
+     * @return 투표 결과 정보
+     */
     @Transactional
     public VoteResponseDto vote(Long voteId, Long optionId, Long userId) {
         Vote vote = voteRepository.findById(voteId)
@@ -227,7 +242,7 @@ public class VoteService {
         }
 
         // 중복 투표 방지
-        if (voteRecordRepository.existsByUser_UserIdAndVote_VoteId(userId, voteId)) {
+        if (voteRecordRepository.existsByUser_IdAndVote_VoteId(userId, voteId)) {
             throw new VoteException(VoteErrorCode.DUPLICATE_VOTE, "이미 투표했습니다");
         }
 
@@ -267,7 +282,7 @@ public class VoteService {
                 .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
 
         // 2. 삭제 권한 검증 (투표 생성자만 삭제 가능)
-        if (!vote.getUser().getUserId().equals(userId)) {
+        if (!vote.getUser().getId().equals(userId)) {
             throw new VoteException(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS, "투표 삭제 권한이 없습니다");
         }
 
@@ -311,7 +326,7 @@ public class VoteService {
                 .orElseThrow(() -> new VoteException(VoteErrorCode.COMMENT_NOT_FOUND, "댓글을 찾을 수 없습니다"));
 
         // 2. 수정 권한 검증
-        if (!comment.getUser().getUserId().equals(userId)) {
+        if (!comment.getUser().getId().equals(userId)) {
             throw new VoteException(VoteErrorCode.UNAUTHORIZED_COMMENT_ACCESS, "댓글 수정 권한이 없습니다");
         }
 
@@ -330,7 +345,7 @@ public class VoteService {
                 .orElseThrow(() -> new VoteException(VoteErrorCode.COMMENT_NOT_FOUND, "댓글을 찾을 수 없습니다"));
 
         // 2. 삭제 권한 검증
-        if (!comment.getUser().getUserId().equals(userId)) {
+        if (!comment.getUser().getId().equals(userId)) {
             throw new VoteException(VoteErrorCode.UNAUTHORIZED_COMMENT_ACCESS, "댓글 삭제 권한이 없습니다");
         }
 
