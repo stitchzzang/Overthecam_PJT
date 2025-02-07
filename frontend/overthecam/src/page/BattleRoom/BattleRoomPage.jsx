@@ -90,12 +90,6 @@ function BattleRoomPage() {
       OV.current.enableProdMode();
       const mySession = OV.current.initSession();
 
-      OV.current.setAdvancedConfiguration({
-        protocol: 'wss',
-        websocketURL: 'wss://i12d204.p.ssafy.io/openvidu'
-      });
-
-
       // mySession.set("protocol", "wss");
 
       // const serverURL = "wss://i12d204.p.ssafy.io/openvidu";
