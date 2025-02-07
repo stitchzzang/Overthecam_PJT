@@ -16,7 +16,7 @@ const VoteInProgressPage = () => {
     const fetchVotes = async () => {
       try {
         setLoading(true);
-        const response = await publicAxios.get('/api/vote/list', {  // Updated API endpoint
+        const response = await publicAxios.get('/vote/list', {  // Updated API endpoint
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -28,15 +28,20 @@ const VoteInProgressPage = () => {
         } else {
           setError('투표 목록을 불러오는데 실패했습니다.');
         }
-      } catch (error) {
-        console.error('Fetch error details:', error);
-        if (error.code === 'ERR_NETWORK') {
-          setError('서버에 연결할 수 없습니다. 인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.');
-        } else if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          navigate('/login', { state: { from: '/vote' } });
+      } catch (err) {
+        console.error('Fetch error details:', err);
+        if (err.code === 'ERR_NETWORK') {
+          setError('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+        } else if (err.response) {
+          // Server responded with error status
+          if (err.response.status === 401) {
+            localStorage.removeItem('token');
+            navigate('/login', { state: { from: '/vote' } });
+          } else {
+            setError(`Error ${err.response.status}: ${err.response.data.message || '투표 목록을 불러오는데 실패했습니다.'}`);
+          }
         } else {
-          setError('투표 목록을 불러오는데 실패했습니다.');
+          setError('예기치 않은 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
         }
       } finally {
         setLoading(false);
@@ -55,13 +60,13 @@ const VoteInProgressPage = () => {
   const handleVote = async (voteId, optionId) => {
     try {
       console.log('Submitting vote with data:', { voteId, optionId });
-      await publicAxios.post(`/api/vote/${voteId}/vote/${optionId}`, {}, {  // Updated API endpoint
+      await publicAxios.post(`/vote/${voteId}/vote/${optionId}`, {}, {  // Updated API endpoint
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       console.log('Vote submitted:', { voteId, optionId });
-      const response = await publicAxios.get('/api/vote/list', {  // Updated API endpoint
+      const response = await publicAxios.get('/vote/list', {  // Updated API endpoint
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -72,21 +77,34 @@ const VoteInProgressPage = () => {
         const indexOfFirstItem = indexOfLastItem - itemsPerPage;
         setCurrentList(response.data.content.slice(indexOfFirstItem, indexOfLastItem));
       }
-    } catch (error) {
-      if (error.code === 'ERR_NETWORK') {
-        alert('서버에 연결할 수 없습니다. 인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.');
-      } else if (error.response?.status === 401) {
-        navigate('/login', { state: { from: '/vote' } });
-      } else if (error.response?.status === 400) {
-        console.error('Invalid input data:', error.response.data);
-        alert('잘못된 입력값입니다.');
-      } else if (error.response?.status === 404) {
-        console.error('Resource not found:', error.response.data);
-        alert('투표를 찾을 수 없습니다.');
-      } else {
-        console.error('Vote error:', error);
-        alert('투표하는 도중 오류가 발생했습니다.');
+    } catch (err) {
+      if (err.code === 'ERR_NETWORK') {
+        alert('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+        return;
       }
+      
+      if (err.response) {
+        // Server responded with error status
+        switch (err.response.status) {
+          case 401:
+            navigate('/login', { state: { from: '/vote' } });
+            break;
+          case 400:
+            console.error('Invalid input data:', err.response.data);
+            alert(err.response.data.message || '잘못된 입력값입니다.');
+            break;
+          case 404:
+            console.error('Resource not found:', err.response.data);
+            alert(err.response.data.message || '투표를 찾을 수 없습니다.');
+            break;
+          default:
+            console.error('Vote error:', err.response.data);
+            alert(err.response.data.message || '투표하는 도중 오류가 발생했습니다.');
+        }
+      } else {
+        alert('예기치 않은 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      }
+      console.error('Vote error:', err);
     }
   };
 
