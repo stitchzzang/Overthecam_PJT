@@ -1,6 +1,8 @@
 package com.overthecam.websocket.service;
 
 import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.exception.websocket.WebSocketErrorCode;
+import com.overthecam.exception.websocket.WebSocketException;
 import com.overthecam.member.dto.UserScoreInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,13 +19,23 @@ public class UserScoreService {
 
     @Transactional
     public UserScoreInfo updateSupportScore(Long userId, Integer score) {
-        userRepository.updateSupportScore(userId, score);
-        return UserScoreInfo.updateSupportScore(score);
+        UserScoreInfo userScoreInfo = userRepository.findUserScores(userId);
+        int newScore = userScoreInfo.getSupportScore() - score;
+        if (newScore < 0) {
+            throw new WebSocketException(WebSocketErrorCode.INSUFFICIENT_SCORE, "응원 점수가 부족합니다.");
+        }
+        userRepository.updateSupportScore(userId, newScore);
+        return UserScoreInfo.updateSupportScore(newScore);
     }
 
     @Transactional
     public UserScoreInfo updatePoints(Long userId, Integer points) {
-        userRepository.updatePoint(userId, points);
-        return UserScoreInfo.updatePoints(points);
+        UserScoreInfo userScoreInfo = userRepository.findUserScores(userId);
+        int newPoints = userScoreInfo.getPoint() - points;
+        if (newPoints < 0) {
+            throw new WebSocketException(WebSocketErrorCode.INSUFFICIENT_POINTS, "포인트가 부족합니다.");
+        }
+        userRepository.updatePoint(userId, newPoints);
+        return UserScoreInfo.updatePoints(newPoints);
     }
 }
