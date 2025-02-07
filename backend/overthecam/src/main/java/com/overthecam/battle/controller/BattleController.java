@@ -89,12 +89,12 @@ public class BattleController {
     /**
      * 방제목 변경 API
      */
-    @PutMapping("room/{battleId}/title")
+    @PostMapping("room/{battleId}/title")
     public CommonResponseDto<BattleResponse> updateTitle(
             @PathVariable("battleId") Long battleId,
-            @RequestBody String newTitle) {
+            @RequestBody UpdateTitleRequest request) {
         try {
-            BattleResponse response = battleService.updateTitle(battleId, newTitle);
+            BattleResponse response = battleService.updateTitle(battleId, request.getTitle());
             return CommonResponseDto.success("방제가 성공적으로 변경되었습니다.", response);
         } catch (RuntimeException e) {
             return CommonResponseDto.error(ErrorCode.BATTLE_TITLE_UPDATE_FAILED);
