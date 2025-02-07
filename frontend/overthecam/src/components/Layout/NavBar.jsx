@@ -105,7 +105,12 @@ function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
             ☰
           </button>
           <Link to={"/"}>
-            <img src="images/Logo.png" alt="Logo" className="h-12" style={{ width: 'auto', maxWidth: '200px' }} />
+            <img
+              src="public/images/Logo.png"
+              alt="Logo"
+              className="h-12"
+              style={{ width: "auto", maxWidth: "200px" }}
+            />
           </Link>
         </div>
         <div className="flex-grow max-w-md mx-auto">
@@ -122,10 +127,16 @@ function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
         </div>
         <div className="flex items-center gap-3 px-4 py-">
           <div className="flex flex-col gap-2">
-            <Link to="/create-battle-room" className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
+            <Link
+              to="/create-battle-room"
+              className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+            >
               방 만들기
             </Link>
-            <Link to="/create-vote" className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center">
+            <Link
+              to="/create-vote"
+              className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+            >
               투표 만들기
             </Link>
           </div>
@@ -140,10 +151,16 @@ function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded">
+              <Link
+                to="/login"
+                className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+              >
                 로그인
               </Link>
-              <Link to="/signup" className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded">
+              <Link
+                to="/signup"
+                className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+              >
                 회원가입
               </Link>
             </>
