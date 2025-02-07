@@ -4,6 +4,7 @@ const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   withCredentials: true
 });
+console.log('authAxios baseURL:', authAxios.defaults.baseURL);  // 여기 추가
 
 authAxios.interceptors.request.use(
   (config) => {
@@ -47,5 +48,9 @@ publicAxios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+
+// 환경변수 값도 직접 확인
+console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);  // 여기 추가
 
 export { authAxios, publicAxios };
