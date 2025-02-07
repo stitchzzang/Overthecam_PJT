@@ -41,15 +41,6 @@ public class Vote extends TimeStampEntity {
     @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)      // 연관관계에서 제거된 VoteOption 엔티티 자동삭제
     private List<VoteOption> options = new ArrayList<>();
 
-//    @Builder
-//    public Vote(User user, String title, String content, LocalDateTime endDate, Long battleId) {
-//        this.user = user;
-//        this.title = title;
-//        this.content = content;
-//        this.endDate = endDate;
-//        this.battleId = battleId;
-//    }
-
     public void addOption(VoteOption option) {
         this.options.add(option);
         option.setVote(this);

@@ -29,12 +29,4 @@ public class VoteRecord extends TimeStampEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vote_option_id")
     private VoteOption voteOption;
-
-//    // 빌더 패턴을 위한 생성자 추가
-//    @Builder
-//    public VoteRecord(User user, Vote vote, VoteOption voteOption) {
-//        this.user = user;
-//        this.vote = vote;
-//        this.voteOption = voteOption;
-//    }
 }

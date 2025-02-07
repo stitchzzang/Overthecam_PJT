@@ -49,7 +49,7 @@ public class VoteController {
         return CommonResponseDto.success(response);
     }
 
-    // 4. 특정 투표 상세 조회
+    // 3. 특정 투표 상세 조회
     @GetMapping("/{voteId}")
     public CommonResponseDto<VoteResponseDto> getVoteDetail(
             Authentication authentication,
@@ -60,7 +60,7 @@ public class VoteController {
         return CommonResponseDto.success(detailDto);
     }
 
-    // 5. 투표 참여
+    // 4. 투표 참여
     @PostMapping("/{voteId}/vote/{optionId}")
     public CommonResponseDto<VoteResponseDto> vote(
             Authentication authentication,
@@ -72,7 +72,7 @@ public class VoteController {
         return CommonResponseDto.success("투표가 완료되었습니다", responseDto);
     }
 
-    // 6. 투표 삭제
+    // 5. 투표 삭제
     @DeleteMapping("/{voteId}")
     public CommonResponseDto<Void> deleteVote(
             Authentication authentication,
@@ -83,7 +83,7 @@ public class VoteController {
         return CommonResponseDto.success("투표가 삭제되었습니다", null);
     }
 
-    // 7. 댓글 작성
+    // 6. 댓글 작성
     @PostMapping("/{voteId}/comment")
     public CommonResponseDto<VoteCommentDto> createComment(
             Authentication authentication,
@@ -95,7 +95,7 @@ public class VoteController {
         return CommonResponseDto.success("댓글이 등록되었습니다", responseDto);
     }
 
-    // 8. 댓글 수정
+    // 7. 댓글 수정
     @PutMapping("/comment/{commentId}")
     public CommonResponseDto<VoteCommentDto> updateComment(
             Authentication authentication,
@@ -107,7 +107,7 @@ public class VoteController {
         return CommonResponseDto.success("댓글이 수정되었습니다", responseDto);
     }
 
-    // 9. 댓글 삭제
+    // 8. 댓글 삭제
     @DeleteMapping("/comment/{commentId}")
     public CommonResponseDto<Void> deleteComment(
             Authentication authentication,
