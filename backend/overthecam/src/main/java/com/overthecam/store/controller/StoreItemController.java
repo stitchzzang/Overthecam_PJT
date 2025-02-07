@@ -41,6 +41,8 @@ public class StoreItemController {
 
     /**
      * 아이템 구매
+     * 포인트로 차감
+     * 구매하지 않았습니다
      */
 
     @PostMapping("{storeItemId}/purchase")

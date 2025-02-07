@@ -17,4 +17,6 @@ public class UserScoreInfo {
     public static UserScoreInfo updatePoints(int points) {
         return new UserScoreInfo(null, points);
     }
+
+
 }

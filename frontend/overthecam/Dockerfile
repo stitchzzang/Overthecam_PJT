@@ -2,6 +2,10 @@ FROM node:22 as build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
+
+ARG VITE_BASE_URL
+ENV VITE_BASE_URL=${VITE_BASE_URL}
+
 COPY . .
 RUN npm run build
 

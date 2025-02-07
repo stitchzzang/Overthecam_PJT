@@ -36,6 +36,11 @@ const publicAxios = axios.create({
 publicAxios.interceptors.request.use(
   (config) => {
     config.headers["Content-Type"] = "application/json";
+    console.log("Request config:", {
+      url: config.url,
+      headers: config.headers,
+      withCredentials: config.withCredentials,
+    });
     return config;
   },
   (error) => Promise.reject(error)
@@ -53,5 +58,6 @@ publicAxios.interceptors.response.use(
 
 // 환경변수 값도 직접 확인
 console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);  // 여기 추가
+console.log("Current origin:", window.location.origin);
 
 export { authAxios, publicAxios };
