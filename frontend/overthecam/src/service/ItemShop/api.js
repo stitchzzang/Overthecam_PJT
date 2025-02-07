@@ -3,6 +3,7 @@ import { authAxios } from "../../common/axiosinstance";
 export const getItem = async () => {
   try {
     const response = await authAxios.get("/store/item/all");
+    console.log("Configured baseURL:", authAxios.defaults.baseURL);
     return response;
   } catch (error) {
     console.error("아이템 가져오기 실패", error);
