@@ -89,7 +89,6 @@ function BattleRoomPage() {
       OV.current = new OpenVidu();
       OV.current.enableProdMode();
       const mySession = OV.current.initSession();
-      mySession.set("protocol", "wss");
 
       // 세션 이벤트 핸들러 설정
       mySession.on("streamCreated", (event) => {
