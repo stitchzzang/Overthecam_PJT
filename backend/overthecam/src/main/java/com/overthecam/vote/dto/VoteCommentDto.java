@@ -28,7 +28,7 @@ public class VoteCommentDto {
                 .commentId(entity.getVoteCommentId())
                 .voteId(entity.getVote().getVoteId())
                 .content(entity.getContent())
-                .userId(entity.getUser().getUserId())
+                .userId(entity.getUser().getId())
                 .userNickname(entity.getUser().getNickname())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

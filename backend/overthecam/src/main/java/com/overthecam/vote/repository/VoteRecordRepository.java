@@ -1,12 +1,12 @@
 package com.overthecam.vote.repository;
 /**
  * 투표 참여
-     * 중복 투표 방지
-     * 투표 기록 저장
-     * 투표 옵션 카운트증가
+ * 중복 투표 방지
+ * 투표 기록 저장
+ * 투표 옵션 카운트증가
  * 투표 통계
-    * 연령대별 통계
-    * 성별 분포 조회
+ * 연령대별 통계
+ * 성별 분포 조회
  */
 
 import com.overthecam.vote.domain.VoteRecord;

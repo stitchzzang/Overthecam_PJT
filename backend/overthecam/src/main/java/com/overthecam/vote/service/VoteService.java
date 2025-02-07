@@ -6,17 +6,10 @@ import com.overthecam.exception.ErrorCode;
 import com.overthecam.exception.GlobalException;
 import com.overthecam.exception.vote.VoteErrorCode;
 import com.overthecam.exception.vote.VoteException;
-import com.overthecam.vote.domain.Vote;
-import com.overthecam.vote.domain.VoteComment;
-import com.overthecam.vote.domain.VoteOption;
-import com.overthecam.vote.domain.VoteRecord;
-import com.overthecam.vote.dto.VoteCommentDto;
-import com.overthecam.vote.dto.VoteRequestDto;
-import com.overthecam.vote.dto.VoteResponseDto;
-import com.overthecam.vote.repository.VoteCommentRepository;
-import com.overthecam.vote.repository.VoteOptionRepository;
-import com.overthecam.vote.repository.VoteRecordRepository;
-import com.overthecam.vote.repository.VoteRepository;
+import com.overthecam.vote.domain.*;
+import com.overthecam.vote.dto.*;
+import com.overthecam.vote.repository.*;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,11 +43,7 @@ public class VoteService {
 
 // 1. 투표 생성 관련 메서드
     /**
-     * 투표 생성 메서드
-     * requestDto 투표 생성 요청 정보
-     * userId 투표 생성 요청자 ID
-     *
-     * @return 생성된 투표 정보
+     * 투표 생성
      */
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto requestDto, Long userId) {
@@ -121,12 +108,10 @@ public class VoteService {
 
 // 2. 투표 목록 조회 메서드
     /**
-     * 투표 목록을 조회 메서드
-     * keyword 검색 키워드
-     * sortBy 정렬 기준
-     * pageable 페이징 정보
-     *
-     * @return 페이징된 투표 목록
+     * 투표 목록 조회
+     * - 키워드/정렬 기준에 따른 유연한 검색
+     * - 페이징 처리
+     * - 투표 통계 정보 포함
      */
     public VotePageResponse getVotes(String keyword, String sortBy, Pageable pageable) {
         // 정렬 및 페이징 처리
@@ -142,10 +127,8 @@ public class VoteService {
     }
 
     /**
-     * 투표의 상세 정보를 조회하는 메서드
-     * voteId 조회할 투표 ID
-     *
-     * @return 투표 상세 정보
+     * 정렬 기준에 따른 페이지 요청 생성
+     * - 정렬 기준: 종료일, 생성일, 투표 수
      */
     private Pageable getSortedPageable(String sortBy, Pageable pageable) {
         return switch (sortBy) {
@@ -193,10 +176,6 @@ public class VoteService {
         }
         return voteRepository.findAll(pageable);
     }
-
-    public VoteResponseDto getVoteDetail(Long voteId) {
-        Vote vote = voteRepository.findById(voteId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
 
     /**
      * 투표 엔티티를 응답 DTO로 변환
@@ -267,12 +246,11 @@ public class VoteService {
 
 // 4. 투표 참여 메서드
     /**
-     * 투표하는 메서드
-     * voteId 참여할 투표 ID
-     * optionId 선택한 옵션 ID
-     * userId 투표 참여자 ID
-     *
-     * @return 투표 결과 정보
+     * 투표 참여
+     * - 투표 및 옵션 유효성 검사
+     * - 중복 투표 방지
+     * - 투표 기록 저장
+     * - 투표 통계 갱신
      */
     @Transactional
     public VoteResponseDto vote(Long voteId, Long optionId, Long userId) {
@@ -302,7 +280,7 @@ public class VoteService {
         }
     }
 
-// 5. 투표 삭제 메서드
+    // 5. 투표 삭제 메서드
     @Transactional
     public void deleteVote(Long voteId, Long userId) {
         // 투표 조회 및 권한 검증
@@ -323,7 +301,7 @@ public class VoteService {
      * - 투표 생성자와 요청 사용자 일치 확인
      */
     private void validateVoteOwnership(Vote vote, Long userId) {
-        if (!vote.getUser().getUserId().equals(userId)) {
+        if (!vote.getUser().getId().equals(userId)) {
             throw new VoteException(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS, "투표 삭제 권한이 없습니다");
         }
     }
@@ -340,8 +318,15 @@ public class VoteService {
             throw new VoteException(VoteErrorCode.VOTE_EXPIRED, "종료된 투표입니다");
         }
 
-        // 중복 투표 방지
-        if (voteRecordRepository.existsByUser_IdAndVote_VoteId(userId, voteId)) {
+        return vote;
+    }
+
+    /**
+     * 중복 투표 검증
+     * - 사용자의 동일 투표 참여 여부 확인
+     */
+    private void validateVoteEligibility(Vote vote, Long userId) {
+        if (voteRecordRepository.existsByUser_IdAndVote_VoteId(userId, vote.getVoteId())) {
             throw new VoteException(VoteErrorCode.DUPLICATE_VOTE, "이미 투표했습니다");
         }
     }
@@ -370,21 +355,9 @@ public class VoteService {
      */
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
-    public void deleteVote(Long voteId, Long userId) {
-        // 1. 투표 조회
-        Vote vote = voteRepository.findById(voteId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
-
-        // 2. 삭제 권한 검증 (투표 생성자만 삭제 가능)
-        if (!vote.getUser().getId().equals(userId)) {
-            throw new VoteException(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS, "투표 삭제 권한이 없습니다");
-        }
-
-        // 3. 연관된 투표 기록 삭제
-        voteRecordRepository.deleteByVote_VoteId(voteId);
-
-        // 4. 투표 삭제
-        voteRepository.delete(vote);
+    public void checkAndCloseExpiredVotes() {
+        List<Vote> expiredVotes = voteRepository.findAllByEndDateBeforeAndIsActiveTrue(LocalDateTime.now());
+        expiredVotes.forEach(Vote::setInactive);
     }
 
     /**
@@ -392,64 +365,6 @@ public class VoteService {
      * - 투표 엔티티를 응답 DTO로 변환
      * - 총 투표 수와 댓글 수 계산
      */
-    @Transactional
-    public VoteCommentDto createComment(Long voteId, String content, Long userId) {
-        // 1. 투표 및 사용자 조회
-        Vote vote = voteRepository.findById(voteId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
-
-        // 2. 댓글 생성 및 저장
-        VoteComment comment = VoteComment.builder()
-                .vote(vote)
-                .user(user)
-                .content(content)
-                .build();
-
-        return VoteCommentDto.from(voteCommentRepository.save(comment));
-    }
-
-
-    /**
-     * 댓글을 수정하는 메서드
-     */
-    @Transactional
-    public VoteCommentDto updateComment(Long commentId, String content, Long userId) {
-        // 1. 댓글 조회
-        VoteComment comment = voteCommentRepository.findById(commentId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.COMMENT_NOT_FOUND, "댓글을 찾을 수 없습니다"));
-
-        // 2. 수정 권한 검증
-        if (!comment.getUser().getId().equals(userId)) {
-            throw new VoteException(VoteErrorCode.UNAUTHORIZED_COMMENT_ACCESS, "댓글 수정 권한이 없습니다");
-        }
-
-        // 3. 내용 업데이트 및 응답
-        comment.updateContent(content);
-        return VoteCommentDto.from(comment);
-    }
-
-    /**
-     * 댓글을 삭제하는 메서드
-     */
-    @Transactional
-    public void deleteComment(Long commentId, Long userId) {
-        // 1. 댓글 조회
-        VoteComment comment = voteCommentRepository.findById(commentId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.COMMENT_NOT_FOUND, "댓글을 찾을 수 없습니다"));
-
-        // 2. 삭제 권한 검증
-        if (!comment.getUser().getId().equals(userId)) {
-            throw new VoteException(VoteErrorCode.UNAUTHORIZED_COMMENT_ACCESS, "댓글 삭제 권한이 없습니다");
-        }
-
-        // 3. 댓글 삭제
-        voteCommentRepository.delete(comment);
-    }
-
-
     private VoteResponseDto convertToResponseDto(Vote vote) {
         int totalVotes = calculateTotalVotes(vote);
         long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());

@@ -91,7 +91,7 @@ public class VoteCommentService {
      * - 일치하지 않는 경우 VoteException 발생
      */
     private void validateCommentAuthor(VoteComment comment, Long userId) {
-        if (!comment.getUser().getUserId().equals(userId)) {
+        if (!comment.getUser().getId().equals(userId)) {
             throw new VoteException(VoteErrorCode.UNAUTHORIZED_COMMENT_ACCESS, "댓글 작업 권한이 없습니다");
         }
     }
