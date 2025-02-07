@@ -1,26 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { publicAxios } from '../../common/axiosinstance';
 
-const VoteDetail = () => {
+const VoteDetail = ({ voteId }) => {
   const navigate = useNavigate();
-  const [voteData, setVoteData] = useState({
-    voteId: 10,
-    battleId: 300,
-    title: '오늘의 점심 메뉴',
-    content: '점심 메뉴를 선택해주세요',
-    creatorNickname: '테스터1',
-    endDate: '2025-02-11T23:59:59',
-    createdAt: '2025-02-04T21:51:42.565054',
-    options: [
-      { optionId: 33, optionTitle: '한식', voteCount: 200, votePercentage: 20.0, ageDistribution: { '30대': 20.0 }, genderDistribution: { '남성': 20.0 } },
-      { optionId: 34, optionTitle: '중식', voteCount: 0, votePercentage: 60.0, ageDistribution: { '20대': 40.0, '30대': 20.0 }, genderDistribution: { '여성': 60.0 } }
-    ]
-  });
+  const [voteData, setVoteData] = useState(null);
+
+  useEffect(() => {
+    const fetchVoteDetail = async () => {
+      try {
+        console.log('Fetching vote details for voteId:', voteId);
+        const response = await publicAxios.get(`/vote/${voteId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        console.log('Fetched vote details:', response.data);
+        setVoteData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch vote details:', error);
+        if (error.response?.status === 400) {
+          console.error('Invalid input data:', error.response.data);
+          alert('잘못된 입력값입니다.');
+        } else if (error.response?.status === 401) {
+          console.error('Unauthorized access:', error.response.data);
+          alert('인증되지 않은 접근입니다.');
+        } else if (error.response?.status === 404) {
+          console.error('Vote not found:', error.response.data);
+          alert('투표를 찾을 수 없습니다.');
+        } else {
+          console.error('An unexpected error occurred:', error.response?.data || error.message);
+          alert('예기치 않은 오류가 발생했습니다.');
+        }
+      }
+    };
+
+    fetchVoteDetail();
+  }, [voteId]);
+
+  if (!voteData) return <div>로딩 중...</div>;
 
   return (
     <div>
       <h1>{voteData.title}</h1>
       <p>Date: {voteData.createdAt} | Author: {voteData.creatorNickname}</p>
+      <p>{voteData.content}</p>
       <div style={{ display: 'flex', width: '100%', height: '30px', backgroundColor: '#e0e0e0' }}>
         {voteData.options.map((option, index) => (
           <div key={option.optionId} style={{ width: `${option.votePercentage}%`, backgroundColor: index % 2 === 0 ? 'blue' : 'green', color: 'white', textAlign: 'center' }}>
