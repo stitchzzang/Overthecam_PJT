@@ -60,16 +60,6 @@ function BattleMainPage() {
             배틀방 목록 보기
           </h1>
         </div>
-        <div className="flex justify-end m-6">
-          <div className="mx-10">
-            <Link
-              to={"/create-battle-room"}
-              className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
-            >
-              방 만들기
-            </Link>
-          </div>
-        </div>
         <div className="p-6 m-6 justify-center">
           <div className="grid grid-cols-2 gap-4">
             {/* 배틀 목록 컴포넌트 생성 */}
@@ -85,15 +75,21 @@ function BattleMainPage() {
             ))}
           </div>
         </div>
-        <Pagination
-          activePage={page}
-          itemsCountPerPage={itemsPerPage}
-          totalItemsCount={battles?.length || 0}
-          pageRangeDisplayed={5}
-          prevPageText={"이전"}
-          nextPageText={"다음"}
-          onChange={changePageHandler}
-        />
+        <div className="flex justify-center pb-10">
+          <Pagination
+            activePage={page}
+            itemsCountPerPage={itemsPerPage}
+            totalItemsCount={battles?.length || 0}
+            pageRangeDisplayed={5}
+            prevPageText={"이전"}
+            nextPageText={"다음"}
+            onChange={changePageHandler}
+            innerClass="flex gap-2"
+            itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+            activeClass="bg-cusBlack-light !text-white"
+            linkClass="block w-full h-full text-center"
+          />
+        </div>
       </div>
     </>
   );
