@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class WebSocketExceptionHandler {
 
     @MessageExceptionHandler(WebSocketException.class)
-    @SendToUser(destinations = "/queue/errors", broadcast = false)
+    @SendToUser(destinations = "/queue/notifications", broadcast = false)
     public WebSocketResponseDto<?> handleWebSocketException(WebSocketException ex) {
         log.error("WebSocket 통신 오류: {}", ex.getMessage());
         return WebSocketResponseDto.error(ex.getErrorCode());

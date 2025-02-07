@@ -18,7 +18,12 @@ public enum WebSocketErrorCode {
     INVALID_TOKEN("WS-403", "유효하지 않은 토큰입니다"),
     EXPIRED_TOKEN("WS-404", "만료된 토큰입니다"),
 
-    UNAUTHORIZED_USER_ACCESS("WS-405", "올바르지 않은 사용자 정보입니다");
+    UNAUTHORIZED_USER_ACCESS("WS-405", "올바르지 않은 사용자 정보입니다"),
+    INVALID_MESSAGE_FORMAT("WS-406", "올바르지 않은 메시지 타입입니다."),
+
+    // 사용자 응원 및 포인트 에러
+    INSUFFICIENT_SCORE("WS-005", "응원점수가 부족합니다"),
+    INSUFFICIENT_POINTS("WS-006", "포인트가 부족합니다");
 
     private final String code;
     private final String message;
