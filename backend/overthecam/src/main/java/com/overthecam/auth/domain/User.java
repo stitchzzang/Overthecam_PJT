@@ -27,6 +27,9 @@ public class User extends TimeStampEntity {
     @Column(unique = true)
     private String email;
 
+    @Column(nullable = false)
+    private String username;
+
     private LocalDate birth;
 
     @Column(nullable = false, length = 20)
@@ -47,9 +50,10 @@ public class User extends TimeStampEntity {
     private String refreshToken; // Refresh Token 저장
 
     @Builder
-    public User(String nickname, String email, Integer gender, String password, LocalDate birth, String phoneNumber) {
+    public User(String nickname, String email, String username,Integer gender, String password, LocalDate birth, String phoneNumber) {
         this.nickname = nickname;
         this.email = email;
+        this.username = username;
         this.gender = gender;
         this.password = password;
         this.birth = birth;

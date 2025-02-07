@@ -6,20 +6,22 @@ import lombok.Getter;
 @Getter
 public class VoteException extends RuntimeException {
     private final VoteErrorCode errorCode;
-    private final String detail;
 
     public VoteException(VoteErrorCode errorCode) {
-        this(errorCode, errorCode.getMessage());
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 
     public VoteException(VoteErrorCode errorCode, String detail) {
         super(detail);
         this.errorCode = errorCode;
-        this.detail = detail;
     }
 
     @Override
     public String getMessage() {
-        return String.format("[%s] %s - %s", errorCode.getCode(), errorCode.getMessage(), detail);
+        if (super.getMessage() == null) {
+            return errorCode.getMessage();
+        }
+        return String.format("[%s] %s - %s", errorCode.getCode(), errorCode.getMessage(), super.getMessage());
     }
 }

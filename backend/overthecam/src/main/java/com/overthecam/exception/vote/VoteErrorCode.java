@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public enum VoteErrorCode {
     // 투표 생성 관련 에러
     INVALID_VOTE_OPTIONS("VOTE-001", "투표 옵션은 정확히 2개여야 합니다"),
@@ -18,7 +17,7 @@ public enum VoteErrorCode {
 
     // 투표 참여 관련 에러
     DUPLICATE_VOTE("VOTE-007", "이미 투표했습니다"),
-    INSUFFICIENT_SCORE("VOTE-008", "응원 점수가 부족합니다"),
+    VOTE_FAILED("VOTE-008", "투표 처리 중 오류가 발생했습니다"),
 
     // 투표 댓글 관련 에러
     COMMENT_NOT_FOUND("VOTE-009", "댓글을 찾을 수 없습니다"),
@@ -26,4 +25,9 @@ public enum VoteErrorCode {
 
     private final String code;
     private final String message;
+
+    VoteErrorCode(String code, String message) {
+        this.code = code;
+        this.message = message;
+    }
 }
