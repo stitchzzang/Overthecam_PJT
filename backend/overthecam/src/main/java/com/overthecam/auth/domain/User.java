@@ -51,6 +51,10 @@ public class User extends TimeStampEntity {
         this.supportScore = 50000;
     }
 
+    public void setSupportScore(Integer supportScore) {
+        this.supportScore = supportScore;
+    }
+
     // Refresh Token 관리
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;

@@ -67,4 +67,5 @@ public class GlobalExceptionHandler {
     public CommonResponseDto<?> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
         return CommonResponseDto.error(ErrorCode.METHOD_NOT_ALLOWED);
     }
+
 }

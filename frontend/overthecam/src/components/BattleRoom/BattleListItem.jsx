@@ -1,28 +1,24 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../../service/BattleRoom/api";
+import { JoinRoom } from "../../service/BattleRoom/api";
 
-const APPLICATION_SERVER_URL =
-  process.env.NODE_ENV === "production" ? "" : "http://localhost:5000/";
+function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
+  const navigate = useNavigate();
 
-function BattleListItem(props) {
-    const navigate = useNavigate();
-
-  const gotoBattleRoom = async (sessionId) => {
+  const gotoBattleRoom = async (battleId) => {
+    console.log(battleId);
     try {
-      const token = await getToken(sessionId); // await로 토큰 값 받아오기
-    //   const url = `/battle-room/${sessionId}?isMaster=false&token=${encodeURIComponent(
-    //     token
-    //   )}`;
-    //   window.open(url, "_blank", "noopener,noreferrer");
-
-        navigate(`/battle-room/${sessionId}`, {
-          state: {
-            sessionId: sessionId,
-            isMaster: false,
-            token: token,
-          },
-        });
+      const response = await JoinRoom(battleId);
+      console.log(response.data);
+      navigate(`/battle-room/${battleId}`, {
+        state: {
+          battleId: response.data.battleId,
+          title: response.data.title,
+          sessionId: response.data.sessionId,
+          connectionToken: response.data.connectionToken,
+          isMaster: false,
+        },
+      });
     } catch (error) {
       console.error("Battle room navigation error:", error);
       // 에러 처리 (예: 알림 표시)
@@ -30,10 +26,28 @@ function BattleListItem(props) {
   };
 
   return (
-    <div>
-      <p>{props.BattleName}</p>
-      <button onClick={() => gotoBattleRoom(props.sessionId)}>입장하기</button>
+<div className="battle-list-item flex bg-cusLightBlue-light rounded-lg clay">
+  <img src={thumbnail} alt="배틀방 썸네일" className="w-1/3 object-cover rounded-tl-lg rounded-bl-lg" />
+  <div className="flex-1 flex flex-col justify-between">
+    <div className="flex-1 p-10 flex flex-col items-start">
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <p className="text-lg font-semibold text-cusBlue">{totalUsers}/6</p>
     </div>
+    <div className="flex justify-end p-10">
+      {status === 0 ? (
+        <button
+          className="btn bg-cusRed-light w-32"
+          onClick={() => gotoBattleRoom(battleId)}
+        >
+          입장하기
+        </button>
+      ) : (
+        <button className="btn-disabled w-32">진행중</button>
+      )}
+    </div>
+  </div>
+</div>
+
   );
 }
 

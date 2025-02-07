@@ -5,12 +5,11 @@ function ItemShopPage() {
 
   return (
     <>
-      <div>
-        <h1>상점 페이지: Store</h1>
+      <div className="relative p-10">
+        <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Store</h1>
       </div>
       <MyInventory/>
       <div>
-        <h3>내 인벤토리</h3>
       </div>
       <div>
         <h3>상품 목록</h3>

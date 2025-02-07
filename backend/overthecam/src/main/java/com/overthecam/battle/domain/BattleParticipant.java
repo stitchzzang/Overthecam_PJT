@@ -32,6 +32,8 @@ public class BattleParticipant extends TimeStampEntity {
     @JoinColumn(name = "role")
     private Integer role;
 
+    @Column(name = "connection_token")
+    private String connectionToken;
 
     // role 업데이트 메서드
     public void updateRole(int role) {

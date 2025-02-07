@@ -77,13 +77,22 @@ pipeline {
                         echo '====== EC2 배포 시작 ======'
                         def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
                         sshagent(['ssh']) {
+                            withCredentials([
+                                string(credentialsId: 'front-openvidu-url', variable: 'VITE_OPENVIDU_URL'),
+                                string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                            ]) {
+
                             sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io 'docker pull ${dockerImageTag}; \
-                                docker stop frontend || true; \
-                                docker rm frontend || true; \
-                                docker run -d --name frontend -p 5173:80 ${dockerImageTag}; \
+                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
+                                echo "VITE_OPENVIDU_URL=${VITE_OPENVIDU_URL}" > .env &&
+                                echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env &&
+                                docker pull ${dockerImageTag} &&
+                                docker stop frontend || true &&
+                                docker rm frontend || true &&
+                                docker run -d --name frontend --network my_network -p 5173:80 --env-file .env ${dockerImageTag} &&
                                 docker system prune -f'
                             """
+                            }
                         }
                         echo '====== EC2 배포 성공 ======'
                     } catch (Exception e) {

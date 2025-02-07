@@ -1,105 +1,184 @@
-import { useEffect, useRef, useState } from "react";
-import { Client,Stomp } from "@stomp/stompjs";
+import React, { useState, useRef, useEffect } from "react";
 import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
 
-function BattleChating({ onDisconnect }) {
-  const stompClient = useRef(null);
-  const [myUserName, setMyUserName] = useState(""); // 사용자 이름
-  const [chatRoomId, setChatRoomId] = useState(1); // 채팅방 번호
-  const [currentSubscription, setCurrentSubscription] = useState(null); // 현재 구독 객체 저장
-  const [chat, setChat] = useState(""); // 입력 받을 대화 내용
-  const [chatList, setChatList] = useState([]); // 채팅 기록
-
-  const SOKET_BASE_URL = "http://i12d204.p.ssafy.io/api";
-  const CON_ENDPOINT = "/chat/rooms/";
-  const PUB_ENDPOINT = "/publish/chat/";
-  const SUB_ENDPOINT = "/subscribe/chat/";
+const WebSocketChat = () => {
+  const [subscriptions, setSubscriptions] = useState({});
+  const [messages, setMessages] = useState([]);
+  const [url, setUrl] = useState(`${import.meta.env.VITE_BASE_URL}/ws-connect`);
+  const [token, setToken] = useState(`${import.meta.env.VITE_TOKEN}`);
+  const [destination, setDestination] = useState("/chat/1");
+  const [message, setMessage] = useState("");
+  const [chatId, setChatId]= useState(1);
+  const stompClientRef = useRef(null);
 
   useEffect(() => {
-  // 첫 마운트 시 웹 소켓 연결
-  const soket = new SockJS(`${SOKET_BASE_URL}${CON_ENDPOINT}${chatRoomId}`);
-  stompClient.current = Stomp.over(soket);
+    // connectWebSocket();
+    // subscribeToChannel();
 
-    stompClient.current.connect({}, () => {
-      console.log("webSoket 연결 성공!");
-      stompClient.current?.subscribe(`${SUB_ENDPOINT}${chatRoomId}`, (message) => {
-        const chatMessage = JSON.parse(message.body);
-        console.log("새 메세지 수신", chatMessage);
-        displayMessage(message.body);
-      });
-    }, (error) => {
-      console.error("webSoket 연결 실패", error);
-    });
-
-    // 언마운트할 때 해제
     return () => {
-      if (stompClient.current) {
-        stompClient.current.disconnect();
-      }
+      disconnectWebSocket();
     };
   }, []);
 
-
-  const displayMessage = (newMessage) => {
-    setChatList((prev) => [...prev, newMessage]);
+  const addMessage = (msg, nickname) => {
+    setMessages(prev => [...prev, {
+      content: msg,
+      nickname: nickname
+    }]);
   };
 
-  const sendMessage = (battleId, username, content) => {
-    if (stompClient.current && stompClient.current.connected) {
-      const message = {
-        battleId,
-        username,
-        content,
-        timestamp: new Date().toISOString()
-      };
-      stompClient.send(`${PUB_ENDPOINT}${battleId}`, {}, JSON.stringify(message));
+  const connectWebSocket = () => {
+    if (!url || !token) {
+      console.log("토큰, url 입력해주세요")
+      return;
+    }
+
+    try {
+      const socket = new SockJS(url);
+      const stomp = Stomp.over(socket);
+
+      stomp.configure({
+        connectHeaders: {
+          Authorization: `Bearer ${token.replace("Bearer ", "")}`,
+        },
+        debug: (str) => {
+          console.log("STOMP Debug:", str);
+        },
+        onConnect: (frame) => {
+          console.log("Connected successfully:", frame);
+          stompClientRef.current = stomp;
+          subscribeToErrors(stomp);
+        },
+        onStompError: (frame) => {
+          console.error("Broker reported error:", frame.headers["message"]);
+          console.error("Additional details:", frame.body);
+        },
+        onWebSocketError: (error) => {
+          console.error("WebSocket 연결 오류:", error);
+        },
+      });
+
+      stomp.activate();
+    } catch (error) {
+      console.error("WebSocket 연결 중 예외 발생:", error);
     }
   };
-
-  const sendChat = (event) => {
-    console.log("채팅을 보냅니다.", chat);
-    event.preventDefault();
-    // 채팅 내용 publish
-    sendMessage(chatRoomId, myUserName, chat);
-    setChat("");
+  // 에러 알림 구독, onConnect 내부에서 호출됨
+  const subscribeToErrors = (client) => {
+    const errorSubscription = client.subscribe(
+      "/api/user/queue/errors",
+      (response) => {
+        try {
+          const errorResponse = JSON.parse(response.body);
+          console.log(errorResponse.message);
+        } catch (parseError) {
+          console.log("에러 응답 파싱 실패");
+        }
+      }
+    );
+    setSubscriptions((prev) => ({ ...prev, errors: errorSubscription }));
   };
 
-  // 입력되는 chat 값을 상태 관리 계속 업뎃
-  const handleChatChange = (event) => {
-    setChat(event.target.value);
+  const subscribeToChannel = () => {
+    const client = stompClientRef.current;
+    if (!client) {
+      return;
+    }
+
+    const subscriptionPath = destination.startsWith("/api/subscribe")
+      ? destination
+      : `/api/subscribe${destination}`;
+
+    const subscription = client.subscribe(subscriptionPath, (response) => {
+      try {
+        // 구독을 통해서 브로드캐스팅하는 메시지를 받음
+        const responseDto = JSON.parse(response.body);
+        console.log(responseDto)
+        addMessage(responseDto.data.content, responseDto.data.nickname);
+      } catch (parseError) {
+        console.log("응답 파싱 실패");
+      }
+    });
+
+    setSubscriptions((prev) => ({ ...prev, [subscriptionPath]: subscription }));
   };
 
-  // 엔터키 = 보내지게
-  const handleOnKeyDown = (event) => {
-    if (event.key.toLowerCase() === "enter") {
-      sendChat(event);
+  const sendMessage = () => {
+    const client = stompClientRef.current;
+    if (!client) {
+      console.log("연결이 되어있지 않습니다.");
+      return;
+    }
+
+    try {
+      const messageObj = {
+        "battleId":chatId,
+        "content": message,
+        "timestamp": new Date().toISOString()
+      }
+      const sendPath = destination.startsWith("/api/publish")
+        ? destination
+        : `/api/publish${destination}`;
+
+      client.publish({
+        destination: sendPath,
+        body: JSON.stringify(messageObj),
+      });
+
+    } catch (error) {
+      console.log("유효하지 않은 메시지 형식입니다.");
+    }
+
+    setMessage("");
+  };
+
+  const disconnectWebSocket = () => {
+    const client = stompClientRef.current;
+    if (client) {
+      client.deactivate();
+      stompClientRef.current = null;
+      console.log("WebSocket 연결 해제");
     }
   };
 
   return (
-    <div>
-      <p>실시간 채팅</p>
+    <div id="chating-box">
+      <h2>WebSocket 채팅</h2>
+      <div id="show-chat">
+        <div>
+          <h3>메시지 로그</h3>
+          <ul>
+            {messages.map((msg, index) => (
+              <li
+                key={index}
+              >
+                {msg.nickname}:<strong>{msg.content}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      <input
+          type="text"
+          placeholder="인증 토큰"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+        />
+        <button onClick={connectWebSocket}>연결</button>
+        <button onClick={disconnectWebSocket}>연결 해제</button>
+        <button onClick={subscribeToChannel}>구독</button>
+      </div>
       <div>
-        <div>
-          {/* 채팅 대화 기록 보여주기 css로 지정 크기 넘어가면 스크롤하게 수정할 것 */}
-          {chatList.map((item, index) => (
-            <p key={index}>{item}</p>
-          ))}
-        </div>
-        <div>
-          {/* 채팅 입력창 */}
-          <input
-            type="text"
-            placeholder="내용을 입력하세요..."
-            onChange={handleChatChange}
-            onKeyDown={handleOnKeyDown}
-            value={chat}
-          />
-          <input type="button" value="보내기" onClick={sendChat} />
-        </div>
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="메시지를 입력하세요."
+        />
+        <button onClick={sendMessage}>전송</button>
       </div>
     </div>
   );
-}
+};
 
-export default BattleChating;
+export default WebSocketChat;

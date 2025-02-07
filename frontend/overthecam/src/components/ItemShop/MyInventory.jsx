@@ -92,102 +92,125 @@ function MyInventory() {
   };
 
   return (
-    <>
-      <div>
-        <p>내 화면 테스트</p>
+    <div className="bg-cusLightBlue-lighter m-5 rounded-lg">
+      <div className="relative p-5 left-5">
+        <h3 className="absolute left-3 text-2xl font-semibold">
+          내 아이템 보기
+        </h3>
       </div>
-      <div>
-        <div>
-          <div>
-            <p>응원 점수</p>
-            <p>{myCheerScore}</p>
-            <button onClick={onShowModal}>전환하기</button>
-            <PointExchangeModal
-              ref={exchangeDialog}
-              myCheerScore={myCheerScore}
-              myPoints={myPoints}
-              onSuccess={handleExchange}
-            />
-          </div>
-          <div>
-            <p>포인트</p>
-            <p>{myPoints}</p>
-          </div>
-          <div>
-            <h3>내 아이템 창고</h3>
-            <div>
-              <button
-                onClick={() => {
-                  setFilter(3);
-                  setPage(1);
-                }}
-              >
-                전체보기
-              </button>
-              <button
-                onClick={() => {
-                  setFilter(0);
-                  setPage(1);
-                }}
-              >
-                프레임
-              </button>
-              <button
-                onClick={() => {
-                  setFilter(1);
-                  setPage(1);
-                }}
-              >
-                효과음
-              </button>
-              <button
-                onClick={() => {
-                  setFilter(2);
-                  setPage(1);
-                }}
-              >
-                가면
-              </button>
+      <div className="my-items-container flex m-4">
+        <div className="w-1/4 my-assets m-5 flex flex-col items-center">
+          <div className="my-points justify-center w-full">
+            <div className="my-cheer-scores bg-cusGray-dark w-1/2 min-w-[200px] max-w-[200px] min-h-[50px] clay m-2">
+              <p className="text-sm font-semibold">응원 점수</p>
+              <p className="text-xl font-bold text-center overflow-hidden">
+                {myCheerScore}
+              </p>
             </div>
-            <div>
-              {isLoading ? (
-                <>
-                  <p>...Loading</p>
-                </>
-              ) : currentList.length > 0 ? (
-                currentList.map((item, i) => (
-                  <div key={i}>
-                    {item.type === 1 ? (
-                      <>
-                        <p>{item.name}</p> <audio id="audio-player" />
-                        <button onClick={isPlaying ? handlePause : handlePlay}>
-                          {isPlaying ? "⏸️" : "▶️"}
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p>{item.name}</p> <img />
-                      </>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p>해당 카테고리에 상품이 없습니다.</p>
-              )}
+            <div className="my-points bg-cusGray-dark w-1/2 min-w-[200px] max-w-[200px]  min-h-[50px] clay m-2">
+              <p className="text-sm font-semibold">포인트</p>
+              <p className="text-xl font-bold text-center overflow-hidden">
+                {myPoints}
+              </p>
             </div>
+          </div>
+          <div className="exchange-btn p-2">
+            <button className="btn" onClick={onShowModal}>
+              전환하기
+            </button>
+          </div>
+        </div>
+        <PointExchangeModal
+          ref={exchangeDialog}
+          myCheerScore={myCheerScore}
+          myPoints={myPoints}
+          onSuccess={handleExchange}
+        />
+        <div className="my-inventory w-3/4 mt-10 mr-10 ml-5 mb-10">
+          <div className="pagenation-btn flex justify-center items-center">
             <Pagination
               activePage={page}
               itemsCountPerPage={itemsPerPage}
               totalItemsCount={filteredMyItems.length} // 필터링된 항목 개수로 페이지네이션 설정
               pageRangeDisplayed={0}
-              prevPageText={"<"}
-              nextPageText={">"}
               onChange={changePageHandler}
+              containerClassName={"pagination"}
+              pageLinkClassName={"pagination__link"}
+              activeLinkClassName={"pagination__link__active"}
             />
+          </div>
+          <div className="my-inventory-box flex">
+            <div className="my-inventroy-category w-1/6">
+              <div className="category-button-list">
+                <button
+                  onClick={() => {
+                    setFilter(3);
+                    setPage(1);
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  전체보기
+                </button>
+                <button
+                  onClick={() => {
+                    setFilter(0);
+                    setPage(1);
+                  }}
+                >
+                  프레임
+                </button>
+                <button
+                  onClick={() => {
+                    setFilter(1);
+                    setPage(1);
+                  }}
+                >
+                  효과음
+                </button>
+                <button
+                  onClick={() => {
+                    setFilter(2);
+                    setPage(1);
+                  }}
+                >
+                  가면
+                </button>
+              </div>
+            </div>
+            <div className="my-inventory-container">
+              <div className="my-inventory-content">
+                {isLoading ? (
+                  <>
+                    <p>...Loading</p>
+                  </>
+                ) : currentList.length > 0 ? (
+                  currentList.map((item, i) => (
+                    <div key={i}>
+                      {item.type === 1 ? (
+                        <>
+                          <p>{item.name}</p> <audio id="audio-player" />
+                          <button
+                            onClick={isPlaying ? handlePause : handlePlay}
+                          >
+                            {isPlaying ? "⏸️" : "▶️"}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p>{item.name}</p> <img />
+                        </>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p>해당 카테고리에 상품이 없습니다.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 export default MyInventory;
