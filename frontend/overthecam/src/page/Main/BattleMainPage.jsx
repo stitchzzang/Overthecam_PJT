@@ -57,28 +57,33 @@ function BattleMainPage() {
       <div className="battle-main-page ">
         <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
           <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-            배틀방 목록 보기기
+            배틀방 목록 보기
           </h1>
         </div>
-        <div className="flex justify-end m-5">
-          <div className="">
-            <Link to={"/create-battle-room"} className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center">
+        <div className="flex justify-end m-6">
+          <div className="mx-10">
+            <Link
+              to={"/create-battle-room"}
+              className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+            >
               방 만들기
             </Link>
           </div>
         </div>
-        <div>
-          {/* 배틀 목록 컴포넌트 생성 */}
-          {currentList.map((room) => (
-            <BattleListItem
-              key={room.title}
-              title={room.title}
-              totalUsers={room.totalUsers}
-              thumbnail={room.thumbnailUrl}
-              status={room.status}
-              battleId={room.battleId}
-            />
-          ))}
+        <div className="p-6 m-6 justify-center">
+          <div className="grid grid-cols-2 gap-4">
+            {/* 배틀 목록 컴포넌트 생성 */}
+            {currentList.map((room) => (
+              <BattleListItem
+                key={room.title}
+                title={room.title}
+                totalUsers={room.totalUsers}
+                thumbnail={room.thumbnailUrl}
+                status={room.status}
+                battleId={room.battleId}
+              />
+            ))}
+          </div>
         </div>
         <Pagination
           activePage={page}
