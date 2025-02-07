@@ -1,17 +1,12 @@
-package com.overthecam.chat.dto;
+package com.overthecam.websocket.dto;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 @AllArgsConstructor
-public class ChatMessageResponse {
-    private Long battleId;
-    private Long chatRoomId;
-    private String nickname;
+public class ChatMessageRequest {
     private String content;
     private LocalDateTime timestamp;
 }

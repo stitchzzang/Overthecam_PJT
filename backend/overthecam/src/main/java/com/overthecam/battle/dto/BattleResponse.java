@@ -10,5 +10,6 @@ public class BattleResponse {
     private String title; //배틀방 제목
     private String sessionId; //세션 아이디
     private String connectionToken; //사용자별 토쿤
+    private Long chatRoomId; // 채팅방 번호
     private String roomUrl;
 }

@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import "./index.css";
 import Layout from "./components/Layout/Layout";
-import BattleMainPage from "./page/BattleRoom/BattleMainPage";
+import BattleMainPage from "./page/Main/BattleMainPage";
 import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
 import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
 import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
@@ -16,7 +16,7 @@ import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
 import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
-import OtherUserPage from "./page/Mypage/OtherUserPage.jsx";
+import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
 
 function App() {
@@ -38,7 +38,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/other-user/:userId" element={<OtherUserPage />} /> 
+          <Route path="/my-following" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
           {/* <Route path="/mypagevote" element={<MyPageVote />} />
           <Route path="/mypagebattle" element={<MyPageBattle />} /> */}

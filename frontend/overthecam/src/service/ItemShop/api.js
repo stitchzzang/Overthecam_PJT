@@ -3,7 +3,7 @@ import { authAxios } from "../../common/axiosinstance";
 
 export const getItem = async (setIsLoading) => {
   try {
-    const response = await authAxios.get("/store/items/all");
+    // const response = await authAxios.get("/store/items/all");
     setIsLoading(false);
     return response;
   } catch (error) {
@@ -13,7 +13,7 @@ export const getItem = async (setIsLoading) => {
 
 export const getMyInventory = async (setIsLoading) => {
   try {
-    const response = await authAxios.get("/store/purchases");
+    // const response = await authAxios.get("/store/purchases");
     setIsLoading(false);
     return response;
   } catch (error) {
@@ -23,9 +23,9 @@ export const getMyInventory = async (setIsLoading) => {
 
 export const postPurchase = async (itemId) => {
   try {
-    const response = await authAxios.post("/store/purchase", {
-      itemId,
-    });
+    // const response = await authAxios.post("/store/purchase", {
+    //   itemId,
+    // });
     return response;    
   } catch (error) {
     console.error("구매 실패", error);
@@ -34,9 +34,9 @@ export const postPurchase = async (itemId) => {
 
 export const postExchangePoints = async (score) => {
   try {
-    const response = await authAxios.post("/points/convert ", {
-      score,
-    })
+    // const response = await authAxios.post("/points/convert ", {
+    //   score,
+    // })
   } catch (error) {
     console.error("환전 실패", error);
   }
