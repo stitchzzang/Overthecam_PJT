@@ -57,13 +57,16 @@ function BattleMainPage() {
       <div className="battle-main-page ">
         <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
           <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-            Store
+            배틀방 목록 보기기
           </h1>
         </div>
-        <div>
-          
+        <div className="flex justify-end m-5">
+          <div className="">
+            <Link to={"/create-battle-room"} className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center">
+              방 만들기
+            </Link>
+          </div>
         </div>
-        <Link to={"/create-battle-room"}>방만들기</Link>
         <div>
           {/* 배틀 목록 컴포넌트 생성 */}
           {currentList.map((room) => (
