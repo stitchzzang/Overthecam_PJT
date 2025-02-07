@@ -70,6 +70,17 @@ footer {
   transition-all duration-300 ease-in-out transform scale-100 
 }
 
+
+/* 길어지면 최대 2줄까지만 끊기게 설정정 */
+.line-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 최대 2줄 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 .pagination {
   width: 100%;
   display: flex;
