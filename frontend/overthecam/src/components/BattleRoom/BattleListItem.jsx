@@ -33,21 +33,19 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
         className="w-1/3 object-cover rounded-tl-lg rounded-bl-lg"
       />
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col items-start my-5 mx-2 jsutify-center">
+        {/* 제목 영역 */}
+        <div className="flex-1 flex flex-col items-start my-5 mx-2 justify-start">
           <h3
-            className={
-              title
-                ? "text-xl font-semibold mb-3"
-                : "text-xl font-semibold mb-3 text-gray-400"
-            }
+            className={`text-xl font-semibold mx-3 my-2 max-w-full text-left text-black leading-tight ${
+              title ? "line-clamp" : "text-gray-400"
+            }`}
           >
             {title ? title : "방제 없음"}
           </h3>
         </div>
-          <p className="flex justify-end text-lg font-semibold text-cusBlue mr-5">
-            {totalUsers}/6
-          </p>
-        <div className="flex justify-end p-5">
+        {/* 하단 버튼 영역 */}
+        <div className="flex justify-between items-center px-5 pb-5">
+          <p className="text-lg font-semibold text-cusBlue">{totalUsers}/6</p>
           {status === 0 ? (
             <button
               className="btn bg-cusRed-light hover:bg-cusRed w-32"
@@ -56,7 +54,9 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
               입장하기
             </button>
           ) : (
-            <button className="btn-disabled bg-cusBlue-light w-32">진행중</button>
+            <button className="btn-disabled bg-cusBlue-light w-32">
+              진행중
+            </button>
           )}
         </div>
       </div>
