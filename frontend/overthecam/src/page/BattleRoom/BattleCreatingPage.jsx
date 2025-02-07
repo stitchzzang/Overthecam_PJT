@@ -6,14 +6,14 @@ import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
 import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
 
 function BattleCreatingPage() {
-  const [battleTitle, setBattleTitle] = useState("");
   const navigate = useNavigate();
 
   const createBattleRoomHandler = async (title) => {
-    setBattleTitle(title);
     try {
-      const response = await createRoom(battleTitle);
+      // title을 직접 사용하여 createRoom 호출
+      const response = await createRoom(title);
       console.log(response);
+
       navigate(`/battle-room/${response.data.battleId}`, {
         state: {
           battleId: response.data.battleId,
@@ -23,7 +23,8 @@ function BattleCreatingPage() {
           isMaster: true,
         },
       });
-      console.log(state);
+
+      console.log(response.data); // 여기서 state 로그 확인
     } catch (error) {
       console.error("Battle room navigation error:", error);
       // 에러 처리 (예: 알림 표시)

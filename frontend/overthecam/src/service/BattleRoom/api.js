@@ -14,6 +14,7 @@ export const createRoom = async (newTitle) => {
     const response = await authAxios.post(`/battle/room`, {
       title: newTitle, // POST 요청 본문 (Body)
     });
+    console.log(newTitle);
     console.log("세션 id", response.data);
     return response;
   } catch (error) {
