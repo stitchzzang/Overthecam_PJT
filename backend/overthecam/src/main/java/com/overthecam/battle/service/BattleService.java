@@ -83,7 +83,7 @@ public class BattleService {
                 .title(request.getTitle())
                 .sessionId(sessionId)
                 .roomUrl("https://1dan2gulro.hapsida~~")
-                .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/frame1.png")
+                .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/thumbnails/thumbnail+4.png")
                 .build();
 
         Battle savedBattle = battleRepository.save(battle);
