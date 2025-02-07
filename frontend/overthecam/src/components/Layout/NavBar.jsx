@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export default function NavBar() {
@@ -6,6 +6,7 @@ export default function NavBar() {
   const isBattleRoomPage = location.pathname.startsWith("/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Add state to track login status
 
   if (isBattleRoomPage) {
     return null;
@@ -13,13 +14,25 @@ export default function NavBar() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+      <Header
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+      />
       <div className="flex flex-grow overflow-hidden mt-16">
-        <Sidebar isMenuOpen={isMenuOpen} isDropdownOpen={isDropdownOpen} setIsDropdownOpen={setIsDropdownOpen} />
-        <main className={`transition-all flex-grow overflow-y-auto ${isMenuOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="p-4">
-            {/* Your main content goes here */}
-          </div>
+        <Sidebar
+          isMenuOpen={isMenuOpen}
+          isDropdownOpen={isDropdownOpen}
+          setIsDropdownOpen={setIsDropdownOpen}
+          isLoggedIn={isLoggedIn}
+        />
+        <main
+          className={`transition-all flex-grow overflow-y-auto ${
+            isMenuOpen ? "ml-64" : "ml-0"
+          }`}
+        >
+          <div className="p-4">{/* Your main content goes here */}</div>
         </main>
       </div>
     </div>
@@ -28,7 +41,7 @@ export default function NavBar() {
 
 function Sidebar({ isMenuOpen, isDropdownOpen, setIsDropdownOpen }) {
   return (
-    <div className={`fixed top-30 left-0 h-[calc(100%-4rem)] w-64 bg-white transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
+    <div className={`fixed top-35 left-0 h-[calc(100%-4rem)] w-64 bg-white transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} z-50`}>
       <div className="p-4">
         {/* Action buttons */}
         <div className="flex flex-col gap-2 mb-6">
@@ -73,9 +86,16 @@ function Sidebar({ isMenuOpen, isDropdownOpen, setIsDropdownOpen }) {
   );
 }
 
-function Header({ isMenuOpen, setIsMenuOpen }) {
+function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
+
+  const isAuth = !!localStorage.getItem("token");
+  useEffect(()=>{
+    setIsLoggedIn(isAuth)
+  }, [isAuth])
+
+  
   return (
-    <header className="p-4 fixed top-0 left-0 right-0 z-50">
+    <header className="p-3 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
@@ -85,7 +105,12 @@ function Header({ isMenuOpen, setIsMenuOpen }) {
             ☰
           </button>
           <Link to={"/"}>
-            <img src="public/images/Logo.png" alt="Logo" className="h-12" style={{ width: 'auto', maxWidth: '200px' }} />
+            <img
+              src="public/images/Logo.png"
+              alt="Logo"
+              className="h-12"
+              style={{ width: "auto", maxWidth: "200px" }}
+            />
           </Link>
         </div>
         <div className="flex-grow max-w-md mx-auto">
@@ -100,13 +125,46 @@ function Header({ isMenuOpen, setIsMenuOpen }) {
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-full">
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-          <span className="text-gray-700 whitespace-nowrap text-sm">
-            우끼끼정해기 님,
-            <br />
-            안녕하세요!
-          </span>
+        <div className="flex items-center gap-3 px-4 py-">
+          <div className="flex flex-col gap-2">
+            <Link
+              to="/create-battle-room"
+              className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+            >
+              방 만들기
+            </Link>
+            <Link
+              to="/create-vote"
+              className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+            >
+              투표 만들기
+            </Link>
+          </div>
+          {isLoggedIn ? (
+            <>
+              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+              <span className="text-gray-700 whitespace-nowrap text-sm">
+                우끼끼정해기 님,
+                <br />
+                안녕하세요!
+              </span>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+              >
+                로그인
+              </Link>
+              <Link
+                to="/signup"
+                className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+              >
+                회원가입
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

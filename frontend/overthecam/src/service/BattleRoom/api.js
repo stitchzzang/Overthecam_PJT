@@ -1,49 +1,37 @@
-import axios from "axios";
+import { authAxios } from "../../common/axiosinstance";
 
-const APPLICATION_SERVER_URL = import.meta.env.OPENVIDU_SERVER;
-
-// 세션 생성
-export const createSession = async (sessionId) => {
+export const readRooms = async () => {
   try {
-    const response = await axios.post(
-      `${APPLICATION_SERVER_URL}api/sessions`,
-      { customSessionId: sessionId },
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    const response = await authAxios.get('/battle/room/all');
+    return response
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const createRoom = async (newTitle) => {
+  try {
+    const response = await authAxios.post(`/battle/room`, {
+      title: newTitle, // POST 요청 본문 (Body)
+    });
     console.log("세션 id", response.data);
-    return response.data;
+    return response;
   } catch (error) {
     console.error("세션 생성 오류:", error);
     throw error;
   }
 };
 
-export const createToken = async (sessionId) => {
+export const JoinRoom = async (battleId) => {
   try {
-    const response = await axios.post(
-      `${APPLICATION_SERVER_URL}api/sessions/${sessionId}/connections`,
-      {},
-      {
-        headers: { "Content-Type": "application/json" },
-      }
+    const response = await authAxios.post(
+      `/battle/room/${battleId}/join`,
+      {} // 보낼 data 없음
     );
-    const token = response.data;
-    console.log("토큰 이렇게 생김", token);
-    return token;
+    console.log("세션 id", response);
+    return response;
   } catch (error) {
-    console.error("토큰 생성 오류:", error);
-    throw error;
-  }
-};
-
-export const getToken = async (sessionId) => {
-  try {
-    const newSessionId = await createSession(sessionId);
-    return await createToken(newSessionId);
-  } catch (error) {
-    console.error("토큰 획득 오류:", error);
+    console.error("세션 생성 오류:", error);
     throw error;
   }
 };

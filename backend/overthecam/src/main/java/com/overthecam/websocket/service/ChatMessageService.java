@@ -1,14 +1,11 @@
-package com.overthecam.chat.service;
+package com.overthecam.websocket.service;
 
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.chat.dto.ChatMessageRequest;
-import com.overthecam.chat.dto.ChatMessageResponse;
+import com.overthecam.websocket.dto.*;
 import com.overthecam.exception.websocket.WebSocketErrorCode;
 import com.overthecam.exception.websocket.WebSocketException;
-import com.overthecam.websocket.dto.UserPrincipal;
-import com.overthecam.websocket.dto.WebSocketResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +17,14 @@ public class ChatMessageService {
 
     private final BattleRepository battleRepository;
 
-    public WebSocketResponseDto<?> sendMessage(ChatMessageRequest request, Long chatRoomId,
+    public ChatMessageResponse sendMessage(ChatMessageRequest message,
                                                UserPrincipal user) {
-        validateChatRoom(request.getBattleId());
 
-        return WebSocketResponseDto.messageSendSuccess(
-                ChatMessageResponse.builder()
-                        .battleId(request.getBattleId())
-                        .nickname(user.getNickname())  // UserPrincipal에서 직접 가져오기
-                        .content(request.getContent())
-                        .timestamp(LocalDateTime.now())
-                        .build());
+        return ChatMessageResponse.builder()
+                .nickname(user.getNickname())  // UserPrincipal에서 직접 가져오기
+                .content(message.getContent())
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 
     private void validateChatRoom(Long battleId) {

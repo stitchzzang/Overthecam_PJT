@@ -1,9 +1,6 @@
 package com.overthecam.battle.controller;
 
-import com.overthecam.battle.dto.BattleCreateRequest;
-import com.overthecam.battle.dto.BattleResponse;
-import com.overthecam.battle.dto.RandomVoteTopicResponse;
-import com.overthecam.battle.dto.SelectBattlerResponse;
+import com.overthecam.battle.dto.*;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.exception.ErrorCode;
@@ -101,6 +98,19 @@ public class BattleController {
             return CommonResponseDto.success("방제가 성공적으로 변경되었습니다.", response);
         } catch (RuntimeException e) {
             return CommonResponseDto.error(ErrorCode.BATTLE_TITLE_UPDATE_FAILED);
+        }
+    }
+
+    /**
+     * 배틀방 조화하기
+     */
+    @GetMapping("/room/all")
+    public CommonResponseDto<BattleRoomAllResponse> getAllBattleRooms() {
+        try {
+            BattleRoomAllResponse response = battleService.getAllBattleRooms();
+            return CommonResponseDto.success("방 조회에 성공했습니다.", response);
+        } catch (Exception e) {
+            return CommonResponseDto.error(ErrorCode.BATTLE_ROOM_READ_FAILED);
         }
     }
 

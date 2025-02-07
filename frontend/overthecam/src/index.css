@@ -38,14 +38,67 @@ footer {
 }
 
 .btn {
-  @apply relative bg-cusBlue-light text-white font-bold px-6 rounded-2xl border-transparent
+  @apply relative font-bold px-6 rounded-full border-transparent
   shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
   transition-all duration-300 ease-in-out transform scale-100 
-  hover:scale-105 hover:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
-  active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
 }
+
+.btn:hover {
+  @apply hover:scale-105 hover:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
+.btn:active {
+  @apply active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
+/* 비활성화된 버튼이 hover되더라도 효과가 없도록 설정 */
+.btn:disabled,
+.btn-disabled {
+  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  opacity-50 cursor-not-allowed;
+}
+
+/* 비활성화된 버튼에 hover 효과 방지 */
+.btn:disabled:hover,
+.btn-disabled:hover {
+  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)];
+}
+
 
 .clay {
   @apply rounded-lg shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
   transition-all duration-300 ease-in-out transform scale-100 
+}
+
+
+/* 길어지면 최대 2줄까지만 끊기게 설정정 */
+.line-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 최대 2줄 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+
+  > * {
+    cursor: pointer;
+  }
+}
+
+.pagination__link {
+  transition: all 0.25s;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.3rem;
+}
+
+.pagination__link__active {
+  background-color: #bbb;
+  color: #fefefe;
 }
