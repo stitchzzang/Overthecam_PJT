@@ -1,25 +1,30 @@
 package com.overthecam.store.domain;
 
 
+import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "store_item")
 @Getter
 @NoArgsConstructor
-public class StoreItem {
+@AllArgsConstructor
+public class StoreItem extends TimeStampEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long storeItemId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "store_item_id")
+    private Long id;
+
     private String name;
     private int price;
     private String detail;
     private String imageUrl;
-    private int type;
-    private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.ORDINAL)  // DB에는 숫자로 저장
+    private ItemType type;
 
 }

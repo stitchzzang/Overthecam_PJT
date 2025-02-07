@@ -12,11 +12,12 @@ import com.overthecam.battle.dto.ParticipantInfo;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.websocket.dto.WebSocketResponseDto;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,26 +30,26 @@ public class BattleWebSocketService {
 
     public WebSocketResponseDto<?> handleBattleStart(BattleWebSocketMessage<?> message, Long battleId) {
         Battle battle = battleRepository.findById(battleId)
-            .orElseThrow(() -> new RuntimeException("Battle not found"));
+                .orElseThrow(() -> new RuntimeException("Battle not found"));
 
         List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleIdWithUser(battleId);
 
         // 1. 배틀 시작을 위한 초기 데이터 정보 생성
         BattleData battleStartInfo = BattleData.builder()
-            .battleId(battleId)
-            .sessionId(battle.getSessionId())
-            .participants(participants.stream()
-                .map(p -> new ParticipantInfo(
-                    p.getUser().getUserId(),
-                    p.getUser().getNickname(),
-                    p.getUser().getProfileImage(),
-                    p.getRole(),
-                    p.getConnectionToken(),
-                    p.getUser().getSupportScore(),
-                    p.getUser().getPoint()
-                ))
-                .collect(Collectors.toList()))
-            .build();
+                .battleId(battleId)
+                .sessionId(battle.getSessionId())
+                .participants(participants.stream()
+                        .map(p -> new ParticipantInfo(
+                                p.getUser().getId(),
+                                p.getUser().getNickname(),
+                                p.getUser().getProfileImage(),
+                                p.getRole(),
+                                p.getConnectionToken(),
+                                p.getUser().getSupportScore(),
+                                p.getUser().getPoint()
+                        ))
+                        .collect(Collectors.toList()))
+                .build();
 
         // 2. 배틀 상태를 진행중으로 변경
         battle.updateStatus(Status.PROGRESS);
@@ -57,11 +58,11 @@ public class BattleWebSocketService {
 
 
         return WebSocketResponseDto.success(
-            BattleWebSocketMessage.builder()
-                .type(BattleDataType.BATTLE_START)
-                .battleId(battleId)
-                .data(battleStartInfo)
-                .build()
+                BattleWebSocketMessage.builder()
+                        .type(BattleDataType.BATTLE_START)
+                        .battleId(battleId)
+                        .data(battleStartInfo)
+                        .build()
         );
     }
 
@@ -77,12 +78,12 @@ public class BattleWebSocketService {
         userRepository.updateSupportScore(userId, score);
 
         return WebSocketResponseDto.success(
-            BattleWebSocketMessage.builder()
-                .type(BattleDataType.CHEER_UPDATE)
-                .battleId(message.getBattleId())
-                .userId(message.getUserId())
-                .data(data)
-                .build()
+                BattleWebSocketMessage.builder()
+                        .type(BattleDataType.CHEER_UPDATE)
+                        .battleId(message.getBattleId())
+                        .userId(message.getUserId())
+                        .data(data)
+                        .build()
         );
     }
 
@@ -97,12 +98,12 @@ public class BattleWebSocketService {
         userRepository.updatePoint(userId, point);
 
         return WebSocketResponseDto.success(
-            BattleWebSocketMessage.builder()
-                .type(BattleDataType.POINT_UPDATE)
-                .battleId(message.getBattleId())
-                .userId(message.getUserId())
-                .data(data)
-                .build()
+                BattleWebSocketMessage.builder()
+                        .type(BattleDataType.POINT_UPDATE)
+                        .battleId(message.getBattleId())
+                        .userId(message.getUserId())
+                        .data(data)
+                        .build()
         );
     }
 }
