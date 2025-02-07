@@ -14,7 +14,7 @@ import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
 import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
-import OtherUserPage from "./page/Mypage/OtherUserPage.jsx";
+import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
 
 function App() {
@@ -34,7 +34,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/other-user/:userId" element={<OtherUserPage />} />
+          <Route path="/my-following" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
           {/* <Route path="/mypagevote" element={<MyPageVote />} />
           <Route path="/mypagebattle" element={<MyPageBattle />} /> */}

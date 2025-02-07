@@ -281,6 +281,7 @@ public class BattleService {
 
         List<BattleInfo> battleInfos = battles.stream()
                 .map(battle -> BattleInfo.builder()
+                        .battleId(battle.getId())
                         .thumbnailUrl(battle.getThumbnailUrl())
                         .title(battle.getTitle())
                         .status(battle.getStatus().getCode())
