@@ -29,7 +29,7 @@ public class StoreItemService {
         List<StoreItem> items = storeItemRepository.findAllByOrderByCreatedAtDesc();
 
         if (items.isEmpty()) {
-            throw new StoreException(ErrorCode.STORE_ITEM_NOT_FOUND, "등록된 상품이 없습니다.");
+            throw new StoreException(ErrorCode.STORE_ITEM_NOT_PURCHASE, "등록된 상품이 없습니다.");
         }
 
         return items.stream()
@@ -50,7 +50,7 @@ public class StoreItemService {
         List<StoreItem> items = storeItemRepository.findAllUserItems(userId);
 
         if (items.isEmpty()) {
-            throw new StoreException(ErrorCode.STORE_ITEM_NOT_FOUND, "등록된 상품이 없습니다.");
+            throw new StoreException(ErrorCode.STORE_ITEM_NOT_FOUND, "구매한 상품이 없습니다.");
         }
 
         return items.stream()
@@ -70,6 +70,7 @@ public class StoreItemService {
         //타임 제외하고는 모든 아이템은 중복 구매가 안되는 로직 설정
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new StoreException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
+
 
         StoreItem item = storeItemRepository.findById(storeItemId)
                 .orElseThrow(() -> new StoreException(ErrorCode.STORE_ITEM_NOT_FOUND, "등록된 상품이 없습니다."));

@@ -59,7 +59,8 @@ public enum ErrorCode {
 
     // Store 관련 에러 코드 추가
     STORE_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
-    ALREADY_PURCHASED_ITEM(HttpStatus.CONFLICT, "이미 구매한 상품입니다.");
+    ALREADY_PURCHASED_ITEM(HttpStatus.CONFLICT, "이미 구매한 상품입니다."),
+    STORE_ITEM_NOT_PURCHASE(HttpStatus.NOT_FOUND, "구매한 상품이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
