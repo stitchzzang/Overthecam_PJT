@@ -2,7 +2,7 @@ import React from "react";
 
 const ExactDesign = () => {
   return (
-    <div className="w-full h-screen bg-white">
+    <div className="w-full h-full bg-white rounded-lt-lg rounded-lb-lg">
       <svg viewBox="0 0 400 400" className="w-full h-full">
         <defs>
           {/* Enhanced blue gradient with more saturation and depth */}
