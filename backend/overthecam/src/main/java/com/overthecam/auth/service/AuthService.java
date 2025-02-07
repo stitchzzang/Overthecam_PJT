@@ -40,6 +40,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
+                .username(request.getUsername())
                 .gender(request.getGender())
                 .birth(request.getBirth())
                 .phoneNumber(request.getPhoneNumber())

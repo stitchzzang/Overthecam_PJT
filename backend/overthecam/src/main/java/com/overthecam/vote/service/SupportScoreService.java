@@ -13,25 +13,35 @@ public class SupportScoreService {
     private final UserRepository userRepository;
 
     /**
-    * 유저의 응원점수 차감
+     * 응원 점수 차감
+     * - 잔여 점수 확인
+     * - 점수 차감 로직
      */
     public void deductSupportScore(User user, int amount) {
-        // 1. 잔여 점수 확인
-        if (user.getSupportScore() < amount) {
-            throw new InsufficientSupportScoreException("응원 점수가 부족합니다");
-        }
-        // 2. 점수 차감
+        validateSufficientScore(user, amount);
         user.setSupportScore(user.getSupportScore() - amount);
     }
 
     /**
-     * 유저의 응원점수 추가
+     * 응원 점수 추가
+     * - 점수 누적 로직
      */
     public void addSupportScore(User user, int amount) {
         user.setSupportScore(user.getSupportScore() + amount);
     }
 
-    // 커스텀 예외 클래스 정의: 응원점수가 부족할 때
+    /**
+     * 응원 점수 충분 여부 검증
+     */
+    private void validateSufficientScore(User user, int amount) {
+        if (user.getSupportScore() < amount) {
+            throw new InsufficientSupportScoreException("응원 점수가 부족합니다");
+        }
+    }
+
+    /**
+     * 응원점수 부족 시 발생하는 예외
+     */
     public static class InsufficientSupportScoreException extends RuntimeException {
         public InsufficientSupportScoreException(String message) {
             super(message);

@@ -1,4 +1,9 @@
 package com.overthecam.vote.repository;
+/**
+ * 키워드 검색
+ * 배틀 ID 필터링
+ * 투표 수 기준 정렬
+ */
 
 import com.overthecam.vote.domain.Vote;
 import org.springframework.data.domain.Page;
@@ -12,16 +17,7 @@ import java.util.List;
 
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
-    // 키워드로 제목/내용 검색 (대소문자 구분 없음)
-    @Query("SELECT v FROM Vote v WHERE " +
-            "LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    Page<Vote> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
-    // BattleId로 투표 검색
-    Page<Vote> findByBattleId(Long battleId, Pageable pageable);
-
-    // 키워드와 Battle ID로 복합 검색
+    // 키워드 및 배틀 ID 복합 검색
     @Query("SELECT v FROM Vote v WHERE " +
             "(:keyword IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class UserResponse {
     private Long userId;
     private String email;
+    private String username;
     private String nickname;
     private Integer supportScore;
     private Integer point;
@@ -22,6 +23,7 @@ public class UserResponse {
         return UserResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
+                .username(user.getUsername())
                 .nickname(user.getNickname())
                 .supportScore(user.getSupportScore())
                 .point(user.getPoint())
