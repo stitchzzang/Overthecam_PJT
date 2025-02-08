@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicAxios } from '../../common/axiosinstance';
 import Pagination from 'react-js-pagination';
+import { Bar } from 'react-chartjs-2';
+import 'chart.js/auto';
 
 const VoteInProgressPage = () => {
   const navigate = useNavigate();
@@ -10,13 +12,14 @@ const VoteInProgressPage = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [currentList, setCurrentList] = useState([]);
+  const [selectedVote, setSelectedVote] = useState(null);
   const itemsPerPage = 5;
 
   useEffect(() => {
     const fetchVotes = async () => {
       try {
         setLoading(true);
-        const response = await publicAxios.get('/vote/list', {  // Updated API endpoint
+        const response = await publicAxios.get('/vote/list', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -33,7 +36,6 @@ const VoteInProgressPage = () => {
         if (err.code === 'ERR_NETWORK') {
           setError('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
         } else if (err.response) {
-          // Server responded with error status
           if (err.response.status === 401) {
             localStorage.removeItem('token');
             navigate('/login', { state: { from: '/vote' } });
@@ -60,13 +62,13 @@ const VoteInProgressPage = () => {
   const handleVote = async (voteId, optionId) => {
     try {
       console.log('Submitting vote with data:', { voteId, optionId });
-      await publicAxios.post(`/vote/${voteId}/vote/${optionId}`, {}, {  // Updated API endpoint
+      await publicAxios.post(`/vote/${voteId}/vote/${optionId}`, {}, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       console.log('Vote submitted:', { voteId, optionId });
-      const response = await publicAxios.get('/vote/list', {  // Updated API endpoint
+      const response = await publicAxios.get('/vote/list', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -76,6 +78,7 @@ const VoteInProgressPage = () => {
         const indexOfLastItem = page * itemsPerPage;
         const indexOfFirstItem = indexOfLastItem - itemsPerPage;
         setCurrentList(response.data.content.slice(indexOfFirstItem, indexOfLastItem));
+        setSelectedVote(response.data.content.find(vote => vote.id === voteId));
       }
     } catch (err) {
       if (err.code === 'ERR_NETWORK') {
@@ -84,7 +87,6 @@ const VoteInProgressPage = () => {
       }
       
       if (err.response) {
-        // Server responded with error status
         switch (err.response.status) {
           case 401:
             navigate('/login', { state: { from: '/vote' } });
@@ -96,6 +98,10 @@ const VoteInProgressPage = () => {
           case 404:
             console.error('Resource not found:', err.response.data);
             alert(err.response.data.message || '투표를 찾을 수 없습니다.');
+            break;
+          case 500:
+            console.error('Server error:', err.response.data);
+            alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             break;
           default:
             console.error('Vote error:', err.response.data);
@@ -135,11 +141,30 @@ const VoteInProgressPage = () => {
             <div className="flex justify-between text-sm text-gray-600">
               <span>{vote.option1}: {vote.option1Votes}%</span>
               <span>{vote.option2}: {vote.option2Votes}%</span>
+              <span>참여자 수: {vote.totalVotes}</span>
             </div>
           </div>
         ))
       ) : (
         <div className="text-center py-8">현재 진행중인 투표가 없습니다.</div>
+      )}
+      {selectedVote && (
+        <div className="mt-8">
+          <h3 className="text-xl font-bold mb-4">투표 결과</h3>
+          <Bar
+            data={{
+              labels: [selectedVote.option1, selectedVote.option2],
+              datasets: [
+                {
+                  label: '투표 수',
+                  data: [selectedVote.option1Votes, selectedVote.option2Votes],
+                  backgroundColor: ['#36A2EB', '#FF6384'],
+                },
+              ],
+            }}
+            options={{ responsive: true }}
+          />
+        </div>
       )}
       <div className="flex justify-center pb-10">
         <Pagination
