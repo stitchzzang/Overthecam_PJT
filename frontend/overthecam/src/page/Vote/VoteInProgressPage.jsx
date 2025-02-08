@@ -5,6 +5,51 @@ import Pagination from 'react-js-pagination';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 
+const CustomPagination = ({ activePage, itemsCountPerPage, totalItemsCount, onChange }) => {
+  const totalPages = Math.ceil(totalItemsCount / itemsCountPerPage);
+  const pages = [];
+
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push(
+      <button
+        key={`page-${i}`}
+        onClick={() => onChange(i)}
+        className={`px-4 py-2 rounded-lg transition ${
+          activePage === i 
+            ? 'bg-cusBlack-light text-white' 
+            : 'text-cusBlack-light hover:bg-gray-300'
+        }`}
+      >
+        {i}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex gap-2">
+      {activePage > 1 && (
+        <button
+          key="prev"
+          onClick={() => onChange(activePage - 1)}
+          className="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+        >
+          이전
+        </button>
+      )}
+      {pages}
+      {activePage < totalPages && (
+        <button
+          key="next"
+          onClick={() => onChange(activePage + 1)}
+          className="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+        >
+          다음
+        </button>
+      )}
+    </div>
+  );
+};
+
 const VoteInProgressPage = () => {
   const navigate = useNavigate();
   const [votes, setVotes] = useState([]);
@@ -13,6 +58,7 @@ const VoteInProgressPage = () => {
   const [page, setPage] = useState(1);
   const [currentList, setCurrentList] = useState([]);
   const [selectedVote, setSelectedVote] = useState(null);
+  const [isVoting, setIsVoting] = useState(false);
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -24,9 +70,23 @@ const VoteInProgressPage = () => {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-        console.log('API Response:', response.data);
+        
         if (response.data && response.data.content) {
-          setVotes(response.data.content);
+          // 데이터 구조 매핑 수정
+          const mappedVotes = response.data.content.map(vote => ({
+            id: vote.voteId, // voteId를 id로 매핑
+            title: vote.title,
+            content: vote.content,
+            option1: vote.option1,
+            option2: vote.option2,
+            option1Id: vote.optionId1,
+            option2Id: vote.optionId2,
+            option1Votes: vote.option1Percentage,
+            option2Votes: vote.option2Percentage,
+            totalVotes: vote.totalVotes
+          }));
+          
+          setVotes(mappedVotes);
           setError(null);
         } else {
           setError('투표 목록을 불러오는데 실패했습니다.');
@@ -54,64 +114,111 @@ const VoteInProgressPage = () => {
   }, [navigate]);
 
   useEffect(() => {
+    console.log('Votes updated:', votes); // votes 상태 업데이트 확인
     const indexOfLastItem = page * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    setCurrentList(votes.slice(indexOfFirstItem, indexOfLastItem));
+    const slicedList = votes.slice(indexOfFirstItem, indexOfLastItem);
+    console.log('Sliced list:', slicedList); // 잘린 목록 확인
+    setCurrentList(slicedList);
   }, [page, votes]);
 
   const handleVote = async (voteId, optionId) => {
+    if (isVoting) return;
+    
+    console.log('Vote attempt with:', { voteId, optionId });
+    
+    if (!voteId || !optionId) {
+      console.error('Required IDs missing:', { voteId, optionId });
+      return;
+    }
+    
+    setIsVoting(true);
     try {
-      console.log('Submitting vote with data:', { voteId, optionId });
-      await publicAxios.post(`/vote/${voteId}/vote/${optionId}`, {}, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const voteResponse = await publicAxios.post(
+        `/vote/${voteId}/vote/${optionId}`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          }
         }
-      });
-      console.log('Vote submitted:', { voteId, optionId });
-      const response = await publicAxios.get('/vote/list', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      );
+
+      if (voteResponse.status === 200) {
+        const listResponse = await publicAxios.get('/vote/list', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (listResponse.data && listResponse.data.content) {
+          // 응답 데이터 매핑 추가
+          const mappedVotes = listResponse.data.content.map(vote => ({
+            id: vote.voteId,
+            title: vote.title,
+            content: vote.content,
+            option1: vote.option1,
+            option2: vote.option2,
+            option1Id: vote.optionId1,
+            option2Id: vote.optionId2,
+            option1Votes: vote.option1Percentage,
+            option2Votes: vote.option2Percentage,
+            totalVotes: vote.totalVotes
+          }));
+          
+          setVotes(mappedVotes);
+          updateCurrentList(mappedVotes, page);
+          setSelectedVote(mappedVotes.find(vote => vote.id === voteId));
+          alert('투표가 성공적으로 등록되었습니다.');
         }
-      });
-      if (response.data && response.data.content) {
-        setVotes(response.data.content);
-        const indexOfLastItem = page * itemsPerPage;
-        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-        setCurrentList(response.data.content.slice(indexOfFirstItem, indexOfLastItem));
-        setSelectedVote(response.data.content.find(vote => vote.id === voteId));
       }
     } catch (err) {
-      if (err.code === 'ERR_NETWORK') {
-        alert('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+      console.error('Vote error details:', err);
+      
+      if (err.message === '투표 정보가 올바르지 않습니다.' || err.message === '잘못된 투표 정보입니다.') {
+        alert(err.message);
         return;
       }
-      
+
+      if (!navigator.onLine) {
+        alert('인터넷 연결을 확인해주세요.');
+        return;
+      }
+
       if (err.response) {
         switch (err.response.status) {
+          case 400:
+            alert('잘못된 요청입니다. 입력값을 확인해주세요.');
+            break;
           case 401:
+            alert('로그인이 필요합니다.');
             navigate('/login', { state: { from: '/vote' } });
             break;
-          case 400:
-            console.error('Invalid input data:', err.response.data);
-            alert(err.response.data.message || '잘못된 입력값입니다.');
+          case 403:
+            alert('투표 권한이 없습니다.');
             break;
           case 404:
-            console.error('Resource not found:', err.response.data);
-            alert(err.response.data.message || '투표를 찾을 수 없습니다.');
+            alert('존재하지 않는 투표입니다.');
             break;
           case 500:
-            console.error('Server error:', err.response.data);
             alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             break;
           default:
-            console.error('Vote error:', err.response.data);
-            alert(err.response.data.message || '투표하는 도중 오류가 발생했습니다.');
+            alert('투표 처리 중 오류가 발생했습니다.');
         }
       } else {
-        alert('예기치 않은 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        alert('투표 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
-      console.error('Vote error:', err);
+    } finally {
+      setIsVoting(false);
     }
+  };
+
+  // 현재 페이지 목록 업데이트 헬퍼 함수
+  const updateCurrentList = (votes, currentPage) => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    setCurrentList(votes.slice(indexOfFirstItem, indexOfLastItem));
   };
 
   const changePageHandler = (page) => {
@@ -124,17 +231,51 @@ const VoteInProgressPage = () => {
   return (
     <div className="p-4">
       {currentList.length > 0 ? (
-        currentList.map(vote => (
-          <div key={vote.id} className="mb-4">
-            <h3 className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/vote-detail/${vote.id}`)}>
+        currentList.map((vote, index) => (
+          <div key={vote.id || index} className="mb-4">
+            <h3 
+              className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600" 
+              onClick={() => {
+                console.log('Navigating to vote detail:', `/vote-detail/${vote.id}`);
+                navigate(`/vote-detail/${vote.id}`);
+              }}
+            >
               {vote.title}
             </h3>
             {vote.content && <p>{vote.content}</p>}
             <div className="flex gap-4 mb-4">
-              <button onClick={() => handleVote(vote.id, vote.option1Id)} className="flex-1">
+              <button 
+                onClick={() => {
+                  const optionId = vote.option1Id || vote.optionId1;
+                  console.log('Vote data:', {
+                    voteId: vote.id,
+                    optionId,
+                    vote
+                  });
+                  if (vote.id && optionId) {
+                    handleVote(vote.id, optionId);
+                  }
+                }} 
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                disabled={isVoting}
+              >
                 {vote.option1}
               </button>
-              <button onClick={() => handleVote(vote.id, vote.option2Id)} className="flex-1">
+              <button 
+                onClick={() => {
+                  const optionId = vote.option2Id || vote.optionId2;
+                  console.log('Vote data:', {
+                    voteId: vote.id,
+                    optionId,
+                    vote
+                  });
+                  if (vote.id && optionId) {
+                    handleVote(vote.id, optionId);
+                  }
+                }} 
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                disabled={isVoting}
+              >
                 {vote.option2}
               </button>
             </div>
@@ -167,18 +308,11 @@ const VoteInProgressPage = () => {
         </div>
       )}
       <div className="flex justify-center pb-10">
-        <Pagination
+        <CustomPagination
           activePage={page}
           itemsCountPerPage={itemsPerPage}
           totalItemsCount={votes.length}
-          pageRangeDisplayed={5}
-          prevPageText={"이전"}
-          nextPageText={"다음"}
           onChange={changePageHandler}
-          innerClass="flex gap-2"
-          itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
-          activeClass="bg-cusBlack-light !text-white"
-          linkClass="block w-full h-full text-center"
         />
       </div>
     </div>
