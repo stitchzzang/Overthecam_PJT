@@ -14,4 +14,6 @@ public interface BattleParticipantRepository extends JpaRepository<BattlePartici
     List<BattleParticipant> findAllByBattleIdWithUser(@Param("battleId") Long battleId);
 
     List<BattleParticipant> findAllByBattleId(Long battleId);
+
+    void deleteAllByBattleId(Long battleId);
 }
