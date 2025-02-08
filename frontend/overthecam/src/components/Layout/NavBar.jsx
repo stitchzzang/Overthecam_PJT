@@ -15,7 +15,7 @@ export default function NavBar() {
 
   return (
     <>
-      <header className="h-[60px] border-b shadow-sm">
+      <header className="h-[60px]">
         <div className="max-w-7xl mx-auto flex items-center justify-between h-full px-3">
           <div className="flex items-center gap-4">
             <button
