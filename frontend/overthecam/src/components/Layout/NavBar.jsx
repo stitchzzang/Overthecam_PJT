@@ -15,12 +15,9 @@ export default function NavBar() {
 
   useEffect(() => {
     // 로그인 여부 확인 API 호출
-    if (localStorage.getItem("token")) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [isLoggedIn]);
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, [localStorage.getItem("token")]); // 토큰 변경을 감지
 
   return (
     <>
@@ -77,20 +74,20 @@ export default function NavBar() {
                 </div>
               </>
             ) : (
-              <>
+              <div className="flex gap-3">
                 <Link
                   to="/login"
-                  className="btn px-4 py-1.5 text-sm bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   로그인
                 </Link>
                 <Link
                   to="/signup"
-                  className="btn px-4 py-1.5 text-sm bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   회원가입
                 </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
