@@ -19,10 +19,9 @@ public class OpenViduConfig {
     @Bean
     public OpenVidu openVidu() {
         log.info("OpenVidu URL: {}", OPENVIDU_URL);
-        log.debug("OpenVidu Secret: {}", OPENVIDU_SECRET);
 
-        log.info("Added port to URL: {}", OPENVIDU_URL);
-
+        // SSL 검증 비활성화
+        System.setProperty("OPENVIDU_ALLOW_SELFSIGNED_CERTIFICATES", "true");
 
         return new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
     }
