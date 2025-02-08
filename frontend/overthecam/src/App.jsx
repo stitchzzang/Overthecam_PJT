@@ -18,12 +18,14 @@ import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
 import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
+import MainPage from "./page/Main/MainPage.jsx";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route index element={<MainPage />} />
           <Route path="/battle-list" element={<BattleMainPage />} />
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
