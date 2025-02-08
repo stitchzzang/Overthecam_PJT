@@ -100,17 +100,17 @@ const PurchaseConfirmModal = forwardRef(function PurchaseConfirmModal(
           <div className="flex gap-3 w-full mt-2">
             <button
               type="button"
-              onClick={() => onPurchase(itemId)}
-              className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
-            >
-              구매 확정
-            </button>
-            <button
-              type="button"
               onClick={() => ref.current.close()}
               className="btn flex-1 py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300 font-semibold"
             >
               취소
+            </button>
+            <button
+              type="button"
+              onClick={() => onPurchase(itemId)}
+              className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
+            >
+              구매 확정
             </button>
           </div>
         </div>
