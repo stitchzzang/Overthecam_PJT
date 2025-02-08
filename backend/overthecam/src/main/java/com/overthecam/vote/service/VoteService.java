@@ -2,6 +2,7 @@ package com.overthecam.vote.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.vote.exception.VoteErrorCode;
@@ -30,11 +31,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class VoteService {
+
     private final VoteRepository voteRepository;
     private final VoteOptionRepository voteOptionRepository;
     private final VoteRecordRepository voteRecordRepository;
     private final VoteCommentRepository voteCommentRepository;
     private final UserRepository userRepository;
+    private final BattleRepository battleRepository;
     private final SupportScoreService supportScoreService;
 
     @Autowired
@@ -52,29 +55,16 @@ public class VoteService {
         // 투표 요청 데이터 유효성 검증
         validateVoteRequest(requestDto);
 
-        // 현재 시점으로부터 14일 후를 endDate로 설정
-        LocalDateTime endDate = LocalDateTime.now().plusDays(14);
-
         // 투표 엔티티 생성
-        Vote vote = Vote.builder()
-                .user(user)
-                .title(requestDto.getTitle())
-                .content(requestDto.getContent())
-                .battleId(requestDto.getBattleId())
-                .endDate(endDate)
-                .isActive(true)
-                .build();
+        Vote vote = createVoteEntity(requestDto, user);
 
         // 옵션 추가
-        requestDto.getOptions().forEach(optionTitle -> {
-            VoteOption option = VoteOption.builder()
-                    .optionTitle(optionTitle)
-                    .build();
-            vote.addOption(option);
-        });
+        addOptionsToVote(vote, requestDto.getOptions());
 
         // 사용자 응원 점수 적립
-        supportScoreService.addSupportScore(user, 500);
+        if(requestDto.getBattleId() != null) {
+            supportScoreService.addSupportScore(user, 500);
+        }
 
         // 투표 저장 및 응답 DTO 변환
         Vote savedVote = voteRepository.save(vote);
@@ -98,12 +88,15 @@ public class VoteService {
      */
     private Vote createVoteEntity(VoteRequestDto requestDto, User user) {
         Vote.VoteBuilder builder = Vote.builder()
-                .user(user)
-                .title(requestDto.getTitle())
-                .content(requestDto.getContent());
+            .user(user)
+            .title(requestDto.getTitle())
+            .content(requestDto.getContent())
+            .endDate(LocalDateTime.now().plusDays(7))
+            .isActive(true);
+
         // battleId가 존재하는 경우에만 설정
         if (requestDto.getBattleId() != null) {
-            builder.battleId(requestDto.getBattleId());
+            builder.battle(battleRepository.findById(requestDto.getBattleId()).get());
         }
 
         return builder.build();
@@ -123,7 +116,7 @@ public class VoteService {
         });
     }
 
-// 2. 투표 목록 조회 메서드
+    // 2. 투표 목록 조회 메서드
     /**
      * 투표 목록 조회
      * - 키워드/정렬 기준에 따른 유연한 검색
@@ -171,12 +164,7 @@ public class VoteService {
      */
     private Page<Vote> searchVotesByCondition(String keyword, String sortBy, Pageable sortedPageable) {
         if (StringUtils.hasText(keyword)) {
-            try {
-                Long battleId = Long.parseLong(keyword);
-                return voteRepository.searchByKeywordAndBattleId(null, battleId, sortedPageable);
-            } catch (NumberFormatException e) {
-                return voteRepository.searchByKeywordAndBattleId(keyword, null, sortedPageable);
-            }
+            return voteRepository.searchByKeyword(keyword, sortedPageable);
         } else {
             return getVotesBySort(sortBy, sortedPageable);
         }
@@ -191,7 +179,7 @@ public class VoteService {
         if ("popularity".equals(sortBy) || "voteCount".equals(sortBy)) {
             return voteRepository.findAllOrderByVoteCountDesc(pageable);
         }
-        return voteRepository.findAll(pageable);
+        return voteRepository.findAllNormalVotes(pageable);
     }
 
     /**
@@ -205,7 +193,6 @@ public class VoteService {
 
         return VoteResponseDto.builder()
                 .voteId(vote.getVoteId())
-                .battleId(vote.getBattleId())
                 .title(vote.getTitle())
                 .content(vote.getContent())
                 .creatorNickname(vote.getUser().getNickname())
@@ -243,7 +230,6 @@ public class VoteService {
         // 투표 상세 정보 구성
         return VoteResponseDto.builder()
                 .voteId(vote.getVoteId())
-                .battleId(vote.getBattleId())
                 .title(vote.getTitle())
                 .content(vote.getContent())
                 .creatorNickname(vote.getUser().getNickname())
@@ -388,7 +374,6 @@ public class VoteService {
 
         return VoteResponseDto.builder()
                 .voteId(vote.getVoteId())
-                .battleId(vote.getBattleId())
                 .title(vote.getTitle())
                 .content(vote.getContent())
                 .creatorNickname(vote.getUser().getNickname())

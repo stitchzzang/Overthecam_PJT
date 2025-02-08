@@ -22,7 +22,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class VoteResponseDto {
     private Long voteId;
-    private Long battleId;
     private String title;
     private String content;
     private String creatorNickname;
