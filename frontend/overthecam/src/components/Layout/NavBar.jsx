@@ -27,9 +27,9 @@ export default function NavBar() {
       <header className="h-[80px] mb-4">
         <div className="max-w-7xl mx-auto h-full px-3 relative flex items-center">
           {/* Left Section - Logo */}
-          <div className="flex items-center gap-4 w-1/4">
+          <div className="flex justify-start items-center w-1/6">
             <button
-              className="text-2xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue"
+              className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[60px]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               ☰
@@ -38,14 +38,14 @@ export default function NavBar() {
               <img
                 src="/images/Logo.png"
                 alt="Logo"
-                className="h-10"
-                style={{ width: "auto", maxWidth: "160px" }}
+                className="ml-4 w-3/4 h-3/4"
+                // style={{ width: "auto", maxWidth: "160px" }}
               />
             </Link>
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-1/3 min-w-[400px]">
+          <div className="absolute left-1/2 transform -translate-x-1/2 min-w-[550px]">
             <SearchBar />
           </div>
 
