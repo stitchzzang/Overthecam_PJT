@@ -16,7 +16,9 @@ authAxios.interceptors.request.use(
     // console.log(import.meta.env.VITE_BASE_URL,)
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 authAxios.interceptors.response.use(
@@ -24,7 +26,8 @@ authAxios.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    return Promise.reject(error);
+    // console.log("Response error:", error.response.data);
+    return Promise.reject(error.response.data);
   }
 );
 
@@ -51,13 +54,13 @@ publicAxios.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(error.response.data);
   }
 );
 
 
-// 환경변수 값도 직접 확인
-console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);  // 여기 추가
-console.log("Current origin:", window.location.origin);
+// // 환경변수 값도 직접 확인
+// console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);  // 여기 추가
+// console.log("Current origin:", window.location.origin);
 
 export { authAxios, publicAxios };
