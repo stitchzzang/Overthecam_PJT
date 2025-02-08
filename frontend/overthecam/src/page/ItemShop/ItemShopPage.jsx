@@ -2,7 +2,6 @@ import ItemList from "../../components/ItemShop/ItemList";
 import MyInventory from "../../components/ItemShop/MyInventory";
 
 function ItemShopPage() {
-
   return (
     <>
       <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
@@ -13,7 +12,6 @@ function ItemShopPage() {
       <MyInventory />
       <div></div>
       <div>
-        <h3>상품 목록</h3>
         <div>
           <ItemList />
         </div>
