@@ -15,13 +15,10 @@ export default function NavBar() {
 
   useEffect(() => {
     // 로그인 여부 확인 API 호출
-    if (localStorage.getItem("token")) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [isLoggedIn]);
-
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, [localStorage.getItem("token")]); // 토큰 변경을 감지
+  
   return (
     <>
       <header className="h-[80px] mb-4">
