@@ -17,10 +17,7 @@ public class OpenViduConfig {
     @Bean
     public OpenVidu openVidu() {
         // URL이 https://로 시작하는지 확인하고 필요시 추가
-        String finalUrl = OPENVIDU_URL;
-        if (!finalUrl.startsWith("https://")) {
-            finalUrl = "https://" + finalUrl;
-        }
+        System.out.println(OPENVIDU_URL);
         return new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
     }
 
