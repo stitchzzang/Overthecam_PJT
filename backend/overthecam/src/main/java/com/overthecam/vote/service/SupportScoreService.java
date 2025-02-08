@@ -2,6 +2,8 @@ package com.overthecam.vote.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.common.exception.GlobalException;
+import com.overthecam.member.exception.UserErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,16 +37,8 @@ public class SupportScoreService {
      */
     private void validateSufficientScore(User user, int amount) {
         if (user.getSupportScore() < amount) {
-            throw new InsufficientSupportScoreException("응원 점수가 부족합니다");
+            throw new GlobalException(UserErrorCode.INSUFFICIENT_SCORE, "응원 점수가 부족합니다.");
         }
     }
 
-    /**
-     * 응원점수 부족 시 발생하는 예외
-     */
-    public static class InsufficientSupportScoreException extends RuntimeException {
-        public InsufficientSupportScoreException(String message) {
-            super(message);
-        }
-    }
 }
