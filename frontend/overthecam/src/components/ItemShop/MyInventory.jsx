@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getMyInventory } from "../../service/ItemShop/api";
-import PointExchangeModal from "./PointExchangeModal";
+import PointExchangeModal from "./ShopModal/PointExchangeModal";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 
@@ -221,6 +221,14 @@ function MyInventory() {
                 <span>포인트 전환</span>
               </div>
             </button>
+
+            <PointExchangeModal
+              ref={exchangeDialog}
+              myCheerScore={myCheerScore}
+              myPoints={myPoints}
+              onSuccess={handleExchange}
+            />
+
           </div>
         </div>
 

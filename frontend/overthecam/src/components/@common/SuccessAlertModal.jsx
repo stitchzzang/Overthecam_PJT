@@ -1,7 +1,8 @@
 import { forwardRef, useImperativeHandle, useRef } from "react";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 const SuccessAlertModal = forwardRef(function SuccessAlertModal(_, ref) {
- const modalRef = useRef();
+  const modalRef = useRef();
   
   useImperativeHandle(ref, () => ({
     showAlert: (message) => {
@@ -14,6 +15,10 @@ const SuccessAlertModal = forwardRef(function SuccessAlertModal(_, ref) {
         modalRef.current.querySelector(".message").textContent = message;
         modalRef.current.showModal();
         console.log("모달 표시 완료");
+        
+        setTimeout(() => {
+          modalRef.current?.close();
+        }, 3000);
       } catch (error) {
         console.error("모달 표시 중 에러:", error);
       }
@@ -23,17 +28,12 @@ const SuccessAlertModal = forwardRef(function SuccessAlertModal(_, ref) {
   return (
     <dialog 
       ref={modalRef} 
-      className="success-alert-modal"
+      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 w-96 rounded-xl shadow-xl bg-white border-2 border-green-200"
     >
-      <p 
-        className="message" 
-      ></p>
-      <button 
-        type="button" 
-        onClick={() => modalRef.current?.close()}
-      >
-        확인
-      </button>
+      <div className="flex items-center gap-4 p-5 bg-green-50">
+        <CheckCircleIcon className="text-green-500 w-8 h-8 flex-shrink-0" />
+        <p className="message text-base font-medium text-gray-800"></p>
+      </div>
     </dialog>
   );
 });

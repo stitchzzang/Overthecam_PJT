@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import PurchaseConfirmModal from './PurchaseConfirmModal';
+import PurchaseConfirmModal from './ShopModal/PurchaseConfirmModal';
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 function ItemListItem({ itemInfo }) {
@@ -97,6 +97,7 @@ function ItemListItem({ itemInfo }) {
         itemName={itemInfo.name}
         itemDetail={itemInfo.detail}
         itemImg={itemInfo.imageUrl}
+        itemType={itemInfo.type}
       />
       <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 clay group hover:-translate-y-1">
         <div className="flex flex-col gap-2">

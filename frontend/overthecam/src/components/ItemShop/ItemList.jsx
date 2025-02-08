@@ -169,7 +169,7 @@ function ItemList() {
             </div>
           ) : (
             <div className="flex justify-center items-center h-full">
-              <p className="text-xl font-semibold text-cusBlue drop-shadow-lg">
+              <p className="text-xl font-semibold text-cusBlack drop-shadow-lg">
                 해당 카테고리에 상품이 없습니다.
               </p>
             </div>
