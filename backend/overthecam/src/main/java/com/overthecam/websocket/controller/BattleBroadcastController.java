@@ -36,11 +36,11 @@ public class BattleBroadcastController {
         UserPrincipal user = authenticateUser(headerAccessor);
 
         return switch (request.getType()) {
-            case BATTLE_START -> WebSocketResponseDto.success(
+            case BATTLE_START -> WebSocketResponseDto.ok(
                 MessageType.BATTLE_START,
                 battleDataService.handleBattleStart(battleId)
             );
-            case BATTLER_SELECT -> WebSocketResponseDto.success(
+            case BATTLER_SELECT -> WebSocketResponseDto.ok(
                 MessageType.BATTLER_SELECT,
                 battleWebsocketService.getBattlerNotification(battleId)
             );
@@ -58,7 +58,7 @@ public class BattleBroadcastController {
     private WebSocketResponseDto<?> handleChatMessage(Object data, UserPrincipal user) {
         try {
             ChatMessageRequest chatRequest = requestMapper.mapToChatMessageRequest(data);
-            return WebSocketResponseDto.success(
+            return WebSocketResponseDto.ok(
                 MessageType.CHAT,
                 chatMessageService.sendMessage(chatRequest, user)
             );
