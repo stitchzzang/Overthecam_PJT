@@ -1,6 +1,6 @@
 package com.overthecam.websocket.dto;
 
-import com.overthecam.exception.websocket.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -54,7 +54,7 @@ public class WebSocketResponseDto<T> {
     public static <T> WebSocketResponseDto<T> error(WebSocketErrorCode errorCode) {
         return WebSocketResponseDto.<T>builder()
                 .type(MessageType.ERROR)
-                .code(errorCode.getCode())
+                .code(errorCode.name())
                 .message(errorCode.getMessage())
                 .build();
     }

@@ -1,4 +1,4 @@
-package com.overthecam.exception.websocket;
+package com.overthecam.websocket.exception;
 
 import com.overthecam.websocket.dto.WebSocketResponseDto;
 import lombok.extern.slf4j.Slf4j;

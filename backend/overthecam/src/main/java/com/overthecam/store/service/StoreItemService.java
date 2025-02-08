@@ -2,8 +2,9 @@ package com.overthecam.store.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
-import com.overthecam.exception.ErrorCode;
-import com.overthecam.exception.store.StoreException;
+import com.overthecam.common.exception.GlobalException;
+import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.store.exception.StoreErrorCode;
 import com.overthecam.store.domain.ItemType;
 import com.overthecam.store.domain.StoreItem;
 import com.overthecam.store.domain.StorePurchase;
@@ -29,7 +30,7 @@ public class StoreItemService {
         List<StoreItem> items = storeItemRepository.findAllByOrderByCreatedAtDesc();
 
         if (items.isEmpty()) {
-            throw new StoreException(ErrorCode.STORE_ITEM_NOT_PURCHASE, "등록된 상품이 없습니다.");
+            throw new GlobalException(StoreErrorCode.STORE_ITEM_NOT_PURCHASE, "등록된 상품이 없습니다.");
         }
 
         return items.stream()
@@ -50,7 +51,7 @@ public class StoreItemService {
         List<StoreItem> items = storeItemRepository.findAllUserItems(userId);
 
         if (items.isEmpty()) {
-            throw new StoreException(ErrorCode.STORE_ITEM_NOT_FOUND, "구매한 상품이 없습니다.");
+            throw new GlobalException(StoreErrorCode.STORE_ITEM_NOT_FOUND, "구매한 상품이 없습니다.");
         }
 
         return items.stream()
@@ -69,16 +70,16 @@ public class StoreItemService {
     public void purchaseItem(Long storeItemId, Long userId) {
         //타임 제외하고는 모든 아이템은 중복 구매가 안되는 로직 설정
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new StoreException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
 
         StoreItem item = storeItemRepository.findById(storeItemId)
-                .orElseThrow(() -> new StoreException(ErrorCode.STORE_ITEM_NOT_FOUND, "등록된 상품이 없습니다."));
+                .orElseThrow(() -> new GlobalException(StoreErrorCode.STORE_ITEM_NOT_FOUND, "등록된 상품이 없습니다."));
 
 
         if (item.getType() != ItemType.TIME) {
             if (storePurchaseRepository.existsByUserIdAndStoreItemId(userId, storeItemId)) {
-                throw new StoreException(ErrorCode.ALREADY_PURCHASED_ITEM, "해당 상품은 중복구매가 불가능합니다.");
+                throw new GlobalException(StoreErrorCode.ALREADY_PURCHASED_ITEM, "해당 상품은 중복구매가 불가능합니다.");
             }
         }
 

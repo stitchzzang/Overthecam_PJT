@@ -25,7 +25,7 @@ public class StoreItemController {
     @GetMapping("/all")
     public CommonResponseDto<List<StoreAllItemsResponseDto>> getAllItems() {
         List<StoreAllItemsResponseDto> items = storeItemService.getAllItems();
-        return CommonResponseDto.success(items);
+        return CommonResponseDto.ok(items);
     }
 
     /**
@@ -36,7 +36,7 @@ public class StoreItemController {
 
         Long userId = securityUtils.getCurrentUserId(authentication);
         List<StoreAllItemsResponseDto> items = storeItemService.getMyItems(userId);
-        return CommonResponseDto.success(items);
+        return CommonResponseDto.ok(items);
     }
 
     /**
@@ -49,7 +49,7 @@ public class StoreItemController {
     public CommonResponseDto purchaseItem(Authentication authentication, @PathVariable("storeItemId") Long storeItemId) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         storeItemService.purchaseItem(storeItemId, userId);
-        return CommonResponseDto.success("구매에 성공했습니다.");
+        return CommonResponseDto.ok();
     }
 
 
