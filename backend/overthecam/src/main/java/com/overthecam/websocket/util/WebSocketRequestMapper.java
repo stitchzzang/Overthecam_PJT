@@ -2,6 +2,7 @@ package com.overthecam.websocket.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.member.dto.UserScoreInfo;
+import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.websocket.dto.ChatMessageRequest;
 import com.overthecam.websocket.dto.InvitationRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,4 +24,9 @@ public class WebSocketRequestMapper {
     public InvitationRequest mapToInvitationRequest(Object data){
         return objectMapper.convertValue(data, InvitationRequest.class);
     }
+
+    public VoteRequest mapToVoteRequestDto(Object data){
+        return objectMapper.convertValue(data, VoteRequest.class);
+    }
+
 }

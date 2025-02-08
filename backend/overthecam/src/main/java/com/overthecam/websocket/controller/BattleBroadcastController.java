@@ -1,8 +1,10 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.vote.service.VoteService;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
 import com.overthecam.websocket.service.BattleDataService;
+import com.overthecam.websocket.service.BattleVoteService;
 import com.overthecam.websocket.service.BattleWebsocketService;
 import com.overthecam.websocket.service.ChatMessageService;
 import com.overthecam.websocket.dto.*;
@@ -21,9 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BattleBroadcastController {
 
+    private final VoteService voteService;
     private final BattleDataService battleDataService;
     private final BattleWebsocketService battleWebsocketService;
     private final ChatMessageService chatMessageService;
+    private final BattleVoteService battleVoteService;
+
     private final WebSocketRequestMapper requestMapper;
 
     @MessageMapping("/battle/{battleId}")
@@ -36,6 +41,16 @@ public class BattleBroadcastController {
         UserPrincipal user = authenticateUser(headerAccessor);
 
         return switch (request.getType()) {
+            case VOTE_CREATE -> {
+                // 기존 투표 삭제
+                battleVoteService.deleteAndCreateNewVote(battleId);
+                // 새 투표 생성
+                yield WebSocketResponseDto.ok(
+                    MessageType.VOTE_CREATE,
+                    voteService.createVote(requestMapper.mapToVoteRequestDto(request.getData()),
+                        user.getUserId())
+                );
+            }
             case BATTLE_START -> WebSocketResponseDto.ok(
                 MessageType.BATTLE_START,
                 battleDataService.handleBattleStart(battleId)
