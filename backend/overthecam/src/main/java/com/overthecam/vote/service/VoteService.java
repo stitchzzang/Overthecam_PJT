@@ -5,6 +5,7 @@ import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.vote.dto.VoteComment;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.domain.*;
 import com.overthecam.vote.dto.*;
@@ -48,7 +49,7 @@ public class VoteService {
      * 투표 생성
      */
     @Transactional
-    public VoteResponseDto createVote(VoteRequestDto requestDto, Long userId) {
+    public VoteResponse createVote(VoteRequest requestDto, Long userId) {
         // 사용자 조회 및 검증
         User user = findUserById(userId);
 
@@ -68,7 +69,7 @@ public class VoteService {
 
         // 투표 저장 및 응답 DTO 변환
         Vote savedVote = voteRepository.save(vote);
-        return convertToResponseDto(savedVote);
+        return VoteResponse.from(savedVote);
     }
 
     /**
@@ -76,7 +77,7 @@ public class VoteService {
      * - 옵션 개수 검증
      * - 종료 일시 검증
      */
-    private void validateVoteRequest(VoteRequestDto requestDto) {
+    private void validateVoteRequest(VoteRequest requestDto) {
         if (requestDto.getOptions().size() < 2) {
             throw new GlobalException(VoteErrorCode.INVALID_VOTE_OPTIONS, "투표 옵션은 2개 입니다.");
         }
@@ -86,7 +87,7 @@ public class VoteService {
      * 투표 엔티티 생성
      * - 일반 투표와 배틀 투표를 구분하여 처리
      */
-    private Vote createVoteEntity(VoteRequestDto requestDto, User user) {
+    private Vote createVoteEntity(VoteRequest requestDto, User user) {
         Vote.VoteBuilder builder = Vote.builder()
             .user(user)
             .title(requestDto.getTitle())
@@ -131,7 +132,14 @@ public class VoteService {
         Page<Vote> votes = searchVotesByCondition(keyword, sortBy, sortedPageable);
 
         // 투표 목록을 응답 DTO로 변환
-        Page<VoteResponseDto> voteDtos = votes.map(this::mapVoteToResponseDto);
+        Page<VoteDetailResponse> voteDtos = votes.map(vote ->
+            VoteDetailResponse.of(
+                vote,
+                Collections.emptyList(),
+                new HashMap<>(),
+                new HashMap<>()
+            )
+        );
 
         return VotePageResponse.of(voteDtos);
     }
@@ -187,11 +195,11 @@ public class VoteService {
      * - 투표 통계 정보 계산
      * - 댓글 수 조회
      */
-    private VoteResponseDto mapVoteToResponseDto(Vote vote) {
+    private VoteDetailResponse mapVoteToResponseDto(Vote vote) {
         int totalVotes = calculateTotalVotes(vote);
         long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
 
-        return VoteResponseDto.builder()
+        return VoteDetailResponse.builder()
                 .voteId(vote.getVoteId())
                 .title(vote.getTitle())
                 .content(vote.getContent())
@@ -212,39 +220,23 @@ public class VoteService {
      * - 연령/성별 통계
      * - 댓글 정보와 댓글 수
      */
-    public VoteResponseDto getVoteDetail(Long voteId) {
+    public VoteDetailResponse getVoteDetail(Long voteId) {
         // 투표 조회
         Vote vote = findVoteById(voteId);
 
         // 투표 통계 정보 처리
         Map<Long, Map<String, Double>> optionAgeStats = processOptionStats(
-                voteOptionRepository.getAgeDistributionByOption(voteId)
+            voteOptionRepository.getAgeDistributionByOption(voteId)
         );
         Map<Long, Map<String, Double>> optionGenderStats = processOptionStats(
-                voteOptionRepository.getGenderDistributionByOption(voteId)
+            voteOptionRepository.getGenderDistributionByOption(voteId)
         );
 
-        // 댓글 수 조회
-        long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
+        // 댓글 정보 조회
+        List<VoteComment> comments = getVoteComments(vote.getVoteId());
 
         // 투표 상세 정보 구성
-        return VoteResponseDto.builder()
-                .voteId(vote.getVoteId())
-                .title(vote.getTitle())
-                .content(vote.getContent())
-                .creatorNickname(vote.getUser().getNickname())
-                .endDate(vote.getEndDate())
-                .createdAt(vote.getCreatedAt())
-                .isActive(vote.isActive())
-                .options(createOptionDetailDtos(
-                        vote,
-                        calculateTotalVotes(vote),
-                        optionAgeStats,
-                        optionGenderStats
-                ))
-                .commentCount(commentCount)
-                .comments(getVoteComments(vote.getVoteId()))
-                .build();
+        return VoteDetailResponse.of(vote, comments, optionAgeStats, optionGenderStats);
     }
 
 // 4. 투표 참여 메서드
@@ -254,9 +246,10 @@ public class VoteService {
      * - 중복 투표 방지
      * - 투표 기록 저장
      * - 투표 통계 갱신
+     * - 갱신된 투표 결과 반환
      */
     @Transactional
-    public VoteResponseDto vote(Long voteId, Long optionId, Long userId) {
+    public VoteDetailResponse vote(Long voteId, Long optionId, Long userId) {
         // 투표, 사용자, 옵션 조회 및 검증
         Vote vote = findAndValidateVote(voteId);
         User user = findUserById(userId);
@@ -274,10 +267,23 @@ public class VoteService {
             // 사용자 응원 점수 적립
             supportScoreService.addSupportScore(user, 100);
 
-            // 엔티티 상태 동기화
+            // 엔티티 상태 동기화 (투표 수 갱신을 위해)
             syncEntityState(vote);
 
-            return convertToResponseDto(vote);
+            // 최신 투표 통계 정보 조회
+            Map<Long, Map<String, Double>> optionAgeStats = processOptionStats(
+                voteOptionRepository.getAgeDistributionByOption(voteId)
+            );
+            Map<Long, Map<String, Double>> optionGenderStats = processOptionStats(
+                voteOptionRepository.getGenderDistributionByOption(voteId)
+            );
+
+            // 댓글 정보 조회
+            List<VoteComment> comments = getVoteComments(vote.getVoteId());
+
+            // 갱신된 투표 결과 반환
+            return VoteDetailResponse.of(vote, comments, optionAgeStats, optionGenderStats);
+
         } catch (Exception e) {
             throw new GlobalException(VoteErrorCode.VOTE_FAILED, "투표 처리 중 오류가 발생했습니다");
         }
@@ -368,11 +374,11 @@ public class VoteService {
      * - 투표 엔티티를 응답 DTO로 변환
      * - 총 투표 수와 댓글 수 계산
      */
-    private VoteResponseDto convertToResponseDto(Vote vote) {
+    private VoteDetailResponse convertToResponseDto(Vote vote) {
         int totalVotes = calculateTotalVotes(vote);
         long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
 
-        return VoteResponseDto.builder()
+        return VoteDetailResponse.builder()
                 .voteId(vote.getVoteId())
                 .title(vote.getTitle())
                 .content(vote.getContent())
@@ -390,12 +396,12 @@ public class VoteService {
      * 간단한 투표 옵션 DTO 생성
      * - 각 옵션의 투표 수와 비율 계산
      */
-    private List<VoteResponseDto.VoteOptionDetailDto> createSimpleOptionDtos(Vote vote, int totalVotes) {
+    private List<VoteDetailResponse.VoteOptionDetail> createSimpleOptionDtos(Vote vote, int totalVotes) {
         return vote.getOptions().stream()
                 .map(option -> {
                     double percentage = totalVotes > 0 ?
                             (double) option.getVoteCount() / totalVotes * 100 : 0;
-                    return VoteResponseDto.VoteOptionDetailDto.builder()
+                    return VoteDetailResponse.VoteOptionDetail.builder()
                             .optionId(option.getVoteOptionId())
                             .optionTitle(option.getOptionTitle())
                             .voteCount(option.getVoteCount())
@@ -409,7 +415,7 @@ public class VoteService {
      * 상세 투표 옵션 DTO 생성
      * - 연령대/성별 분포 포함
      */
-    private List<VoteResponseDto.VoteOptionDetailDto> createOptionDetailDtos(
+    private List<VoteDetailResponse.VoteOptionDetail> createOptionDetailDtos(
             Vote vote,
             int totalVotes,
             Map<Long, Map<String, Double>> ageStats,
@@ -418,7 +424,7 @@ public class VoteService {
                 .map(option -> {
                     double percentage = totalVotes > 0 ?
                             (double) option.getVoteCount() / totalVotes * 100 : 0;
-                    return VoteResponseDto.VoteOptionDetailDto.builder()
+                    return VoteDetailResponse.VoteOptionDetail.builder()
                             .optionId(option.getVoteOptionId())
                             .optionTitle(option.getOptionTitle())
                             .voteCount(option.getVoteCount())
@@ -444,10 +450,10 @@ public class VoteService {
      * 투표 댓글 조회
      * - 특정 투표의 최신 댓글 목록 조회
      */
-    private List<VoteCommentDto> getVoteComments(Long voteId) {
+    private List<VoteComment> getVoteComments(Long voteId) {
         return voteCommentRepository.findByVote_VoteIdOrderByCreatedAtDesc(voteId)
                 .stream()
-                .map(VoteCommentDto::from)
+                .map(VoteComment::from)
                 .collect(Collectors.toList());
     }
 
