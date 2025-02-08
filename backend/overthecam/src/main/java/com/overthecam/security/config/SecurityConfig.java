@@ -61,14 +61,14 @@ public class SecurityConfig {
         // CORS 기본 설정
         configuration.setAllowCredentials(true);
         configuration.setAllowedOrigins(Arrays.asList(
-                "https://127.0.0.1:5173",
-                "https://localhost:5173",
-                "https://127.0.0.1:5174",
-                "https://localhost:5174",
-                "https://127.0.0.1:5175",
-                "https://localhost:5175",
+                "http://127.0.0.1:5173",
+                "http://localhost:5173",
+                "http://127.0.0.1:5174",
+                "http://localhost:5174",
+                "http://127.0.0.1:5175",
+                "http://localhost:5175",
                 "https://i12d204.p.ssafy.io",
-                "https://127.0.0.1:5500"
+                "http://127.0.0.1:5500"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

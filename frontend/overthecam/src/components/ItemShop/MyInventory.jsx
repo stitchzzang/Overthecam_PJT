@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import Pagination from "react-js-pagination";
 import { getMyInventory } from "../../service/ItemShop/api";
 import PointExchangeModal from "./PointExchangeModal";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 function MyInventory() {
   const exchangeDialog = useRef();
@@ -9,8 +9,36 @@ function MyInventory() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [myPoints, setMyPoints] = useState(200);
   const [myCheerScore, setMyCheerScore] = useState(1000);
-  const [filter, setFilter] = useState(3);
+  const [filter, setFilter] = useState("all");
   const [myItems, setMyItems] = useState([
+    {
+      name: "기본프레임",
+      price: 200,
+      detail: "프레임 입니다",
+      imageUrl: "",
+      type: "FRAME",
+    },
+    {
+      name: "박수소리",
+      price: 300,
+      detail: "박수를 칩니다",
+      imageUrl: "",
+      type: 1,
+    },
+    {
+      name: "기본프레임",
+      price: 200,
+      detail: "프레임 입니다",
+      imageUrl: "",
+      type: 0,
+    },
+    {
+      name: "박수소리",
+      price: 300,
+      detail: "박수를 칩니다",
+      imageUrl: "",
+      type: 1,
+    },
     {
       name: "기본프레임",
       price: 200,
@@ -27,36 +55,45 @@ function MyInventory() {
     },
   ]);
   const [filteredMyItems, setFilteredMyItems] = useState(myItems);
-  const [page, setPage] = useState(1);
-  const [currentList, setCurrentList] = useState([]);
-  // 한 페이지당 8개 보여준다
-  const itemsPerPage = 1;
-  // slice할 index범위
-  const indexOfLastItem = page * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
+  // 페이지네이션 구현
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(filteredMyItems.length / itemsPerPage);
+  const paginatedItems = filteredMyItems.slice(
+    page * itemsPerPage - itemsPerPage,
+    page * itemsPerPage
+  );
+  // 페이지네이션 디자인용
+  const [isThisPage, setIsThisPage] = useState(3);
+
+  const nextPage = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
+
+  // 필터 변경
   useEffect(() => {
     const filteredItems =
-      filter === 3 ? myItems : myItems.filter((item) => item.type === filter);
+      filter === "all"
+        ? myItems
+        : myItems.filter((item) => item.type === filter);
     setFilteredMyItems(filteredItems);
   }, [myItems, filter]);
-
-  useEffect(() => {
-    // 페이지에 맞는 항목만 선택하여 currentList에 설정
-    setCurrentList(filteredMyItems.slice(indexOfFirstItem, indexOfLastItem));
-  }, [filteredMyItems, page]); // 필터링된 항목과 페이지가 변경될 때마다 실행
-
-  const changePageHandler = (page) => {
-    setPage(page);
-  };
 
   useEffect(() => {
     // 내 포인트, 응원 점수, 내가 가진 아이템 목록 받아오기
     getMyInventory()
       .then((res) => {
-        setMyItems(res.data.items);
-        setMyCheerScore(res.data.score); // response 양식 보고 수정할 것
-        setMyPoints(res.data.points); // response 양식 보고 수정할 것
+        setMyItems(res.data);
+        console.log("데이터 불러오기 성공", res.data);
       })
       .catch((error) => {
         console.log("데이터 불러오기 실패", error);
@@ -66,9 +103,12 @@ function MyInventory() {
       });
   }, []);
 
+  // 모달창 관련 이벤트 함수
   const onShowModal = () => {
     exchangeDialog.current.showModal();
   };
+
+  // 오디오 재생 시작
   const handlePlay = () => {
     const audioElement = document.getElementById("audio-player");
     if (audioElement) {
@@ -77,6 +117,7 @@ function MyInventory() {
     }
   };
 
+  // 오디오 재생 중지
   const handlePause = () => {
     const audioElement = document.getElementById("audio-player");
     if (audioElement) {
@@ -91,125 +132,215 @@ function MyInventory() {
     setMyPoints(convertedPoint);
   };
 
+  const handleTabChange = (e) => {};
+
   return (
-    <div className="bg-cusLightBlue-lighter m-5 rounded-lg">
-      <div className="relative p-5 left-5">
-        <h3 className="absolute left-3 text-2xl font-semibold">
-          내 아이템 보기
-        </h3>
-      </div>
-      <div className="my-items-container flex m-4">
-        <div className="w-1/4 my-assets m-5 flex flex-col items-center">
-          <div className="my-points justify-center w-full">
-            <div className="my-cheer-scores bg-cusGray-dark w-1/2 min-w-[200px] max-w-[200px] min-h-[50px] clay m-2">
-              <p className="text-sm font-semibold">응원 점수</p>
-              <p className="text-xl font-bold text-center overflow-hidden">
-                {myCheerScore}
-              </p>
-            </div>
-            <div className="my-points bg-cusGray-dark w-1/2 min-w-[200px] max-w-[200px]  min-h-[50px] clay m-2">
-              <p className="text-sm font-semibold">포인트</p>
-              <p className="text-xl font-bold text-center overflow-hidden">
-                {myPoints}
-              </p>
-            </div>
-          </div>
-          <div className="exchange-btn p-2">
-            <button className="btn" onClick={onShowModal}>
-              전환하기
-            </button>
-          </div>
-        </div>
-        <PointExchangeModal
-          ref={exchangeDialog}
-          myCheerScore={myCheerScore}
-          myPoints={myPoints}
-          onSuccess={handleExchange}
-        />
-        <div className="my-inventory w-3/4 mt-10 mr-10 ml-5 mb-10">
-          <div className="pagenation-btn flex justify-center items-center">
-            <Pagination
-              activePage={page}
-              itemsCountPerPage={itemsPerPage}
-              totalItemsCount={filteredMyItems.length} // 필터링된 항목 개수로 페이지네이션 설정
-              pageRangeDisplayed={0}
-              onChange={changePageHandler}
-              containerClassName={"pagination"}
-              pageLinkClassName={"pagination__link"}
-              activeLinkClassName={"pagination__link__active"}
-            />
-          </div>
-          <div className="my-inventory-box flex">
-            <div className="my-inventroy-category w-1/6">
-              <div className="category-button-list">
-                <button
-                  onClick={() => {
-                    setFilter(3);
-                    setPage(1);
-                  }}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+    <div className="bg-cusLightBlue-lighter m-5 rounded-2xl p-6 flex">
+      {/* Stats Area with Exchange Button */}
+      <div className="relative w-1/4">
+        <h1 className="flex justify-start text-2xl font-extrabold text-cusBlue drop-shadow-xl mb-6">
+          내 아이템 보관함
+        </h1>
+        <div className="flex flex-col gap-4 mb-12 mr-8">
+          {/* 응원 점수 */}
+          <div className="bg-white rounded-xl p-4 clay flex-1 max-w-xs">
+            <div className="flex items-center gap-3">
+              <div className="bg-cusLightBlue rounded-lg p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
                 >
-                  전체보기
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter(0);
-                    setPage(1);
-                  }}
-                >
-                  프레임
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter(1);
-                    setPage(1);
-                  }}
-                >
-                  효과음
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter(2);
-                    setPage(1);
-                  }}
-                >
-                  가면
-                </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-500 font-medium">응원 점수</p>
+                <p className="text-2xl font-bold text-cusBlue">
+                  {myCheerScore.toLocaleString()}
+                </p>
               </div>
             </div>
-            <div className="my-inventory-container">
-              <div className="my-inventory-content">
-                {isLoading ? (
-                  <>
-                    <p>...Loading</p>
-                  </>
-                ) : currentList.length > 0 ? (
-                  currentList.map((item, i) => (
-                    <div key={i}>
+          </div>
+
+          {/* 포인트 */}
+          <div className="bg-white rounded-xl p-4 clay flex-1 max-w-xs">
+            <div className="flex items-center gap-3">
+              <div className="bg-cusLightBlue rounded-lg p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-500 font-medium">포인트</p>
+                <p className="text-2xl font-bold text-cusBlue">
+                  {myPoints.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* 전환 버튼 */}
+          <button
+            onClick={onShowModal}
+            className=" text-white btn hover:bg-cusBlue"
+          >
+            <div className="flex items-center justify-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                />
+              </svg>
+              <span>포인트 전환</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Inventory Area */}
+      <div className="p-3 bg-gradient-to-b from-cusPink to-cusLightBlue rounded-2xl clay w-3/4">
+        <div className="bg-[rgb(255,255,255,0.3)] rounded-2xl p-3 shadow-lg">
+          {/* Pagination controls */}
+          <div className="flex justify-end mb-6">
+            <div className="flex gap-2">
+              <button
+                onClick={prevPage}
+                disabled={page === 1}
+                className="px-4 py-2 bg-cusLightBlue text-white rounded-xl hover:bg-cusBlue transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={nextPage}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-cusLightBlue text-white rounded-xl hover:bg-cusBlue transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                <ChevronRightIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            {/* Category sidebar */}
+            <div className="flex flex-col gap-1 w-48">
+              {[
+                { id: "all", label: "전체보기" },
+                { id: "FRAME", label: "프레임" },
+                { id: "EFFACT", label: "효과음" },
+                { id: "MASK", label: "가면" },
+              ].map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    setFilter(category.id);
+                    setPage(1);
+                  }}
+                  className={`
+                  p-4 rounded-xl font-semibold text-left transition-all duration-300 shadow-md clay
+                  ${
+                    filter === category.id
+                      ? "bg-cusBlue text-white"
+                      : "bg-cusLightBlue-light text-cusBlue hover:bg-cusLightBlue hover:text-white"
+                  }
+                `}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Items grid */}
+            <div className="flex-1 bg-cusLightBlue-lighter rounded-2xl p-6 shadow-lg clay h-[300px] overflow-y-auto">
+              {isLoading ? (
+                <div className="flex justify-center items-center space-x-3 h-full">
+                  <div className="loading"></div>
+                  <p className="text-xl font-semibold text-cusBlue drop-shadow-lg">
+                    로딩 중...
+                  </p>
+                </div>
+              ) : filteredMyItems.length > 0 ? (
+                <div className="grid grid-cols-3 gap-4 h-full">
+                  {paginatedItems.map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 h-[230px] clay"
+                    >
                       {item.type === 1 ? (
-                        <>
-                          <p>{item.name}</p> <audio id="audio-player" />
-                          <button
-                            onClick={isPlaying ? handlePause : handlePlay}
-                          >
-                            {isPlaying ? "⏸️" : "▶️"}
-                          </button>
-                        </>
+                        <div className="flex flex-col gap-2 h-full">
+                          <div className="bg-cusLightBlue-lighter rounded-lg p-4 flex justify-center items-center h-[180px]">
+                            <button
+                              onClick={isPlaying ? handlePause : handlePlay}
+                              className="w-12 h-12 rounded-full bg-cusBlue hover:bg-cusLightBlue flex items-center justify-center text-white transition-all duration-300 shadow-md"
+                            >
+                              {isPlaying ? "⏸️" : "▶️"}
+                            </button>
+                          </div>
+                          <p className="text-cusBlue font-semibold text-center mt-2">
+                            {item.name}
+                          </p>
+                          <audio id="audio-player" className="hidden" />
+                        </div>
                       ) : (
-                        <>
-                          <p>{item.name}</p> <img />
-                        </>
+                        <div className="flex flex-col gap-2 h-full">
+                          <div className="bg-cusLightBlue-lighter rounded-lg p-4 flex justify-center items-center h-[180px]">
+                            <img
+                              src="/api/placeholder/120/120"
+                              alt={item.name}
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
+                          <p className="text-cusBlue font-semibold text-center mt-2">
+                            {item.name}
+                          </p>
+                        </div>
                       )}
                     </div>
-                  ))
-                ) : (
-                  <p>해당 카테고리에 상품이 없습니다.</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  <p className="text-xl font-semibold text-cusBlue drop-shadow-lg">
+                    해당 카테고리에 아이템이 없습니다.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <PointExchangeModal
+        ref={exchangeDialog}
+        myCheerScore={myCheerScore}
+        myPoints={myPoints}
+        onSuccess={handleExchange}
+      />
     </div>
   );
 }

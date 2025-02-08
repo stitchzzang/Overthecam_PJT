@@ -15,18 +15,18 @@ export default function NavBar() {
 
   return (
     <>
-      <header className="h-[60px]">
+      <header className="h-[60px] mb-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between h-full px-3">
           <div className="flex items-center gap-4">
             <button
-              className="text-2xl"
+              className="text-3xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               ☰
             </button>
             <Link to={"/"}>
               <img
-                src="public/images/Logo.png"
+                src="/images/Logo.png"
                 alt="Logo"
                 className="h-12"
                 style={{ width: "auto", maxWidth: "200px" }}
