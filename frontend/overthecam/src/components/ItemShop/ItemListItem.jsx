@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import PurchaseConfirmModal from './PurchaseConfirmModal';
+import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 function ItemListItem({ itemInfo }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -36,16 +37,16 @@ function ItemListItem({ itemInfo }) {
       />
       <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 clay group hover:-translate-y-1">
         <div className="flex flex-col gap-2">
-          {itemInfo.type === 1 ? (
+          {itemInfo.type === "EFFECT" ? (
             <div className="bg-cusPink rounded-lg p-4 flex justify-center items-center h-[140px] group-hover:bg-cusPink-light">
               <button
                 onClick={isPlaying ? handlePause : handlePlay}
                 className="w-12 h-12 rounded-full bg-cusRed hover:bg-cusRed-light flex items-center justify-center text-white transition-all duration-300 shadow-md"
               >
                 {isPlaying ? (
-                  <PauseCircle className="w-8 h-8" />
+                  <PauseIcon className="w-8 h-8" />
                 ) : (
-                  <PlayCircle className="w-8 h-8" />
+                  <PlayIcon className="w-8 h-8" />
                 )}
               </button>
               <audio 

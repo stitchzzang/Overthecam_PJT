@@ -108,7 +108,7 @@ function ItemList() {
           px-4 py-2 rounded-lg text-sm font-medium
           ${
             order === 0
-              ? "bg-cusBlue text-white"
+              ? "bg-cusPink-light text-gray-700"
               : "bg-cusGray text-gray-700 hover:bg-gray-200"
           }
         `}

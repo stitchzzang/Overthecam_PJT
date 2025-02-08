@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getMyInventory } from "../../service/ItemShop/api";
 import PointExchangeModal from "./PointExchangeModal";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 function MyInventory() {
   const exchangeDialog = useRef();
@@ -297,7 +298,11 @@ function MyInventory() {
                               onClick={isPlaying ? handlePause : handlePlay}
                               className="w-12 h-12 rounded-full bg-cusRed hover:bg-cusRed-light flex items-center justify-center text-white transition-all duration-300 shadow-md"
                             >
-                              {isPlaying ? "⏸️" : "▶️"}
+                              {isPlaying ? (
+                                <PauseIcon className="w-8 h-8" />
+                              ) : (
+                                <PlayIcon className="w-8 h-8" />
+                              )}
                             </button>
                           </div>
                           <p className="text-cusRed font-semibold text-center mt-2">
