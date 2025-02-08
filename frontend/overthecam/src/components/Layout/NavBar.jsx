@@ -15,11 +15,11 @@ export default function NavBar() {
 
   return (
     <>
-      <header className="h-[60px] border-b shadow-sm">
+      <header className="h-[60px] mb-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between h-full px-3">
           <div className="flex items-center gap-4">
             <button
-              className="text-2xl"
+              className="text-3xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               ☰
