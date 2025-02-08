@@ -1,4 +1,4 @@
-package com.overthecam.exception.websocket;
+package com.overthecam.websocket.exception;
 
 import lombok.Getter;
 

@@ -2,10 +2,9 @@ package com.overthecam.vote.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
-import com.overthecam.exception.ErrorCode;
-import com.overthecam.exception.GlobalException;
-import com.overthecam.exception.vote.VoteErrorCode;
-import com.overthecam.exception.vote.VoteException;
+import com.overthecam.common.exception.GlobalException;
+import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.domain.*;
 import com.overthecam.vote.dto.*;
 import com.overthecam.vote.repository.*;
@@ -89,7 +88,7 @@ public class VoteService {
      */
     private void validateVoteRequest(VoteRequestDto requestDto) {
         if (requestDto.getOptions().size() < 2) {
-            throw new VoteException(VoteErrorCode.INVALID_VOTE_OPTIONS, "투표 옵션은 2개 입니다.");
+            throw new GlobalException(VoteErrorCode.INVALID_VOTE_OPTIONS, "투표 옵션은 2개 입니다.");
         }
     }
 
@@ -294,7 +293,7 @@ public class VoteService {
 
             return convertToResponseDto(vote);
         } catch (Exception e) {
-            throw new VoteException(VoteErrorCode.VOTE_FAILED, "투표 처리 중 오류가 발생했습니다");
+            throw new GlobalException(VoteErrorCode.VOTE_FAILED, "투표 처리 중 오류가 발생했습니다");
         }
     }
 
@@ -320,7 +319,7 @@ public class VoteService {
      */
     private void validateVoteOwnership(Vote vote, Long userId) {
         if (!vote.getUser().getId().equals(userId)) {
-            throw new VoteException(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS, "투표 삭제 권한이 없습니다");
+            throw new GlobalException(VoteErrorCode.UNAUTHORIZED_VOTE_ACCESS, "투표 삭제 권한이 없습니다");
         }
     }
 
@@ -333,7 +332,7 @@ public class VoteService {
         Vote vote = findVoteById(voteId);
 
         if (!vote.isActive() || vote.getEndDate().isBefore(LocalDateTime.now())) {
-            throw new VoteException(VoteErrorCode.VOTE_EXPIRED, "종료된 투표입니다");
+            throw new GlobalException(VoteErrorCode.VOTE_EXPIRED, "종료된 투표입니다");
         }
 
         return vote;
@@ -345,7 +344,7 @@ public class VoteService {
      */
     private void validateVoteEligibility(Vote vote, Long userId) {
         if (voteRecordRepository.existsByUser_IdAndVote_VoteId(userId, vote.getVoteId())) {
-            throw new VoteException(VoteErrorCode.DUPLICATE_VOTE, "이미 투표했습니다");
+            throw new GlobalException(VoteErrorCode.DUPLICATE_VOTE, "이미 투표했습니다");
         }
     }
 
@@ -494,7 +493,7 @@ public class VoteService {
      */
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
     }
 
     /**
@@ -503,7 +502,7 @@ public class VoteService {
      */
     private VoteOption findVoteOptionById(Long optionId) {
         return voteOptionRepository.findById(optionId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
     }
     /**
      * 투표 ID로 투표 조회
@@ -511,6 +510,6 @@ public class VoteService {
      */
     private Vote findVoteById(Long voteId) {
         return voteRepository.findById(voteId)
-                .orElseThrow(() -> new VoteException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
     }
 }

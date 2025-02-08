@@ -2,13 +2,14 @@ package com.overthecam.security.filter;
 // 모든 요청에 대한 JWT 토큰 검증
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.common.dto.ErrorResponse;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.security.config.SecurityPath;
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.common.dto.CommonResponseDto;
-import com.overthecam.exception.ErrorCode;
-import com.overthecam.exception.GlobalException;
+import com.overthecam.common.exception.GlobalException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -54,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 2. 토큰 없으면 예외
             String accessToken = resolveToken(request);
             if (accessToken == null) {
-                throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND,
+                throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
                         "인증 토큰이 필요합니다");
             }
 
@@ -85,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (tokenProvider.validateToken(accessToken)) {
                 setAuthentication(accessToken);
             } else {
-                throw new GlobalException(ErrorCode.INVALID_TOKEN_SIGNATURE,
+                throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE,
                         "토큰의 서명이 유효하지 않습니다");
             }
         }
@@ -100,18 +101,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void processRefreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (refreshToken == null) {
-            throw new GlobalException(ErrorCode.TOKEN_NOT_FOUND,
+            throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
                     "리프레시 토큰이 쿠키에 존재하지 않습니다");
         }
 
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new GlobalException(ErrorCode.EXPIRED_REFRESH_TOKEN,
+            throw new GlobalException(AuthErrorCode.EXPIRED_REFRESH_TOKEN,
                     "리프레시 토큰이 만료되었습니다. 재로그인이 필요합니다");
         }
 
         String email = tokenProvider.getEmail(refreshToken);
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_FOUND,
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
                         "인증 정보가 유효하지 않습니다"));
 
         String newAccessToken = tokenProvider.recreateAccessToken(user);
@@ -151,10 +152,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 에러 응답 설정
     private void setErrorResponse(HttpServletResponse response, GlobalException e)
-            throws IOException {
+        throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(e.getHttpStatus().value());
-        CommonResponseDto<?> errorResponse = CommonResponseDto.error(e.getErrorCode());
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.setStatus(e.getErrorCode().getStatus());
+
+        ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode(), e.getDetail());
+        CommonResponseDto<?> commonResponse = CommonResponseDto.error(errorResponse);
+
+        response.getWriter().write(objectMapper.writeValueAsString(commonResponse));
     }
 }

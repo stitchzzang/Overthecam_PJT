@@ -1,7 +1,7 @@
 package com.overthecam.websocket.util;
 
-import com.overthecam.exception.websocket.WebSocketErrorCode;
-import com.overthecam.exception.websocket.WebSocketException;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 import com.overthecam.websocket.dto.UserPrincipal;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

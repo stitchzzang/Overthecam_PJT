@@ -1,7 +1,6 @@
-package com.overthecam.exception;
+package com.overthecam.common.exception;
 
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 @Getter
 public class GlobalException extends RuntimeException {
@@ -12,10 +11,6 @@ public class GlobalException extends RuntimeException {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
         this.detail = detail;
-    }
-
-    public HttpStatus getHttpStatus() {
-        return errorCode.getHttpStatus();
     }
 
 }
