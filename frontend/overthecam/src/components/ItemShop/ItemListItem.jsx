@@ -97,6 +97,7 @@ function ItemListItem({ itemInfo }) {
         itemName={itemInfo.name}
         itemDetail={itemInfo.detail}
         itemImg={itemInfo.imageUrl}
+        itemType={itemInfo.type}
       />
       <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 clay group hover:-translate-y-1">
         <div className="flex flex-col gap-2">
