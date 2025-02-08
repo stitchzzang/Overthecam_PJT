@@ -221,6 +221,14 @@ function MyInventory() {
                 <span>포인트 전환</span>
               </div>
             </button>
+
+            <PointExchangeModal
+              ref={exchangeDialog}
+              myCheerScore={myCheerScore}
+              myPoints={myPoints}
+              onSuccess={handleExchange}
+            />
+
           </div>
         </div>
 
