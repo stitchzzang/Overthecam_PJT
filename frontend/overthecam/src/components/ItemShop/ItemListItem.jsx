@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import PurchaseConfirmModal from './PurchaseConfirmModal';
+import PurchaseConfirmModal from './ShopModal/PurchaseConfirmModal';
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 function ItemListItem({ itemInfo }) {

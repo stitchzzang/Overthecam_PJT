@@ -1,7 +1,7 @@
 import { forwardRef, useRef } from "react";
-import { postPurchase } from "../../service/ItemShop/api";
-import SuccessAlertModal from "../@common/SuccessAlertModal";
-import FailAlertModal from "../@common/FailAlertModal";
+import { postPurchase } from "../../../service/ItemShop/api";
+import SuccessAlertModal from "../../@common/SuccessAlertModal";
+import FailAlertModal from "../../@common/FailAlertModal";
 
 const PurchaseConfirmModal = forwardRef(function PurchaseConfirmModal(
   { itemId, itemName, itemDetail, itemImg },

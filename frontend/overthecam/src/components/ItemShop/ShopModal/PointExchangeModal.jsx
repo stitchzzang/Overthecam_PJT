@@ -1,7 +1,7 @@
 import { forwardRef, useRef, useState } from "react";
-import { postExchangePoints } from "../../service/ItemShop/api";
-import SuccessAlertModal from "../@common/SuccessAlertModal";
-import FailAlertModal from "../@common/FailAlertModal";
+import { postExchangePoints } from "../../../service/ItemShop/api";
+import SuccessAlertModal from "../../@common/SuccessAlertModal";
+import FailAlertModal from "../../@common/FailAlertModal";
 
 const PointExchangeModal = forwardRef(function PointExchangeModal(
   { myCheerScore, myPoints },
