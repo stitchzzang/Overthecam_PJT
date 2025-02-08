@@ -13,6 +13,15 @@ export default function NavBar() {
     return null;
   }
 
+  useEffect(() => {
+    // 로그인 여부 확인 API 호출
+    if (localStorage.getItem("token")) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [isLoggedIn]);
+
   return (
     <>
       <header className="h-[60px] mb-4">
@@ -33,7 +42,7 @@ export default function NavBar() {
               />
             </Link>
           </div>
-            <SearchBar/>
+          <SearchBar />
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <>
@@ -114,7 +123,20 @@ export default function NavBar() {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 투표
-                <span className="ml-1">🔽</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+                  />
+                </svg>
               </button>
               {isDropdownOpen && (
                 <div className="ml-4">
