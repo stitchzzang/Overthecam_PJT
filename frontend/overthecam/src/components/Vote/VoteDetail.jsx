@@ -1,100 +1,132 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { publicAxios } from '../../common/axiosinstance';
+import React from 'react';
 
-const VoteDetail = ({ voteId }) => {
-  const navigate = useNavigate();
-  const [voteData, setVoteData] = useState(null);
-
-  useEffect(() => {
-    const fetchVoteDetail = async () => {
-      try {
-        console.log('Fetching vote details for voteId:', voteId);
-        const response = await publicAxios.get(`/vote/${voteId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        console.log('Fetched vote details:', response.data);
-        setVoteData(response.data);
-      } catch (error) {
-        console.error('Failed to fetch vote details:', error);
-        if (error.response?.status === 400) {
-          console.error('Invalid input data:', error.response.data);
-          alert('잘못된 입력값입니다.');
-        } else if (error.response?.status === 401) {
-          console.error('Unauthorized access:', error.response.data);
-          alert('인증되지 않은 접근입니다.');
-        } else if (error.response?.status === 404) {
-          console.error('Vote not found:', error.response.data);
-          alert('투표를 찾을 수 없습니다.');
-        } else {
-          console.error('An unexpected error occurred:', error.response?.data || error.message);
-          alert('예기치 않은 오류가 발생했습니다.');
-        }
-      }
-    };
-
-    fetchVoteDetail();
-  }, [voteId]);
-
+const VoteDetail = ({ voteData }) => {
   if (!voteData) return <div>로딩 중...</div>;
 
   return (
-    <div>
-      <h1>{voteData.title}</h1>
-      <p>Date: {voteData.createdAt} | Author: {voteData.creatorNickname}</p>
-      <p>{voteData.content}</p>
-      <div style={{ display: 'flex', width: '100%', height: '30px', backgroundColor: '#e0e0e0' }}>
-        {voteData.options.map((option, index) => (
-          <div key={option.optionId} style={{ width: `${option.votePercentage}%`, backgroundColor: index % 2 === 0 ? 'blue' : 'green', color: 'white', textAlign: 'center' }}>
-            {option.optionTitle} ({option.votePercentage}%)
+    <div className="max-w-[800px] mx-auto p-4">
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h1 className="text-2xl font-bold mb-4">{voteData.title}</h1>
+        <p className="text-gray-700 mb-6">{voteData.content}</p>
+        
+        <div className="flex justify-between mb-4 text-sm text-gray-500">
+          <span>작성자: {voteData.creatorNickname}</span>
+          <span>댓글 {voteData.commentCount}개</span>
+        </div>
+
+        {/* 투표 결과 그래프 */}
+        <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden mb-6">
+          <div
+            className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-4 text-white font-bold"
+            style={{ width: `${voteData.options[0].votePercentage}%` }}
+          >
+            {voteData.options[0].optionTitle} ({voteData.options[0].votePercentage}%)
           </div>
-        ))}
-      </div>
-      <div>
-        <h3>성별 통계</h3>
-        <div style={{ marginTop: '10px' }}>
-          <h4>남성</h4>
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '15px', backgroundColor: '#e0e0e0' }}>
-            {voteData.options.map((option, index) => (
-              <div key={option.optionId} style={{ width: `${option.genderDistribution['남성']}%`, backgroundColor: index % 2 === 0 ? 'blue' : 'green', color: 'white', textAlign: 'center', marginLeft: index === 0 ? 'auto' : '0', marginRight: index === 1 ? 'auto' : '0' }}>
-                {option.genderDistribution['남성']}%
-              </div>
-            ))}
+          <div
+            className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-4 text-white font-bold"
+            style={{ width: `${voteData.options[1].votePercentage}%` }}
+          >
+            {voteData.options[1].optionTitle} ({voteData.options[1].votePercentage}%)
           </div>
         </div>
-        <div style={{ marginTop: '10px' }}>
-          <h4>여성</h4>
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '15px', backgroundColor: '#e0e0e0' }}>
-            {voteData.options.map((option, index) => (
-              <div key={option.optionId} style={{ width: `${option.genderDistribution['여성']}%`, backgroundColor: index % 2 === 0 ? 'blue' : 'green', color: 'white', textAlign: 'center', marginLeft: index === 0 ? 'auto' : '0', marginRight: index === 1 ? 'auto' : '0' }}>
-                {option.genderDistribution['여성']}%
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <div>
-        <h3>연령별 통계</h3>
-        {['10대', '20대', '30대', '40대', '50대', '60대 이상'].map((ageRange, ageIndex) => (
-          <div key={ageIndex} style={{ marginTop: '10px' }}>
-            <h4>{ageRange}</h4>
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', height: '15px', backgroundColor: '#e0e0e0' }}>
-              {voteData.options.map((option, index) => (
-                <div key={option.optionId} style={{ width: `${option.ageDistribution[ageRange]}%`, backgroundColor: index % 2 === 0 ? 'blue' : 'green', color: 'white', textAlign: 'center', marginLeft: index === 0 ? 'auto' : '0', marginRight: index === 1 ? 'auto' : '0' }}>
-                  {option.ageDistribution[ageRange]}%
+
+        {/* 성별 통계 */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold text-center mb-4">성별 통계</h3>
+          <div className="flex items-center justify-center gap-4">
+            {/* 왼쪽 옵션 */}
+            <div className="flex-1 text-right">
+              <div className="h-8 bg-gray-200 rounded-lg relative mb-2">
+                <div
+                  className="absolute right-0 top-0 h-full bg-red-400 rounded-lg flex items-center justify-end pr-2 text-white"
+                  style={{ width: `${voteData.options[0].genderDistribution?.male || 0}%` }}
+                >
+                  {voteData.options[0].genderDistribution?.male || 0}%
                 </div>
-              ))}
+              </div>
+              <div className="h-8 bg-gray-200 rounded-lg relative">
+                <div
+                  className="absolute right-0 top-0 h-full bg-red-400 rounded-lg flex items-center justify-end pr-2 text-white"
+                  style={{ width: `${voteData.options[0].genderDistribution?.female || 0}%` }}
+                >
+                  {voteData.options[0].genderDistribution?.female || 0}%
+                </div>
+              </div>
+            </div>
+            
+            {/* 중앙 레이블 */}
+            <div className="text-center font-bold">
+              <div className="h-8 flex items-center mb-2">남성</div>
+              <div className="h-8 flex items-center">여성</div>
+            </div>
+            
+            {/* 오른쪽 옵션 */}
+            <div className="flex-1">
+              <div className="h-8 bg-gray-200 rounded-lg relative mb-2">
+                <div
+                  className="absolute left-0 top-0 h-full bg-blue-400 rounded-lg flex items-center justify-start pl-2 text-white"
+                  style={{ width: `${voteData.options[1].genderDistribution?.male || 0}%` }}
+                >
+                  {voteData.options[1].genderDistribution?.male || 0}%
+                </div>
+              </div>
+              <div className="h-8 bg-gray-200 rounded-lg relative">
+                <div
+                  className="absolute left-0 top-0 h-full bg-blue-400 rounded-lg flex items-center justify-start pl-2 text-white"
+                  style={{ width: `${voteData.options[1].genderDistribution?.female || 0}%` }}
+                >
+                  {voteData.options[1].genderDistribution?.female || 0}%
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* 연령대 통계 */}
+        <div>
+          <h3 className="text-xl font-bold text-center mb-4">연령별 통계</h3>
+          <div className="space-y-2">
+            {['10', '20', '30', '40'].map((age) => (
+              <div key={age} className="flex items-center justify-center gap-4">
+                {/* 왼쪽 옵션 */}
+                <div className="flex-1 text-right">
+                  <div className="h-8 bg-gray-200 rounded-lg relative">
+                    <div
+                      className="absolute right-0 top-0 h-full bg-red-400 rounded-lg flex items-center justify-end pr-2 text-white"
+                      style={{ width: `${voteData.options[0].ageDistribution?.[age] || 0}%` }}
+                    >
+                      {voteData.options[0].ageDistribution?.[age] || 0}%
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 중앙 레이블 */}
+                <div className="w-16 text-center font-bold">
+                  {age}대
+                </div>
+                
+                {/* 오른쪽 옵션 */}
+                <div className="flex-1">
+                  <div className="h-8 bg-gray-200 rounded-lg relative">
+                    <div
+                      className="absolute left-0 top-0 h-full bg-blue-400 rounded-lg flex items-center justify-start pl-2 text-white"
+                      style={{ width: `${voteData.options[1].ageDistribution?.[age] || 0}%` }}
+                    >
+                      {voteData.options[1].ageDistribution?.[age] || 0}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 text-right text-sm text-gray-600">
+          총 투표수: {voteData.options.reduce((sum, option) => sum + option.voteCount, 0)}
+        </div>
       </div>
-      <p>Participants: {voteData.options.reduce((acc, option) => acc + option.voteCount, 0)} | Comments: {voteData.comments}</p>
-      <button onClick={() => navigate(`/edit-vote/${voteData.voteId}`)}>Edit</button>
-      <button onClick={() => navigate(`/delete-vote/${voteData.voteId}`)}>Delete</button>
     </div>
   );
-}
+};
 
 export default VoteDetail;
