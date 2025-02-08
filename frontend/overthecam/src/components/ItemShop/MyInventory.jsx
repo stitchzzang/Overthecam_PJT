@@ -226,9 +226,9 @@ function MyInventory() {
         {/* Right Content Area */}
         <div className="flex-1">
           <div className=" bg-white rounded-2xl p-4 clay">
-            <div className="flex  justify-between items-center">
+            <div className="flex  justify-between items-center ">
               {/* Category Tabs */}
-              <div className="flex">
+              <div className="flex gap-x-0.5">
                 {[
                   { id: "all", label: "전체" },
                   { id: "FRAME", label: "프레임" },
@@ -275,7 +275,7 @@ function MyInventory() {
               </div>
             </div>
             {/* Items Grid */}
-            <div className="bg-cusGray-light rounded-2xl p-6 shadow-lg clay h-full overflow-y-auto">
+            <div className="bg-cusGray-light rounded-2xl p-6 shadow-lg clay h-full min-h-[260px] overflow-y-auto">
               {isLoading ? (
                 <div className="flex justify-center items-center space-x-3 h-full">
                   <div className="loading"></div>
@@ -324,7 +324,7 @@ function MyInventory() {
                 </div>
               ) : (
                 <div className="flex justify-center items-center h-full">
-                  <p className="text-xl font-semibold text-cusBlue drop-shadow-lg">
+                  <p className="text-xl font-semibold text-cusBlack-light drop-shadow-lg">
                     해당 카테고리에 아이템이 없습니다.
                   </p>
                 </div>
