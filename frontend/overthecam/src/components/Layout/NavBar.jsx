@@ -26,7 +26,7 @@ export default function NavBar() {
             </button>
             <Link to={"/"}>
               <img
-                src="public/images/Logo.png"
+                src="/images/Logo.png"
                 alt="Logo"
                 className="h-12"
                 style={{ width: "auto", maxWidth: "200px" }}
