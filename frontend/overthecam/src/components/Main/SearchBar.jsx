@@ -7,6 +7,7 @@ const SearchBar = ({ placeholder = "Search..." }) => {
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchTerm);
+    setSearchTerm("");
   };
 
   return (
