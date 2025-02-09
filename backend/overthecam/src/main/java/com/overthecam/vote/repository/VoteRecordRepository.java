@@ -36,34 +36,40 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
         @Param("userId") Long userId
     );
 
-    // 연령대별 통계 조회
-    @Query(nativeQuery = true,
-            value = "SELECT " +
-                    "CASE " +
-                    "  WHEN YEAR(NOW()) - YEAR(u.birth) < 20 THEN '10대' " +
-                    "  WHEN YEAR(NOW()) - YEAR(u.birth) < 30 THEN '20대' " +
-                    "  WHEN YEAR(NOW()) - YEAR(u.birth) < 40 THEN '30대' " +
-                    "  WHEN YEAR(NOW()) - YEAR(u.birth) < 50 THEN '40대' " +
-                    "  WHEN YEAR(NOW()) - YEAR(u.birth) < 60 THEN '50대' " +
-                    "  ELSE '60대 이상' " +
-                    "END AS age_group, " +
-                    "COUNT(*) AS count " +
-                    "FROM vote_record vr " +
-                    "JOIN user u ON vr.user_id = u.user_id " +
-                    "WHERE vr.vote_id = :voteId " +
-                    "GROUP BY age_group")
-    List<Object[]> findAgeGroupDistribution(@Param("voteId") Long voteId);
+    // 연령대별 투표 분포 조회
+    @Query("""
+        SELECT vr.voteOption.voteOptionId, 
+               CASE 
+                   WHEN YEAR(CURRENT_DATE) - YEAR(vr.user.birth) < 20 THEN '10대'
+                   WHEN YEAR(CURRENT_DATE) - YEAR(vr.user.birth) < 30 THEN '20대'
+                   WHEN YEAR(CURRENT_DATE) - YEAR(vr.user.birth) < 40 THEN '30대'
+                   WHEN YEAR(CURRENT_DATE) - YEAR(vr.user.birth) < 50 THEN '40대'
+                   ELSE '50대 이상'
+               END as ageGroup,
+               COUNT(*) as count
+        FROM VoteRecord vr
+        WHERE vr.vote.voteId = :voteId
+        GROUP BY vr.voteOption.voteOptionId, ageGroup
+        ORDER BY vr.voteOption.voteOptionId, ageGroup
+    """)
+    List<Object[]> getAgeDistributionByOption(@Param("voteId") Long voteId);
 
-    // 성별 통계 조회
-    @Query(nativeQuery = true,
-            value = "SELECT " +
-                    "CASE u.gender WHEN 1 THEN '남성' ELSE '여성' END AS gender, " +
-                    "COUNT(*) AS count " +
-                    "FROM vote_record vr " +
-                    "JOIN user u ON vr.user_id = u.user_id " +
-                    "WHERE vr.vote_id = :voteId " +
-                    "GROUP BY gender")
-    List<Object[]> findGenderDistribution(@Param("voteId") Long voteId);
+    // 성별 투표 분포 조회
+    @Query("""
+        SELECT vr.voteOption.voteOptionId,
+               CASE 
+                   WHEN vr.user.gender = 0 THEN '남성'
+                   WHEN vr.user.gender = 1 THEN '여성'
+                   ELSE '기타'
+               END as genderGroup,
+               COUNT(*) as count
+        FROM VoteRecord vr
+        WHERE vr.vote.voteId = :voteId
+        GROUP BY vr.voteOption.voteOptionId, vr.user.gender
+        ORDER BY vr.voteOption.voteOptionId, vr.user.gender
+    """)
+    List<Object[]> getGenderDistributionByOption(@Param("voteId") Long voteId);
+
 
     // 투표 삭제 시 기록 삭제
     void deleteByVote_VoteId(Long voteId);

@@ -226,11 +226,18 @@ public class VoteService {
         // hasVoted 판단
         boolean hasVoted = selectionStatus.values().stream().anyMatch(Boolean::booleanValue);
 
+        // 연령대 통계
         Map<Long, Map<String, Double>> optionAgeStats = processOptionStats(
-            voteOptionRepository.getAgeDistributionByOption(voteId)
+            voteRecordRepository.getAgeDistributionByOption(voteId),
+            vote,
+            StatsType.AGE
         );
+
+        // 성별 통계
         Map<Long, Map<String, Double>> optionGenderStats = processOptionStats(
-            voteOptionRepository.getGenderDistributionByOption(voteId)
+            voteRecordRepository.getGenderDistributionByOption(voteId),
+            vote,
+            StatsType.GENDER
         );
 
         List<VoteComment> comments = getVoteComments(vote.getVoteId());
@@ -288,11 +295,18 @@ public class VoteService {
                     m -> (Boolean) m.get("isSelected")
                 ));
 
+            // 연령대 통계
             Map<Long, Map<String, Double>> optionAgeStats = processOptionStats(
-                voteOptionRepository.getAgeDistributionByOption(voteId)
+                voteRecordRepository.getAgeDistributionByOption(voteId),
+                vote,
+                StatsType.AGE
             );
+
+            // 성별 통계
             Map<Long, Map<String, Double>> optionGenderStats = processOptionStats(
-                voteOptionRepository.getGenderDistributionByOption(voteId)
+                voteRecordRepository.getGenderDistributionByOption(voteId),
+                vote,
+                StatsType.GENDER
             );
 
             List<VoteComment> comments = getVoteComments(vote.getVoteId());
@@ -378,16 +392,53 @@ public class VoteService {
      * 투표 통계 정보 처리
      * - 옵션별 통계 데이터 변환
      */
-    private Map<Long, Map<String, Double>> processOptionStats(List<Object[]> stats) {
+    private Map<Long, Map<String, Double>> processOptionStats(List<Object[]> stats, Vote vote, StatsType type) {
         Map<Long, Map<String, Double>> result = new HashMap<>();
+
+        // 기본 카테고리 설정
+        List<String> categories = (type == StatsType.AGE)
+            ? Arrays.asList("10대", "20대", "30대", "40대", "50대 이상")
+            : Arrays.asList("남성", "여성");
+
+        // 모든 옵션에 대해 기본값 초기화
+        vote.getOptions().forEach(option -> {
+            Map<String, Double> categoryMap = new HashMap<>();
+            categories.forEach(category -> categoryMap.put(category, 0.0));
+            result.put(option.getVoteOptionId(), categoryMap);
+        });
+
+        if (stats == null || stats.isEmpty()) {
+            return result;
+        }
+
+        // 옵션별 총 투표수 계산
+        Map<Long, Integer> totalVotesByOption = new HashMap<>();
+        for (Object[] row : stats) {
+            Long optionId = ((Number) row[0]).longValue();
+            Long count = ((Number) row[2]).longValue();
+            totalVotesByOption.merge(optionId, count.intValue(), Integer::sum);
+        }
+
+        // 백분율 계산 및 결과 맵에 저장
         for (Object[] row : stats) {
             Long optionId = ((Number) row[0]).longValue();
             String category = (String) row[1];
             Long count = ((Number) row[2]).longValue();
-            result.computeIfAbsent(optionId, k -> new HashMap<>())
-                    .put(category, count.doubleValue());
+
+            int totalVotes = totalVotesByOption.get(optionId);
+            double percentage = (totalVotes > 0)
+                ? Math.round((count.doubleValue() / totalVotes) * 1000.0) / 10.0
+                : 0.0;
+
+            result.get(optionId).put(category, percentage);
         }
+
         return result;
+    }
+
+    // 통계 타입 구분을 위한 enum
+    private enum StatsType {
+        AGE, GENDER
     }
 
     /**
