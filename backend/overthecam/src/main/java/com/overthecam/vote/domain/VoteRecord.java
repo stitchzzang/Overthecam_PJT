@@ -9,8 +9,10 @@ import lombok.*;
 
 @Entity
 @Getter
+@Builder
 @Table(name = "vote_record")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class VoteRecord extends TimeStampEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,17 +27,6 @@ public class VoteRecord extends TimeStampEntity {
     private Vote vote;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vote_option_id", nullable = false)
+    @JoinColumn(name = "vote_option_id")
     private VoteOption voteOption;
-
-    @Builder
-    public VoteRecord(User user, Vote vote, VoteOption voteOption) {
-        this.user = user;
-        this.vote = vote;
-        this.voteOption = voteOption;
-    }
-
-    public void updateVoteOption(VoteOption newOption) {
-        this.voteOption = newOption;
-    }
 }

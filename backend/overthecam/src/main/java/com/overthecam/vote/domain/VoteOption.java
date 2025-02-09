@@ -1,15 +1,15 @@
 package com.overthecam.vote.domain;
-// - 각 투표의 선택지 정보 관리
-// - 득표수 카운팅
 
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
-@Table(name = "vote_option")
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class VoteOption extends TimeStampEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,28 +22,21 @@ public class VoteOption extends TimeStampEntity {
     @Column(nullable = false)
     private String optionTitle;
 
-    @Column(nullable = false)
+    @Builder.Default
     private int voteCount = 0;
 
-    @Column(nullable = false)
+    @Builder.Default
     private boolean isWinner = false;
 
-    @Builder
-    public VoteOption(String optionTitle) {
-        this.optionTitle = optionTitle;
-    }
-
-    public void setVote(Vote vote) {
+    // 부모 투표 설정 메서드
+    public void setVote(Vote vote) {    // 엔터티 생성 및 연관관계 일관성 유지
         this.vote = vote;
     }
 
-    public void incrementVoteCount() {
-        this.voteCount++;
-    }
-
-    public void decrementVoteCount() {
-        if (this.voteCount > 0) {
-            this.voteCount--;
+    public void updateVoteCount(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("투표 수는 음수일 수 없습니다.");
         }
+        this.voteCount = count;
     }
 }

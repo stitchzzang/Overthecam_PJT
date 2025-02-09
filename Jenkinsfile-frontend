@@ -47,28 +47,32 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
-            steps {
-                script {
-                    try {
-                        echo '====== Docker Build 시작 ======'
-                        dir('frontend/overthecam') {
-                            sh """
-                                docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
-                                docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
-                                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                                docker logout
-                            """
-                        }
-                        echo '====== Docker Build & Push 완료 ======'
-                    } catch (Exception e) {
-                        echo '====== Docker Build/Push 실패 ======'
-                        error "Docker build/push failed: ${e.message}"
-                        sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+    steps {
+        script {
+            try {
+                echo '====== Docker Build 시작 ======'
+                dir('frontend/overthecam') {
+                    withCredentials([
+                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
+                    ]) {
+                        sh """
+                            docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
+                            docker build --build-arg VITE_BASE_URL=${VITE_BASE_URL} -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
+                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                            docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                            docker logout
+                        """
                     }
                 }
+                echo '====== Docker Build & Push 완료 ======'
+            } catch (Exception e) {
+                echo '====== Docker Build/Push 실패 ======'
+                error "Docker build/push failed: ${e.message}"
+                sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
             }
         }
+    }
+}
 
         stage('Deploy to EC2') {
             steps {

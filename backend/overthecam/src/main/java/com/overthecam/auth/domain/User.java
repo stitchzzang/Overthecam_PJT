@@ -2,7 +2,11 @@ package com.overthecam.auth.domain;
 
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 @Entity
@@ -10,8 +14,10 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends TimeStampEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Long id;
 
     @Column(nullable = false)
     private String nickname;
@@ -20,6 +26,9 @@ public class User extends TimeStampEntity {
 
     @Column(unique = true)
     private String email;
+
+    @Column(nullable = false)
+    private String username;
 
     private LocalDate birth;
 
@@ -41,14 +50,20 @@ public class User extends TimeStampEntity {
     private String refreshToken; // Refresh Token 저장
 
     @Builder
-    public User(String nickname, String email, Integer gender, String password, LocalDate birth, String phoneNumber) {
+    public User(String nickname, String email, String username,Integer gender, String password, LocalDate birth, String phoneNumber) {
         this.nickname = nickname;
         this.email = email;
+        this.username = username;
         this.gender = gender;
         this.password = password;
         this.birth = birth;
         this.phoneNumber = phoneNumber;
         this.supportScore = 50000;
+    }
+
+    @Builder(builderMethodName = "userIdBuilder")
+    public User(Long id) {
+        this.id = id;
     }
 
     public void setSupportScore(Integer supportScore) {

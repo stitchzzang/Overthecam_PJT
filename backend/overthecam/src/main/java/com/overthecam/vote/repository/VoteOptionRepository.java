@@ -2,6 +2,7 @@ package com.overthecam.vote.repository;
 
 import com.overthecam.vote.domain.VoteOption;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -9,7 +10,18 @@ import java.util.List;
 
 @Repository
 public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
-    // 옵션별 연령대 분포
+    void deleteByVote_VoteId(Long voteId);
+
+    // 투표 수 증가를 위한 메서드
+    @Modifying
+    @Query("UPDATE VoteOption o SET o.voteCount = o.voteCount + 1 WHERE o.voteOptionId = :optionId")
+    void incrementVoteCount(@Param("optionId") Long optionId);
+
+    // 실시간 데이터 조회를 위한 메서드
+    @Query("SELECT o FROM VoteOption o WHERE o.voteOptionId = :optionId")
+    VoteOption findByIdWithFreshData(@Param("optionId") Long optionId);
+
+    // 연령대 분포 쿼리
     @Query(nativeQuery = true,
             value = "SELECT vo.vote_option_id, " +
                     "CASE " +
@@ -23,20 +35,21 @@ public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
                     "COUNT(*) as count " +
                     "FROM vote_option vo " +
                     "LEFT JOIN vote_record vr ON vo.vote_option_id = vr.vote_option_id " +
-                    "LEFT JOIN user u ON vr.user_id = u.user_id " +  // users -> user로 수정
+                    "LEFT JOIN user u ON vr.user_id = u.user_id " +
                     "WHERE vo.vote_id = :voteId " +
                     "GROUP BY vo.vote_option_id, age_group")
     List<Object[]> getAgeDistributionByOption(@Param("voteId") Long voteId);
 
-    // 옵션별 성별 분포
+    // 성별 분포 쿼리
     @Query(nativeQuery = true,
             value = "SELECT vo.vote_option_id, " +
                     "CASE u.gender WHEN 1 THEN '남성' ELSE '여성' END AS gender, " +
                     "COUNT(*) as count " +
                     "FROM vote_option vo " +
                     "LEFT JOIN vote_record vr ON vo.vote_option_id = vr.vote_option_id " +
-                    "LEFT JOIN user u ON vr.user_id = u.user_id " +  // users -> user로 수정
+                    "LEFT JOIN user u ON vr.user_id = u.user_id " +
                     "WHERE vo.vote_id = :voteId " +
                     "GROUP BY vo.vote_option_id, u.gender")
     List<Object[]> getGenderDistributionByOption(@Param("voteId") Long voteId);
+
 }

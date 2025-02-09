@@ -2,8 +2,9 @@ import axios from "axios"
 
 const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-  withCredentials: true,
-})
+  withCredentials: true
+});
+console.log('authAxios baseURL:', authAxios.defaults.baseURL);  // 여기 추가
 
 authAxios.interceptors.request.use(
   (config) => {
@@ -13,8 +14,10 @@ authAxios.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error),
-)
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 authAxios.interceptors.response.use(
   (response) => response,
@@ -27,16 +30,26 @@ authAxios.interceptors.response.use(
     }
     return Promise.reject(error)
   },
-)
+  (error) => {
+    // console.log("Response error:", error.response.data);
+    return Promise.reject(error.response.data);
+  }
+);
 
 const publicAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-})
+  withCredentials: true,
+});
 
 publicAxios.interceptors.request.use(
   (config) => {
-    config.headers["Content-Type"] = "application/json"
-    return config
+    config.headers["Content-Type"] = "application/json";
+    console.log("Request config:", {
+      url: config.url,
+      headers: config.headers,
+      withCredentials: config.withCredentials,
+    });
+    return config;
   },
   (error) => Promise.reject(error),
 )
@@ -46,9 +59,13 @@ publicAxios.interceptors.response.use(
     return response.data
   },
   (error) => {
-    return Promise.reject(error)
-  },
-)
+    return Promise.reject(error.response.data);
+  }
+);
 
-export { authAxios, publicAxios }
 
+// // 환경변수 값도 직접 확인
+// console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);  // 여기 추가
+// console.log("Current origin:", window.location.origin);
+
+export { authAxios, publicAxios };

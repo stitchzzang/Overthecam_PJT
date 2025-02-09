@@ -22,11 +22,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class LoginRequest {
-    @NotBlank
-    @Email
+
+    @NotBlank(message = "이메일은 필수입니다.")
+    @Email(message = "이메일 형식이 올바르지 않습니다.")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "비밀번호는 필수입니다.")
     // @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,20}$")
     private String password;   // 비밀번호 정책 적용
 }

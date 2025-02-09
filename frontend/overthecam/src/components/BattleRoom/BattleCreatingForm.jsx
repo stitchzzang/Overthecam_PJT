@@ -1,28 +1,31 @@
 import { useState } from "react";
 
 function BattleCreateForm({ onCreateRoom }) {
-  // creat 버튼 누르면면 세션 생성 됨, 생성한 사람한테 master(방장 부여)
-  // webRTC 연결 후 다른 사람들이 들어 올 수 있게 해야함 방 id, 제목 등 post 보내고...
-  // 사람들이 join the session 할 수 있도록 (메인이나, 다른 곳에서 할 수 잇게)
-  // webRTC에서 세션 들어오는 버튼 = Link 이도록 해야할듯
-  // router name - battle-room/:battleId
   const [title, setTitle] = useState("");
-  const getTitle = (event) => {
-    setTitle(event.target.value)
-  }
 
-  const handleSubmit = (event) => {
+  const getTitle = (event) => {
+    setTitle(event.target.value);
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onCreateRoom(title);
-  }
+    console.log("제출된 title 값:", title);
+    await onCreateRoom(title);
+  };
 
   return (
-    <form action="">
+    <form onSubmit={handleSubmit}>
+      {" "}
+      {/* Use onSubmit instead of onClick */}
       <label htmlFor="battleName">방 제목</label>
-      <input type="text" id="battleName" name="battleName" onChange={getTitle} />
-      <button type="submit" onClick={handleSubmit}>
-        Create !
-      </button>
+      <input
+        type="text"
+        id="battleName"
+        name="battleName"
+        value={title} // Ensure input is controlled
+        onChange={getTitle}
+      />
+      <button type="submit">Create !</button>
     </form>
   );
 }

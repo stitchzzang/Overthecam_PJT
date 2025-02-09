@@ -1,6 +1,4 @@
 package com.overthecam.vote.domain;
-// - 투표의 기본 정보(제목, 내용, 종료일 등) 관리
-// - 투표 옵션들과 1:N 관계
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.common.entity.TimeStampEntity;
@@ -12,9 +10,11 @@ import java.util.List;
 
 @Entity
 @Getter
-@Table(name = "vote")
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Vote extends TimeStampEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long voteId;
@@ -31,29 +31,22 @@ public class Vote extends TimeStampEntity {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
-    @Column(nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     @Column
     private Long battleId;
 
-    @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)      // 연관관계에서 제거된 VoteOption 엔티티 자동삭제
     private List<VoteOption> options = new ArrayList<>();
-
-    @Builder
-    public Vote(User user, String title, String content, LocalDateTime endDate, Long battleId) {
-        this.user = user;
-        this.title = title;
-        this.content = content;
-        this.endDate = endDate;
-        this.battleId = battleId;
-    }
 
     public void addOption(VoteOption option) {
         this.options.add(option);
         option.setVote(this);
     }
 
+    // 투표의 활성 상태를 비활성으로 변경
     public void setInactive() {
         this.isActive = false;
     }

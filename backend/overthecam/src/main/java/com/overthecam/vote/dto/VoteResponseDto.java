@@ -1,6 +1,12 @@
 package com.overthecam.vote.dto;
+/**
+ * 투표 상세 응답
+    * 투표 기본 정보
+     * 옵션별 투표 수
+     * 연령대/성별 분포
+     * 댓글 정보
+ */
 
-import com.overthecam.exception.vote.VoteErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,8 +18,9 @@ import java.util.Map;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class VoteResponseDto {
-    // 기본 투표 정보
     private Long voteId;
     private Long battleId;
     private String title;
@@ -22,11 +29,11 @@ public class VoteResponseDto {
     private LocalDateTime endDate;
     private LocalDateTime createdAt;
     private boolean isActive;
-    // 옵션 및 댓글 정보
+
     private List<VoteOptionDetailDto> options;
     private List<VoteCommentDto> comments;
+    private Long commentCount;
 
-    // 내부 클래스: 투표 옵션 상세 정보
     @Getter
     @Builder
     @NoArgsConstructor
@@ -36,7 +43,7 @@ public class VoteResponseDto {
         private String optionTitle;
         private int voteCount;
         private double votePercentage;
-        private Map<String, Double> ageDistribution;    // 연령대별 분포
-        private Map<String, Double> genderDistribution; // 성별 분포
+        private Map<String, Double> ageDistribution;
+        private Map<String, Double> genderDistribution;
     }
 }

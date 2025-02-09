@@ -15,7 +15,10 @@ public enum SecurityPath {
     SUBSCRIBE("/api/subscribe/**"),
 
     // 투표 관련 경로
-    VOTE_LIST("/api/vote/list");
+    VOTE_LIST("/api/vote/list"),
+
+    // 배틀 관련 경로
+    BATTLE_VIEW_LIST("/api/battle/room/all");
 
 
     private final String path;

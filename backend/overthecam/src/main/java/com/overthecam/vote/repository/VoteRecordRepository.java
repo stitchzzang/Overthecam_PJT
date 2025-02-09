@@ -1,4 +1,13 @@
 package com.overthecam.vote.repository;
+/**
+ * 투표 참여
+ * 중복 투표 방지
+ * 투표 기록 저장
+ * 투표 옵션 카운트증가
+ * 투표 통계
+ * 연령대별 통계
+ * 성별 분포 조회
+ */
 
 import com.overthecam.vote.domain.VoteRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +20,7 @@ import java.util.List;
 @Repository
 public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     // 중복 투표 확인
-    boolean existsByUser_UserIdAndVote_VoteId(Long userId, Long voteId);
+    boolean existsByUser_IdAndVote_VoteId(Long userId, Long voteId);
 
     // 연령대별 통계 조회
     @Query(nativeQuery = true,
@@ -44,4 +53,6 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
 
     // 투표 삭제 시 기록 삭제
     void deleteByVote_VoteId(Long voteId);
+
+    long countByVoteOption_VoteOptionId(Long voteOptionId);
 }

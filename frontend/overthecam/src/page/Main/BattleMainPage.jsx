@@ -5,6 +5,7 @@ import BattleListItem from "../../components/BattleRoom/BattleListItem";
 import { readRooms } from "../../service/BattleRoom/api";
 
 function BattleMainPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [battles, setBattles] = useState([]);
 
   // 화면 렌더링 시 메인 페이지 read
@@ -18,6 +19,7 @@ function BattleMainPage() {
             ? response.data.battleInfo
             : []
         );
+        setIsLoading(false);
       } catch (error) {
         console.error("데이터 로딩 오류:", error);
       }
@@ -54,38 +56,62 @@ function BattleMainPage() {
 
   return (
     <>
-      <div className="battle-main-page ">
+      <div className="battle-main-page">
         <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
           <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-            Store
+            배틀방 목록 보기
           </h1>
         </div>
-        <div>
-          
-        </div>
-        <Link to={"/create-battle-room"}>방만들기</Link>
-        <div>
-          {/* 배틀 목록 컴포넌트 생성 */}
-          {currentList.map((room) => (
-            <BattleListItem
-              key={room.title}
-              title={room.title}
-              totalUsers={room.totalUsers}
-              thumbnail={room.thumbnailUrl}
-              status={room.status}
-              battleId={room.battleId}
-            />
-          ))}
-        </div>
-        <Pagination
-          activePage={page}
-          itemsCountPerPage={itemsPerPage}
-          totalItemsCount={battles?.length || 0}
-          pageRangeDisplayed={5}
-          prevPageText={"이전"}
-          nextPageText={"다음"}
-          onChange={changePageHandler}
-        />
+        {isLoading ? (
+          <div className="p-6 m-6 flex justify-center items-center space-x-3">
+            {/* 스피너 */}
+            <div className="loading"></div>
+            {/* 로딩 중 글씨 */}
+            <p className="text-xl font-semibold text-cusBlue dark:text-white drop-shadow-lg">
+              로딩 중...
+            </p>
+          </div>
+        ) : (
+          <div className="p-6 m-6 justify-center">
+            {battles.length === 0 ? (
+              <p className="text-xl font-semibold text-cusBlue dark:text-white drop-shadow-lg">
+                현재 배틀 진행 중인 방이 없습니다.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 배틀 목록 컴포넌트 생성 */}
+                  {currentList.map((room) => (
+                    <BattleListItem
+                      key={room.title}
+                      title={room.title}
+                      totalUsers={room.totalUsers}
+                      thumbnail={room.thumbnailUrl}
+                      status={room.status}
+                      battleId={room.battleId}
+                    />
+                  ))}
+                </div>
+                {/* 페이지네이션 */}
+                <div className="flex justify-center pb-10">
+                  <Pagination
+                    activePage={page}
+                    itemsCountPerPage={itemsPerPage}
+                    totalItemsCount={battles?.length || 0}
+                    pageRangeDisplayed={5}
+                    prevPageText={"이전"}
+                    nextPageText={"다음"}
+                    onChange={changePageHandler}
+                    innerClass="flex gap-2"
+                    itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+                    activeClass="bg-cusBlack-light !text-white"
+                    linkClass="block w-full h-full text-center"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

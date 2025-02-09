@@ -38,7 +38,7 @@ footer {
 }
 
 .btn {
-  @apply relative text-white font-bold px-6 rounded-2xl border-transparent
+  @apply relative font-bold px-6 rounded-full border-transparent
   shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
   transition-all duration-300 ease-in-out transform scale-100 
 }
@@ -51,34 +51,39 @@ footer {
   @apply active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
 }
 
+/* 비활성화된 버튼이 hover되더라도 효과가 없도록 설정 */
+.btn:disabled,
 .btn-disabled {
-  @apply relative bg-cusBlack-light text-white font-bold px-6 rounded-2xl border-transparent
-  shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  opacity-50 cursor-not-allowed;
 }
+
+/* 비활성화된 버튼에 hover 효과 방지 */
+.btn:disabled:hover,
+.btn-disabled:hover {
+  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)];
+}
+
+.category {
+  @apply px-4 py-2 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
 
 .clay {
   @apply rounded-lg shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
   transition-all duration-300 ease-in-out transform scale-100 
 }
 
-.pagination {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
 
-  > * {
-    cursor: pointer;
-  }
+/* 길어지면 최대 2줄까지만 끊기게 설정정 */
+.line-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 최대 2줄 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.pagination__link {
-  transition: all 0.25s;
-  padding: 0.2rem 0.6rem;
-  border-radius: 0.3rem;
-}
-
-.pagination__link__active {
-  background-color: #bbb;
-  color: #fefefe;
+.loading {
+  @apply w-10 h-10 border-4 border-gray-300 border-t-cusBlue rounded-full animate-spin
 }

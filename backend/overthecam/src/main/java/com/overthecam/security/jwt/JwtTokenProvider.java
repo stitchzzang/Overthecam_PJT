@@ -9,6 +9,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class JwtTokenProvider {
     // 토큰에 포함될 사용자 정보(클레임) 생성
     private Map<String, Object> createClaims(User user) {
         return Map.of(
-                "userId", user.getUserId(),
+                "userId", user.getId(),
                 "email", user.getEmail(),
                 "nickname", user.getNickname()
         );
@@ -99,7 +100,7 @@ public class JwtTokenProvider {
         return claims.get("email", String.class);
     }
 
-    public String getNickname(String token){
+    public String getNickname(String token) {
         Claims claims = getClaims(token);
         return claims.get("nickname", String.class);
     }
