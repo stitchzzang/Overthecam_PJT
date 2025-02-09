@@ -22,6 +22,14 @@ public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     // 중복 투표 확인
     boolean existsByUser_IdAndVote_VoteId(Long userId, Long voteId);
 
+    // 사용자 투표 여부 확인
+    @Query("SELECT CASE WHEN COUNT(vr) > 0 THEN true ELSE false END " +
+            "FROM VoteRecord vr " +
+            "WHERE vr.vote.voteId = :voteId " +
+            "AND vr.user.id = :userId " +
+            "AND :userId IS NOT NULL")
+    boolean existsByVote_VoteIdAndUser_Id(@Param("voteId") Long voteId, @Param("userId") Long userId);
+
     // 연령대별 통계 조회
     @Query(nativeQuery = true,
             value = "SELECT " +

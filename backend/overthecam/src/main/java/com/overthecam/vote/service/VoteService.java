@@ -78,7 +78,7 @@ public class VoteService {
 
         // 투표 저장 및 응답 DTO 변환
         Vote savedVote = voteRepository.save(vote);
-        return convertToResponseDto(savedVote);
+        return convertToResponseDto(savedVote, userId);
     }
 
     /**
@@ -130,7 +130,7 @@ public class VoteService {
      * - 페이징 처리
      * - 투표 통계 정보 포함
      */
-    public VotePageResponse getVotes(String keyword, String sortBy, Pageable pageable) {
+    public VotePageResponse getVotes(String keyword, String sortBy, Pageable pageable, Long userId) {
         // 정렬 및 페이징 처리
         Pageable sortedPageable = getSortedPageable(sortBy, pageable);
 
@@ -138,7 +138,7 @@ public class VoteService {
         Page<Vote> votes = searchVotesByCondition(keyword, sortBy, sortedPageable);
 
         // 투표 목록을 응답 DTO로 변환
-        Page<VoteResponseDto> voteDtos = votes.map(this::mapVoteToResponseDto);
+        Page<VoteResponseDto> voteDtos = votes.map(vote -> mapVoteToResponseDto(vote, userId));
 
         return VotePageResponse.of(voteDtos);
     }
@@ -199,9 +199,13 @@ public class VoteService {
      * - 투표 통계 정보 계산
      * - 댓글 수 조회
      */
-    private VoteResponseDto mapVoteToResponseDto(Vote vote) {
+    private VoteResponseDto mapVoteToResponseDto(Vote vote, Long userId) {
         int totalVotes = calculateTotalVotes(vote);
         long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
+
+        // userId가 null이 아닌 경우에만 투표 여부 확인
+        boolean hasVoted = userId != null &&
+                voteRecordRepository.existsByVote_VoteIdAndUser_Id(vote.getVoteId(), userId);
 
         return VoteResponseDto.builder()
                 .voteId(vote.getVoteId())
@@ -211,6 +215,7 @@ public class VoteService {
                 .creatorNickname(vote.getUser().getNickname())
                 .endDate(vote.getEndDate())
                 .createdAt(vote.getCreatedAt())
+                .hasVoted(hasVoted)
                 .isActive(vote.isActive())
                 .options(createSimpleOptionDtos(vote, totalVotes))
                 .commentCount(commentCount)
@@ -225,7 +230,7 @@ public class VoteService {
      * - 연령/성별 통계
      * - 댓글 정보와 댓글 수
      */
-    public VoteResponseDto getVoteDetail(Long voteId) {
+    public VoteResponseDto getVoteDetail(Long voteId, Long userId) {
         // 투표 조회
         Vote vote = findVoteById(voteId);
 
@@ -240,6 +245,9 @@ public class VoteService {
         // 댓글 수 조회
         long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
 
+        // 투표 참여 여부 확인
+        boolean hasVoted = voteRecordRepository.existsByVote_VoteIdAndUser_Id(vote.getVoteId(), userId);
+
         // 투표 상세 정보 구성
         return VoteResponseDto.builder()
                 .voteId(vote.getVoteId())
@@ -250,6 +258,7 @@ public class VoteService {
                 .endDate(vote.getEndDate())
                 .createdAt(vote.getCreatedAt())
                 .isActive(vote.isActive())
+                .hasVoted(hasVoted)
                 .options(createOptionDetailDtos(
                         vote,
                         calculateTotalVotes(vote),
@@ -291,7 +300,7 @@ public class VoteService {
             // 엔티티 상태 동기화
             syncEntityState(vote);
 
-            return convertToResponseDto(vote);
+            return convertToResponseDto(vote, userId);
         } catch (Exception e) {
             throw new GlobalException(VoteErrorCode.VOTE_FAILED, "투표 처리 중 오류가 발생했습니다");
         }
@@ -382,9 +391,10 @@ public class VoteService {
      * - 투표 엔티티를 응답 DTO로 변환
      * - 총 투표 수와 댓글 수 계산
      */
-    private VoteResponseDto convertToResponseDto(Vote vote) {
+    private VoteResponseDto convertToResponseDto(Vote vote, Long userId) {
         int totalVotes = calculateTotalVotes(vote);
         long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
+        boolean hasVoted = voteRecordRepository.existsByVote_VoteIdAndUser_Id(vote.getVoteId(), userId);
 
         return VoteResponseDto.builder()
                 .voteId(vote.getVoteId())
@@ -394,6 +404,7 @@ public class VoteService {
                 .creatorNickname(vote.getUser().getNickname())
                 .endDate(vote.getEndDate())
                 .createdAt(vote.getCreatedAt())
+                .hasVoted(true)
                 .isActive(vote.isActive())
                 .options(createSimpleOptionDtos(vote, totalVotes))
                 .commentCount(commentCount)
