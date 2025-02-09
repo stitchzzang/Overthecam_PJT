@@ -33,7 +33,7 @@ const VoteDetailComment = ({ voteId }) => {
         // 댓글에 isAuthor 속성 추가
         const commentsWithAuthor = response.data.comments.map(comment => ({
           ...comment,
-          isAuthor: comment.userId === currentUserId
+          isAuthor: String(comment.userId) === String(currentUserId) // ID를 문자열로 변환하여 비교
         }));
         
         // 최신순 정렬
@@ -140,7 +140,7 @@ const VoteDetailComment = ({ voteId }) => {
                     {new Date(comment.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                {/* 수정/삭제 버튼 */}
+                {/* 수정/삭제 버튼 - 작성자인 경우에만 표시 */}
                 {comment.isAuthor && (
                   <div className="flex gap-2 text-xs">
                     <button
