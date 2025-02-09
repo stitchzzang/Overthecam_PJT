@@ -59,6 +59,10 @@ public class BattleBroadcastController {
                 MessageType.BATTLER_SELECT,
                 battleWebsocketService.getBattlerNotification(battleId)
             );
+            case TIME_EXTENSION -> WebSocketResponseDto.ok(
+                MessageType.TIME_EXTENSION,
+                chatMessageService.sendSystemMessage(user.getNickname() + "님이 시간을 구매했습니다.")
+            );
             case CHAT -> handleChatMessage(request.getData(), user);
             default -> throw new IllegalArgumentException("Unknown request type: " + request.getType());
         };

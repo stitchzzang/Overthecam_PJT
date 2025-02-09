@@ -11,6 +11,7 @@ public enum MessageType {
     BATTLE_START,    // 배틀 시작 (초기 데이터)
     BATTLER_SELECT,  // 배틀러 선정
     VOTE_CREATE,     // 투표 입력
+    TIME_EXTENSION, // 시간 추가
 
     // 개인 메시지
     USER_SCORE,      // 사용자 총 점수
