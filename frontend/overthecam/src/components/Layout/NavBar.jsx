@@ -13,13 +13,20 @@ export default function NavBar() {
     return null;
   }
 
+  useEffect(() => {
+    // 로그인 여부 확인 API 호출
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, [localStorage.getItem("token")]); // 토큰 변경을 감지
+
   return (
     <>
-      <header className="h-[60px] mb-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between h-full px-3">
-          <div className="flex items-center gap-4">
+      <header className="h-[80px] mb-4">
+        <div className="max-w-7xl mx-auto h-full px-3 relative flex items-center">
+          {/* Left Section - Logo */}
+          <div className="flex justify-start items-center w-1/6">
             <button
-              className="text-3xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue"
+              className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[60px]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               ☰
@@ -28,56 +35,63 @@ export default function NavBar() {
               <img
                 src="/images/Logo.png"
                 alt="Logo"
-                className="h-12"
-                style={{ width: "auto", maxWidth: "200px" }}
+                className="ml-4 w-3/4 h-3/4"
+                // style={{ width: "auto", maxWidth: "160px" }}
               />
             </Link>
           </div>
-            <SearchBar/>
-          <div className="flex items-center gap-3">
+
+          {/* Center Section - Search Bar */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 min-w-[550px]">
+            <SearchBar />
+          </div>
+
+          {/* Right Section with Create Buttons and Profile */}
+          <div className="flex items-center justify-end gap-6 w-1/4 ml-auto">
             {isLoggedIn ? (
               <>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <Link
-                    to="/create-battle-room"
-                    className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+                    to={"/create-battle-room"}
+                    className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center w-32"
                   >
                     방 만들기
                   </Link>
                   <Link
-                    to="/create-vote"
-                    className="btn px-6 py-2 bg-btnPink text-btnPink-hover rounded-full hover:bg-btnPink-hover hover:text-btnPink text-center"
+                    to={"/create-vote"}
+                    className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center w-32"
                   >
                     투표 만들기
                   </Link>
                 </div>
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                <span className="text-gray-700 whitespace-nowrap text-sm">
-                  우끼끼정해기 님,
-                  <br />
-                  안녕하세요!
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                  <span className="text-gray-700 whitespace-nowrap text-sm">
+                    우끼끼정해기 님,
+                    <br />
+                    안녕하세요!
+                  </span>
+                </div>
               </>
             ) : (
-              <>
+              <div className="flex gap-3">
                 <Link
                   to="/login"
-                  className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   로그인
                 </Link>
                 <Link
                   to="/signup"
-                  className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   회원가입
                 </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
       </header>
-
       <aside
         className={`fixed left-0 top-[60px] h-[calc(100vh-60px)] w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
@@ -88,13 +102,13 @@ export default function NavBar() {
           <div className="flex flex-col gap-2 mb-6">
             <Link
               to={"/create-battle-room"}
-              className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center"
+              className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               방 만들기
             </Link>
             <Link
               to={"/create-vote"}
-              className="px-6 py-2 bg-[#FFE7E7] text-[#FF5C5C] rounded-full hover:bg-pink-200 text-sm font-medium text-center"
+              className="btn px-6 py-2  bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               투표 만들기
             </Link>
@@ -114,7 +128,20 @@ export default function NavBar() {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 투표
-                <span className="ml-1">🔽</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+                  />
+                </svg>
               </button>
               {isDropdownOpen && (
                 <div className="ml-4">

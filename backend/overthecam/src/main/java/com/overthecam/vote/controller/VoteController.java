@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,7 +47,9 @@ public class VoteController {
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable);
+
+
+        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable, userId);
         return CommonResponseDto.ok(response);
     }
 
@@ -57,7 +60,7 @@ public class VoteController {
             @PathVariable Long voteId
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteDetailResponse detailDto = voteService.getVoteDetail(voteId);
+        VoteDetailResponse detailDto = voteService.getVoteDetail(voteId, userId);
         return CommonResponseDto.ok(detailDto);
     }
 

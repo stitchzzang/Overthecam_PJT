@@ -10,6 +10,7 @@ package com.overthecam.vote.repository;
  */
 
 import com.overthecam.vote.domain.VoteRecord;
+import java.util.Map;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +22,19 @@ import java.util.List;
 public interface VoteRecordRepository extends JpaRepository<VoteRecord, Long> {
     // 중복 투표 확인
     boolean existsByUser_IdAndVote_VoteId(Long userId, Long voteId);
+
+    // 투표 여부와 선택한 옵션 동시 조회
+    @Query("SELECT new map(" +
+        "vo.voteOptionId as optionId, " +
+        "CASE WHEN vr.voteRecordId IS NOT NULL THEN true ELSE false END as isSelected) " +
+        "FROM VoteOption vo " +
+        "LEFT JOIN VoteRecord vr ON vr.voteOption = vo " +
+        "AND vr.user.id = :userId " +
+        "WHERE vo.vote.voteId = :voteId")
+    List<Map<String, Object>> findVoteOptionsWithSelectionStatus(
+        @Param("voteId") Long voteId,
+        @Param("userId") Long userId
+    );
 
     // 연령대별 통계 조회
     @Query(nativeQuery = true,

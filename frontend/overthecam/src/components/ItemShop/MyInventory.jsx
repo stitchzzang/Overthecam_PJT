@@ -11,50 +11,7 @@ function MyInventory() {
   const [myPoints, setMyPoints] = useState(200);
   const [myCheerScore, setMyCheerScore] = useState(1000);
   const [filter, setFilter] = useState("all");
-  const [myItems, setMyItems] = useState([
-    {
-      name: "기본프레임",
-      price: 200,
-      detail: "프레임 입니다",
-      imageUrl: "",
-      type: "FRAME",
-    },
-    {
-      name: "박수소리",
-      price: 300,
-      detail: "박수를 칩니다",
-      imageUrl: "EFFACT",
-      type: "EFFACT",
-    },
-    {
-      name: "기본프레임",
-      price: 200,
-      detail: "프레임 입니다",
-      imageUrl: "",
-      type: "FRAME",
-    },
-    {
-      name: "박수소리",
-      price: 300,
-      detail: "박수를 칩니다",
-      imageUrl: "",
-      type: "EFFACT",
-    },
-    {
-      name: "기본프레임",
-      price: 200,
-      detail: "프레임 입니다",
-      imageUrl: "",
-      type: "FRAME",
-    },
-    {
-      name: "박수소리",
-      price: 300,
-      detail: "박수를 칩니다",
-      imageUrl: "",
-      type: "EFFACT",
-    },
-  ]);
+  const [myItems, setMyItems] = useState([]);
   const [filteredMyItems, setFilteredMyItems] = useState(myItems);
 
   // 페이지네이션 구현
@@ -65,8 +22,6 @@ function MyInventory() {
     page * itemsPerPage - itemsPerPage,
     page * itemsPerPage
   );
-  // 페이지네이션 디자인용
-  const [isThisPage, setIsThisPage] = useState(3);
 
   const nextPage = () => {
     if (page < totalPages) {
@@ -92,16 +47,22 @@ function MyInventory() {
   useEffect(() => {
     // 내 포인트, 응원 점수, 내가 가진 아이템 목록 받아오기
     getMyInventory()
-      .then((res) => {
-        setMyItems(res.data);
-        console.log("데이터 불러오기 성공", res.data);
-      })
-      .catch((error) => {
-        console.log("데이터 불러오기 실패", error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+  .then((res) => {
+    if (res.data && Array.isArray(res.data)) {
+      setMyItems(res.data);
+    } else {
+      setMyItems([]); // 빈 배열로 초기화
+    }
+    console.log("데이터 불러오기 성공", res.data);
+  })
+  .catch((error) => {
+    console.error("에러 발생:", error);
+    setMyItems([]); // 에러 발생 시 빈 배열로 설정
+  })
+  .finally(() => {
+    setIsLoading(false);
+  });
+
   }, []);
 
   // 모달창 관련 이벤트 함수
@@ -132,8 +93,6 @@ function MyInventory() {
     setMyCheerScore(remainingScore);
     setMyPoints(convertedPoint);
   };
-
-  const handleTabChange = (e) => {};
 
   return (
     <div className="bg-cusGray-light m-5 rounded-2xl p-6">
