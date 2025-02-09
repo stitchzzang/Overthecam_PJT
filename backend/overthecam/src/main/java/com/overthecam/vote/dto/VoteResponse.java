@@ -25,6 +25,7 @@ public class VoteResponse {
     private Long voteId;
     private String title;
     private String content;
+    private Long creatorUserId;
     private String creatorNickname;
     private LocalDateTime endDate;
     private boolean isActive;
@@ -51,6 +52,7 @@ public class VoteResponse {
             .voteId(vote.getVoteId())
             .title(vote.getTitle())
             .content(vote.getContent())
+            .creatorUserId(vote.getUser().getId())
             .creatorNickname(vote.getUser().getNickname())
             .endDate(vote.getEndDate())
             .isActive(vote.isActive())

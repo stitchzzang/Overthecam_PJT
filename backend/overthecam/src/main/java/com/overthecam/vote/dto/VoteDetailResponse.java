@@ -78,6 +78,7 @@ public class VoteDetailResponse {
             .voteId(vote.getVoteId())
             .title(vote.getTitle())
             .content(vote.getContent())
+            .creatorUserId(vote.getUser().getId())
             .creatorNickname(vote.getUser().getNickname())
             .endDate(vote.getEndDate())
             .createdAt(vote.getCreatedAt())
