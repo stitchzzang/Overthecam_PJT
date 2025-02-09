@@ -40,14 +40,13 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/my-following" element={<UserProfile />} />
+          <Route path="/user-profile/:userId" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
-          {/* <Route path="/mypagevote" element={<MyPageVote />} />
-          <Route path="/mypagebattle" element={<MyPageBattle />} /> */}
         </Route>
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
+
