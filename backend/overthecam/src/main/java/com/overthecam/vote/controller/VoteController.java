@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,13 +40,25 @@ public class VoteController {
     // 2. 투표 조회 및 검색
     @GetMapping("/list")
     public CommonResponseDto<VotePageResponse> getVotes(
-            Authentication authentication,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Long userId = securityUtils.getCurrentUserId(authentication);
-        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable);
+        Long userId = null;
+        // 토큰이 있는 경우에만 userId 추출 시도
+        if (token != null && token.startsWith("Bearer ")) {
+            try {
+                String jwtToken = token.substring(7);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(null, jwtToken, null);
+                userId = securityUtils.getCurrentUserId(authentication);
+                log.debug("Authenticated user ID: {}", userId);
+            } catch (Exception e) {
+                log.debug("Failed to extract user ID from token: {}", e.getMessage());
+            }
+        }
+
+        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable, userId);
         return CommonResponseDto.ok(response);
     }
 
@@ -56,7 +69,7 @@ public class VoteController {
             @PathVariable Long voteId
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto detailDto = voteService.getVoteDetail(voteId);
+        VoteResponseDto detailDto = voteService.getVoteDetail(voteId, userId);
         return CommonResponseDto.ok(detailDto);
     }
 

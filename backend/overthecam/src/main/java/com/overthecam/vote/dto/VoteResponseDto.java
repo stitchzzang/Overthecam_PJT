@@ -29,6 +29,7 @@ public class VoteResponseDto {
     private LocalDateTime endDate;
     private LocalDateTime createdAt;
     private boolean isActive;
+    private boolean hasVoted;
 
     private List<VoteOptionDetailDto> options;
     private List<VoteCommentDto> comments;
