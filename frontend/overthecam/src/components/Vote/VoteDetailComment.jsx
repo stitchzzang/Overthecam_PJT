@@ -20,17 +20,28 @@ const VoteDetailComment = ({ voteId }) => {
         return;
       }
 
-      // GET 메서드를 POST로 변경
-      const response = await publicAxios.post(`/vote/comment/${voteId}/list`, null, {
+      const response = await publicAxios.get(`/vote/${voteId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      if (Array.isArray(response.data)) {
-        setComments(response.data);
-      } else if (response.data.content && Array.isArray(response.data.content)) {
-        setComments(response.data.content);
+      if (response.data?.comments && Array.isArray(response.data.comments)) {
+        // 현재 로그인한 사용자의 ID 가져오기
+        const currentUserId = localStorage.getItem('userId');
+        
+        // 댓글에 isAuthor 속성 추가
+        const commentsWithAuthor = response.data.comments.map(comment => ({
+          ...comment,
+          isAuthor: String(comment.userId) === String(currentUserId) // ID를 문자열로 변환하여 비교
+        }));
+        
+        // 최신순 정렬
+        const sortedComments = [...commentsWithAuthor].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        setComments(sortedComments);
       } else {
         console.error('댓글 데이터 형식이 잘못되었습니다:', response.data);
         setComments([]);
@@ -115,32 +126,36 @@ const VoteDetailComment = ({ voteId }) => {
   };
 
   return (
-    <div className="max-w-[800px] mx-auto mt-4">
+    <div className="w-full max-w-[800px] mx-auto mt-4">
       {/* 댓글 목록 */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">댓글</h2>
-        <div className="space-y-4">
-          {Array.isArray(comments) && comments.map((comment) => (
-            <div key={comment.commentId} className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <div className="font-bold">{comment.userNickname || '익명'}</div>
-                <div className="text-sm text-gray-500">
-                  {new Date(comment.createdAt).toLocaleDateString()}
+      <div className="mb-4 bg-white rounded-lg p-4">
+        <h2 className="text-xl font-bold mb-4">댓글</h2>
+        <div className="space-y-3">
+          {comments.map((comment) => (
+            <div key={comment.commentId} className="border-b border-gray-100 pb-3 last:border-b-0">
+              <div className="flex justify-between items-center mb-1">
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-sm">{comment.userNickname || '익명'}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
+                {/* 수정/삭제 버튼 - 작성자인 경우에만 표시 */}
                 {comment.isAuthor && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 text-xs">
                     <button
                       onClick={() => {
                         setEditingCommentId(comment.commentId);
                         setEditContent(comment.content);
                       }}
-                      className="text-blue-500 hover:text-blue-600"
+                      className="text-[#7986CB] hover:text-[#6977BD]"
                     >
                       수정
                     </button>
+                    <span className="text-gray-300">|</span>
                     <button
                       onClick={() => handleDelete(comment.commentId)}
-                      className="text-red-500 hover:text-red-600"
+                      className="text-[#7986CB] hover:text-[#6977BD]"
                     >
                       삭제
                     </button>
@@ -148,31 +163,33 @@ const VoteDetailComment = ({ voteId }) => {
                 )}
               </div>
               {editingCommentId === comment.commentId ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    className="flex-1 p-2 border rounded"
-                  />
-                  <button
-                    onClick={() => handleEdit(comment.commentId)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    완료
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingCommentId(null);
-                      setEditContent('');
-                    }}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                  >
-                    취소
-                  </button>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 bg-[#EEF1FF] p-3 rounded-lg flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="flex-1 h-9 px-3 text-sm rounded-lg border-0 focus:ring-2 focus:ring-blue-400"
+                    />
+                    <button
+                      onClick={() => handleEdit(comment.commentId)}
+                      className="h-9 px-4 text-sm bg-[#7986CB] text-white rounded-lg hover:bg-[#6977BD] transition-colors"
+                    >
+                      완료
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(null);
+                        setEditContent('');
+                      }}
+                      className="h-9 px-4 text-sm bg-[#7986CB] text-white rounded-lg hover:bg-[#6977BD] transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-gray-700">{comment.content}</div>
+                <p className="text-sm text-gray-700">{comment.content}</p>
               )}
             </div>
           ))}
@@ -180,22 +197,20 @@ const VoteDetailComment = ({ voteId }) => {
       </div>
 
       {/* 댓글 입력 폼 */}
-      <form onSubmit={handleSubmit} className="bg-[#EEF1FF] p-4 rounded-lg">
-        <div className="flex">
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="댓글을 입력하세요"
-            className="flex-1 p-3 rounded-lg mr-2 border-0 focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            type="submit"
-            className="bg-[#7986CB] text-white px-6 py-2 rounded-lg hover:bg-[#6977BD] transition-colors"
-          >
-            등록
-          </button>
-        </div>
+      <form onSubmit={handleSubmit} className="bg-[#EEF1FF] p-3 rounded-lg flex items-center gap-2">
+        <input
+          type="text"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="댓글을 입력하세요"
+          className="flex-1 h-9 px-3 text-sm rounded-lg border-0 focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          type="submit"
+          className="h-9 px-4 text-sm bg-[#7986CB] text-white rounded-lg hover:bg-[#6977BD] transition-colors"
+        >
+          등록
+        </button>
       </form>
     </div>
   );

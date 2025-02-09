@@ -1,6 +1,7 @@
 package com.overthecam.vote.domain;
 
 import com.overthecam.auth.domain.User;
+import com.overthecam.battle.domain.Battle;
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,8 +35,10 @@ public class Vote extends TimeStampEntity {
     @Builder.Default
     private boolean isActive = true;
 
-    @Column
-    private Long battleId;
+    @Builder.Default
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "battle_id", nullable = true)
+    private Battle battle = null;
 
     @Builder.Default
     @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)      // 연관관계에서 제거된 VoteOption 엔티티 자동삭제

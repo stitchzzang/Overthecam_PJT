@@ -1,23 +1,24 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import "./App.css"
-import "./index.css"
-import Layout from "./components/Layout/Layout"
-import BattleMainPage from "./page/Main/BattleMainPage"
-import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage"
-import BattleRoomPage from "./page/BattleRoom/BattleRoomPage"
-import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx"
-import VoteInProgressPage from "./page/Vote/VoteInProgressPage.jsx"
-import VoteClosedPage from "./page/Vote/VoteClosedPage.jsx"
-import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx"
-import ItemShopPage from "./page/ItemShop/ItemShopPage"
-import Login from "./components/Login/Login"
-import Signup from "./components/Login/Signup"
-import FindAccount from "./components/Login/FindAccount"
-import MyPage from "./page/Mypage/MyPage.jsx"
-import UserProfile from "./page/Mypage/UserProfile.jsx"
-import MyPageReport from "./page/Mypage/MyPageReport.jsx"
-import MyPageBattle from "./page/Mypage/MyPageBattle.jsx"
-import MyPageVote from "./page/Mypage/MyPageVote.jsx"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+import "./index.css";
+import Layout from "./components/Layout/Layout";
+import BattleMainPage from "./page/Main/BattleMainPage";
+import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
+import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
+import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
+import VoteInProgressPage from "./page/Vote/VoteInProgressPage.jsx";
+import VoteClosedPage from "./page/Vote/VoteClosedPage.jsx";
+import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
+import VoteDeleteModal from "./components/Vote/VoteDeleteModal.jsx";
+import ItemShopPage from "./page/ItemShop/ItemShopPage";
+import Login from "./components/Login/Login";
+import Signup from "./components/Login/Signup";
+import FindAccount from "./components/Login/FindAccount";
+import MyPage from "./page/Mypage/MyPage.jsx";
+import UserProfile from "./page/Mypage/UserProfile.jsx";
+import MyPageReport from "./page/Mypage/MyPageReport.jsx";
+import MainPage from "./page/Main/MainPage.jsx";
+
 function App() {
   return (
     <Router>
@@ -29,7 +30,8 @@ function App() {
           <Route path="/create-vote" element={<VoteCreatingPage />} />
           <Route path="/vote-inprogress" element={<VoteInProgressPage />} />
           <Route path="/vote-closed" element={<VoteClosedPage />} />
-          <Route path="/vote-detail" element={<VoteDetailPage />} />
+          <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
+          <Route path="/delete-vote/:voteId" element={<VoteDeleteModal />} />
           <Route path="/store" element={<ItemShopPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

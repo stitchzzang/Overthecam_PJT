@@ -70,53 +70,60 @@ const VoteClosedPage = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="p-4">
-      {currentList.length > 0 ? (
-        currentList.map(vote => (
-          <div key={vote.voteId} className="mb-8 p-4 border rounded-lg shadow">
-            <h3 
-              className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600"
-              onClick={() => navigate(`/vote-detail/${vote.voteId}`)}
-            >
-              {vote.title}
-            </h3>
-            <p className="mb-4">{vote.content}</p>
-            
-            <div className="mt-4">
-              <div className="mb-2 flex justify-between">
-                <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
-                <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
-              </div>
-              <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden">
-                <div
-                  className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-2 text-white"
-                  style={{ width: `${vote.options[0].votePercentage}%` }}
-                >
-                  {vote.options[0].votePercentage.toFixed(1)}%
+    <div>
+      {/* 그라데이션 헤더 추가 */}
+      <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
+        <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
+      </div>
+      
+      <div className="p-4">
+        {currentList.length > 0 ? (
+          currentList.map(vote => (
+            <div key={vote.voteId} className="mb-8 p-4 border rounded-lg shadow">
+              <h3 
+                className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600"
+                onClick={() => navigate(`/vote-detail/${vote.voteId}`)}
+              >
+                {vote.title}
+              </h3>
+              <p className="mb-4">{vote.content}</p>
+              
+              <div className="mt-4">
+                <div className="mb-2 flex justify-between">
+                  <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+                  <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
                 </div>
-                <div
-                  className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2 text-white"
-                  style={{ width: `${vote.options[1].votePercentage}%` }}
-                >
-                  {vote.options[1].votePercentage.toFixed(1)}%
+                <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden">
+                  <div
+                    className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-2 text-white"
+                    style={{ width: `${vote.options[0].votePercentage}%` }}
+                  >
+                    {vote.options[0].votePercentage.toFixed(1)}%
+                  </div>
+                  <div
+                    className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2 text-white"
+                    style={{ width: `${vote.options[1].votePercentage}%` }}
+                  >
+                    {vote.options[1].votePercentage.toFixed(1)}%
+                  </div>
                 </div>
-              </div>
-              <div className="text-right text-sm text-gray-600 mt-2">
-                총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
+                <div className="text-right text-sm text-gray-600 mt-2">
+                  총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
+                </div>
               </div>
             </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center py-8">종료된 투표가 없습니다.</div>
-      )}
-      <div className="flex justify-center pb-10">
-        <CustomPagination
-          activePage={page}
-          itemsCountPerPage={itemsPerPage}
-          totalItemsCount={votes.length}
-          onChange={handlePageChange}
-        />
+          ))
+        ) : (
+          <div className="text-center py-8">종료된 투표가 없습니다.</div>
+        )}
+        <div className="flex justify-center pb-10">
+          <CustomPagination
+            activePage={page}
+            itemsCountPerPage={itemsPerPage}
+            totalItemsCount={votes.length}
+            onChange={handlePageChange}
+          />
+        </div>
       </div>
     </div>
   );

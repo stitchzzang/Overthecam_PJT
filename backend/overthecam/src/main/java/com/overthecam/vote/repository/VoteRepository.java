@@ -19,26 +19,33 @@ import java.util.List;
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
-    // 키워드 및 배틀 ID 복합 검색
-
+    // 키워드 검색 (일반 투표만)
     @Query("SELECT v FROM Vote v WHERE " +
-            "(:keyword IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "(:battleId IS NULL OR v.battleId = :battleId)")
-    Page<Vote> searchByKeywordAndBattleId(
-            @Param("keyword") String keyword,
-            @Param("battleId") Long battleId,
-            Pageable pageable
+        "v.battle IS NULL AND " +
+        "(:keyword IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+        "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Vote> searchByKeyword(
+        @Param("keyword") String keyword,
+        Pageable pageable
     );
 
-    // 총 투표 수 기준 정렬
+    // 총 투표 수 기준 정렬 (일반 투표만)
     @Query("SELECT v FROM Vote v " +
-            "LEFT JOIN v.options o " +
-            "GROUP BY v " +
-            "ORDER BY SUM(o.voteCount) DESC NULLS LAST")
+        "LEFT JOIN v.options o " +
+        "WHERE v.battle IS NULL " +  // 추가
+        "GROUP BY v " +
+        "ORDER BY SUM(o.voteCount) DESC NULLS LAST")
     Page<Vote> findAllOrderByVoteCountDesc(Pageable pageable);
 
-    // 만료된 투표 조회
-    List<Vote> findAllByEndDateBeforeAndIsActiveTrue(LocalDateTime now);
+    // 일반 투표 전체 조회
+    @Query("SELECT v FROM Vote v WHERE v.battle IS NULL")
+    Page<Vote> findAllNormalVotes(Pageable pageable);
+
+    // 만료된 투표 조회 (일반 투표만)
+    @Query("SELECT v FROM Vote v WHERE " +
+        "v.battle IS NULL AND " +
+        "v.endDate < :now AND v.isActive = true")
+    List<Vote> findAllByEndDateBeforeAndIsActiveTrue(@Param("now") LocalDateTime now);
+
     Optional<Vote> findByBattleId(Long battleId);
 }
