@@ -26,6 +26,7 @@ public class VoteDetailResponse {
     private LocalDateTime createdAt;
     private boolean isActive;
     private boolean hasVoted;
+    private int totalVoteCount;
 
     private List<VoteOptionDetail> options;
     private List<VoteComment> comments;
@@ -84,6 +85,7 @@ public class VoteDetailResponse {
             .createdAt(vote.getCreatedAt())
             .isActive(vote.isActive())
             .hasVoted(hasVoted)
+            .totalVoteCount(totalVotes)
             .options(options)
             .comments(comments)
             .commentCount((long) comments.size())
