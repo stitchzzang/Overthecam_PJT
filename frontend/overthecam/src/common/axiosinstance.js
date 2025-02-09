@@ -1,51 +1,54 @@
-import axios from "axios";
+import axios from "axios"
 
 const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-  withCredentials: true
-});
+  withCredentials: true,
+})
 
 authAxios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token"); // 저장된 토큰 가져오기
+    const token = localStorage.getItem("token")
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      config.headers["Content-Type"] = "application/json";
+      config.headers.Authorization = `Bearer ${token}`
     }
-    // console.log(import.meta.env.VITE_BASE_URL,)
-    return config;
+    return config
   },
-  (error) => Promise.reject(error)
-);
+  (error) => Promise.reject(error),
+)
 
 authAxios.interceptors.response.use(
-  (response) => {
-    return response.data;
+  (response) => response,
+  async (error) => {
+    if (error.response && error.response.status === 401) {
+      // 토큰이 만료되었을 때 처리
+      localStorage.removeItem("token")
+      // 로그인 페이지로 리다이렉트
+      window.location.href = "/login"
+    }
+    return Promise.reject(error)
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+)
 
 const publicAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-});
+})
 
 publicAxios.interceptors.request.use(
   (config) => {
-    config.headers["Content-Type"] = "application/json";
-    return config;
+    config.headers["Content-Type"] = "application/json"
+    return config
   },
-  (error) => Promise.reject(error)
-);
+  (error) => Promise.reject(error),
+)
 
 publicAxios.interceptors.response.use(
   (response) => {
-    return response.data;
+    return response.data
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
-export { authAxios, publicAxios };
+export { authAxios, publicAxios }
+

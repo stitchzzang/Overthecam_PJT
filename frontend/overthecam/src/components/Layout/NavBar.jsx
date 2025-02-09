@@ -137,6 +137,16 @@ function Header({ isMenuOpen, setIsMenuOpen, isLoggedIn, setIsLoggedIn }) {
                 <br />
                 안녕하세요!
               </span>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('token')
+                  setIsLoggedIn(false)
+                  window.location.href = "/"
+                }}
+                className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
+              >
+                로그아웃
+              </button>
             </>
           ) : (
             <>
