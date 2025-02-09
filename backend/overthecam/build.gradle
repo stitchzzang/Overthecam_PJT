@@ -60,6 +60,10 @@ dependencies {
     //openvidu
     implementation 'io.openvidu:openvidu-java-client:2.31.0'
 
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+
 }
 
 tasks.named('test') {
