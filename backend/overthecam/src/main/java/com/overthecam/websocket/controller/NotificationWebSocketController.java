@@ -48,7 +48,7 @@ public class NotificationWebSocketController {
             messagingTemplate.convertAndSendToUser(
                     targetUserStr,
                     "/queue/notifications",
-                    WebSocketResponseDto.success(MessageType.SYSTEM_INVITE, response)
+                    WebSocketResponseDto.ok(MessageType.SYSTEM_INVITE, response)
             );
             log.debug("Message successfully sent to messagingTemplate");
         } catch (Exception e) {

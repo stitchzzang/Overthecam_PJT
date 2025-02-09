@@ -1,6 +1,5 @@
 package com.overthecam.vote.dto;
 
-import com.overthecam.vote.domain.VoteComment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VoteCommentDto {
+public class VoteComment {
 
     // 댓글 정보 응답을 위한 DTO
     private Long commentId;
@@ -23,7 +22,7 @@ public class VoteCommentDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static VoteCommentDto from(VoteComment entity) {
+    public static VoteComment from(com.overthecam.vote.domain.VoteComment entity) {
         return builder()
                 .commentId(entity.getVoteCommentId())
                 .voteId(entity.getVote().getVoteId())
