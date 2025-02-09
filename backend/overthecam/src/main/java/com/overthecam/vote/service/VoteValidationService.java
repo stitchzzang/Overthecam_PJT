@@ -110,7 +110,7 @@ public class VoteValidationService {
     /**
      * 투표 옵션 ID로 투표 옵션 조회
      */
-    private VoteOption findVoteOptionById(Long optionId) {
+    public VoteOption findVoteOptionById(Long optionId) {
         return voteOptionRepository.findById(optionId)
             .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
     }
