@@ -256,25 +256,30 @@ public class VoteService {
      */
     @Transactional
     public VoteDetailResponse vote(Long voteId, Long optionId, Long userId) {
-        // 투표, 사용자, 옵션 조회 및 검증
+        // 1. 기존 검증 로직 유지
         Vote vote = findAndValidateVote(voteId);
         User user = findUserById(userId);
-        VoteOption option = findVoteOptionById(optionId);
+        VoteOption option = findAndValidateVoteOption(voteId, optionId);
 
-        // 중복 투표 검증
         validateVoteEligibility(vote, userId);
 
         try {
-            // 투표 기록 저장 및 통계 갱신
+            // 2. 투표 기록 저장
             VoteRecord voteRecord = createVoteRecord(user, vote, option);
             voteRecordRepository.save(voteRecord);
+
+            // 3. 투표 수 증가 (기존 메서드 사용)
             voteOptionRepository.incrementVoteCount(optionId);
 
-            // 사용자 응원 점수 적립
-            supportScoreService.addSupportScore(user, 1000);
-            // 엔티티 상태 동기화 (투표 수 갱신을 위해)
-            syncEntityState(vote);
+            // 4. 엔티티 상태 동기화
+            entityManager.flush();
+            entityManager.refresh(vote);  // vote 엔티티 새로고침
+            vote.getOptions().forEach(opt -> entityManager.refresh(opt));  // 각 옵션 새로고침
 
+            // 5. 응원 점수 적립
+            supportScoreService.addSupportScore(user, 1000);
+
+            // 6. 기존 메서드들을 사용하여 응답 데이터 준비
             Map<Long, Boolean> selectionStatus = voteRecordRepository
                 .findVoteOptionsWithSelectionStatus(vote.getVoteId(), userId)
                 .stream()
@@ -283,7 +288,6 @@ public class VoteService {
                     m -> (Boolean) m.get("isSelected")
                 ));
 
-            // 최신 투표 통계 정보 조회
             Map<Long, Map<String, Double>> optionAgeStats = processOptionStats(
                 voteOptionRepository.getAgeDistributionByOption(voteId)
             );
@@ -291,10 +295,9 @@ public class VoteService {
                 voteOptionRepository.getGenderDistributionByOption(voteId)
             );
 
-            // 댓글 정보 조회
             List<VoteComment> comments = getVoteComments(vote.getVoteId());
 
-            // 갱신된 투표 결과 반환
+            // 7. 결과 반환
             return VoteDetailResponse.of(
                 vote,
                 true,
@@ -360,6 +363,16 @@ public class VoteService {
         }
     }
 
+    private VoteOption findAndValidateVoteOption(Long voteId, Long optionId) {
+        VoteOption option = findVoteOptionById(optionId);
+
+        if (!option.getVote().getVoteId().equals(voteId)) {
+            throw new GlobalException(VoteErrorCode.INVALID_VOTE_OPTION, "해당 투표의 옵션이 아닙니다");
+        }
+
+        return option;
+    }
+
 // 7. 기타 메서드들
     /**
      * 투표 통계 정보 처리
@@ -387,49 +400,6 @@ public class VoteService {
     public void checkAndCloseExpiredVotes() {
         List<Vote> expiredVotes = voteRepository.findAllByEndDateBeforeAndIsActiveTrue(LocalDateTime.now());
         expiredVotes.forEach(Vote::setInactive);
-    }
-
-    /**
-     * 투표 응답 DTO 변환
-     * - 투표 엔티티를 응답 DTO로 변환
-     * - 총 투표 수와 댓글 수 계산
-     */
-    private VoteDetailResponse convertToResponseDto(Vote vote) {
-        int totalVotes = calculateTotalVotes(vote);
-        long commentCount = voteCommentRepository.countByVote_VoteId(vote.getVoteId());
-
-        return VoteDetailResponse.builder()
-                .voteId(vote.getVoteId())
-                .title(vote.getTitle())
-                .content(vote.getContent())
-                .creatorNickname(vote.getUser().getNickname())
-                .endDate(vote.getEndDate())
-                .createdAt(vote.getCreatedAt())
-                .hasVoted(true)
-                .isActive(vote.isActive())
-                .options(createSimpleOptionDtos(vote, totalVotes))
-                .commentCount(commentCount)
-                .comments(null)
-                .build();
-    }
-
-    /**
-     * 간단한 투표 옵션 DTO 생성
-     * - 각 옵션의 투표 수와 비율 계산
-     */
-    private List<VoteDetailResponse.VoteOptionDetail> createSimpleOptionDtos(Vote vote, int totalVotes) {
-        return vote.getOptions().stream()
-                .map(option -> {
-                    double percentage = totalVotes > 0 ?
-                            (double) option.getVoteCount() / totalVotes * 100 : 0;
-                    return VoteDetailResponse.VoteOptionDetail.builder()
-                            .optionId(option.getVoteOptionId())
-                            .optionTitle(option.getOptionTitle())
-                            .voteCount(option.getVoteCount())
-                            .votePercentage(Math.round(percentage * 10.0) / 10.0)
-                            .build();
-                })
-                .collect(Collectors.toList());
     }
 
 
