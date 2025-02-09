@@ -9,7 +9,6 @@ import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
 import VoteInProgressPage from "./page/Vote/VoteInProgressPage.jsx";
 import VoteClosedPage from "./page/Vote/VoteClosedPage.jsx";
 import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
-import VoteUpdatePage from "./page/Vote/VoteUpdatePage.jsx";
 import VoteDeleteModal from "./components/Vote/VoteDeleteModal.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage";
 import Login from "./components/Login/Login";
@@ -31,7 +30,6 @@ function App() {
           <Route path="/vote-inprogress" element={<VoteInProgressPage />} />
           <Route path="/vote-closed" element={<VoteClosedPage />} />
           <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
-          <Route path="/edit-vote/:voteId" element={<VoteUpdatePage />} />
           <Route path="/delete-vote/:voteId" element={<VoteDeleteModal />} />
           <Route path="/store" element={<ItemShopPage />} />
           <Route path="/login" element={<Login />} />

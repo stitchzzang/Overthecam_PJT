@@ -1,78 +1,129 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { publicAxios } from '../../common/axiosinstance';
 
 const VoteDetail = ({ voteData }) => {
+  const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // 현재 로그인한 사용자의 닉네임 가져오기
+  const currentUserNickname = localStorage.getItem('nickname');
+  
+  // 현재 사용자가 투표 작성자인지 확인
+  const isCreator = currentUserNickname === voteData.creatorNickname;
+
   if (!voteData) return <div>로딩 중...</div>;
+
+  // 삭제 버튼 핸들러
+  const handleDelete = async () => {
+    try {
+      await publicAxios.delete(`/api/vote/${voteData.voteId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      navigate('/vote-inprogress', { replace: true });
+    } catch (error) {
+      console.error('Failed to delete vote:', error);
+      if (error.response?.status === 403) {
+        alert('자신이 작성한 투표만 삭제할 수 있습니다.');
+      } else {
+        alert('투표 삭제에 실패했습니다.');
+      }
+    }
+  };
 
   return (
     <div className="max-w-[800px] mx-auto p-4">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-bold mb-4">{voteData.title}</h1>
-        <p className="text-gray-700 mb-6">{voteData.content}</p>
+        {/* 제목 */}
+        <h1 className="text-3xl font-bold text-center mb-4">{voteData.title}</h1>
         
-        <div className="flex justify-between mb-4 text-sm text-gray-500">
-          <span>작성자: {voteData.creatorNickname}</span>
-          <span>댓글 {voteData.commentCount}개</span>
+        {/* 메타 정보 */}
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
+          <span className="flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            {new Date(voteData.createdAt).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}
+          </span>
+          <span className="flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            {voteData.creatorNickname}
+          </span>
+        </div>
+
+        {/* 투표 설명 */}
+        <p className="text-gray-700 mb-6 text-center">{voteData.content}</p>
+
+        {/* 투표 옵션 제목 */}
+        <div className="flex justify-between mb-4 text-xl">
+          <div className="text-red-500">A. {voteData.options[0].optionTitle}</div>
+          <div className="text-blue-500">B. {voteData.options[1].optionTitle}</div>
         </div>
 
         {/* 투표 결과 그래프 */}
-        <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden mb-6">
+        <div className="relative h-12 bg-gray-200 rounded-full overflow-hidden mb-8">
           <div
-            className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-4 text-white font-bold"
+            className="absolute left-0 top-0 h-full bg-red-400 flex items-center justify-start pl-4 text-white font-bold"
             style={{ width: `${voteData.options[0].votePercentage}%` }}
           >
-            {voteData.options[0].optionTitle} ({voteData.options[0].votePercentage}%)
+            {voteData.options[0].votePercentage}%
           </div>
           <div
-            className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-4 text-white font-bold"
+            className="absolute right-0 top-0 h-full bg-blue-400 flex items-center justify-end pr-4 text-white font-bold"
             style={{ width: `${voteData.options[1].votePercentage}%` }}
           >
-            {voteData.options[1].optionTitle} ({voteData.options[1].votePercentage}%)
+            {voteData.options[1].votePercentage}%
           </div>
         </div>
 
         {/* 성별 통계 */}
         <div className="mb-8">
           <h3 className="text-xl font-bold text-center mb-4">성별 통계</h3>
-          <div className="flex items-center justify-center gap-4">
-            {/* 왼쪽 옵션 */}
-            <div className="flex-1 text-right">
-              <div className="h-8 bg-gray-200 rounded-lg relative mb-2">
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-4">
+              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute right-0 top-0 h-full bg-red-400 rounded-lg flex items-center justify-end pr-2 text-white"
+                  className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                   style={{ width: `${voteData.options[0].genderDistribution?.male || 0}%` }}
                 >
                   {voteData.options[0].genderDistribution?.male || 0}%
                 </div>
               </div>
-              <div className="h-8 bg-gray-200 rounded-lg relative">
+              <span className="w-16 text-center font-bold">남성</span>
+              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute right-0 top-0 h-full bg-red-400 rounded-lg flex items-center justify-end pr-2 text-white"
-                  style={{ width: `${voteData.options[0].genderDistribution?.female || 0}%` }}
-                >
-                  {voteData.options[0].genderDistribution?.female || 0}%
-                </div>
-              </div>
-            </div>
-            
-            {/* 중앙 레이블 */}
-            <div className="text-center font-bold">
-              <div className="h-8 flex items-center mb-2">남성</div>
-              <div className="h-8 flex items-center">여성</div>
-            </div>
-            
-            {/* 오른쪽 옵션 */}
-            <div className="flex-1">
-              <div className="h-8 bg-gray-200 rounded-lg relative mb-2">
-                <div
-                  className="absolute left-0 top-0 h-full bg-blue-400 rounded-lg flex items-center justify-start pl-2 text-white"
+                  className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                   style={{ width: `${voteData.options[1].genderDistribution?.male || 0}%` }}
                 >
                   {voteData.options[1].genderDistribution?.male || 0}%
                 </div>
               </div>
-              <div className="h-8 bg-gray-200 rounded-lg relative">
+            </div>
+            <div className="flex items-center justify-center gap-4">
+              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute left-0 top-0 h-full bg-blue-400 rounded-lg flex items-center justify-start pl-2 text-white"
+                  className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                  style={{ width: `${voteData.options[0].genderDistribution?.female || 0}%` }}
+                >
+                  {voteData.options[0].genderDistribution?.female || 0}%
+                </div>
+              </div>
+              <span className="w-16 text-center font-bold">여성</span>
+              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+                <div
+                  className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                   style={{ width: `${voteData.options[1].genderDistribution?.female || 0}%` }}
                 >
                   {voteData.options[1].genderDistribution?.female || 0}%
@@ -82,38 +133,27 @@ const VoteDetail = ({ voteData }) => {
           </div>
         </div>
 
-        {/* 연령대 통계 */}
-        <div>
+        {/* 연령별 통계 */}
+        <div className="mb-8">
           <h3 className="text-xl font-bold text-center mb-4">연령별 통계</h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {['10', '20', '30', '40'].map((age) => (
               <div key={age} className="flex items-center justify-center gap-4">
-                {/* 왼쪽 옵션 */}
-                <div className="flex-1 text-right">
-                  <div className="h-8 bg-gray-200 rounded-lg relative">
-                    <div
-                      className="absolute right-0 top-0 h-full bg-red-400 rounded-lg flex items-center justify-end pr-2 text-white"
-                      style={{ width: `${voteData.options[0].ageDistribution?.[age] || 0}%` }}
-                    >
-                      {voteData.options[0].ageDistribution?.[age] || 0}%
-                    </div>
+                <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+                  <div
+                    className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                    style={{ width: `${voteData.options[0].ageDistribution?.[age] || 0}%` }}
+                  >
+                    {voteData.options[0].ageDistribution?.[age] || 0}%
                   </div>
                 </div>
-                
-                {/* 중앙 레이블 */}
-                <div className="w-16 text-center font-bold">
-                  {age}대
-                </div>
-                
-                {/* 오른쪽 옵션 */}
-                <div className="flex-1">
-                  <div className="h-8 bg-gray-200 rounded-lg relative">
-                    <div
-                      className="absolute left-0 top-0 h-full bg-blue-400 rounded-lg flex items-center justify-start pl-2 text-white"
-                      style={{ width: `${voteData.options[1].ageDistribution?.[age] || 0}%` }}
-                    >
-                      {voteData.options[1].ageDistribution?.[age] || 0}%
-                    </div>
+                <span className="w-16 text-center font-bold">{age}대</span>
+                <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+                  <div
+                    className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                    style={{ width: `${voteData.options[1].ageDistribution?.[age] || 0}%` }}
+                  >
+                    {voteData.options[1].ageDistribution?.[age] || 0}%
                   </div>
                 </div>
               </div>
@@ -121,10 +161,61 @@ const VoteDetail = ({ voteData }) => {
           </div>
         </div>
 
-        <div className="mt-6 text-right text-sm text-gray-600">
-          총 투표수: {voteData.options.reduce((sum, option) => sum + option.voteCount, 0)}
+        {/* 하단 정보 */}
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+              </svg>
+              참여 {voteData.options.reduce((sum, option) => sum + option.voteCount, 0)}명
+            </span>
+            <span className="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+              </svg>
+              댓글 {voteData.commentCount}개
+            </span>
+          </div>
+          {isCreator && (
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowDeleteModal(true)}
+                className="px-6 py-2 bg-[#FFE2E2] text-[#FF8989] rounded-lg shadow-inner hover:bg-[#FFD8D8] transition-colors"
+              >
+                삭제
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-bold mb-4">투표 삭제</h3>
+            <p className="mb-6">정말로 이 투표를 삭제하시겠습니까?</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete();
+                  setShowDeleteModal(false);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
