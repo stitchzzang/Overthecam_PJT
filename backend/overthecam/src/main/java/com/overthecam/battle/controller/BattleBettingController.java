@@ -3,6 +3,7 @@ package com.overthecam.battle.controller;
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.dto.BattleBettingRequest;
 import com.overthecam.battle.service.BattleBettingService;
+import com.overthecam.battle.service.BattleResultService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.security.util.SecurityUtils;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BattleBettingController {
 
     private final BattleBettingService battleBettingService;
+    private final BattleResultService battleResultService;
     private final SecurityUtils securityUtils;
 
     /**
@@ -42,7 +44,6 @@ public class BattleBettingController {
      */
     @GetMapping("/{battleId}/status")
     public CommonResponseDto<?> getVoteStatus(@PathVariable Long battleId) {
-        // Map<Long, Integer> voteStatus = battleBettingService.getCurrentVoteStatus(battleId);
         Map<Long, List<BattleBettingInfo>> voteStatus = battleBettingService.getDetailedVoteStatus(battleId);
         return CommonResponseDto.ok(voteStatus);
     }
@@ -52,7 +53,6 @@ public class BattleBettingController {
      */
     @PostMapping("/{battleId}/finalize")
     public CommonResponseDto<?> finalizeBattleVotes(@PathVariable Long battleId) {
-        battleBettingService.finalizeBattleVotes(battleId);
-        return CommonResponseDto.ok();
+        return CommonResponseDto.ok(battleResultService.finalizeBattleVotes(battleId));
     }
 }

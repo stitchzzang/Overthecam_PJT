@@ -1,14 +1,14 @@
 package com.overthecam.battle.service;
 
 import com.overthecam.auth.domain.User;
+import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.dto.BattleBettingInfo;
+import com.overthecam.battle.exception.BattleErrorCode;
+import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.battle.repository.BattleVoteRedisRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.vote.domain.VoteOption;
-import com.overthecam.vote.domain.VoteRecord;
 import com.overthecam.vote.exception.VoteErrorCode;
-import com.overthecam.vote.repository.VoteOptionRepository;
-import com.overthecam.vote.repository.VoteRecordRepository;
 import com.overthecam.vote.service.SupportScoreService;
 import com.overthecam.vote.service.VoteValidationService;
 import java.util.List;
@@ -27,8 +27,7 @@ public class BattleBettingService {
     private final BattleVoteRedisRepository battleVoteRedisRepository;
     private final VoteValidationService voteValidationService;
     private final SupportScoreService supportScoreService;
-    private final VoteOptionRepository voteOptionRepository;
-    private final VoteRecordRepository voteRecordRepository;
+    private final BattleRepository battleRepository;
 
     /**
      * 배틀 투표 처리
@@ -37,6 +36,10 @@ public class BattleBettingService {
         // 사용자 및 투표 옵션 검증
         User user = voteValidationService.findUserById(userId);
         VoteOption voteOption = voteValidationService.findVoteOptionById(optionId);
+
+        // 배틀 존재 여부 확인
+        Battle battle = battleRepository.findById(battleId)
+            .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다"));
 
         // 중복 투표 검증
         if (battleVoteRedisRepository.hasUserVoted(battleId, userId)) {
@@ -47,6 +50,10 @@ public class BattleBettingService {
         supportScoreService.deductSupportScore(user, supportScore);
 
         // Redis에 투표 정보 저장
+        saveBettingInfo(battleId, userId, optionId, supportScore);
+    }
+
+    private void saveBettingInfo(Long battleId, Long userId, Long optionId, int supportScore) {
         BattleBettingInfo voteInfo = BattleBettingInfo.builder()
             .userId(userId)
             .battleId(battleId)
@@ -59,33 +66,6 @@ public class BattleBettingService {
     }
 
     /**
-     * 배틀 종료 시 투표 결과 DB 반영
-     */
-    @Transactional
-    public void finalizeBattleVotes(Long battleId) {
-        List<BattleBettingInfo> votes = battleVoteRedisRepository.getAllVotesForBattle(battleId);
-        Map<Long, Integer> optionScores = battleVoteRedisRepository.getOptionScores(battleId);
-
-        // 옵션별 점수 업데이트 & 투표 기록 저장
-        List<VoteRecord> voteRecords = votes.stream()
-            .map(vote -> VoteRecord.builder()
-                .user(User.userIdBuilder().id(vote.getUserId()).build())
-                .voteOption(voteOptionRepository.findById(vote.getVoteOptionId())
-                    .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"))
-                ).build()
-            ).collect(Collectors.toList());
-
-        voteRecordRepository.saveAll(voteRecords);
-        optionScores.forEach((optionId, totalScore) ->
-            voteOptionRepository.findById(optionId).ifPresent(option -> option.updateVoteCount(totalScore))
-        );
-
-        // Redis 데이터 삭제
-        battleVoteRedisRepository.deleteBattleVotes(battleId);
-    }
-
-
-    /**
      * 현재 투표 현황 조회
      */
     public Map<Long, Integer> getCurrentVoteStatus(Long battleId) {
@@ -95,14 +75,11 @@ public class BattleBettingService {
     }
 
     /**
-     *
      * 모든 사용자 배팅 정보
      */
     public Map<Long, List<BattleBettingInfo>> getDetailedVoteStatus(Long battleId) {
         List<BattleBettingInfo> votes = battleVoteRedisRepository.getAllVotesForBattle(battleId);
-
         return votes.stream()
             .collect(Collectors.groupingBy(BattleBettingInfo::getVoteOptionId));
     }
-
 }
