@@ -2,8 +2,8 @@ package com.overthecam.websocket.interceptor;
 
 import com.overthecam.security.jwt.JwtProperties;
 import com.overthecam.security.jwt.JwtTokenProvider;
-import com.overthecam.exception.websocket.WebSocketErrorCode;
-import com.overthecam.exception.websocket.WebSocketException;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 
 import java.util.HashMap;
 import java.util.Map;

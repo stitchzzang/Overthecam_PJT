@@ -1,7 +1,7 @@
 package com.overthecam.websocket.controller;
 
-import com.overthecam.exception.websocket.WebSocketErrorCode;
-import com.overthecam.exception.websocket.WebSocketException;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 import com.overthecam.websocket.service.BattleDataService;
 import com.overthecam.websocket.service.BattleWebsocketService;
 import com.overthecam.websocket.service.ChatMessageService;

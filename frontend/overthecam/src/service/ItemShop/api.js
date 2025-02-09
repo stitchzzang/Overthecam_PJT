@@ -6,7 +6,12 @@ export const getItem = async () => {
     console.log("Configured baseURL:", authAxios.defaults.baseURL);
     return response;
   } catch (error) {
-    console.error("아이템 가져오기 실패", error);
+    // error.error 객체 안에 실제 에러 정보가 있음
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;  
+    const errorStatus = error.error.status;
+    console.error(errorStatus ,errorCode, errorMessage);
+    throw error.error;
   }
 };
 
@@ -15,7 +20,13 @@ export const getMyInventory = async () => {
     const response = await authAxios.get("/store/item/my/all");
     return response;
   } catch (error) {
-    console.error("내 인벤토리 가져오기 실패", error);
+    // error.error 객체 안에 실제 에러 정보가 있음
+    const errorMessage = error.error.message;  // "구매한 상품이 없습니다."
+    const errorCode = error.error.code;        // "STORE_ITEM_NOT_FOUND"
+    const errorStatus = error.error.status;    // 404
+    
+    console.error(errorStatus ,errorCode, errorMessage);
+    throw error.error; // 또는 throw { message: errorMessage };
   }
 };
 
@@ -27,7 +38,11 @@ export const postPurchase = async (storeItemId) => {
     );
     return response;
   } catch (error) {
-    console.error("구매 실패", error);
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;  
+    const errorStatus = error.error.status;
+    console.error(errorStatus ,errorCode, errorMessage);
+    throw error.error;
   }
 };
 
@@ -38,6 +53,10 @@ export const postExchangePoints = async (score) => {
     // })
     // return response;
   } catch (error) {
-    console.error("환전 실패", error);
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;  
+    const errorStatus = error.error.status;
+    console.error(errorStatus ,errorCode, errorMessage);
+    throw error.error;
   }
 };

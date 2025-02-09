@@ -1,7 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicAxios } from '../../common/axiosinstance';
-import Pagination from 'react-js-pagination';
+
+const CustomPagination = ({ activePage, itemsCountPerPage, totalItemsCount, onChange }) => {
+  const totalPages = Math.ceil(totalItemsCount / itemsCountPerPage);
+  const pages = [];
+
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push(
+      <button
+        key={`page-${i}`}
+        onClick={() => onChange(i)}
+        className={`px-4 py-2 rounded-lg transition ${
+          activePage === i 
+            ? 'bg-cusBlack-light text-white' 
+            : 'text-cusBlack-light hover:bg-gray-300'
+        }`}
+      >
+        {i}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex gap-2">
+      {activePage > 1 && (
+        <button onClick={() => onChange(activePage - 1)} className="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition">
+          이전
+        </button>
+      )}
+      {pages}
+      {activePage < totalPages && (
+        <button onClick={() => onChange(activePage + 1)} className="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition">
+          다음
+        </button>
+      )}
+    </div>
+  );
+};
 
 const VoteInProgressPage = () => {
   const navigate = useNavigate();
@@ -10,106 +46,136 @@ const VoteInProgressPage = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [currentList, setCurrentList] = useState([]);
+  const [votedItems, setVotedItems] = useState(new Set());
   const itemsPerPage = 5;
 
   useEffect(() => {
-    const fetchVotes = async () => {
-      try {
-        setLoading(true);
-        const response = await publicAxios.get('/vote/list', {  // Updated API endpoint
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        console.log('API Response:', response.data);
-        if (response.data && response.data.content) {
-          setVotes(response.data.content);
-          setError(null);
-        } else {
-          setError('투표 목록을 불러오는데 실패했습니다.');
-        }
-      } catch (err) {
-        console.error('Fetch error details:', err);
-        if (err.code === 'ERR_NETWORK') {
-          setError('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
-        } else if (err.response) {
-          // Server responded with error status
-          if (err.response.status === 401) {
-            localStorage.removeItem('token');
-            navigate('/login', { state: { from: '/vote' } });
-          } else {
-            setError(`Error ${err.response.status}: ${err.response.data.message || '투표 목록을 불러오는데 실패했습니다.'}`);
-          }
-        } else {
-          setError('예기치 않은 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchVotes();
-  }, [navigate]);
+    // 로컬 스토리지에서 이전 투표 기록 불러오기
+    const savedVotes = localStorage.getItem('votedItems');
+    if (savedVotes) {
+      setVotedItems(new Set(JSON.parse(savedVotes)));
+    }
+  }, []);
 
-  useEffect(() => {
-    const indexOfLastItem = page * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    setCurrentList(votes.slice(indexOfFirstItem, indexOfLastItem));
-  }, [page, votes]);
-
-  const handleVote = async (voteId, optionId) => {
+  const fetchVotes = async () => {
     try {
-      console.log('Submitting vote with data:', { voteId, optionId });
-      await publicAxios.post(`/vote/${voteId}/vote/${optionId}`, {}, {  // Updated API endpoint
+      setLoading(true);
+      const response = await publicAxios.get('/vote/list', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      console.log('Vote submitted:', { voteId, optionId });
-      const response = await publicAxios.get('/vote/list', {  // Updated API endpoint
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (response.data && response.data.content) {
-        setVotes(response.data.content);
-        const indexOfLastItem = page * itemsPerPage;
-        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-        setCurrentList(response.data.content.slice(indexOfFirstItem, indexOfLastItem));
+
+      if (response.data?.content) {
+        const mappedVotes = response.data.content.map(vote => ({
+          ...vote,
+          hasVoted: vote.options.some(option => option.voteCount > 0)
+        }));
+
+        setVotes(mappedVotes);
+        const start = (page - 1) * itemsPerPage;
+        setCurrentList(mappedVotes.slice(start, start + itemsPerPage));
       }
     } catch (err) {
-      if (err.code === 'ERR_NETWORK') {
-        alert('네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
-        return;
-      }
-      
-      if (err.response) {
-        // Server responded with error status
-        switch (err.response.status) {
-          case 401:
-            navigate('/login', { state: { from: '/vote' } });
-            break;
-          case 400:
-            console.error('Invalid input data:', err.response.data);
-            alert(err.response.data.message || '잘못된 입력값입니다.');
-            break;
-          case 404:
-            console.error('Resource not found:', err.response.data);
-            alert(err.response.data.message || '투표를 찾을 수 없습니다.');
-            break;
-          default:
-            console.error('Vote error:', err.response.data);
-            alert(err.response.data.message || '투표하는 도중 오류가 발생했습니다.');
-        }
-      } else {
-        alert('예기치 않은 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-      }
-      console.error('Vote error:', err);
+      handleError(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const changePageHandler = (page) => {
-    setPage(page);
+  const handleVote = async (vote, optionId) => {
+    if (votedItems.has(vote.voteId)) {
+      alert('이미 참여한 투표입니다.');
+      return;
+    }
+
+    try {
+      // 즉시 UI 업데이트
+      const newVotedItems = new Set(votedItems).add(vote.voteId);
+      setVotedItems(newVotedItems);
+      localStorage.setItem('votedItems', JSON.stringify([...newVotedItems]));
+
+      // 현재 투표의 상태를 즉시 업데이트
+      const updatedVotes = votes.map(v => {
+        if (v.voteId === vote.voteId) {
+          const updatedOptions = v.options.map(option => ({
+            ...option,
+            voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
+          }));
+          
+          // 전체 투표 수 계산
+          const totalVotes = updatedOptions.reduce((sum, opt) => sum + opt.voteCount, 0);
+          
+          // 각 옵션의 퍼센테이지 계산
+          const optionsWithPercentages = updatedOptions.map(opt => ({
+            ...opt,
+            votePercentage: (opt.voteCount / totalVotes) * 100
+          }));
+
+          return {
+            ...v,
+            hasVoted: true,
+            options: optionsWithPercentages
+          };
+        }
+        return v;
+      });
+
+      setVotes(updatedVotes);
+      const start = (page - 1) * itemsPerPage;
+      setCurrentList(updatedVotes.slice(start, start + itemsPerPage));
+
+      // 서버에 투표 요청
+      await publicAxios.post(`/vote/${vote.voteId}/vote/${optionId}`, null, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      // 서버에서 최신 데이터 가져오기
+      await fetchVotes();
+    } catch (err) {
+      if (err.response?.status === 500) {
+        alert('이미 참여한 투표입니다.');
+      } else {
+        alert('투표 처리 중 오류가 발생했습니다.');
+        // 에러 발생 시 UI 롤백
+        setVotedItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(vote.voteId);
+          localStorage.setItem('votedItems', JSON.stringify([...newSet]));
+          return newSet;
+        });
+      }
+      // 서버에서 최신 데이터로 다시 동기화
+      await fetchVotes();
+    }
+  };
+
+  const calculateNewPercentages = (options, selectedOptionId) => {
+    const totalVotes = options.reduce((sum, option) => sum + option.voteCount, 0) + 1;
+    return options.map(option => 
+      option.optionId === selectedOptionId 
+        ? ((option.voteCount + 1) / totalVotes) * 100 
+        : (option.voteCount / totalVotes) * 100
+    );
+  };
+
+  const handleError = (err) => {
+    console.error('Error:', err);
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token');
+      navigate('/login');
+    } else {
+      setError(err.response?.data?.message || '오류가 발생했습니다.');
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    const start = (newPage - 1) * itemsPerPage;
+    setCurrentList(votes.slice(start, start + itemsPerPage));
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -117,43 +183,65 @@ const VoteInProgressPage = () => {
 
   return (
     <div className="p-4">
-      {currentList.length > 0 ? (
-        currentList.map(vote => (
-          <div key={vote.id} className="mb-4">
-            <h3 className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/vote-detail/${vote.id}`)}>
-              {vote.title}
-            </h3>
-            {vote.content && <p>{vote.content}</p>}
-            <div className="flex gap-4 mb-4">
-              <button onClick={() => handleVote(vote.id, vote.option1Id)} className="flex-1">
-                {vote.option1}
-              </button>
-              <button onClick={() => handleVote(vote.id, vote.option2Id)} className="flex-1">
-                {vote.option2}
-              </button>
+      {currentList.map(vote => (
+        <div key={vote.voteId} className="mb-8 p-4 border rounded-lg shadow">
+          <h3 
+            className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600"
+            onClick={() => navigate(`/vote-detail/${vote.voteId}`)}
+          >
+            {vote.title}
+          </h3>
+          <p className="mb-4">{vote.content}</p>
+          
+          {!votedItems.has(vote.voteId) ? (
+            <div className="flex gap-4">
+              {vote.options.map((option, index) => (
+                <button
+                  key={option.optionId}
+                  onClick={() => handleVote(vote, option.optionId)}
+                  className={`flex-1 h-12 px-4 py-2 text-white rounded transition ${
+                    index === 0 
+                      ? 'bg-red-500 hover:bg-red-600' 
+                      : 'bg-blue-500 hover:bg-blue-600'
+                  }`}
+                >
+                  {option.optionTitle}
+                </button>
+              ))}
             </div>
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>{vote.option1}: {vote.option1Votes}%</span>
-              <span>{vote.option2}: {vote.option2Votes}%</span>
+          ) : (
+            <div className="mt-4">
+              <div className="mb-2 flex justify-between">
+                <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+                <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
+              </div>
+              <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden">
+                <div
+                  className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-2 text-white"
+                  style={{ width: `${vote.options[0].votePercentage}%` }}
+                >
+                  {vote.options[0].votePercentage.toFixed(1)}%
+                </div>
+                <div
+                  className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2 text-white"
+                  style={{ width: `${vote.options[1].votePercentage}%` }}
+                >
+                  {vote.options[1].votePercentage.toFixed(1)}%
+                </div>
+              </div>
+              <div className="text-right text-sm text-gray-600 mt-2">
+                총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
+              </div>
             </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center py-8">현재 진행중인 투표가 없습니다.</div>
-      )}
+          )}
+        </div>
+      ))}
       <div className="flex justify-center pb-10">
-        <Pagination
+        <CustomPagination
           activePage={page}
           itemsCountPerPage={itemsPerPage}
           totalItemsCount={votes.length}
-          pageRangeDisplayed={5}
-          prevPageText={"이전"}
-          nextPageText={"다음"}
-          onChange={changePageHandler}
-          innerClass="flex gap-2"
-          itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
-          activeClass="bg-cusBlack-light !text-white"
-          linkClass="block w-full h-full text-center"
+          onChange={handlePageChange}
         />
       </div>
     </div>

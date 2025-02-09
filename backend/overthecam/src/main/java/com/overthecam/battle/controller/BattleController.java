@@ -3,7 +3,8 @@ package com.overthecam.battle.controller;
 import com.overthecam.battle.dto.*;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
-import com.overthecam.exception.ErrorCode;
+import com.overthecam.common.dto.ErrorResponse;
+import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
@@ -31,9 +32,9 @@ public class BattleController {
             Long userId = jwtTokenProvider.getUserId(bearerToken);
 
             BattleResponse response = battleService.createBattleRoom(request, userId);
-            return CommonResponseDto.success("배틀방이 성공적으로 생성되었습니다.", response);
+            return CommonResponseDto.ok(response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
-            return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.OPENVIDU_CONNECTION_ERROR));
         }
     }
 
@@ -49,11 +50,11 @@ public class BattleController {
             Long userId = jwtTokenProvider.getUserId(bearerToken);
 
             BattleResponse response = battleService.joinBattle(battleId, userId);
-            return CommonResponseDto.success("배틀방 참가에 성공했습니다.", response);
+            return CommonResponseDto.ok(response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
-            return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.OPENVIDU_CONNECTION_ERROR));
         } catch (RuntimeException e) {
-            return CommonResponseDto.error(ErrorCode.BATTLE_NOT_FOUND);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.BATTLE_NOT_FOUND));
         }
     }
 
@@ -68,11 +69,11 @@ public class BattleController {
             @PathVariable("battler2") String battler2) {
         try {
             SelectBattlerResponse response = battleService.selectBattlers(battleId, battler1, battler2);
-            return CommonResponseDto.success("배틀이 성공적으로 시작되었습니다.", response);
+            return CommonResponseDto.ok(response);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
-            return CommonResponseDto.error(ErrorCode.OPENVIDU_ERROR);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.OPENVIDU_CONNECTION_ERROR));
         } catch (RuntimeException e) {
-            return CommonResponseDto.error(ErrorCode.BATTLE_NOT_FOUND);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.BATTLE_NOT_FOUND));
         }
     }
 
@@ -83,7 +84,7 @@ public class BattleController {
     @GetMapping("/random")
     public CommonResponseDto<RandomVoteTopicResponse> createRandomVoteTopic() {
         RandomVoteTopicResponse response = battleService.createRandomVoteTopic();
-        return CommonResponseDto.success("랜덤 주제가 생성되었습니다.", response);
+        return CommonResponseDto.ok(response);
     }
 
     /**
@@ -95,9 +96,9 @@ public class BattleController {
             @RequestBody UpdateTitleRequest request) {
         try {
             BattleResponse response = battleService.updateTitle(battleId, request.getTitle());
-            return CommonResponseDto.success("방제가 성공적으로 변경되었습니다.", response);
+            return CommonResponseDto.ok(response);
         } catch (RuntimeException e) {
-            return CommonResponseDto.error(ErrorCode.BATTLE_TITLE_UPDATE_FAILED);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.BATTLE_TITLE_UPDATE_FAILED));
         }
     }
 
@@ -108,9 +109,9 @@ public class BattleController {
     public CommonResponseDto<BattleRoomAllResponse> getAllBattleRooms() {
         try {
             BattleRoomAllResponse response = battleService.getAllBattleRooms();
-            return CommonResponseDto.success("방 조회에 성공했습니다.", response);
+            return CommonResponseDto.ok(response);
         } catch (Exception e) {
-            return CommonResponseDto.error(ErrorCode.BATTLE_ROOM_READ_FAILED);
+            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.BATTLE_ROOM_READ_FAILED));
         }
     }
 

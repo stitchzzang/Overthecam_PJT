@@ -5,7 +5,11 @@ export const readRooms = async () => {
     const response = await authAxios.get('/battle/room/all');
     return response
   } catch (error) {
-    console.log(error);
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;  
+    const errorStatus = error.error.status;
+    console.error("방 목록 조회 오류", errorStatus ,errorCode, errorMessage);
+    throw error.error;
   }
 };
 
@@ -18,8 +22,11 @@ export const createRoom = async (newTitle) => {
     console.log("세션 id", response.data);
     return response;
   } catch (error) {
-    console.error("세션 생성 오류:", error);
-    throw error;
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;  
+    const errorStatus = error.error.status;
+    console.error("세션 생성 오류: ", errorStatus ,errorCode, errorMessage);
+    throw error.error;
   }
 };
 
@@ -32,7 +39,10 @@ export const JoinRoom = async (battleId) => {
     console.log("세션 id", response);
     return response;
   } catch (error) {
-    console.error("세션 생성 오류:", error);
-    throw error;
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;  
+    const errorStatus = error.error.status;
+    console.error("세션 생성 오류: ", errorStatus ,errorCode, errorMessage);
+    throw error.error;
   }
 };

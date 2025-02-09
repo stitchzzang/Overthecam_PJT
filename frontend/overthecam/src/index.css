@@ -64,6 +64,10 @@ footer {
   @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)];
 }
 
+.category {
+  @apply px-4 py-2 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
+}
+
 
 .clay {
   @apply rounded-lg shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]

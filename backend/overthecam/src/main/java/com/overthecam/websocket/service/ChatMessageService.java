@@ -4,8 +4,8 @@ import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.websocket.dto.*;
-import com.overthecam.exception.websocket.WebSocketErrorCode;
-import com.overthecam.exception.websocket.WebSocketException;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

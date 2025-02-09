@@ -33,7 +33,7 @@ public class VoteController {
                                            @Valid @RequestBody VoteRequestDto requestDto) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         VoteResponseDto responseDto = voteService.createVote(requestDto, userId);
-        return CommonResponseDto.success("투표가 생성되었습니다", responseDto);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 2. 투표 조회 및 검색
@@ -46,7 +46,7 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable);
-        return CommonResponseDto.success(response);
+        return CommonResponseDto.ok(response);
     }
 
     // 3. 특정 투표 상세 조회
@@ -57,7 +57,7 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         VoteResponseDto detailDto = voteService.getVoteDetail(voteId);
-        return CommonResponseDto.success(detailDto);
+        return CommonResponseDto.ok(detailDto);
     }
 
     // 4. 투표 참여
@@ -69,7 +69,7 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         VoteResponseDto responseDto = voteService.vote(voteId, optionId, userId);
-        return CommonResponseDto.success("투표가 완료되었습니다", responseDto);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 5. 투표 삭제
@@ -80,7 +80,7 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         voteService.deleteVote(voteId, userId);
-        return CommonResponseDto.success("투표가 삭제되었습니다", null);
+        return CommonResponseDto.ok();
     }
 
     // 6. 댓글 작성
@@ -92,7 +92,7 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         VoteCommentDto responseDto = voteCommentService.createComment(voteId, request.getContent(), userId);
-        return CommonResponseDto.success("댓글이 등록되었습니다", responseDto);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 7. 댓글 수정
@@ -104,7 +104,7 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         VoteCommentDto responseDto = voteCommentService.updateComment(commentId, request.getContent(), userId);
-        return CommonResponseDto.success("댓글이 수정되었습니다", responseDto);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 8. 댓글 삭제
@@ -115,6 +115,6 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         voteCommentService.deleteComment(commentId, userId);
-        return CommonResponseDto.success("댓글이 삭제되었습니다", null);
+        return CommonResponseDto.ok();
     }
 }

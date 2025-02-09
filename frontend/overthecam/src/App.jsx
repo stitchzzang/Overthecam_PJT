@@ -18,12 +18,14 @@ import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
 import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
+import MainPage from "./page/Main/MainPage.jsx";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route index element={<MainPage />} />
           <Route path="/battle-list" element={<BattleMainPage />} />
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
@@ -38,14 +40,13 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/my-following" element={<UserProfile />} />
+          <Route path="/user-profile/:userId" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
-          {/* <Route path="/mypagevote" element={<MyPageVote />} />
-          <Route path="/mypagebattle" element={<MyPageBattle />} /> */}
         </Route>
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
+
