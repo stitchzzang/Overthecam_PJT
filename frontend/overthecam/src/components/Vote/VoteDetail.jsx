@@ -92,13 +92,14 @@ const VoteDetail = ({ voteData }) => {
         <div className="mb-8">
           <h3 className="text-xl font-bold text-center mb-4">성별 통계</h3>
           <div className="space-y-3">
+            {/* 남성 통계 */}
             <div className="flex items-center justify-center gap-4">
               <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
                   className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                   style={{ width: `${voteData.options[0].genderDistribution?.male || 0}%` }}
                 >
-                  {voteData.options[0].genderDistribution?.male || 0}%
+                  {Math.round(voteData.options[0].genderDistribution?.male || 0)}%
                 </div>
               </div>
               <span className="w-16 text-center font-bold">남성</span>
@@ -107,17 +108,18 @@ const VoteDetail = ({ voteData }) => {
                   className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                   style={{ width: `${voteData.options[1].genderDistribution?.male || 0}%` }}
                 >
-                  {voteData.options[1].genderDistribution?.male || 0}%
+                  {Math.round(voteData.options[1].genderDistribution?.male || 0)}%
                 </div>
               </div>
             </div>
+            {/* 여성 통계 */}
             <div className="flex items-center justify-center gap-4">
               <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
                   className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                   style={{ width: `${voteData.options[0].genderDistribution?.female || 0}%` }}
                 >
-                  {voteData.options[0].genderDistribution?.female || 0}%
+                  {Math.round(voteData.options[0].genderDistribution?.female || 0)}%
                 </div>
               </div>
               <span className="w-16 text-center font-bold">여성</span>
@@ -126,7 +128,7 @@ const VoteDetail = ({ voteData }) => {
                   className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                   style={{ width: `${voteData.options[1].genderDistribution?.female || 0}%` }}
                 >
-                  {voteData.options[1].genderDistribution?.female || 0}%
+                  {Math.round(voteData.options[1].genderDistribution?.female || 0)}%
                 </div>
               </div>
             </div>
@@ -144,7 +146,7 @@ const VoteDetail = ({ voteData }) => {
                     className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                     style={{ width: `${voteData.options[0].ageDistribution?.[age] || 0}%` }}
                   >
-                    {voteData.options[0].ageDistribution?.[age] || 0}%
+                    {Math.round(voteData.options[0].ageDistribution?.[age] || 0)}%
                   </div>
                 </div>
                 <span className="w-16 text-center font-bold">{age}대</span>
@@ -153,7 +155,7 @@ const VoteDetail = ({ voteData }) => {
                     className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                     style={{ width: `${voteData.options[1].ageDistribution?.[age] || 0}%` }}
                   >
-                    {voteData.options[1].ageDistribution?.[age] || 0}%
+                    {Math.round(voteData.options[1].ageDistribution?.[age] || 0)}%
                   </div>
                 </div>
               </div>
