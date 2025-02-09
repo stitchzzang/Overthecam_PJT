@@ -42,7 +42,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 "http://127.0.0.1:5175",
                 "http://localhost:5175",
                 "http://127.0.0.1:5500",
-                "http://i12d204.p.ssafy.io"
+                "http://i12d204.p.ssafy.io",
+                "https://i12d204.p.ssafy.io"
             )
             .withSockJS(); // SockJS 지원 추가
     }
