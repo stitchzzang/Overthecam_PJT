@@ -23,8 +23,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<MainPage />} />
+          <Route path="/" element={<Layout />}>
           <Route path="/battle-list" element={<BattleMainPage />} />
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
@@ -38,11 +37,16 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/user-profile/:userId" element={<UserProfile />} />
+          <Route path="/user-profile/me" element={<UserProfile />} />
+          <Route path="/user-profile/:id" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
+          <Route path="/mypagebattle" element={<MyPageBattle />} />
+          <Route path="/mypagevote" element={<MyPageVote />} />
         </Route>
       </Routes>
     </Router>
+
+
   )
 }
 

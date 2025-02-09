@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import { publicAxios } from "../../common/axiosinstance"
 import "./Auth.css"
 
@@ -11,6 +11,7 @@ const Login = () => {
   })
   const [error, setError] = useState("")
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -38,23 +39,36 @@ const Login = () => {
     try {
       const response = await publicAxios.post("/auth/login", loginData)
       console.log("서버 응답 (상세):", JSON.stringify(response.data, null, 2))
+      
       if (response.data.accessToken) {
-        localStorage.setItem("token", response.data.accessToken);
-        // localStorage.setItem("refreshToken", response.data.data.refreshToken)
-        console.log("토큰이 로컬 스토리지에 저장되었습니다.");
-
-        if (formData.rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-          console.log("로그인 유지 설정됨");
+        // JWT 토큰에서 사용자 정보 추출
+        const token = response.data.accessToken
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        
+        // 사용자 정보 객체 생성
+        const userInfo = {
+          userId: payload.userId,
+          email: payload.email,
+          nickname: payload.nickname
         }
-        console.log("로그인 성공, 메인 페이지로 이동");
-
-        // 메인 페이지로 리다이렉트
-        navigate("/");
+        
+        // localStorage에 정보 저장
+        localStorage.setItem("token", token)
+        localStorage.setItem("userInfo", JSON.stringify(userInfo))
+        localStorage.setItem("isLoggedIn", "true")
+        
+        if (formData.rememberMe) {
+          localStorage.setItem("rememberMe", "true")
+        }
+        
+        console.log("저장된 사용자 정보:", userInfo)
+        
+        // 이전 페이지가 있으면 그곳으로 이동, 없으면 홈으로 이동
+        const from = location.state?.from || "/";
+        navigate(from);
       }
     } catch (err) {
       console.error("로그인 에러 (상세):", JSON.stringify(err.response?.data, null, 2))
-      console.error("전체 에러 객체:", err)
       setError(err.response?.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.")
     }
   }
