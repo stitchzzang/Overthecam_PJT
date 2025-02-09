@@ -12,4 +12,8 @@ public class BattleResponse {
     private String connectionToken; //사용자별 토쿤
     private Long chatRoomId; // 채팅방 번호
     private String roomUrl;
+    //추가된 사용자 정보 필드
+    private String profileImage;
+    private Long userId;
+    private String nickname;
 }

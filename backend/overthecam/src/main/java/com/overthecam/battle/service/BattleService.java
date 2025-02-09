@@ -104,6 +104,9 @@ public class BattleService {
                 .sessionId(sessionId) //세션 ID
                 .connectionToken(connectionToken) //사용자별 고유한 TOKEN
                 .roomUrl(savedBattle.getRoomUrl()) //방 초대 url
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
                 .build();
     } //여기까지가 처음에 방이 생성되고 방장의 role만 설정된 상태
 
@@ -146,6 +149,9 @@ public class BattleService {
                 .sessionId(battle.getSessionId())
                 .connectionToken(connectionToken)
                 .roomUrl(battle.getRoomUrl())
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
                 .build();
 
     } //여기까지가 배틀방이 생성된 후에 6명의 참가자가 모이는 상태
