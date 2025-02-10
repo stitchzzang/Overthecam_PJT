@@ -91,7 +91,7 @@ pipeline {
                                 string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET')
                             ]) {
                                 sh '''
-                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
+                                    ssh -o StrictHostKeyChecking=no ubuntu@overthecam.site "\
 
                                     echo '새 이미지 가져오는 중...' && \
                                     docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
