@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     Optional<User> findByEmail(String email);
+    Optional<User> findByUsernameAndPhoneNumber(String username, String phoneNumber);
+    Optional<User> findByEmailAndUsernameAndPhoneNumber(String email, String username, String phoneNumber);
 
     // 특정 유저의 응원점수와 포인트 조회
     @Query("SELECT new com.overthecam.member.dto.UserScoreInfo(u.supportScore, u.point) FROM User u WHERE u.id = :userId")
