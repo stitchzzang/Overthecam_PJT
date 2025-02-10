@@ -17,7 +17,9 @@ import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
 import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
-import MainPage from "./page/Main/MainPage.jsx";
+import MainPage from "./page/Main/MainPage.jsx";  
+import MyPageBattle from "./page/Mypage/MyPageBattle.jsx";
+import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 
 function App() {
   return (
@@ -42,6 +44,8 @@ function App() {
           <Route path="/mypagereport" element={<MyPageReport />} />
           <Route path="/mypagebattle" element={<MyPageBattle />} />
           <Route path="/mypagevote" element={<MyPageVote />} />
+          <Route path="/mainpage" element={<MainPage />} />
+          
         </Route>
       </Routes>
     </Router>
