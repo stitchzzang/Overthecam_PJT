@@ -1,5 +1,8 @@
-import { useState, useRef } from "react"
+"use client"
+
+import { useState, useRef, useEffect } from "react"
 import NavBar from "../../components/Layout/NavBar"
+import { authAxios } from "../../common/axiosinstance"
 
 function MyPage() {
   const [userData, setUserData] = useState({
@@ -9,6 +12,10 @@ function MyPage() {
     nickname: "",
     birthDate: "",
     email: "",
+    gender: "",
+    birthYear: "",
+    birthMonth: "",
+    birthDay: "",
     stats: {
       cheerPoints: 0,
       points: 0,
@@ -27,15 +34,34 @@ function MyPage() {
   const [profileImage, setProfileImage] = useState("/placeholder.svg")
   const fileInputRef = useRef(null)
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await authAxios.get("/auth/me")
+        setUserData(response.data)
+        setEditedData(response.data)
+        setProfileImage(response.data.profileImage || "/placeholder.svg")
+      } catch (error) {
+        console.error("Failed to fetch user data:", error)
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
   const handleChange = (e) => {
     setEditedData({ ...editedData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setUserData({ ...userData, ...editedData })
-    setIsEditing(false)
-    console.log("Updated user data:", editedData)
+    try {
+      await authAxios.put("/members/me", editedData)
+      setUserData({ ...userData, ...editedData })
+      setIsEditing(false)
+    } catch (error) {
+      console.error("Failed to update user data:", error)
+    }
   }
 
   const handleCancel = () => {
@@ -43,217 +69,274 @@ function MyPage() {
     setIsEditing(false)
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <NavBar />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-center">My Page</h1>
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const formData = new FormData()
+      formData.append("image", file)
+      try {
+        const response = await authAxios.post("/members/profile-image", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        setProfileImage(response.data.imageUrl)
+      } catch (error) {
+        console.error("Failed to upload image:", error)
+      }
+    }
+  }
 
-        {/* 프로필 및 통계 섹션 */}
-        <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6 max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* 프로필 이미지 섹션 */}
-            <div className="flex-shrink-0 w-full md:w-40">
-              <div className="w-40 h-40 bg-gray-200 rounded-lg overflow-hidden mx-auto">
-                <img
-                  src={profileImage || "/placeholder.svg"}
-                  alt="프로필 이미지"
-                  className="w-full h-full object-cover"
-                />
+  // Calculate win rate
+  const totalGames = userData.stats.record.wins + userData.stats.record.draws + userData.stats.record.losses
+  const winRate = totalGames > 0 ? ((userData.stats.record.wins / totalGames) * 100).toFixed(1) : 0
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* <NavBar /> */}
+
+      {/* Header with gradient background */}
+      <div className="bg-gradient-to-r from-pink-200 to-blue-200 py-8">
+        <h1 className="text-4xl font-bold text-white text-center drop-shadow-md">My page</h1>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Profile Section */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            {/* Profile Image Section */}
+            <div className="w-full md:w-auto flex flex-col items-center gap-4">
+              <div className="w-48 h-48 relative rounded-lg overflow-hidden bg-white shadow-md">
+                <img src={profileImage || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0]
-                  if (file) {
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                      setProfileImage(e.target.result)
-                    }
-                    reader.readAsDataURL(file)
-                  }
-                }}
-              />
               <button
-                className="mt-2 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
                 onClick={() => fileInputRef.current.click()}
+                className="w-48 py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors"
               >
-                이미지 변경
+                이미지 수정
               </button>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
             </div>
 
-            {/* 통계 정보 섹션 */}
-            <div className="flex-grow">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">응원점수</p>
-                  <p className="text-2xl font-bold">{userData.stats.cheerPoints}</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">포인트</p>
-                  <p className="text-2xl font-bold">{userData.stats.points}</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">팔로워</p>
-                  <p className="text-2xl font-bold">{userData.stats.followers}</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">팔로잉</p>
-                  <p className="text-2xl font-bold">{userData.stats.following}</p>
-                </div>
-              </div>
+            {/* User Info & Stats */}
+            <div className="flex-1 w-full">
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <h2 className="text-xl font-bold mb-4">{userData.nickname}</h2>
 
-              {/* 전적 섹션 */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2">내 전적</h3>
-                <div className="flex justify-around items-center">
-                  <div className="text-center">
-                    <p className="text-blue-500 text-2xl font-bold">{userData.stats.record.wins}</p>
-                    <p className="text-sm text-gray-600">승</p>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">응원점수</p>
+                    <p className="text-2xl font-bold">{userData.stats.cheerPoints}</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-gray-500 text-2xl font-bold">{userData.stats.record.draws}</p>
-                    <p className="text-sm text-gray-600">무</p>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">포인트</p>
+                    <p className="text-2xl font-bold">{userData.stats.points}</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-red-500 text-2xl font-bold">{userData.stats.record.losses}</p>
-                    <p className="text-sm text-gray-600">패</p>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">팔로워</p>
+                    <p className="text-2xl font-bold">{userData.stats.followers}</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">팔로잉</p>
+                    <p className="text-2xl font-bold">{userData.stats.following}</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 text-center mt-2">
-                  {userData.nickname} 님의 승률은{" "}
-                  {(
-                    (userData.stats.record.wins /
-                      (userData.stats.record.wins + userData.stats.record.draws + userData.stats.record.losses)) *
-                    100
-                  ).toFixed(1)}
-                  % 입니다.
-                </p>
+
+                {/* Battle Record */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">내 전적 보기</h3>
+                  <div className="flex justify-center gap-8">
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                        <span className="text-blue-600 text-xl font-bold">{userData.stats.record.wins}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">승</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+                        <span className="text-gray-600 text-xl font-bold">{userData.stats.record.draws}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">무</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                        <span className="text-red-500 text-xl font-bold">{userData.stats.record.losses}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">패</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 text-center mt-2">우끼끼정해기 님의 승률은 {winRate}% 입니다.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 내 정보 수정 섹션 */}
-        <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-4xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-4 text-center">내 정보 수정</h2>
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="id">
-                아이디
-              </label>
+        {/* Profile Edit Form */}
+        <div className="bg-[#EEF6FF] rounded-lg p-8">
+          <h2 className="text-2xl font-bold mb-8 text-center">내 정보 수정</h2>
+          <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">아이디</label>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-100"
-                id="id"
                 type="text"
                 name="id"
                 value={editedData.id}
+                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
                 readOnly
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-                비밀번호
-              </label>
-              <div className="flex items-center">
+
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">비밀번호</label>
+              <div className="flex gap-2">
                 <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-100"
-                  id="password"
                   type="password"
                   name="password"
                   value={editedData.password}
+                  className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-md"
                   readOnly
                 />
-                <button
-                  type="button"
-                  className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  onClick={() => alert("비밀번호 변경 로직을 구현해주세요.")}
-                >
-                  변경
+                <button type="button" className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">
+                  비밀번호 변경
                 </button>
               </div>
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                이름
-              </label>
+
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">이름</label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
-                id="name"
                 type="text"
                 name="name"
                 value={editedData.name}
                 onChange={handleChange}
+                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
                 readOnly={!isEditing}
+                placeholder="정해기"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="nickname">
-                닉네임
-              </label>
+
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">닉네임</label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
-                id="nickname"
                 type="text"
                 name="nickname"
                 value={editedData.nickname}
                 onChange={handleChange}
+                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
                 readOnly={!isEditing}
+                placeholder="우끼끼정해기"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="birthDate">
-                생년월일
-              </label>
-              <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
-                id="birthDate"
-                type="date"
-                name="birthDate"
-                value={editedData.birthDate}
-                onChange={handleChange}
-                readOnly={!isEditing}
-              />
+
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">성별</label>
+              <div className="flex gap-8">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="male"
+                    checked={editedData.gender === "male"}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="w-4 h-4 text-blue-500"
+                  />
+                  <span>남성</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="female"
+                    checked={editedData.gender === "female"}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="w-4 h-4 text-blue-500"
+                  />
+                  <span>여성</span>
+                </label>
+              </div>
             </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-                이메일
-              </label>
+
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">생년월일</label>
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  name="birthYear"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-md"
+                  disabled={!isEditing}
+                  value={editedData.birthYear || "1999"}
+                  onChange={handleChange}
+                >
+                  {Array.from({ length: 100 }, (_, i) => (
+                    <option key={i} value={2024 - i}>
+                      {2024 - i}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  name="birthMonth"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-md"
+                  disabled={!isEditing}
+                  value={editedData.birthMonth || "10"}
+                  onChange={handleChange}
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  name="birthDay"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-md"
+                  disabled={!isEditing}
+                  value={editedData.birthDay || "12"}
+                  onChange={handleChange}
+                >
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <option key={i} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+              <label className="text-sm font-medium">이메일</label>
               <input
-                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${!isEditing && "bg-gray-100"}`}
-                id="email"
                 type="email"
                 name="email"
                 value={editedData.email}
                 onChange={handleChange}
+                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
                 readOnly={!isEditing}
+                placeholder="haegively@naver.com"
               />
             </div>
-            <div className="flex items-center justify-center">
+
+            <div className="flex justify-center gap-4 pt-8">
               {isEditing ? (
                 <>
                   <button
-                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
                     type="button"
                     onClick={handleCancel}
+                    className="px-12 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
                   >
                     취소
                   </button>
-                  <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    type="submit"
-                  >
-                    저장
+                  <button type="submit" className="px-12 py-2.5 bg-[#A5C5F4] text-white rounded-md hover:bg-blue-400">
+                    수정
                   </button>
                 </>
               ) : (
                 <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   type="button"
                   onClick={() => setIsEditing(true)}
+                  className="px-12 py-2.5 bg-[#A5C5F4] text-white rounded-md hover:bg-blue-400"
                 >
                   수정하기
                 </button>

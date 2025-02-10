@@ -74,10 +74,12 @@ export default function VoteDetailPage() {
 
   return (
     <div>
+      <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
+        <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
+      </div>
+      
       <VoteDetail voteData={voteData} />
       <VoteDetailComment voteId={voteId} />
-      <button onClick={() => navigate(`/edit-vote/${voteId}`)}>Edit</button>
-      <button onClick={handleDelete}>Delete</button>
     </div>
   );
 }

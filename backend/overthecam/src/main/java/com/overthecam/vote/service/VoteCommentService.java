@@ -6,8 +6,7 @@ import com.overthecam.common.exception.GlobalException;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.domain.Vote;
-import com.overthecam.vote.domain.VoteComment;
-import com.overthecam.vote.dto.VoteCommentDto;
+import com.overthecam.vote.dto.VoteComment;
 import com.overthecam.vote.repository.VoteCommentRepository;
 import com.overthecam.vote.repository.VoteRepository;
 import jakarta.transaction.Transactional;
@@ -27,17 +26,17 @@ public class VoteCommentService {
      * - 투표 및 사용자 존재 검증
      * - 댓글 생성 및 저장
      */
-    public VoteCommentDto createComment(Long voteId, String content, Long userId) {
+    public VoteComment createComment(Long voteId, String content, Long userId) {
         Vote vote = findVoteById(voteId);
         User user = findUserById(userId);
 
-        VoteComment comment = VoteComment.builder()
+        com.overthecam.vote.domain.VoteComment comment = com.overthecam.vote.domain.VoteComment.builder()
                 .vote(vote)
                 .user(user)
                 .content(content)
                 .build();
 
-        return VoteCommentDto.from(voteCommentRepository.save(comment));
+        return VoteComment.from(voteCommentRepository.save(comment));
     }
 
     /**
@@ -46,12 +45,12 @@ public class VoteCommentService {
      * - 댓글 작성자 권한 검증
      * - 댓글 내용 업데이트
      */
-    public VoteCommentDto updateComment(Long commentId, String content, Long userId) {
-        VoteComment comment = findCommentById(commentId);
+    public VoteComment updateComment(Long commentId, String content, Long userId) {
+        com.overthecam.vote.domain.VoteComment comment = findCommentById(commentId);
         validateCommentAuthor(comment, userId);
 
         comment.updateContent(content);
-        return VoteCommentDto.from(comment);
+        return VoteComment.from(comment);
     }
 
     /**
@@ -61,7 +60,7 @@ public class VoteCommentService {
      * - 댓글 삭제
      */
     public void deleteComment(Long commentId, Long userId) {
-        VoteComment comment = findCommentById(commentId);
+        com.overthecam.vote.domain.VoteComment comment = findCommentById(commentId);
         validateCommentAuthor(comment, userId);
 
         voteCommentRepository.delete(comment);
@@ -80,7 +79,7 @@ public class VoteCommentService {
                 .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
     }
     //  댓글 ID로 댓글 엔티티 조회
-    private VoteComment findCommentById(Long commentId) {
+    private com.overthecam.vote.domain.VoteComment findCommentById(Long commentId) {
         return voteCommentRepository.findById(commentId)
                 .orElseThrow(() -> new GlobalException(VoteErrorCode.COMMENT_NOT_FOUND, "댓글을 찾을 수 없습니다"));
     }
@@ -89,7 +88,7 @@ public class VoteCommentService {
      * - 요청 사용자와 댓글 작성자 ID 비교
      * - 일치하지 않는 경우 GlobalException 발생
      */
-    private void validateCommentAuthor(VoteComment comment, Long userId) {
+    private void validateCommentAuthor(com.overthecam.vote.domain.VoteComment comment, Long userId) {
         if (!comment.getUser().getId().equals(userId)) {
             throw new GlobalException(VoteErrorCode.UNAUTHORIZED_COMMENT_ACCESS, "댓글 작업 권한이 없습니다");
         }

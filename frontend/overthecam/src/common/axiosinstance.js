@@ -2,7 +2,10 @@ import axios from "axios"
 
 const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-  withCredentials: true
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  }
 });
 console.log('authAxios baseURL:', authAxios.defaults.baseURL);  // 여기 추가
 
@@ -39,6 +42,9 @@ authAxios.interceptors.response.use(
 const publicAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  }
 });
 
 publicAxios.interceptors.request.use(

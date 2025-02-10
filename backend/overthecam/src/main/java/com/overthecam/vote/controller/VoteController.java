@@ -2,10 +2,11 @@ package com.overthecam.vote.controller;
 
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.security.util.SecurityUtils;
-import com.overthecam.vote.dto.CommentRequestDto;
-import com.overthecam.vote.dto.VoteCommentDto;
-import com.overthecam.vote.dto.VoteRequestDto;
-import com.overthecam.vote.dto.VoteResponseDto;
+import com.overthecam.vote.dto.CommentRequest;
+import com.overthecam.vote.dto.VoteComment;
+import com.overthecam.vote.dto.VoteDetailResponse;
+import com.overthecam.vote.dto.VoteRequest;
+import com.overthecam.vote.dto.VoteResponse;
 import com.overthecam.vote.repository.VotePageResponse;
 import com.overthecam.vote.service.VoteCommentService;
 import com.overthecam.vote.service.VoteService;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +32,9 @@ public class VoteController {
     // 1. 투표 생성
     @PostMapping("/create")
     public CommonResponseDto<?> createVote(Authentication authentication,
-                                           @Valid @RequestBody VoteRequestDto requestDto) {
+                                           @Valid @RequestBody VoteRequest requestDto) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto responseDto = voteService.createVote(requestDto, userId);
+        VoteResponse responseDto = voteService.createVote(requestDto, userId);
         return CommonResponseDto.ok(responseDto);
     }
 
@@ -45,30 +47,32 @@ public class VoteController {
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable);
+
+
+        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable, userId);
         return CommonResponseDto.ok(response);
     }
 
     // 3. 특정 투표 상세 조회
     @GetMapping("/{voteId}")
-    public CommonResponseDto<VoteResponseDto> getVoteDetail(
+    public CommonResponseDto<?> getVoteDetail(
             Authentication authentication,
             @PathVariable Long voteId
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto detailDto = voteService.getVoteDetail(voteId);
+        VoteDetailResponse detailDto = voteService.getVoteDetail(voteId, userId);
         return CommonResponseDto.ok(detailDto);
     }
 
     // 4. 투표 참여
     @PostMapping("/{voteId}/vote/{optionId}")
-    public CommonResponseDto<VoteResponseDto> vote(
+    public CommonResponseDto<?> vote(
             Authentication authentication,
             @PathVariable Long voteId,
             @PathVariable Long optionId
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto responseDto = voteService.vote(voteId, optionId, userId);
+        VoteDetailResponse responseDto = voteService.vote(voteId, optionId, userId);
         return CommonResponseDto.ok(responseDto);
     }
 
@@ -85,25 +89,25 @@ public class VoteController {
 
     // 6. 댓글 작성
     @PostMapping("/{voteId}/comment")
-    public CommonResponseDto<VoteCommentDto> createComment(
+    public CommonResponseDto<VoteComment> createComment(
             Authentication authentication,
             @PathVariable Long voteId,
-            @Valid @RequestBody CommentRequestDto request
+            @Valid @RequestBody CommentRequest request
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteCommentDto responseDto = voteCommentService.createComment(voteId, request.getContent(), userId);
+        VoteComment responseDto = voteCommentService.createComment(voteId, request.getContent(), userId);
         return CommonResponseDto.ok(responseDto);
     }
 
     // 7. 댓글 수정
     @PutMapping("/comment/{commentId}")
-    public CommonResponseDto<VoteCommentDto> updateComment(
+    public CommonResponseDto<VoteComment> updateComment(
             Authentication authentication,
             @PathVariable Long commentId,
-            @Valid @RequestBody CommentRequestDto request
+            @Valid @RequestBody CommentRequest request
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteCommentDto responseDto = voteCommentService.updateComment(commentId, request.getContent(), userId);
+        VoteComment responseDto = voteCommentService.updateComment(commentId, request.getContent(), userId);
         return CommonResponseDto.ok(responseDto);
     }
 

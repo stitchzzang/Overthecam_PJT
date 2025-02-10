@@ -10,9 +10,11 @@ public enum MessageType {
     CHAT,            // 채팅
     BATTLE_START,    // 배틀 시작 (초기 데이터)
     BATTLER_SELECT,  // 배틀러 선정
+    VOTE_CREATE,     // 투표 입력
+    TIME_EXTENSION, // 시간 추가
 
     // 개인 메시지
-    USER_SCORE, // 사용자 총 점수
+    USER_SCORE,      // 사용자 총 점수
     CHEER_UPDATE,    // 응원 점수
     POINT_UPDATE,    // 포인트
     VOTE_UPDATE,     // 투표
