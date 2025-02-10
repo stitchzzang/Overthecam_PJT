@@ -1,21 +1,70 @@
 package com.overthecam.battle.domain;
 
-public class ParticipantRole {
-    //000: 각 자리수에 1이 있으면 그 역할을 담당하는 것 111은 될 수 없음.
-    public static final int HOST = 1;        // 001방장
-    public static final int PARTICIPANT = 2;  // 010 일반 참가자
-    public static final int BATTLER = 4;      // 100 배틀러
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
-    // 역할 체크 메서드들
-    public static boolean isHost(int role) {
-        return (role & HOST) != 0; // 역할이 HOST(1) 비트를 포함하는지 확인
+public enum ParticipantRole {
+    HOST(1),         // 001
+    PARTICIPANT(2),  // 010
+    HOST_PARTICIPANT(3), // 011
+    BATTLER(4),      // 100
+    HOST_BATTLER(5), // 101
+    PARTICIPANT_BATTLER(6); // 110
+
+    private final int value;
+
+    ParticipantRole(int value) {
+        this.value = value;
     }
 
-    public static boolean isParticipant(int role) {
-        return (role & PARTICIPANT) != 0; // 역할이 PARTICIPANT(2) 비트를 포함하는지 확인
+    public int getValue() {
+        return value;
     }
 
-    public static boolean isBattler(int role) {
-        return (role & BATTLER) != 0; // 역할이 BATTLER(4) 비트를 포함하는지 확인
+    // 현재 role에 배틀러 권한을 추가하는 메서드
+    public static ParticipantRole addBattlerRole(ParticipantRole currentRole) {
+        if (isHost(currentRole)) {
+            return HOST_BATTLER;
+        } else if (isParticipant(currentRole)) {
+            return PARTICIPANT_BATTLER;
+        }
+        return BATTLER;
+    }
+
+    public static boolean isBattler(ParticipantRole role) {
+        return role == BATTLER || role == HOST_BATTLER || role == PARTICIPANT_BATTLER;
+    }
+
+    public static boolean isParticipant(ParticipantRole role) {
+        return role == PARTICIPANT || role == HOST_PARTICIPANT || role == PARTICIPANT_BATTLER;
+    }
+
+    public static boolean isHost(ParticipantRole role) {
+        return role == HOST || role == HOST_PARTICIPANT || role == HOST_BATTLER;
+    }
+
+    public static ParticipantRole fromValue(int value) {
+        for (ParticipantRole role : values()) {
+            if (role.value == value) {
+                return role;
+            }
+        }
+        throw new IllegalArgumentException("Unknown role value: " + value);
+    }
+
+    @Converter(autoApply = true)
+    public static class ParticipantRoleConverter implements AttributeConverter<ParticipantRole, Integer> {
+        @Override
+        public Integer convertToDatabaseColumn(ParticipantRole role) {
+            return role == null ? null : role.getValue();
+        }
+
+        @Override
+        public ParticipantRole convertToEntityAttribute(Integer value) {
+            if (value == null) {
+                return null;
+            }
+            return fromValue(value);
+        }
     }
 }
