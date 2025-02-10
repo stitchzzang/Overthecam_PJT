@@ -24,7 +24,8 @@ public enum BattleErrorCode implements ErrorCode {
     // 배틀 배팅 관련 에러
     INVALID_VOTE_RESULT(500, "투표 결과를 처리할 수 없습니다"),
     INVALID_BATTLE_STATUS(400, "현재 투표 가능한 상태가 아닙니다"),
-    INVALID_BATTLER_VOTE(400, "배틀러는 투표를 할 수 없습니다");
+    INVALID_BATTLER_VOTE(400, "배틀러는 투표를 할 수 없습니다"),
+    INVALID_ROLE(400, "올바른 배틀 역할이 아닙니다.");
 
     private final int status;
     private final String message;
