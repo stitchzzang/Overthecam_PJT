@@ -39,4 +39,8 @@ public class VoteOption extends TimeStampEntity {
         }
         this.voteCount = count;
     }
+
+    public void updateWinnerStatus(boolean isWinner) {
+        this.isWinner = isWinner;
+    }
 }
