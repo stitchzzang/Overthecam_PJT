@@ -24,6 +24,13 @@ pipeline {
             }
         }
 
+        stage('Clean old JARs') {
+            steps {
+                sh 'rm -f build/libs/*.jar'
+            }
+        }
+
+
         stage('Build BE') {
             steps {
                 script {
