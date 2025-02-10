@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @CrossOrigin(origins = "*")
-@RestController("/api")
+@RestController
+@RequestMapping("/api")
 public class OpenviduController {
 
     @Value("${livekit.api.key}")
