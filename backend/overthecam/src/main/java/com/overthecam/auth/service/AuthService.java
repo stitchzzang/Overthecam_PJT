@@ -69,18 +69,29 @@ public class AuthService {
 
         // 토큰 발급 및 저장
         TokenResponse tokenResponse = jwtTokenProvider.createToken(user);
-        user.updateRefreshToken(tokenResponse.getRefreshToken());
+
+
+        TokenResponse enrichedTokenResponse = TokenResponse.builder()
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .grantType(tokenResponse.getGrantType())
+                .accessTokenExpiresIn(tokenResponse.getAccessTokenExpiresIn())
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .build();
+
+        user.updateRefreshToken(enrichedTokenResponse.getRefreshToken());
 
         // Refresh Token을 쿠키에 저장
         Cookie refreshTokenCookie = new Cookie("refresh_token",
-                tokenResponse.getRefreshToken());
+                enrichedTokenResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
         response.addCookie(refreshTokenCookie);
 
-        return tokenResponse;
+        return enrichedTokenResponse;
     }
 
     /**
