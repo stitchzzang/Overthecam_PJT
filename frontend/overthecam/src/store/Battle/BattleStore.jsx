@@ -1,33 +1,22 @@
-import {create} from "zustand";
+import { create } from "zustand";
 
-export const useBattleInitStore = create((set) => ({
+export const useBattleStore = create((set) => ({
   battleInfo: {
-    battleId: null,
-    title: null,
-    sessionId: null,
-    connectionToken: null,
-    isMaster: null,
+    participantName: null,
+    roomName: null,
   },
-
   setBattleInfo: (info) =>
     set({
       battleInfo: {
-        battleId: info.battleId,
-        title: info.title,
-        sessionId: info.sessionId,
-        connectionToken: info.connectionToken,
-        isMaster: info.isMaster,
+        participantName: info.myNickName,
+        roomName: info.roomTitle,
       },
     }),
-
   clearBattleInfo: () =>
     set({
       battleInfo: {
-        battleId: null,
-        title: null,
-        sessionId: null,
-        connectionToken: null,
-        isMaster: null,
+        participantName: null,
+        roomName: null,
       },
     }),
 }));
