@@ -31,25 +31,9 @@ pipeline {
                         echo '====== React Build 시작 ======'
                         dir('frontend/overthecam') {
                             sh '''
-                                echo "Setting up NVM..."
-                                export NVM_DIR="$HOME/.nvm"
-                                [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                                nvm use 22
-
-                                echo "Checking Node.js & npm version..."
-                                node -v
-                                npm -v
-
-                                echo "Installing dependencies..."
                                 npm install
-
-                                echo "Uninstalling rollup..."
                                 npm uninstall rollup
-
-                                echo "Installing rollup..."
                                 npm install rollup
-
-                                echo "Building React app..."
                                 CI=false npm run build
                             '''
                         }
@@ -61,7 +45,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Docker Build & Push') {
     steps {
