@@ -10,10 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@stomp/stompjs": "^7.0.0",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
+    "cors": "^2.8.5",
     "framer-motion": "^12.0.6",
     "openvidu-browser": "^2.31.0",
     "react": "^18.3.1",
