@@ -1,38 +1,42 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { OpenVidu } from "openvidu-browser";
+import { useBattleInitStore } from "../../store/Battle/BattleStore";
 import UserVideoComponent from "../../components/BattleRoom/UserVideo";
 import BattleChating from "../../components/BattleRoom/BattleChating";
 import BattleTimer from "../../components/BattleRoom/BattleTimer";
 
 function BattleRoomPage() {
-  // useState를 사용하여 state 관리
-  const [myOV, setOV] = useState(null);
+  // 방에 들어온 이후 데이터터
   // create 를 통해 들어온 사람은 isMaster true값을 가짐
-  const location = useLocation();
-  const { battleId, title, sessionId, connectionToken, isMaster } =
-    location.state;
-  const [roomTitle, setRoomTitle] = useState(title);
-  const [mySessionId, setMySessionId] = useState(sessionId);
-  const [token, setToken] = useState(connectionToken);
+  const battleInfo = useBattleStore((state) => state.battleInfo);
+  const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
+  const { battleId, title, sessionId, connectionToken, isMaster } = battleInfo;
+
+  const [isWaiting, setIsWaiting] = useState(true); // 대기실
+
+  // user(my) 관련 정보보
   const [myNickName, setmyNickName] = useState(
     `별명${Math.floor(Math.random() * 100)}`
   );
+
+  // join session 이후 받을 내용들
   const [session, setSession] = useState(undefined);
   const [mainStreamManager, setMainStreamManager] = useState(undefined); // Main video of the page
   const [publisher, setPublisher] = useState(undefined);
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(null);
-  const [isModerator, setisModerator] = useState(false); // 참가자 모드 상태 추가
-  const [isWaiting, setIsWaiting] = useState(true); // 대기실
-  const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기
-  const [battlers, setBattlers] = useState([]);
   const [disconnectWebSocket, setDisconnectWebSocket] = useState(null);
   const [speakingUsers, setSpeakingUsers] = useState(new Set());
   const navigate = useNavigate();
 
+  // 게임 시작 때 필요한 정보보
+  const [players, setPlayers] = useState([]); // 렌더링 될 때 get 요청, 받아오기
+  const [battlers, setBattlers] = useState([]);
+
   const OV = useRef(null); // useRef를 사용하여 변수에 대한 참조를 저장, 컴포넌트가 리렌더링되어도 변수에 대한 참조가 유지(값을 유지)
   const battleChatingRef = useRef(null); // BattleChating 컴포넌트에 대한 ref
+
   // useEffect 훅을 사용해서 컴포넌트 렌더링 시 특정 작업 실행하는 hook
   useEffect(() => {
     // handleBeforeUnload 함수 생성
@@ -60,7 +64,7 @@ function BattleRoomPage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePreventGoBack);
     history.pushState(null, "", location.href); // 뒤로 가기 방지
-    console.log(token)
+    console.log(token);
     joinSession();
 
     return () => {
@@ -80,16 +84,10 @@ function BattleRoomPage() {
         event.preventDefault();
       }
 
-      let moderator = false;
-      if (isMaster) {
-        moderator = true;
-        setisModerator(moderator);
-      }
-
       OV.current = new OpenVidu();
       OV.current.enableProdMode();
       OV.current.setAdvancedConfiguration({
-         websocketURL: 'wss://i12d204.p.ssafy.io/openvidu'
+        websocketURL: "wss://i12d204.p.ssafy.io/openvidu",
       });
       const mySession = OV.current.initSession();
 
@@ -113,11 +111,9 @@ function BattleRoomPage() {
 
       try {
         const userData =
-          isModerator === true
-            ? `${myNickName}-방장`
-            : `${myNickName}-참여자자`;
+          isMaster === true ? `${myNickName}-방장` : `${myNickName}-참여자자`;
 
-        await mySession.connect(token, { clientData: userData });
+        await mySession.connect(connectionToken, { clientData: userData });
 
         const publisher = await OV.current.initPublisherAsync(undefined, {
           audioSource: undefined,
@@ -131,7 +127,7 @@ function BattleRoomPage() {
         });
 
         // 발화 감지 설정
-        if (isModerator === true) {
+        if (isMaster === true) {
           publisher.on("publisherStartSpeaking", (event) => {
             setSpeakingUsers((prev) =>
               new Set(prev).add(publisher.stream.connection.connectionId)
@@ -190,7 +186,7 @@ function BattleRoomPage() {
     }
 
     // 방장이 나가면 새로운 방장을 선정하는 로직
-    if (isModerator && subscribers.length > 0) {
+    if (isMaster && subscribers.length > 0) {
       const newModerator = subscribers[0];
       // 참여자들에게 방장이 바뀐 것을 알림으로 알려줌
       session
@@ -211,12 +207,12 @@ function BattleRoomPage() {
     OV.current = null;
     setSession(undefined);
     setSubscribers([]);
-    setMySessionId("");
     setmyNickName("");
     setMainStreamManager(undefined);
     setPublisher(undefined);
+    clearBattleInfo;
     navigate("/battle-list");
-  }, [session, isModerator, subscribers, disconnectWebSocket]);
+  }, [session, isMaster, subscribers, disconnectWebSocket]);
 
   // 구독자 타입 확인 함수 수정
   const getSubscriberType = (subscriber) => {
@@ -261,7 +257,7 @@ function BattleRoomPage() {
       {isWaiting ? (
         <div id="session">
           <div id="session-header">
-            <h1 id="session-title">{sessionId}</h1>
+            <h1 id="session-title">{title}</h1>
             <input
               className="btn btn-large btn-danger"
               type="button"

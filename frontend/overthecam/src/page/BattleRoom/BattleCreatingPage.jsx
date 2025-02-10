@@ -1,29 +1,27 @@
-import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createRoom } from "../../service/BattleRoom/api";
 
 import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
 import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
+import { useBattleInitStore } from "../../store/Battle/BattleStore";
 
 function BattleCreatingPage() {
   const navigate = useNavigate();
+  const setBattleInfo = useBattleInitStore((state) => state.setBattleInfo);
 
   const createBattleRoomHandler = async (title) => {
     try {
       // title을 직접 사용하여 createRoom 호출
       const response = await createRoom(title);
       console.log(response);
-
-      navigate(`/battle-room/${response.data.battleId}`, {
-        state: {
-          battleId: response.data.battleId,
-          title: response.data.title,
-          sessionId: response.data.sessionId,
-          connectionToken: response.data.connectionToken,
-          isMaster: true,
-        },
+      setBattleInfo({
+        battleId: response.data.battleId,
+        title: response.data.title,
+        sessionId: response.data.sessionId,
+        connectionToken: response.data.connectionToken,
+        isMaster: true,
       });
-
+      navigate(`/battle-room/${response.data.battleId}`);
       console.log(response.data); // 여기서 state 로그 확인
     } catch (error) {
       console.error("Battle room navigation error:", error);
