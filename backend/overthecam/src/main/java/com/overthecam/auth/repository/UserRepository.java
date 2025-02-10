@@ -37,4 +37,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     void updateScoreAndPoint(@Param("userId") Long userId,
                              @Param("supportScore") int supportScore,
                              @Param("point") int point);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.supportScore = :newScore WHERE u.id = :userId AND u.supportScore = :currentScore")
+    int updateSupportScoreWithOptimisticLock(
+            @Param("userId") Long userId,
+            @Param("newScore") Integer newScore,
+            @Param("currentScore") Integer currentScore
+    );
 }
