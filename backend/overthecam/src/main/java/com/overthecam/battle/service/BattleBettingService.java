@@ -6,6 +6,7 @@ import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleVoteRedisRepository;
 import com.overthecam.common.exception.GlobalException;
+import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.service.VoteValidationService;
 import java.util.List;
@@ -43,7 +44,7 @@ public class BattleBettingService {
     /**
      * 일반 참가자 투표 처리
      */
-    public void vote(Long battleId, Long userId, Long optionId, int supportScore) {
+    public UserScoreInfo vote(Long battleId, Long userId, Long optionId, int supportScore) {
         // 투표 유효성 검증
         voteValidationService.validateBattle(battleId);
         voteValidationService.findVoteOptionById(optionId);
@@ -55,6 +56,10 @@ public class BattleBettingService {
 
         // 투표 정보 저장
         saveBettingInfo(battleId, userId, optionId, supportScore, role);
+
+        // 사용 가능한 응원점수 계산해서 반환
+        int lockedScore = battleScoreRedisService.getLockedScore(userId);
+        return UserScoreInfo.updateSupportScore(lockedScore);
     }
 
     private void saveBettingInfo(Long battleId, Long userId, Long optionId, int supportScore, ParticipantRole  role) {

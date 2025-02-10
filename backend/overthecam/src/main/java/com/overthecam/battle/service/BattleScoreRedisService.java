@@ -84,7 +84,7 @@ public class BattleScoreRedisService {
         }
     }
 
-    private int getLockedScore(Long userId) {
+    public int getLockedScore(Long userId) {
         String key = USER_LOCKED_SCORE_KEY + userId;
         Object value = redisTemplate.opsForValue().get(key);
         return value != null ? Integer.parseInt(value.toString()) : 0;
