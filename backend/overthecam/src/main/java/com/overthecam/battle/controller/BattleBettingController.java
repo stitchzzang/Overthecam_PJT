@@ -26,14 +26,19 @@ public class BattleBettingController {
     private final BattleResultService battleResultService;
     private final SecurityUtils securityUtils;
 
-    /**
-     * 배틀 투표 참여
-     */
-    @PostMapping("/{battleId}")
-    public CommonResponseDto<?> vote(Authentication authentication,
+    @PostMapping("/{battleId}/battler")
+    public CommonResponseDto<?> voteBattler(Authentication authentication,
+                                            @PathVariable Long battleId,
+                                            @RequestBody BattleBettingRequest request) {
+        Long userId = securityUtils.getCurrentUserId(authentication);
+        battleBettingService.voteBattler(battleId, userId, request.getOptionId());
+        return CommonResponseDto.ok();
+    }
+
+    @PostMapping("/{battleId}/participant")
+    public CommonResponseDto<?> voteParticipant(Authentication authentication,
                                                 @PathVariable Long battleId,
-                                                @RequestBody BattleBettingRequest request)
-    {
+                                                @RequestBody BattleBettingRequest request) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         battleBettingService.vote(battleId, userId, request.getOptionId(), request.getSupportScore());
         return CommonResponseDto.ok();

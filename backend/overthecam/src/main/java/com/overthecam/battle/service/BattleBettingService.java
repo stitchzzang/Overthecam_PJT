@@ -27,41 +27,66 @@ public class BattleBettingService {
     private final BattleScoreRedisService battleScoreRedisService;
 
     /**
-     * 배틀 투표 처리
+     * 배틀러 투표 처리
+     */
+    public void voteBattler(Long battleId, Long userId, Long optionId) {
+        // 투표 유효성 검증
+        voteValidationService.validateBattle(battleId);
+        voteValidationService.findVoteOptionById(optionId);
+        validateNoDuplicateVote(battleId, userId);
+        ParticipantRole role = validateUserRole(battleId, userId, ParticipantRole.BATTLER);
+
+        // 배틀러는 응원점수 없이 투표 정보만 저장
+        saveBettingInfo(battleId, userId, optionId, 0, role);
+    }
+
+    /**
+     * 일반 참가자 투표 처리
      */
     public void vote(Long battleId, Long userId, Long optionId, int supportScore) {
         // 투표 유효성 검증
         voteValidationService.validateBattle(battleId);
         voteValidationService.findVoteOptionById(optionId);
         validateNoDuplicateVote(battleId, userId);
-        validateUserRole(battleId, userId);
-
+        ParticipantRole role = validateUserRole(battleId, userId, ParticipantRole.PARTICIPANT);
 
         // 응원점수 임시 락
         battleScoreRedisService.lockUserScore(battleId, userId, supportScore);
 
         // 투표 정보 저장
-        saveBettingInfo(battleId, userId, optionId, supportScore);
+        saveBettingInfo(battleId, userId, optionId, supportScore, role);
     }
 
-    private void saveBettingInfo(Long battleId, Long userId, Long optionId, int supportScore) {
+    private void saveBettingInfo(Long battleId, Long userId, Long optionId, int supportScore, ParticipantRole  role) {
         BattleBettingInfo voteInfo = BattleBettingInfo.builder()
             .userId(userId)
             .battleId(battleId)
             .voteOptionId(optionId)
-            .supportScore(supportScore)
+            .supportScore(supportScore).role(role)
             .build();
 
         battleVoteRedisRepository.saveUserVote(voteInfo);
         battleVoteRedisRepository.incrementOptionScore(battleId, optionId, supportScore);
     }
 
-    public void validateUserRole(Long battleId, Long userId){
-        int role = battleParticipantRepository.findRoleByBattleIdAndUserId(battleId, userId);
+    /**
+     * 사용자 역할 검증
+     * @param expectedRole 기대하는 역할 (BATTLER or PARTICIPANT)
+     */
+    public ParticipantRole validateUserRole(Long battleId, Long userId, ParticipantRole expectedRole) {
+        ParticipantRole role = battleParticipantRepository.findRoleByBattleIdAndUserId(battleId, userId);
 
-        if(ParticipantRole.isBattler(role)){
-            throw new GlobalException(BattleErrorCode.INVALID_BATTLER_VOTE, "배틀러는 투표를 할 수 없습니다");
+        if (expectedRole == ParticipantRole.BATTLER) {
+            if (!ParticipantRole.isBattler(role)) {
+                throw new GlobalException(BattleErrorCode.INVALID_ROLE, "배틀러만 참여할 수 있습니다");
+            }
+        } else if (expectedRole == ParticipantRole.PARTICIPANT) {
+            if (ParticipantRole.isBattler(role)) {
+                throw new GlobalException(BattleErrorCode.INVALID_BATTLER_VOTE, "배틀러는 투표를 할 수 없습니다");
+            }
         }
+
+        return role;
     }
 
     /**
