@@ -5,6 +5,7 @@ import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BettingRecord;
+import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.dto.BattleResultResponse;
 import com.overthecam.battle.dto.BattleResultResponse.WinningInfo;
@@ -15,6 +16,7 @@ import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.battle.repository.BattleVoteRedisRepository;
 import com.overthecam.battle.repository.BettingRecordRepository;
 import com.overthecam.common.exception.GlobalException;
+import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.domain.VoteOption;
 import com.overthecam.vote.domain.VoteRecord;
 import com.overthecam.vote.exception.VoteErrorCode;
@@ -26,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.overthecam.member.service.UserScoreService;
+import com.overthecam.vote.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +44,7 @@ public class BattleResultService {
     private final UserRepository userRepository;
     private final BattleRepository battleRepository;
     private final BettingRecordRepository bettingRecordRepository;
-
+    private final VoteRepository voteRepository;
 
     private final BattleSettlementService battleSettlementService;
     private final BattleScoreRedisService battleScoreRedisService;
@@ -56,18 +59,22 @@ public class BattleResultService {
             Battle battle = battleRepository.findById(battleId)
                     .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다"));
 
-            // 실제 DB에서 응원점수 차감 처리
+            // 1. 실제 DB에서 응원점수 차감 처리
             deductFinalScores(votes);
 
-            // 정산 처리
+            // 2. 정산 처리
             Map<Long, Integer> rewardResults = battleSettlementService.settleBattleRewards(battleId, optionScores, votes);
 
-            // 투표 기록 및 배팅 기록 저장
+            // 3. 투표 기록 및 배팅 기록 저장
             saveRecords(votes, rewardResults);
 
-            // Redis 데이터 정리
+            // 4. Redis 데이터 정리
             battleScoreRedisService.releaseLockedScores(battleId);
             battleVoteRedisRepository.deleteBattleVotes(battleId);
+
+
+            // 5. 배틀과 투표 종료 처리
+            finalizeBattleAndVote(battle);
 
             return createBattleResult(battle, votes, optionScores, rewardResults);
         } catch (Exception e) {
@@ -75,6 +82,20 @@ public class BattleResultService {
             battleScoreRedisService.releaseLockedScores(battleId);
             throw e;
         }
+    }
+
+    private void finalizeBattleAndVote(Battle battle) {
+        // 배틀 종료 처리
+        battle.updateStatus(Status.END);
+        battleRepository.save(battle);
+
+        // 투표 비활성화
+        Vote vote = voteRepository.findByBattleId(battle.getId())
+                .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_NOT_FOUND, "투표 정보를 찾을 수 없습니다"));
+        vote.setInactive();
+        voteRepository.save(vote);
+
+        log.info("Battle {} and its vote have been finalized", battle.getId());
     }
 
     private void saveRecords(List<BattleBettingInfo> votes, Map<Long, Integer> rewardResults) {
@@ -85,11 +106,22 @@ public class BattleResultService {
         List<BettingRecord> bettingRecords = votes.stream()
                 .map(vote -> {
                     VoteRecord voteRecord = voteRecords.get(vote.getUserId());
-                    int earnedScore = rewardResults.getOrDefault(vote.getUserId(), 0);
+                    int originalBet = vote.getSupportScore();
+                    int totalReward = rewardResults.getOrDefault(vote.getUserId(), 0);
+
+                    // earnedScore는 순수 획득/손실 금액만 계산
+                    int earnedScore;
+                    if (totalReward > 0) {
+                        // 승리한 경우: 총 보상에서 원금을 뺀 순수 획득 금액
+                        earnedScore = totalReward - originalBet;
+                    } else {
+                        // 패배한 경우: 원금을 잃은 금액이므로 음수로 표시
+                        earnedScore = -originalBet;
+                    }
 
                     return BettingRecord.builder()
                             .voteRecord(voteRecord)
-                            .bettingScore(vote.getSupportScore())
+                            .bettingScore(originalBet)
                             .earnedScore(earnedScore)
                             .createdAt(LocalDateTime.now())
                             .build();
