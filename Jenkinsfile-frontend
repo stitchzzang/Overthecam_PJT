@@ -33,7 +33,7 @@ pipeline {
                             sh '''
                                 echo "Loading nvm..."
                                 export NVM_DIR="$HOME/.nvm"
-                                [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                                if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; fi
                                 nvm use 22
 
                                 echo "Checking Node.js & npm version..."
