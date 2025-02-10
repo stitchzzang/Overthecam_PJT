@@ -181,59 +181,52 @@ export default function NavBar() {
             </Link>
           </div>
 
-          {/* Navigation links */}
-          <div className="flex flex-col gap-4">
-            <Link
-              to={"/battle-list"}
-              className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
+          {/* Menu items */}
+          <div>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-between w-full text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
             >
-              배틀 방 보기
-            </Link>
-            <div className="relative">
-              <button
-                className="flex items-center text-gray-700 font-medium p-2 hover:bg-gray-100 rounded w-full"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              투표
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
               >
-                투표
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="size-6"
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+                />
+              </svg>
+            </button>
+            {isDropdownOpen && (
+              <div className="ml-4">
+                <Link
+                  to={"/vote-inprogress"}
+                  className="block p-2 hover:bg-gray-100 rounded"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
-                  />
-                </svg>
-              </button>
-              {isDropdownOpen && (
-                <div className="ml-4">
-                  <Link
-                    to={"/vote-inprogress"}
-                    className="block p-2 hover:bg-gray-100 rounded"
-                  >
-                    진행중인 투표
-                  </Link>
-                  <Link
-                    to={"/vote-closed"}
-                    className="block p-2 hover:bg-gray-100 rounded"
-                  >
-                    종료된 투표
-                  </Link>
-                </div>
-              )}
-            </div>
-            <Link
-              to={"/store"}
-              className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
-            >
-              상점
-            </Link>
+                  진행중인 투표
+                </Link>
+                <Link
+                  to={"/vote-closed"}
+                  className="block p-2 hover:bg-gray-100 rounded"
+                >
+                  종료된 투표
+                </Link>
+              </div>
+            )}
           </div>
+          
+          <Link
+            to={"/store"}
+            className="block text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
+          >
+            상점
+          </Link>
         </div>
       </aside>
     </>
