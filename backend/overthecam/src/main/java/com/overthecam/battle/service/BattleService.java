@@ -166,15 +166,14 @@ public class BattleService {
     public SelectBattlerResponse selectBattlers(Long battleId, String battler1, String battler2) throws OpenViduJavaClientException, OpenViduHttpException {
         Battle battle = getBattleById(battleId);
 
-        // 2. 현재 방의 모든 참가자 조회
         List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleIdWithUser(battleId);
 
-        //3. role update
         int updatedCount = 0;
         for (BattleParticipant participant : participants) {
             if (participant.getUser().getNickname().equals(battler1) ||
                     participant.getUser().getNickname().equals(battler2)) {
-                participant.updateRole(participant.getRole() | ParticipantRole.BATTLER);
+                // 현재 role에 배틀러 권한 추가
+                participant.updateRole(ParticipantRole.addBattlerRole(participant.getRole()));
                 battleParticipantRepository.save(participant);
                 updatedCount++;
             }
@@ -182,7 +181,6 @@ public class BattleService {
         log.info("배틀러 역할 업데이트 완료 | 변경된 참가자 수: {}", updatedCount);
 
         return new SelectBattlerResponse(battleId, battle.getSessionId());
-
     }//여기까지가 배틀방이 생성된 후에 6명의 참가자가 모여서 배틀러 정하고 방 생성까지 완료한 상태
 
     public RandomVoteTopicResponse createRandomVoteTopic() {

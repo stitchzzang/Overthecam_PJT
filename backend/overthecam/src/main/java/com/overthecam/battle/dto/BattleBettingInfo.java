@@ -16,7 +16,7 @@ public class BattleBettingInfo {
     private Long battleId;
     private Long voteOptionId;
     private Integer supportScore;
-    private int role;
+    private ParticipantRole role;
 
     @JsonIgnore
     public boolean isBattler() {
