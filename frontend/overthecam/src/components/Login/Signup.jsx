@@ -7,11 +7,11 @@ const Signup = () => {
     email: "",
     password: "",
     passwordConfirm: "",
-    nickname: "",
     username: "",
+    nickname: "",
     gender: "",
     birth: "",
-    phoneNumber: "",
+    phoneNumber: ""
   })
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
@@ -19,23 +19,6 @@ const Signup = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value })
-  }
-
-  const registerUser = async (userData) => {
-    try {
-      const response = await publicAxios.post("/auth/signup", userData)
-      return response.data
-    } catch (error) {
-      if (error.code === "ERR_NETWORK") {
-        throw new Error("서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.")
-      } else if (error.response) {
-        throw new Error(error.response.data.message || "회원가입에 실패했습니다.")
-      } else if (error.request) {
-        throw new Error("서버로부터 응답을 받지 못했습니다.")
-      } else {
-        throw new Error("요청 설정 중 오류가 발생했습니다.")
-      }
-    }
   }
 
   const handleSubmit = async (e) => {
@@ -50,104 +33,191 @@ const Signup = () => {
     }
 
     try {
-      const newUser = {
+      const signupData = {
         email: formData.email,
         password: formData.password,
-        nickname: formData.nickname,
         username: formData.username,
-        gender: formData.gender,
+        nickname: formData.nickname,
+        gender: parseInt(formData.gender),
         birth: formData.birth,
-        phoneNumber: formData.phoneNumber,
+        phoneNumber: formData.phoneNumber
       }
 
-      const result = await registerUser(newUser)
-
-      setMessage(result.message || "회원가입에 성공했습니다.")
-      setIsError(false)
-      console.log("회원가입 성공:", result.data)
-
-      setTimeout(() => {
-        navigate("/")
-      }, 3000)
+      const response = await publicAxios.post("/auth/signup", signupData)
+      
+      if (response.data) {
+        setMessage("회원가입이 완료되었습니다.")
+        setIsError(false)
+        setTimeout(() => {
+          navigate("/login")
+        }, 2000)
+      }
     } catch (error) {
-      setMessage(error.message || "회원가입 중 오류가 발생했습니다. 다시 시도해주세요.")
       setIsError(true)
-      console.error("회원가입 에러:", error)
+      if (error.response) {
+        setMessage(error.response.data.message || "회원가입에 실패했습니다.")
+      } else if (error.request) {
+        setMessage("서버와의 통신에 실패했습니다.")
+      } else {
+        setMessage("요청 중 오류가 발생했습니다.")
+      }
     }
   }
 
   return (
-    <div className="auth-container">
-      <h2>회원가입</h2>
-      <div style={{ height: "60px", marginBottom: "10px", overflow: "auto" }}>
-        {message && (
-          <p
-            style={{
-              color: isError ? "#721c24" : "#155724",
-              backgroundColor: isError ? "#f8d7da" : "#d4edda",
-              border: `1px solid ${isError ? "#f5c6cb" : "#c3e6cb"}`,
-              borderRadius: "4px",
-              padding: "10px",
-              margin: "0",
-            }}
-          >
-            {message}
-          </p>
-        )}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Left Side - Signup Image */}
+      <div className="hidden lg:block lg:w-[55%] p-12">
+        <div className="h-full w-full rounded-3xl overflow-hidden">
+          <img 
+            src="/images/loginPageImage.png" 
+            alt="Signup decoration" 
+            className="w-full h-full object-cover translate-x-8"
+          />
+        </div>
       </div>
-      <form onSubmit={handleSubmit}>
-        <input type="email" id="email" placeholder="이메일" value={formData.email} onChange={handleChange} required />
-        <input
-          type="password"
-          id="password"
-          placeholder="비밀번호"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          id="passwordConfirm"
-          placeholder="비밀번호 확인"
-          value={formData.passwordConfirm}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          id="nickname"
-          placeholder="닉네임"
-          value={formData.nickname}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          id="username"
-          placeholder="사용자 이름"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
-        <select id="gender" value={formData.gender} onChange={handleChange} required>
-          <option value="">성별 선택</option>
-          <option value="male">남성</option>
-          <option value="female">여성</option>
-        </select>
-        <input type="date" id="birth" placeholder="생년월일" value={formData.birth} onChange={handleChange} required />
-        <input
-          type="tel"
-          id="phoneNumber"
-          placeholder="전화번호"
-          value={formData.phoneNumber}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">가입하기</button>
-      </form>
-      <p>
-        이미 계정이 있으신가요? <Link to="/">로그인</Link>
-      </p>
+
+      {/* Right Side - Signup Form */}
+      <div className="w-full lg:w-[45%] p-12">
+        <div className="space-y-6">
+          <h1 className="text-3xl font-bold text-gray-900">Signup</h1>
+
+          {message && (
+            <div
+              className={`p-4 rounded-xl ${
+                isError 
+                  ? "bg-red-100 text-red-700 border border-red-200" 
+                  : "bg-green-100 text-green-700 border border-green-200"
+              }`}
+            >
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex items-center gap-4">
+              <label htmlFor="email" className="text-lg font-bold text-gray-900 w-32">이메일</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="이메일"
+                value={formData.email}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="password" className="text-lg font-bold text-gray-900 w-32">비밀번호</label>
+              <input
+                type="password"
+                id="password"
+                placeholder="비밀번호"
+                value={formData.password}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="passwordConfirm" className="text-lg font-bold text-gray-900 w-32">비밀번호 확인</label>
+              <input
+                type="password"
+                id="passwordConfirm"
+                placeholder="비밀번호 확인"
+                value={formData.passwordConfirm}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="nickname" className="text-lg font-bold text-gray-900 w-32">닉네임</label>
+              <input
+                type="text"
+                id="nickname"
+                placeholder="닉네임"
+                value={formData.nickname}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="username" className="text-lg font-bold text-gray-900 w-32">사용자 이름</label>
+              <input
+                type="text"
+                id="username"
+                placeholder="사용자 이름"
+                value={formData.username}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="gender" className="text-lg font-bold text-gray-900 w-32">성별</label>
+              <select
+                id="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              >
+                <option value="">성별 선택</option>
+                <option value="male">남성</option>
+                <option value="female">여성</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="birth" className="text-lg font-bold text-gray-900 w-32">생년월일</label>
+              <input
+                type="date"
+                id="birth"
+                placeholder="생년월일"
+                value={formData.birth}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="phoneNumber" className="text-lg font-bold text-gray-900 w-32">전화번호</label>
+              <input
+                type="tel"
+                id="phoneNumber"
+                placeholder="전화번호"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                required
+              />
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Link
+                to="/login"
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors text-center"
+              >
+                BACK
+              </Link>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-3 bg-blue-400 text-white rounded-xl hover:bg-blue-500 transition-colors"
+              >
+                Signup
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   )
 }

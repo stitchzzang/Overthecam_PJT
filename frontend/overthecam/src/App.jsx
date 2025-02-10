@@ -17,7 +17,9 @@ import FindAccount from "./components/Login/FindAccount";
 import MyPage from "./page/Mypage/MyPage.jsx";
 import UserProfile from "./page/Mypage/UserProfile.jsx";
 import MyPageReport from "./page/Mypage/MyPageReport.jsx";
-import MainPage from "./page/Main/MainPage.jsx";
+import MainPage from "./page/Main/MainPage.jsx";  
+import MyPageBattle from "./page/Mypage/MyPageBattle.jsx";
+import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 
 function App() {
   return (
@@ -38,12 +40,15 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/user-profile/:userId" element={<UserProfile />} />
+          <Route path="/user-profile/me" element={<UserProfile />} />
+          <Route path="/user-profile/:id" element={<UserProfile />} />
           <Route path="/mypagereport" element={<MyPageReport />} />
+          <Route path="/mypagebattle" element={<MyPageBattle />} />
+          <Route path="/mypagevote" element={<MyPageVote />} />
         </Route>
       </Routes>
     </Router>
-  )
+  );
 }
 
 export default App

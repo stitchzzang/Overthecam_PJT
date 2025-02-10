@@ -69,4 +69,9 @@ public class User extends TimeStampEntity {
     public void clearRefreshToken() {
         this.refreshToken = null;
     }
+
+    // 비밀번호 찾기 - 새 비밀번호 설정
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }
