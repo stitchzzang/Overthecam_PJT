@@ -1,6 +1,6 @@
 package com.overthecam.vote.repository;
 
-import com.overthecam.vote.dto.VoteResponseDto;
+import com.overthecam.vote.dto.VoteDetailResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VotePageResponse {
-    private List<VoteResponseDto> content;
+    private List<VoteDetailResponse> content;
     private PageInfo pageInfo;
 
     @Getter
@@ -28,7 +28,7 @@ public class VotePageResponse {
         private int pageSize;
     }
 
-    public static VotePageResponse of(Page<VoteResponseDto> page) {
+    public static VotePageResponse of(Page<VoteDetailResponse> page) {
         return VotePageResponse.builder()
                 .content(page.getContent())
                 .pageInfo(PageInfo.builder()

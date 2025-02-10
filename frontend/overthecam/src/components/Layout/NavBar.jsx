@@ -1,23 +1,68 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
 export default function NavBar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isBattleRoomPage = location.pathname.startsWith("/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+
+  // 로그인 상태 체크 함수
+  const checkLoginStatus = () => {
+    const token = localStorage.getItem("token");
+    const userInfoStr = localStorage.getItem("userInfo");
+    
+    console.log("로그인 상태 체크:", {
+      token,
+      userInfoStr
+    });
+    
+    if (token && userInfoStr) {
+      setIsLoggedIn(true);
+      setUserInfo(JSON.parse(userInfoStr));
+    } else {
+      setIsLoggedIn(false);
+      setUserInfo(null);
+    }
+  };
+
+  // 컴포넌트 마운트 및 location 변경 시 로그인 상태 체크
+  useEffect(() => {
+    checkLoginStatus();
+  }, [location.pathname]);
+
+  // localStorage 변경 이벤트 리스너
+  useEffect(() => {
+    window.addEventListener('storage', checkLoginStatus);
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    // 로그아웃 시 모든 관련 데이터 삭제
+    localStorage.removeItem("token");
+    localStorage.removeItem("rememberMe");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userInfo");
+    
+    // 상태 초기화
+    setIsLoggedIn(false);
+    setUserInfo(null);
+    setIsProfileDropdownOpen(false);
+    
+    // 홈으로 이동
+    navigate("/");
+  };
 
   if (isBattleRoomPage) {
     return null;
   }
-
-  useEffect(() => {
-    // 로그인 여부 확인 API 호출
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
-  }, [localStorage.getItem("token")]); // 토큰 변경을 감지
 
   return (
     <>
@@ -48,7 +93,7 @@ export default function NavBar() {
 
           {/* Right Section with Create Buttons and Profile */}
           <div className="flex items-center justify-end gap-6 w-1/4 ml-auto">
-            {isLoggedIn ? (
+            {isLoggedIn && userInfo ? (
               <>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -64,13 +109,35 @@ export default function NavBar() {
                     투표 만들기
                   </Link>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                  <span className="text-gray-700 whitespace-nowrap text-sm">
-                    우끼끼정해기 님,
-                    <br />
-                    안녕하세요!
-                  </span>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center gap-2 focus:outline-none"
+                  >
+                    <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                    <span className="text-gray-700 whitespace-nowrap text-sm">
+                      {userInfo.nickname} 님,
+                      <br />
+                      안녕하세요!
+                    </span>
+                  </button>
+                  
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                      <Link
+                        to="/mypage"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        마이페이지
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        로그아웃
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (

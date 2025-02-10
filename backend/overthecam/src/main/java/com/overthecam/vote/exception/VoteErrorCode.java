@@ -18,8 +18,9 @@ public enum VoteErrorCode implements ErrorCode {
     VOTE_OPTION_NOT_FOUND(404, "투표 옵션을 찾을 수 없습니다"),
 
     // 투표 참여 관련 에러
-    DUPLICATE_VOTE(400, "이미 투표했습니다"),
+    DUPLICATE_VOTE(400, "이미 참여한 투표입니다"),
     VOTE_FAILED(500, "투표 처리 중 오류가 발생했습니다"),
+    INVALID_VOTE_OPTION(400, "해당 투표의 옵션이 아닙니다"),
 
     // 투표 댓글 관련 에러
     COMMENT_NOT_FOUND(404, "댓글을 찾을 수 없습니다"),

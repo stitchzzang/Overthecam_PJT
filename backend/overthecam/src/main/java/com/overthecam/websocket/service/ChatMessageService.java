@@ -17,6 +17,14 @@ public class ChatMessageService {
 
     private final BattleRepository battleRepository;
 
+    public ChatMessageResponse sendSystemMessage(String content){
+        return ChatMessageResponse.builder()
+            .nickname("System")
+            .content(content)
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
+
     public ChatMessageResponse sendMessage(ChatMessageRequest message,
                                                UserPrincipal user) {
 

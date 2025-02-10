@@ -93,7 +93,7 @@ pipeline {
                                 docker pull ${dockerImageTag} &&
                                 docker stop frontend || true &&
                                 docker rm frontend || true &&
-                                docker run -d --name frontend --network my_network -p 5173:80 --env-file .env ${dockerImageTag} &&
+                                docker run -d --name frontend -p 5557:80 --env-file .env ${dockerImageTag} &&
                                 docker system prune -f'
                             """
                             }
