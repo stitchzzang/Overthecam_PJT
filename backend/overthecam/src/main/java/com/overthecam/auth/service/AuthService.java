@@ -124,11 +124,12 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public UserResponse findEmail(FindEmailRequest request) {
-        User user = userRepository.findByUsernameAndPhoneNumber(
+        User user = userRepository.findByUsernameAndPhoneNumberAndBirth(
                         request.getUsername(),
-                        request.getPhoneNumber())
-                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
-                        String.format("일치하는 사용자 정보가 없습니다. (이름: %s)", request.getUsername())));
+                        request.getPhoneNumber(),
+                        request.getBirth())
+                        .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
+                            String.format("일치하는 사용자 정보가 없습니다. (이름: %s)", request.getUsername())));
 
         return UserResponse.from(user);
     }
