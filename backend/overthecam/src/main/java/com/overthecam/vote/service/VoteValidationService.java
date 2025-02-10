@@ -3,6 +3,10 @@ package com.overthecam.vote.service;
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.battle.domain.Battle;
+import com.overthecam.battle.domain.Status;
+import com.overthecam.battle.exception.BattleErrorCode;
+import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.domain.VoteOption;
@@ -25,6 +29,7 @@ public class VoteValidationService {
     private final VoteRepository voteRepository;
     private final VoteOptionRepository voteOptionRepository;
     private final VoteRecordRepository voteRecordRepository;
+    private final BattleRepository battleRepository;
 
     /**
      * 투표 생성 요청 데이터 유효성 검증
@@ -114,4 +119,15 @@ public class VoteValidationService {
         return voteOptionRepository.findById(optionId)
             .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
     }
+
+    public void validateBattle(Long battleId) {
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다"));
+
+        if (battle.getStatus() != Status.PROGRESS) {
+            throw new GlobalException(BattleErrorCode.INVALID_BATTLE_STATUS, "현재 투표 가능한 상태가 아닙니다");
+        }
+    }
+
+
 }
