@@ -2,19 +2,18 @@ import ItemList from "../../components/ItemShop/ItemList";
 import MyInventory from "../../components/ItemShop/MyInventory";
 
 function ItemShopPage() {
-
   return (
     <>
-      <div className="relative p-10">
-        <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Store</h1>
+      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
+          아이템 상점
+        </h1>
       </div>
-      <MyInventory/>
+      <MyInventory />
+      <div></div>
       <div>
-      </div>
-      <div>
-        <h3>상품 목록</h3>
         <div>
-            <ItemList/>
+          <ItemList />
         </div>
       </div>
     </>

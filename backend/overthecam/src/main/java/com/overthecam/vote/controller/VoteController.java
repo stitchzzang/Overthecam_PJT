@@ -2,10 +2,11 @@ package com.overthecam.vote.controller;
 
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.security.util.SecurityUtils;
-import com.overthecam.vote.dto.CommentRequestDto;
-import com.overthecam.vote.dto.VoteCommentDto;
-import com.overthecam.vote.dto.VoteRequestDto;
-import com.overthecam.vote.dto.VoteResponseDto;
+import com.overthecam.vote.dto.CommentRequest;
+import com.overthecam.vote.dto.VoteComment;
+import com.overthecam.vote.dto.VoteDetailResponse;
+import com.overthecam.vote.dto.VoteRequest;
+import com.overthecam.vote.dto.VoteResponse;
 import com.overthecam.vote.repository.VotePageResponse;
 import com.overthecam.vote.service.VoteCommentService;
 import com.overthecam.vote.service.VoteService;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,10 +32,10 @@ public class VoteController {
     // 1. 투표 생성
     @PostMapping("/create")
     public CommonResponseDto<?> createVote(Authentication authentication,
-                                           @Valid @RequestBody VoteRequestDto requestDto) {
+                                           @Valid @RequestBody VoteRequest requestDto) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto responseDto = voteService.createVote(requestDto, userId);
-        return CommonResponseDto.success("투표가 생성되었습니다", responseDto);
+        VoteResponse responseDto = voteService.createVote(requestDto, userId);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 2. 투표 조회 및 검색
@@ -45,31 +47,33 @@ public class VoteController {
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable);
-        return CommonResponseDto.success(response);
+
+
+        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable, userId);
+        return CommonResponseDto.ok(response);
     }
 
     // 3. 특정 투표 상세 조회
     @GetMapping("/{voteId}")
-    public CommonResponseDto<VoteResponseDto> getVoteDetail(
+    public CommonResponseDto<?> getVoteDetail(
             Authentication authentication,
             @PathVariable Long voteId
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto detailDto = voteService.getVoteDetail(voteId);
-        return CommonResponseDto.success(detailDto);
+        VoteDetailResponse detailDto = voteService.getVoteDetail(voteId, userId);
+        return CommonResponseDto.ok(detailDto);
     }
 
     // 4. 투표 참여
     @PostMapping("/{voteId}/vote/{optionId}")
-    public CommonResponseDto<VoteResponseDto> vote(
+    public CommonResponseDto<?> vote(
             Authentication authentication,
             @PathVariable Long voteId,
             @PathVariable Long optionId
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteResponseDto responseDto = voteService.vote(voteId, optionId, userId);
-        return CommonResponseDto.success("투표가 완료되었습니다", responseDto);
+        VoteDetailResponse responseDto = voteService.vote(voteId, optionId, userId);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 5. 투표 삭제
@@ -80,31 +84,31 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         voteService.deleteVote(voteId, userId);
-        return CommonResponseDto.success("투표가 삭제되었습니다", null);
+        return CommonResponseDto.ok();
     }
 
     // 6. 댓글 작성
     @PostMapping("/{voteId}/comment")
-    public CommonResponseDto<VoteCommentDto> createComment(
+    public CommonResponseDto<VoteComment> createComment(
             Authentication authentication,
             @PathVariable Long voteId,
-            @Valid @RequestBody CommentRequestDto request
+            @Valid @RequestBody CommentRequest request
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteCommentDto responseDto = voteCommentService.createComment(voteId, request.getContent(), userId);
-        return CommonResponseDto.success("댓글이 등록되었습니다", responseDto);
+        VoteComment responseDto = voteCommentService.createComment(voteId, request.getContent(), userId);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 7. 댓글 수정
     @PutMapping("/comment/{commentId}")
-    public CommonResponseDto<VoteCommentDto> updateComment(
+    public CommonResponseDto<VoteComment> updateComment(
             Authentication authentication,
             @PathVariable Long commentId,
-            @Valid @RequestBody CommentRequestDto request
+            @Valid @RequestBody CommentRequest request
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        VoteCommentDto responseDto = voteCommentService.updateComment(commentId, request.getContent(), userId);
-        return CommonResponseDto.success("댓글이 수정되었습니다", responseDto);
+        VoteComment responseDto = voteCommentService.updateComment(commentId, request.getContent(), userId);
+        return CommonResponseDto.ok(responseDto);
     }
 
     // 8. 댓글 삭제
@@ -115,6 +119,6 @@ public class VoteController {
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         voteCommentService.deleteComment(commentId, userId);
-        return CommonResponseDto.success("댓글이 삭제되었습니다", null);
+        return CommonResponseDto.ok();
     }
 }

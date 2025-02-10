@@ -4,8 +4,8 @@ import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.websocket.dto.*;
-import com.overthecam.exception.websocket.WebSocketErrorCode;
-import com.overthecam.exception.websocket.WebSocketException;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +16,14 @@ import java.time.LocalDateTime;
 public class ChatMessageService {
 
     private final BattleRepository battleRepository;
+
+    public ChatMessageResponse sendSystemMessage(String content){
+        return ChatMessageResponse.builder()
+            .nickname("System")
+            .content(content)
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
 
     public ChatMessageResponse sendMessage(ChatMessageRequest message,
                                                UserPrincipal user) {

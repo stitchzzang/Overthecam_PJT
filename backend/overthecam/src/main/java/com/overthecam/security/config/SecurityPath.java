@@ -4,6 +4,9 @@ public enum SecurityPath {
     // Auth 관련 경로
     SIGNUP("/api/auth/signup"),
     LOGIN("/api/auth/login"),
+    findEmail("/api/auth/find-email"),
+    verifyPasswordReset("/api/auth/verify-password-reset"),
+    resetPassword("/api/auth/reset-password"),
 
     // WebSocket 관련 경로
     WS_CONNECT("/api/ws-connect/**"),

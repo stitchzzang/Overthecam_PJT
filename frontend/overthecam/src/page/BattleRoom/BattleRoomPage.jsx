@@ -88,11 +88,10 @@ function BattleRoomPage() {
 
       OV.current = new OpenVidu();
       OV.current.enableProdMode();
+      OV.current.setAdvancedConfiguration({
+         websocketURL: 'wss://i12d204.p.ssafy.io/openvidu'
+      });
       const mySession = OV.current.initSession();
-      // mySession.set("protocol", "wss");
-
-      // const serverURL = "wss://i12d204.p.ssafy.io/openvidu";
-
 
       // 세션 이벤트 핸들러 설정
       mySession.on("streamCreated", (event) => {

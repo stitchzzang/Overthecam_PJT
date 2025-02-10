@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,8 +20,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class BattleWebsocketService {
+
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository participantRepository;
+    private final ChatMessageService chatMessageService;
 
     @Transactional
     public Battle updateBattleStatus(Long battleId, Status status) {
@@ -45,12 +46,9 @@ public class BattleWebsocketService {
                 .map(p -> p.getUser().getNickname())
                 .toList();
 
-        return ChatMessageResponse.builder()
-                .nickname("System")
-                .content(String.format("%s님과 %s님 배틀러 선정!\n건강하고 유쾌한 논쟁 되시길 바랍니다!",
-                        battlerNames.get(0), battlerNames.get(1)))
-                .timestamp(LocalDateTime.now())
-                .build();
+        return chatMessageService.sendSystemMessage(
+            String.format("%s님과 %s님 배틀러 선정!\n건강하고 유쾌한 논쟁 되시길 바랍니다!",
+            battlerNames.get(0), battlerNames.get(1)));
     }
 
     private ParticipantInfo convertToParticipantInfo(BattleParticipant participant) {

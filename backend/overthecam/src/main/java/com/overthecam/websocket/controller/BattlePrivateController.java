@@ -49,21 +49,21 @@ public class BattlePrivateController {
     }
 
     private WebSocketResponseDto<?> createUserScoreResponse(Long userId) {
-        return WebSocketResponseDto.success(
+        return WebSocketResponseDto.ok(
             MessageType.USER_SCORE,
             userScoreService.getUserScore(userId)
         );
     }
 
     private WebSocketResponseDto<?> createCheerUpdateResponse(Long userId, Integer score) {
-        return WebSocketResponseDto.success(
+        return WebSocketResponseDto.ok(
             MessageType.CHEER_UPDATE,
             userScoreService.updateSupportScore(userId, score)
         );
     }
 
     private WebSocketResponseDto<?> createPointUpdateResponse(Long userId, Integer points) {
-        return WebSocketResponseDto.success(
+        return WebSocketResponseDto.ok(
             MessageType.POINT_UPDATE,
             userScoreService.updatePoints(userId, points)
         );
