@@ -180,19 +180,49 @@ export default function NavBar() {
               투표 만들기
             </Link>
           </div>
-
-          {/* Navigation links */}
-          <div className="flex flex-col gap-4">
-            <Link
-              to={"/battle-list"}
-              className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
-            >
-              배틀 방 보기
-            </Link>
-            <div className="relative">
+          {isLoggedIn ? (
+            <div className="relative" ref={dropdownRef}>
               <button
-                className="flex items-center text-gray-700 font-medium p-2 hover:bg-gray-100 rounded w-full"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                className="flex items-center gap-2 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+              >
+                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                <span className="text-gray-700 whitespace-nowrap text-sm">
+                  {userNickname} 님,
+                  <br />
+                  안녕하세요!
+                </span>
+              </button>
+              
+              {/* 프로필 드롭다운 메뉴 */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200">
+                  <Link to="/mypagereport" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    논쟁 분석 리포트
+                  </Link>
+                  <Link to="/mypagebattle" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    배틀 관리
+                  </Link>
+                  <Link to="/mypagevote" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    투표 관리
+                  </Link>
+                  <Link to="/profile-edit" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    회원정보 수정
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="btn px-6 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
               >
                 투표
                 <svg
