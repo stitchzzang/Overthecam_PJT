@@ -42,6 +42,7 @@ pipeline {
                             rm -rf build
                             ./gradlew clean
                             ./gradlew build -x test
+                            ls -l build/libs/
                         '''
                         echo '====== Gradle Build 성공 ======'
                     } catch (Exception e) {
