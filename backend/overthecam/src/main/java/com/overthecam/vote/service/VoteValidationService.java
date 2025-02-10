@@ -16,11 +16,13 @@ import com.overthecam.vote.repository.VoteOptionRepository;
 import com.overthecam.vote.repository.VoteRecordRepository;
 import com.overthecam.vote.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

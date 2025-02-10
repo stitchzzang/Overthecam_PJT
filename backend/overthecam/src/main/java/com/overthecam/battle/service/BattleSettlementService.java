@@ -1,8 +1,6 @@
 package com.overthecam.battle.service;
 
 import com.overthecam.auth.exception.AuthErrorCode;
-import com.overthecam.battle.domain.Battle;
-import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleRepository;
@@ -11,6 +9,7 @@ import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.member.exception.UserErrorCode;
 import com.overthecam.member.service.UserScoreService;
+import com.overthecam.vote.service.VoteValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,9 +26,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class BattleSettlementService {
 
-    private final BattleRepository battleRepository;
-    private final BattleVoteRedisRepository battleVoteRedisRepository;
     private final UserScoreService userScoreService;
+    private final VoteValidationService validationService;
 
 
     @Transactional
@@ -37,12 +35,7 @@ public class BattleSettlementService {
                                                   List<BattleBettingInfo> votes) {
         try {
             // 1. 배틀 상태 검증
-            Battle battle = battleRepository.findById(battleId)
-                    .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다."));
-
-            if (battle.getStatus() != Status.PROGRESS) {
-                throw new GlobalException(BattleErrorCode.INVALID_BATTLE_STATUS, "진행중인 배틀이 아닙니다.");
-            }
+            validationService.validateBattle(battleId);
 
             // 2. Redis 데이터와 DB 데이터 일관성 검증
             validateDataConsistency(battleId, votes);
@@ -63,8 +56,6 @@ public class BattleSettlementService {
                 settleWinLoss(votes, winningOptionId, optionScores, totalBattleScore, rewardResults);
             }
 
-            // 4. 배틀 상태 업데이트
-            battle.updateStatus(Status.END);
 
             return rewardResults;
 
