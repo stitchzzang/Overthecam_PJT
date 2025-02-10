@@ -11,6 +11,7 @@ import com.overthecam.vote.repository.VoteOptionRepository;
 import com.overthecam.vote.repository.VoteRecordRepository;
 import com.overthecam.vote.repository.VoteRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,18 @@ public class VoteRecordService {
     private final VoteOptionRepository voteOptionRepository;
     private final VoteRecordRepository voteRecordRepository;
 
-    public void saveVoteRecords(List<BattleBettingInfo> votes) {
+    public Map<Long, VoteRecord> saveVoteRecords(List<BattleBettingInfo> votes) {
         List<VoteRecord> voteRecords = votes.stream()
-            .map(this::createVoteRecord)
-            .collect(Collectors.toList());
+                .map(this::createVoteRecord)
+                .collect(Collectors.toList());
 
         voteRecordRepository.saveAll(voteRecords);
+
+        return voteRecords.stream()
+                .collect(Collectors.toMap(
+                        record -> record.getUser().getId(),
+                        record -> record
+                ));
     }
 
     private VoteRecord createVoteRecord(BattleBettingInfo voteInfo) {
