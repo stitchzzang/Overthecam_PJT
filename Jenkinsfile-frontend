@@ -52,41 +52,31 @@ pipeline {
             try {
                 echo '====== Docker Build 시작 ======'
 
-                // 한 번에 깔끔하게 정리
+                // 기존 컨테이너/이미지 정리 - 한 번만 실행
                 sh '''
-                    docker system prune -a -f --volumes
-                    docker builder prune -f
+                    docker ps -a | grep overthecam-frontend | awk '{print $1}' | xargs -r docker rm -f || true
+                    docker images | grep overthecam-frontend | awk '{print $3}' | xargs -r docker rmi -f || true
                 '''
 
                 dir('frontend/overthecam') {
                     withCredentials([
-                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
-                        usernamePassword(credentialsId: 'docker-hub', 
-                            usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', 
-                            passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')
+                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
                     ]) {
-                        // BuildKit 활성화하고 한 번에 깔끔하게 빌드
+                        // 도커 빌드는 한 번만 실행
                         sh """
-                            DOCKER_BUILDKIT=1 docker build \
-                                --no-cache \
-                                --build-arg VITE_BASE_URL=${VITE_BASE_URL} \
-                                -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
-                            
+                            docker build --build-arg VITE_BASE_URL=${VITE_BASE_URL} -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
                             echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                             docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                            docker logout
                         """
                     }
                 }
                 echo '====== Docker Build & Push 완료 ======'
             } catch (Exception e) {
                 echo '====== Docker Build/Push 실패 ======'
-                sh """
-                    docker logout || true
-                    docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true
-                """
+                sh "docker logout || true"
+                sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
                 error "Docker build/push failed: ${e.message}"
-            } finally {
-                sh 'docker logout || true'
             }
         }
     }
