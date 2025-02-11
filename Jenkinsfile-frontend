@@ -53,7 +53,8 @@ pipeline {
                 echo '====== Docker Build 시작 ======'
                 dir('frontend/overthecam') {
                     withCredentials([
-                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
+                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                        string(credentialsId: 'front-livekit-url', variable: 'VITE_LIVEKIT_URL')
                     ]) {
                         sh """
                             docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
