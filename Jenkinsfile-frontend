@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('docker')
         DOCKER_IMAGE_FRONTEND = 'ghkdtnql/overthecam-frontend'
+        DOCKER_BUILDKIT = '1'
     }
 
     stages {
@@ -31,9 +32,11 @@ pipeline {
                         echo '====== React Build 시작 ======'
                         dir('frontend/overthecam') {
                             sh '''
+                                npm install -g npm@latest
                                 npm install
                                 npm uninstall rollup
                                 npm install rollup
+                                npm audit fix --force
                                 CI=false npm run build
                             '''
                         }
@@ -47,32 +50,40 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
-    steps {
-        script {
-            try {
-                echo '====== Docker Build 시작 ======'
-                dir('frontend/overthecam') {
-                    withCredentials([
-                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
-                    ]) {
-                        sh """
-                            docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
-                            docker build --build-arg VITE_BASE_URL=${VITE_BASE_URL} -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
-                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                            docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                            docker logout
-                        """
+            steps {
+                script {
+                    try {
+                        echo '====== Docker Build 시작 ======'
+                        dir('frontend/overthecam') {
+                            withCredentials([
+                                string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                                usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')
+                            ]) {
+                                sh '''
+                                    # 실행 중인 관련 컨테이너 중지 및 삭제
+                                    docker ps -a | grep ${DOCKER_IMAGE_FRONTEND} | awk '{print $1}' | xargs -r docker rm -f
+                                    
+                                    # 이미지 강제 삭제
+                                    docker images ${DOCKER_IMAGE_FRONTEND} --format "{{.Tag}}" | xargs -r -I {} docker rmi -f ${DOCKER_IMAGE_FRONTEND}:{}
+                                    
+                                    # 새 이미지 빌드
+                                    docker build --build-arg VITE_BASE_URL=${VITE_BASE_URL} -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
+                                    
+                                    # DockerHub 로그인 및 푸시
+                                    docker login -u ${DOCKERHUB_CREDENTIALS_USR} -p ${DOCKERHUB_CREDENTIALS_PSW}
+                                    docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                    docker logout
+                                '''
+                            }
+                        }
+                        echo '====== Docker Build & Push 완료 ======'
+                    } catch (Exception e) {
+                        echo '====== Docker Build/Push 실패 ======'
+                        error "Docker build/push failed: ${e.message}"
                     }
                 }
-                echo '====== Docker Build & Push 완료 ======'
-            } catch (Exception e) {
-                echo '====== Docker Build/Push 실패 ======'
-                error "Docker build/push failed: ${e.message}"
-                sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
             }
         }
-    }
-}
 
         stage('Deploy to EC2') {
             steps {
@@ -80,20 +91,21 @@ pipeline {
                     try {
                         echo '====== EC2 배포 시작 ======'
                         def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
+                        
                         sshagent(['ssh']) {
                             withCredentials([
-                               string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                                string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
                             ]) {
-
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env &&
-                                docker pull ${dockerImageTag} &&
-                                docker stop frontend || true &&
-                                docker rm frontend || true &&
-                                docker run -d --name frontend -p 5557:80 --env-file .env ${dockerImageTag} &&
-                                docker system prune -f'
-                            """
+                                sh '''
+                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "
+                                        echo \\"VITE_BASE_URL=${VITE_BASE_URL}\\" > .env
+                                        docker pull ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                        docker stop frontend || true
+                                        docker rm frontend || true
+                                        docker run -d --name frontend -p 5557:80 --env-file .env ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+                                        docker system prune -f
+                                    "
+                                '''
                             }
                         }
                         echo '====== EC2 배포 성공 ======'
@@ -109,7 +121,10 @@ pipeline {
     post {
         always {
             echo '====== 파이프라인 종료 ======'
-            sh "docker logout || true"
+            sh '''
+                docker logout || true
+                docker system prune -f || true
+            '''
             cleanWs()
         }
         failure {
