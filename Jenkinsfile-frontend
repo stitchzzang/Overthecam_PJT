@@ -69,7 +69,7 @@ pipeline {
                             docker images | grep ${DOCKER_IMAGE_FRONTEND} | awk '{print \$3}' | xargs -r docker rmi -f || true
 
                             # 새 이미지 빌드
-                            docker build \
+                            docker build --no-cache \
                             --build-arg VITE_BASE_URL=${VITE_BASE_URL} \
                             --build-arg VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL} \
                             -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
