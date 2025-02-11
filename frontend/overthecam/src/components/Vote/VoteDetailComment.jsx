@@ -138,7 +138,7 @@ const VoteDetailComment = ({ voteId }) => {
         }
       );
 
-      // 즉시 UI에서 댓글 제거
+      // 즉시 UI에서 댓글 제거 
       setComments(prevComments => 
         prevComments.filter(comment => comment.commentId !== commentId)
       );
