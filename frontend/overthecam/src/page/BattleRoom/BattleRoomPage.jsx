@@ -75,7 +75,6 @@ function BattleRoomPage() {
       battleInfo.participantName
     );
     initializeRoom();
-    joinRoom();
 
     return () => {
       leaveRoom();
@@ -86,7 +85,6 @@ function BattleRoomPage() {
     console.log("Starting joinRoom with:", {
       LIVEKIT_URL,
     });
-    Room.setLogLevel("debug");
     const room = new Room({
       iceServers: [
         {
@@ -172,7 +170,7 @@ function BattleRoomPage() {
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    navigate("/");
+    // navigate("/");
   }
 
   return (
@@ -209,6 +207,7 @@ function BattleRoomPage() {
                 room={room}
                 localTrack={localTrack}
                 remoteTracks={remoteTracks}
+                participantName={battleInfo.participantName}
               />
             </div>
             <div className="w-1/3">
