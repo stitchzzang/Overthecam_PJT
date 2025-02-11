@@ -9,7 +9,6 @@ import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import axios from "axios";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 
-const APPLICATION_SERVER_URL = import.meta.env.VITE_BASE_URL;
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
 function BattleRoomPage() {
@@ -24,35 +23,34 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
 
-  // 새로고침 감지
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      window.alert("배틀방방을 나가시겠습니까?");
-      navigate("/");
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
+  // 개발 환경인지 체크
+  const isDevelopment = import.meta.env.MODE === "development";
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
-    if (
-      !battleInfo.roomName ||
-      !battleInfo.participantName ||
-      !battleInfo.userToken
-    ) {
-      console.error("Required information missing:", {
-        roomName: battleInfo.roomName,
-        participantName: battleInfo.participantName,
-        userToken: battleInfo.userToken,
-      });
-      navigate("/");
-      return;
-    }
+        if (isDevelopment) {
+          const devBattleInfo = {
+            roomName: "개발용_방",
+            participantName: "개발자",
+            userToken: "dev_token",
+          };
+
+          // 상태 업데이트
+          useBattleStore.getState().setBattleInfo(devBattleInfo);
+
+          // localStorage에도 저장
+          localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
+        }
+
+        if (
+          !battleInfo.roomName &&
+          !battleInfo.participantName &&
+          !battleInfo.userToken &&
+          !isDevelopment
+        ) {
+          navigate("/");
+          return;
+        }
 
     async function initializeRoom() {
       try {
@@ -152,8 +150,10 @@ function BattleRoomPage() {
   }
 
   return (
-    <div className="room-container">
-      <button onClick={leaveRoom}>Leave Room</button>
+    <div className="room-container ">
+      <button onClick={leaveRoom} className="btn">
+        Leave Room
+      </button>
       <div className="room-header">
         <h2>{battleInfo.roomName}</h2>
       </div>
