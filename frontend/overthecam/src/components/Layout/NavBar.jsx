@@ -12,7 +12,7 @@ export default function NavBar() {
   const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);
 
   // Zustand store 사용
-  const userStore = useUserStore.getState();
+  const userStore = useUserStore();
   const isLoggedIn = userStore.isLoggedIn;
   const userNickname = userStore.userNickname ? decodeURIComponent(escape(userStore.userNickname)) : null;
 
@@ -53,12 +53,25 @@ export default function NavBar() {
   }, []);
 
   const handleLogout = () => {
+    // localStorage 데이터 삭제
     localStorage.removeItem("token");
     localStorage.removeItem("rememberMe");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userInfo");
+    localStorage.removeItem("userId");
     
+    // Zustand store 상태 초기화
+    useUserStore.setState({ 
+      isLoggedIn: false, 
+      userNickname: null,
+      userId: null 
+    });
+    
+    // UI 상태 초기화
     setIsProfileDropdownOpen(false);
+    setIsMobileProfileDropdownOpen(false);
+    
+    // 홈으로 이동
     navigate("/");
   };
 
