@@ -44,27 +44,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-
         try {
-            // 1. 인증 불필요 URI면 통과
-            if (isPermitAllEndpoint(request.getRequestURI())) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 2. 토큰 없으면 예외
+            // 1. 토큰 추출 시도
             String accessToken = resolveToken(request);
-            if (accessToken == null) {
-                throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
-                        "인증 토큰이 필요합니다");
+
+            // 2. 토큰이 있는 경우 - 항상 검증 진행 (인증 불필요 URI여도 검증)
+            if (accessToken != null) {
+                processToken(accessToken, request, response);
+            }
+            // 3. 토큰이 없는 경우
+            else {
+                // 인증 불필요 URI가 아닌데 토큰이 없으면 예외
+                if (!isPermitAllEndpoint(request.getRequestURI())) {
+                    throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
+                            "인증 토큰이 필요합니다");
+                }
+                // 인증 불필요 URI면 그냥 통과
             }
 
-            // 3. 토큰 처리 및 다음 필터로
-            processToken(accessToken, request, response);
             filterChain.doFilter(request, response);
-
         } catch (GlobalException e) {
-            // 4. 예외는 여기서 처리됨
             setErrorResponse(response, e);
         }
     }
