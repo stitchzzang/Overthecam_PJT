@@ -5,7 +5,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
 
   // creatorUserId로 비교 로직 수정
   const userInfo = localStorage.getItem('userInfo');
-  console.log('currentUserId:', userInfo);
   const currentUserId = JSON.parse(userInfo).userId;
   const isCreator = Number(currentUserId) === Number(voteData?.creatorUserId);
 
@@ -16,9 +15,12 @@ const VoteDetail = ({ voteData, onDelete }) => {
   });
 
   const handleDeleteClick = async () => {
-    const success = await onDelete();
-    if (success) {
-      setShowDeleteModal(false);
+    const confirmed = window.confirm('정말로 이 투표를 삭제하시겠습니까?');
+    if (confirmed) {
+      const success = await onDelete();
+      if (success) {
+        // 삭제 성공 시 추가 처리
+      }
     }
   };
 
@@ -169,7 +171,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
               댓글 {voteData.commentCount}개
             </span>
           </div>
-          {/* creatorUserId 일치 시 삭제 버튼 표시 */}
           {isCreator && (
             <button 
               onClick={() => setShowDeleteModal(true)}
@@ -190,13 +191,13 @@ const VoteDetail = ({ voteData, onDelete }) => {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={handleDeleteClick}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
               >
                 삭제
               </button>
