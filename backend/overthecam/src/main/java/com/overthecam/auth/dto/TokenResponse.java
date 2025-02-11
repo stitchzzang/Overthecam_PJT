@@ -15,4 +15,6 @@ public class TokenResponse {
     private String refreshToken;
     private String grantType;        // "Bearer" 값을 가짐
     private Long accessTokenExpiresIn;  // 만료 시간
+    private Long userId;
+    private String nickname;
 }

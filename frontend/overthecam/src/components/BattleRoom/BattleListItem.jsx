@@ -1,24 +1,24 @@
-import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { JoinRoom } from "../../service/BattleRoom/api";
+import { useBattleStore } from "../../store/Battle/BattleStore";
 
 function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
   const navigate = useNavigate();
+  const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
 
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId);
     try {
       const response = await JoinRoom(battleId);
       console.log(response.data);
-      navigate(`/battle-room/${battleId}`, {
-        state: {
-          battleId: response.data.battleId,
-          title: response.data.title,
-          sessionId: response.data.sessionId,
-          connectionToken: response.data.connectionToken,
-          isMaster: false,
-        },
+      setBattleInfo({
+        battleId: battleId,
+        title: title,
+        sessionId: response.data.sessionId,
+        connectionToken: response.data.connectionToken,
+        isMaster: false,
       });
+      navigate(`/battle-room/${battleId}`)
     } catch (error) {
       console.error("Battle room navigation error:", error);
       // 에러 처리 (예: 알림 표시)

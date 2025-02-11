@@ -47,8 +47,8 @@ public class BattleWebsocketService {
                 .toList();
 
         return chatMessageService.sendSystemMessage(
-            String.format("%s님과 %s님 배틀러 선정!\n건강하고 유쾌한 논쟁 되시길 바랍니다!",
-            battlerNames.get(0), battlerNames.get(1)));
+                String.format("%s님과 %s님 배틀러 선정!\n건강하고 유쾌한 논쟁 되시길 바랍니다!",
+                        battlerNames.get(0), battlerNames.get(1)));
     }
 
     private ParticipantInfo convertToParticipantInfo(BattleParticipant participant) {
@@ -56,8 +56,7 @@ public class BattleWebsocketService {
                 participant.getUser().getId(),
                 participant.getUser().getNickname(),
                 participant.getUser().getProfileImage(),
-                participant.getRole(),
-                participant.getConnectionToken()
+                participant.getRole()
         );
     }
 }

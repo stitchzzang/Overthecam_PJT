@@ -25,7 +25,8 @@ function App() {
   return (
     <Router>
       <Routes>
-          <Route path="/" element={<Layout />}>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<MainPage />} />
           <Route path="/battle-list" element={<BattleMainPage />} />
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
@@ -44,14 +45,10 @@ function App() {
           <Route path="/mypagereport" element={<MyPageReport />} />
           <Route path="/mypagebattle" element={<MyPageBattle />} />
           <Route path="/mypagevote" element={<MyPageVote />} />
-          <Route path="/mainpage" element={<MainPage />} />
-          
         </Route>
       </Routes>
     </Router>
-
-
-  )
+  );
 }
 
 export default App

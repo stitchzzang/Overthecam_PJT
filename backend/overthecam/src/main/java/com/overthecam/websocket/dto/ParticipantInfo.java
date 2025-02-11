@@ -1,5 +1,6 @@
 package com.overthecam.websocket.dto;
 
+import com.overthecam.battle.domain.ParticipantRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +14,6 @@ public class ParticipantInfo {
     private Long userId;
     private String nickname;
     private String profileImage;
-    private int role; //1:방장, 2:참가자, 5:방장+배틀러, 6:참가자+배틀러)
-    private String connectionToken;
+    private ParticipantRole role; //1:방장, 2:참가자, 5:방장+배틀러, 6:참가자+배틀러)
 
 }
