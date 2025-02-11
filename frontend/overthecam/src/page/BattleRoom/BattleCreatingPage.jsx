@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useBattleStore } from "../../store/Battle/BattleStore";
 import { createRoom } from "../../service/BattleRoom/api";
 
 import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
@@ -7,48 +8,80 @@ import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
 
 function BattleCreatingPage() {
   const navigate = useNavigate();
+  const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
+  const [myNickName, setMyNickName] = useState("");
+  const [roomTitle, setRoomTitle] = useState("");
 
-  const createBattleRoomHandler = async (title) => {
+  const createBattleRoomHandler = async (e) => {
+    e.preventDefault();
+
     try {
-      // title을 직접 사용하여 createRoom 호출
-      const response = await createRoom(title);
-      console.log(response);
-
-      navigate(`/battle-room/${response.data.battleId}`, {
-        state: {
-          battleId: response.data.battleId,
-          title: response.data.title,
-          sessionId: response.data.sessionId,
-          connectionToken: response.data.connectionToken,
-          isMaster: true,
-        },
+      // store에 배틀 정보 저장하기 전에 데이터 확인
+      console.log("Storing battle info:", {
+        participantName: myNickName,
+        roomName: roomTitle,
       });
 
-      console.log(response.data); // 여기서 state 로그 확인
+      setBattleInfo({
+        participantName: myNickName,
+        roomName: roomTitle,
+      });
+
+      // store 업데이트 후 상태 확인
+      const currentState = useBattleStore.getState();
+      console.log("Current store state:", currentState);
+
+      // 다른 페이지로 이동
+      navigate(`/battle-room/${roomTitle}`, {
+        state: {
+          nickname: myNickName,
+          roomTitle: roomTitle,
+        },
+      });
     } catch (error) {
       console.error("Battle room navigation error:", error);
-      // 에러 처리 (예: 알림 표시)
     }
   };
-
   return (
-    <div className="m-10">
-      <div className="w-full h-screen bg-white flex items-center justify-center pr-10 relative">
-        {/* 커서 모션 효과 영역 */}
-        <div className="w-1/2 h-full flex justify-center items-center">
-          <CursorMotionEffect />
-        </div>
-
-        {/* 폼 영역 */}
-        <div className="w-1/2 h-full flex flex-col justify-center items-center pl-8">
-          <h1 className="text-3xl font-bold mb-4 text-center">방 만들기</h1>
-          <p className="text-lg mb-6 text-center">
-            지금 바로 배틀 방을 만들고 논쟁을 즐겨보세요!
-          </p>
-          <BattleCreateForm onCreateRoom={createBattleRoomHandler} />
+    <>
+      <h1>방에 참여하기</h1>
+      <div id="join">
+        <div id="join-dialog">
+          <h2>Join a Video Room</h2>
+          <form onSubmit={createBattleRoomHandler}>
+            <div>
+              <label htmlFor="participant-name">Participant</label>
+              <input
+                id="participant-name"
+                className="form-control"
+                type="text"
+                value={myNickName}
+                onChange={(e) => setMyNickName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="room-name">Room</label>
+              <input
+                id="room-name"
+                className="form-control"
+                type="text"
+                value={roomTitle}
+                onChange={(e) => setRoomTitle(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              className="btn btn-lg btn-success"
+              type="submit"
+              disabled={!roomTitle || !myNickName}
+            >
+              Join!
+            </button>
+          </form>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

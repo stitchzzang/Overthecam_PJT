@@ -67,8 +67,10 @@ public class SecurityConfig {
                 "http://localhost:5174",
                 "http://127.0.0.1:5175",
                 "http://localhost:5175",
-                "https://i12d204.p.ssafy.io",
-                "http://i12d204.p.ssafy.io",
+                "http://localhost:5080",
+                "http://127.0.0.1:5080",
+                "https://overthecam.site",
+                "https://overthecam.site:15555",
                 "http://127.0.0.1:5500"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
