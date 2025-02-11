@@ -52,12 +52,13 @@ const Login = () => {
           userId: payload.userId,
           email: payload.email,
           nickname: payload.nickname,
+          token: token,
         };
 
         // localStorage에 정보 저장
-        localStorage.setItem("token", token);
-        localStorage.setItem("userInfo", JSON.stringify(userInfo));
-        localStorage.setItem("isLoggedIn", "true");
+        // localStorage.setItem("token", token);
+        // localStorage.setItem("userInfo", JSON.stringify(userInfo));
+        // localStorage.setItem("isLoggedIn", "true");
 
         if (formData.rememberMe) {
           localStorage.setItem("rememberMe", "true");
@@ -68,6 +69,7 @@ const Login = () => {
           userId: userInfo.userId,
           isLoggedIn: true,
           userNickname: userInfo.nickname,
+          token: userInfo.token,
         });
 
         // 이전 페이지가 있으면 그곳으로 이동, 없으면 홈으로 이동
