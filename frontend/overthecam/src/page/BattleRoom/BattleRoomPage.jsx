@@ -28,10 +28,9 @@ function BattleRoomPage() {
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
-
     if (!battleInfo.battleId) {
       console.log("Battle info is missing!");
-      navigate("/")
+      navigate("/");
       // 필요한 처리 (예: 홈으로 리다이렉트)
     }
 
@@ -87,6 +86,7 @@ function BattleRoomPage() {
     console.log("Starting joinRoom with:", {
       LIVEKIT_URL,
     });
+    Room.setLogLevel("debug");
     const room = new Room({
       iceServers: [
         {
@@ -98,7 +98,7 @@ function BattleRoomPage() {
         },
         {
           urls: [
-            "turn:overthecam.site:443", // UDP TURN
+            "turn:overthecam.site:3478", // UDP TURN
             "turns:overthecam.site:5349", // TLS TURN (turn.tls_port 값)
           ],
           username: "overthecam", // keys의 키 값
