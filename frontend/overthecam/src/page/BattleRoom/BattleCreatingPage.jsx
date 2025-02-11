@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import useUserStore from "../../store/User/UserStore";
@@ -6,11 +5,17 @@ import { createRoom } from "../../service/BattleRoom/api";
 
 import BattleCreateForm from "../../components/BattleRoom/BattleCreatingForm";
 import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
+import { useEffect } from "react";
 
 function BattleCreatingPage() {
   const navigate = useNavigate();
   const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
-  const userNickname = useUserStore((state) => state.userNickname);
+  const userNickname = useUserStore((state) => {console.log(state) 
+    return state.userNickname});
+
+  useEffect(()=>{
+    console.log("현재 userNickname:", userNickname);
+  }, [userNickname])
 
   const createBattleRoomHandler = async (title) => {
     try {
@@ -19,7 +24,8 @@ function BattleCreatingPage() {
         userNickname: userNickname,
         roomTitle: title,
       });
-      await createRoom(title);
+      const res = await createRoom(title, userNickname);
+      console.log("방 생성 결과: ", res)
 
 
       setBattleInfo({

@@ -13,13 +13,13 @@ export const readRooms = async () => {
   }
 };
 
-export const createRoom = async (newTitle) => {
+export const createRoom = async (newTitle, userNickname) => {
   try {
     const response = await authAxios.post(`/battle/room`, {
-      title: newTitle, // POST 요청 본문 (Body)
+      roomName: newTitle,
+      participantName: userNickname, // POST 요청 본문 (Body)
     });
-    console.log(newTitle);
-    console.log("세션 id", response.data);
+    console.log("세션 id", response);
     return response;
   } catch (error) {
     const errorMessage = error.error.message;
