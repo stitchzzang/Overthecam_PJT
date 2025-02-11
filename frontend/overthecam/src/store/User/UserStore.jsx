@@ -1,19 +1,33 @@
-import { create } from "zustand";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useUserStore = create((set) => ({
-  userId: null, // 명시적으로 초기값 설정
-  isLoggedIn: false,
-  userNickname: null,
-  setUser: (userData) =>
-    set((state) => {
-      // console.log("setUser 호출됨, userData:", userData); // 디버깅용
-      return {
-        userId: userData.userId,
-        isLoggedIn: userData.isLoggedIn,
-        userNickname: userData.userNickname,
-      };
+const useUserStore = create(
+  persist(
+    (set) => ({
+      userId: null,
+      isLoggedIn: false,
+      userNickname: null,
+      token: null,
+      setUser: (userData) =>
+        set((state) => ({
+          userId: userData.userId,
+          isLoggedIn: userData.isLoggedIn,
+          userNickname: userData.userNickname,
+          token: userData.token,
+        })),
+      clearUser: () => 
+        set({ 
+          userId: null, 
+          isLoggedIn: false, 
+          userNickname: null,
+          token: null,
+        }),
     }),
-  clearUser: () => set({ userId: null, isLoggedIn: false, userNickname: null }),
-}));
+    {
+      name: 'user-storage', // localStorage에 저장될 키 이름
+      storage: localStorage, // 사용할 스토리지 (기본값은 localStorage)
+    }
+  )
+);
 
 export default useUserStore;
