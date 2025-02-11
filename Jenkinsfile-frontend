@@ -60,7 +60,8 @@ pipeline {
 
                 dir('frontend/overthecam') {
                     withCredentials([
-                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
+                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                        string(credentialsId: 'front-livekit-url', variable: 'VITE_LIVEKIT_URL')
                     ]) {
                         // 도커 빌드는 한 번만 실행
                         sh """

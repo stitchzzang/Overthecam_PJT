@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import VideoComponent from "../../components/BattleRoom/VideoComponent";
 import AudioComponent from "../../components/BattleRoom/AudioComponent";
-import BattleChating from "../../components/BattleRoom/BattleChating";
-import BattleTimer from "../../components/BattleRoom/BattleTimer";
+import BattleChating from "../../components/BattleRoom/common/BattleChating";
+import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import axios from "axios";
+import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 
 const APPLICATION_SERVER_URL = import.meta.env.VITE_BASE_URL;
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
@@ -16,10 +17,12 @@ function BattleRoomPage() {
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
   const { roomName, participantName, userToken } = battleInfo;
   const navigate = useNavigate();
-
+  // openvidu 관련 설정정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
+  // 방 게임 설정 관련
+  const [isWaiting, setIsWaiting] = useState(true);
 
   // 새로고침 감지
   useEffect(() => {
@@ -76,8 +79,6 @@ function BattleRoomPage() {
 
   async function joinRoom() {
     console.log("Starting joinRoom with:", {
-      roomName,
-      participantName,
       LIVEKIT_URL,
     });
     const room = new Room();
@@ -147,38 +148,27 @@ function BattleRoomPage() {
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    navigate("/");
+    // navigate("/");
   }
 
   return (
     <div className="room-container">
+      <button onClick={leaveRoom}>Leave Room</button>
       <div className="room-header">
-        <h2>{roomName}</h2>
-        <button onClick={leaveRoom}>Leave Room</button>
+        <h2>{battleInfo.roomName}</h2>
       </div>
-      <div className="video-grid">
-        {localTrack && (
-          <VideoComponent
-            track={localTrack}
-            participantIdentity={`${participantName} (Me)`}
-            local={true}
+      <div>
+        {isWaiting ? (
+          <BattleWaiting
+            room={room}
+            localTrack={localTrack}
+            remoteTracks={remoteTracks}
           />
-        )}
-        {remoteTracks.map((remoteTrack) =>
-          remoteTrack.trackPublication.kind === "video" ? (
-            <VideoComponent
-              key={remoteTrack.trackPublication.trackSid}
-              track={remoteTrack.trackPublication.videoTrack}
-              participantIdentity={remoteTrack.participantIdentity}
-            />
-          ) : (
-            <AudioComponent
-              key={remoteTrack.trackPublication.trackSid}
-              track={remoteTrack.trackPublication.audioTrack}
-            />
-          )
+        ) : (
+          <></>
         )}
       </div>
+
       <BattleChating />
     </div>
   );
