@@ -180,6 +180,9 @@ public class BattleScoreRedisService {
     }
 
     public UserScoreInfo deductPoints(Long battleId, Long userId, int points) {
+        // DB 포인트 차감
+        userScoreService.updatePoints(userId, points);
+
         String battleKey = BATTLE_TEMP_SCORE_KEY + battleId;
         String userKey = userId.toString();
 
