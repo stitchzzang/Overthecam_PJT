@@ -67,9 +67,12 @@ public class SecurityConfig {
                 "http://localhost:5174",
                 "http://127.0.0.1:5175",
                 "http://localhost:5175",
+                "http://localhost:5080",
+                "http://127.0.0.1:5080",
                 "https://overthecam.site",
                 "https://overthecam.site:15555",
-                "http://127.0.0.1:5500"
+                "http://127.0.0.1:5500",
+                "http://localhost:5173"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

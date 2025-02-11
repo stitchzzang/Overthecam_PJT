@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
+import useUserStore from "../../store/User/UserStore";
 
 export default function NavBar() {
   const location = useLocation();
@@ -15,7 +16,6 @@ export default function NavBar() {
   // 로그인 상태 체크 함수
   const checkLoginStatus = () => {
     const token = localStorage.getItem("token");
-    const userInfoStr = localStorage.getItem("userInfo");
     
     try {
       if (token && userInfoStr) {

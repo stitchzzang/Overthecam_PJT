@@ -3,8 +3,8 @@ import { authAxios } from "../../common/axiosinstance";
 export const getItem = async () => {
   try {
     const response = await authAxios.get("/store/item/all");
-    console.log("Configured baseURL:", authAxios.defaults.baseURL);
-    return response;
+    console.log("상점 데이터:", response.data);
+    return response.data;
   } catch (error) {
     // error.error 객체 안에 실제 에러 정보가 있음
     const errorMessage = error.error.message;

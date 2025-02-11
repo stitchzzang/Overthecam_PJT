@@ -2,8 +2,7 @@ package com.overthecam.websocket.service;
 
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.Status;
-import com.overthecam.websocket.dto.*;
-
+import com.overthecam.websocket.dto.BattleData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,10 +21,9 @@ public class BattleDataService {
         Battle battle = battleService.updateBattleStatus(battleId, Status.PROGRESS);
 
         return BattleData.builder()
-            .battleId(battleId)
-            .sessionId(battle.getSessionId())
-            .voteInfo(voteService.getVoteInfo(battleId))
-            .participants(battleService.getParticipants(battleId))
-            .build();
+                .battleId(battleId)
+                .voteInfo(voteService.getVoteInfo(battleId))
+                .participants(battleService.getParticipants(battleId))
+                .build();
     }
 }

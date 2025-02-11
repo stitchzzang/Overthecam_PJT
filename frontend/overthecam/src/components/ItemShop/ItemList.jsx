@@ -23,8 +23,8 @@ function ItemList() {
     // axios 요청
     getItem()
       .then((res) => {
-        setItems(res.data);
-        console.log("데이터 불러오기 성공", res.data);
+        setItems(res);
+        console.log("데이터 불러오기 성공", res);
       })
       .catch((error) => {
         console.log("데이터 불러오기 실패", error);
@@ -64,7 +64,7 @@ function ItemList() {
   return (
     <div className="bg-cusGray-light m-5 rounded-2xl p-6">
       {/* Header Section */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center m-3">
         <h1 className="text-2xl font-extrabold text-cusBlack-light">
           아이템 상점
         </h1>
