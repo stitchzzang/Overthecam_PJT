@@ -82,25 +82,25 @@ const VoteClosedPage = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
-      {/* 그라데이션 헤더 추가 */}
+    <div className="max-w-[800px] mx-auto p-4">
+      {/* 그라데이션 헤더 */}
       <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
         <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
       </div>
       
-      <div className="p-4">
+      <div className="space-y-4 mt-4">
         {currentList.length > 0 ? (
           currentList.map(vote => (
-            <div key={vote.voteId} className="mb-8 p-4 border rounded-lg shadow">
+            <div key={vote.voteId} className="bg-white rounded-lg shadow-lg p-6">
               <h3 
-                className="text-xl font-bold mb-4 cursor-pointer hover:text-blue-600"
+                className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer"
                 onClick={() => navigate(`/vote-detail/${vote.voteId}`)}
               >
                 {vote.title}
               </h3>
-              <p className="mb-4">{vote.content}</p>
+              <p className="text-gray-600 mb-4">{vote.content}</p>
               
-              <div className="mt-4">
+              <div className="mb-4">
                 <div className="mb-2 flex justify-between">
                   <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
                   <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
@@ -123,18 +123,60 @@ const VoteClosedPage = () => {
                   총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
                 </div>
               </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>{vote.creatorNickname}</span>
+                <span>·</span>
+                <span>댓글 {vote.commentCount}</span>
+              </div>
             </div>
           ))
         ) : (
           <div className="text-center py-8">종료된 투표가 없습니다.</div>
         )}
-        <div className="flex justify-center pb-10">
-          <CustomPagination
-            activePage={page}
-            itemsCountPerPage={itemsPerPage}
-            totalItemsCount={totalPages * itemsPerPage}
-            onChange={handlePageChange}
-          />
+
+        <div className="flex justify-center mt-6 pb-10">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={page === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'<<'}
+            </button>
+            <button
+              onClick={() => handlePageChange(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'<'}
+            </button>
+            <span className="mx-2">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'>'}
+            </button>
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              disabled={page === totalPages}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'>>'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
