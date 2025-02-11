@@ -42,10 +42,40 @@ function MyPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await authAxios.get("/auth/me")
-        setUserData(response.data)
-        setEditedData(response.data)
-        setProfileImage(response.data.profileImage || "/placeholder.svg")
+        // 로그인한 사용자의 정보를 가져오는 API 호출
+        const response = await authAxios.get("/members/me")  // 인증된 요청
+        const apiData = response.data
+        
+        // 회원가입 때 입력했던 모든 정보를 가져옴
+        setUserData({
+          id: apiData.id,
+          email: apiData.email,
+          username: apiData.username,
+          nickname: apiData.nickname,
+          gender: apiData.gender,  // 0 또는 1
+          birth: apiData.birth,    // "YYYY-MM-DD" 형식
+          phoneNumber: apiData.phoneNumber,
+          stats: {
+            cheerPoints: apiData.stats?.cheerPoints || 0,
+            points: apiData.stats?.points || 0,
+            followers: apiData.stats?.followers || 0,
+            following: apiData.stats?.following || 0,
+            record: {
+              wins: apiData.stats?.record?.wins || 0,
+              draws: apiData.stats?.record?.draws || 0,
+              losses: apiData.stats?.record?.losses || 0,
+            },
+          },
+        })
+
+        // 수정 가능한 필드들만 editedData에 설정
+        setEditedData({
+          password: "",  // 비밀번호는 빈 값으로 초기화
+          username: apiData.username,
+          nickname: apiData.nickname,
+          phoneNumber: apiData.phoneNumber
+        })
+
       } catch (error) {
         console.error("Failed to fetch user data:", error)
       }
@@ -189,7 +219,9 @@ function MyPage() {
                       <p className="text-sm text-gray-600">패</p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 text-center mt-2">우끼끼정해기 님의 승률은 {winRate}% 입니다.</p>
+                  <p className="text-sm text-gray-600 text-center mt-2">
+                    {userData.nickname} 님의 승률은 {winRate}% 입니다.
+                  </p>
                 </div>
               </div>
             </div>

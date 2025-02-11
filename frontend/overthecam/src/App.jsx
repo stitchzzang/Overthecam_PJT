@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import "./App.css";
 import "./index.css";
 import Layout from "./components/Layout/Layout";
@@ -21,6 +22,33 @@ import MainPage from "./page/Main/MainPage.jsx";
 import MyPageBattle from "./page/Mypage/MyPageBattle.jsx";
 import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 
+function ProtectedLogin() {
+  const isLoggedIn = !!localStorage.getItem('token');
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate('/');
+    }
+  }, [isLoggedIn, navigate]);
+
+  return !isLoggedIn ? <Login /> : null;
+}
+
+function PrivateRoute({ children }) {
+  const isLoggedIn = !!localStorage.getItem('token');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: location.pathname } });
+    }
+  }, [isLoggedIn, navigate, location]);
+
+  return isLoggedIn ? children : null;
+}
+
 function App() {
   return (
     <Router>
@@ -28,23 +56,37 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
           <Route path="/battle-list" element={<BattleMainPage />} />
-          <Route path="/create-battle-room" element={<BattleCreatingPage />} />
-          <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
-          <Route path="/create-vote" element={<VoteCreatingPage />} />
+          <Route path="/create-battle-room" element={
+            <PrivateRoute><BattleCreatingPage /></PrivateRoute>
+          } />
+          <Route path="/battle-room/:battleId" element={
+            <PrivateRoute><BattleRoomPage /></PrivateRoute>
+          } />
+          <Route path="/create-vote" element={
+            <PrivateRoute><VoteCreatingPage /></PrivateRoute>
+          } />
+          <Route path="/store" element={
+            <PrivateRoute><ItemShopPage /></PrivateRoute>
+          } />
+          <Route path="/mypage" element={
+            <PrivateRoute><MyPage /></PrivateRoute>
+          } />
+          <Route path="/mypagereport" element={
+            <PrivateRoute><MyPageReport /></PrivateRoute>
+          } />
+          <Route path="/mypagebattle" element={
+            <PrivateRoute><MyPageBattle /></PrivateRoute>
+          } />
+          <Route path="/mypagevote" element={
+            <PrivateRoute><MyPageVote /></PrivateRoute>
+          } />
           <Route path="/vote-inprogress" element={<VoteInProgressPage />} />
           <Route path="/vote-closed" element={<VoteClosedPage />} />
           <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
-          <Route path="/delete-vote/:voteId" element={<VoteDeleteModal />} />
-          <Route path="/store" element={<ItemShopPage />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<ProtectedLogin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
-          <Route path="/mypage" element={<MyPage />} />
-          <Route path="/user-profile/me" element={<UserProfile />} />
           <Route path="/user-profile/:id" element={<UserProfile />} />
-          <Route path="/mypagereport" element={<MyPageReport />} />
-          <Route path="/mypagebattle" element={<MyPageBattle />} />
-          <Route path="/mypagevote" element={<MyPageVote />} />
         </Route>
       </Routes>
     </Router>

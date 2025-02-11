@@ -43,22 +43,22 @@ const Login = () => {
       console.log("서버 응답 (상세):", JSON.stringify(response.data, null, 2));
 
       if (response.data.accessToken) {
-        // JWT 토큰에서 사용자 정보 추출
         const token = response.data.accessToken;
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = decodeURIComponent(escape(window.atob(base64)));
+        const parsedPayload = JSON.parse(payload);
 
-        // 사용자 정보 객체 생성
         const userInfo = {
-          userId: payload.userId,
-          email: payload.email,
-          nickname: payload.nickname,
-          token: token,
+          userId: parsedPayload.userId,
+          email: parsedPayload.email,
+          nickname: response.data.nickname,
+          token: token
         };
 
-        // localStorage에 정보 저장
-        // localStorage.setItem("token", token);
-        // localStorage.setItem("userInfo", JSON.stringify(userInfo));
-        // localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("token", token);
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+        localStorage.setItem("isLoggedIn", "true");
 
         if (formData.rememberMe) {
           localStorage.setItem("rememberMe", "true");
@@ -72,7 +72,6 @@ const Login = () => {
           token: userInfo.token,
         });
 
-        // 이전 페이지가 있으면 그곳으로 이동, 없으면 홈으로 이동
         const from = location.state?.from || "/";
         navigate(from);
       }
@@ -164,18 +163,12 @@ const Login = () => {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-gray-50 text-gray-500">또는</span>
-              </div>
+              
             </div>
 
-            <button
-              type="button"
-              className="w-full bg-[#FEE500] text-gray-800 py-3.5 rounded-xl hover:bg-[#FDD800] transition-colors font-medium flex items-center justify-center gap-2"
-            >
-              <img src="/kakao-icon.png" alt="Kakao" className="w-5 h-5" />
-              Login with Kakao
-            </button>
+            
+              
+           
 
             <div className="flex justify-center items-center space-x-6 text-sm text-gray-500">
               <Link to="/find-account" className="hover:text-gray-700">
