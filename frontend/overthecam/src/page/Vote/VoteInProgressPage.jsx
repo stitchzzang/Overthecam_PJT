@@ -40,45 +40,30 @@ const VoteInProgressPage = () => {
       const token = localStorage.getItem('token');
       const votedItems = getVotedItems();
 
-      if (token) {
-        // 토큰 유효성 검사 (간단한 형태)
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-          localStorage.removeItem('token');
-          setError('유효하지 않은 토큰입니다. 다시 로그인해주세요.');
-          return;
-        }
-      }
-
       if (!navigator.onLine) {
         setError('인터넷 연결이 없습니다. 네트워크 상태를 확인해주세요.');
         return;
       }
 
-      const response = await (token ? authAxios : publicAxios).get('/vote/list', {
+      const response = await publicAxios.get('/vote/list', {
         params: {
           page: page - 1,
           size: 5,
           includeVoteResult: true
-        },
-        headers: {
-          'Accept': 'application/json'
         }
       });
 
-      console.log('Response:', response.data);
-
-      if (response.data?.data?.content) {
-        const votesWithResults = response.data.data.content.map(vote => ({
+      if (response.data?.content) {
+        const votesWithResults = response.data.content.map(vote => ({
           ...vote,
-          hasVoted: vote.hasVoted || votedItems[vote.voteId] === true,
+          hasVoted: token ? (vote.hasVoted || votedItems[vote.voteId] === true) : false,
           options: vote.options.map(option => ({
             ...option,
             votePercentage: option.votePercentage || 0
           }))
         }));
         setCurrentList(votesWithResults);
-        setTotalPages(response.data.data.pageInfo.totalPages);
+        setTotalPages(response.data.pageInfo.totalPages);
         setError(null);
       } else {
         throw new Error('데이터 형식이 올바르지 않습니다.');
@@ -98,7 +83,6 @@ const VoteInProgressPage = () => {
       setCurrentList([]);
       setTotalPages(0);
       
-      // 에러 메시지 구체화
       if (err.response) {
         if (err.response.status === 401) {
           setError('로그인이 필요합니다.');
@@ -157,23 +141,26 @@ const VoteInProgressPage = () => {
     <div className="mb-4">
       {vote.options && vote.options.length >= 2 && (
         <>
-          <div className="flex justify-between mb-4 text-xl">
-            <div className="text-red-500">A. {vote.options[0].optionTitle}</div>
-            <div className="text-blue-500">B. {vote.options[1].optionTitle}</div>
+          <div className="mb-2 flex justify-between">
+            <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+            <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
           </div>
-          <div className="relative h-12 bg-gray-200 rounded-full overflow-hidden mb-2">
+          <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden">
             <div
-              className="absolute left-0 top-0 h-full bg-red-400 flex items-center justify-start pl-4 text-white font-bold transition-all duration-300"
+              className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-2 text-white"
               style={{ width: `${vote.options[0].votePercentage}%` }}
             >
-              {Math.round(vote.options[0].votePercentage)}%
+              {vote.options[0].votePercentage.toFixed(1)}%
             </div>
             <div
-              className="absolute right-0 top-0 h-full bg-blue-400 flex items-center justify-end pr-4 text-white font-bold transition-all duration-300"
+              className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2 text-white"
               style={{ width: `${vote.options[1].votePercentage}%` }}
             >
-              {Math.round(vote.options[1].votePercentage)}%
+              {vote.options[1].votePercentage.toFixed(1)}%
             </div>
+          </div>
+          <div className="text-right text-sm text-gray-600 mt-2">
+            총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
           </div>
         </>
       )}

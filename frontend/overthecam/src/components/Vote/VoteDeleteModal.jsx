@@ -20,7 +20,7 @@ const VoteDeleteModal = ({ voteId, onClose }) => {
         }
       });
       
-      navigate('/vote-inprogress', { replace: true });
+      navigate('/vote', { replace: true });
     } catch (error) {
       console.error('Failed to delete vote:', error);
       if (error.response?.status === 403) {

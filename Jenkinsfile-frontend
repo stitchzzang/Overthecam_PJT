@@ -31,6 +31,7 @@ pipeline {
                         echo '====== React Build 시작 ======'
                         dir('frontend/overthecam') {
                             sh '''
+                                set -x
                                 npm install
                                 npm uninstall rollup
                                 npm install rollup
@@ -47,41 +48,53 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
-    steps {
-        script {
-            try {
-                echo '====== Docker Build 시작 ======'
+            steps {
+                script {
+                    try {
+                        echo '====== Docker Build 시작 ======'
 
-                // 기존 컨테이너/이미지 정리 - 한 번만 실행
-                sh '''
-                    docker ps -a | grep overthecam-frontend | awk '{print $1}' | xargs -r docker rm -f || true
-                    docker images | grep overthecam-frontend | awk '{print $3}' | xargs -r docker rmi -f || true
-                '''
+                        dir('frontend/overthecam') {
+                            withCredentials([
+                                string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                                string(credentialsId: 'front-livekit-url', variable: 'VITE_LIVEKIT_URL')
+                            ]) {
+                                sh '''
+                                    set -x
+                                    echo "== Docker 환경 확인 =="
+                                    docker version
+                                    docker info
 
-                dir('frontend/overthecam') {
-                    withCredentials([
-                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
-                        string(credentialsId: 'front-livekit-url', variable: 'VITE_LIVEKIT_URL')
-                    ]) {
-                        // 도커 빌드는 한 번만 실행
-                        sh """
-                            docker build --build-arg VITE_BASE_URL=${VITE_BASE_URL} -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
-                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                            docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
-                            docker logout
-                        """
+                                    echo "== 환경 변수 확인 =="
+                                    echo "VITE_BASE_URL=${VITE_BASE_URL}"
+                                    echo "VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}"
+
+                                    echo "== Docker Build 실행 (BuildKit 비활성화) =="
+                                    export DOCKER_BUILDKIT=0
+                                    docker build --no-cache \
+                                        --build-arg VITE_BASE_URL=${VITE_BASE_URL} \
+                                        --build-arg VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL} \
+                                        -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
+
+                                    echo "== DockerHub 로그인 =="
+                                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+
+                                    echo "== Docker 이미지 푸시 =="
+                                    docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
+
+                                    echo "== DockerHub 로그아웃 =="
+                                    docker logout
+                                '''
+                            }
+                        }
+                        echo '====== Docker Build & Push 완료 ======'
+                    } catch (Exception e) {
+                        echo '====== Docker Build/Push 실패 ======'
+                        sh "docker logout || true"
+                        error "Docker build/push failed: ${e.message}"
                     }
                 }
-                echo '====== Docker Build & Push 완료 ======'
-            } catch (Exception e) {
-                echo '====== Docker Build/Push 실패 ======'
-                sh "docker logout || true"
-                sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
-                error "Docker build/push failed: ${e.message}"
             }
         }
-    }
-}
 
         stage('Deploy to EC2') {
             steps {
@@ -89,20 +102,27 @@ pipeline {
                     try {
                         echo '====== EC2 배포 시작 ======'
                         def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
+                        
                         sshagent(['ssh']) {
                             withCredentials([
-                               string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                                string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
                             ]) {
+                                sh """
+                                    set -x
+                                    echo "== EC2 배포 환경 변수 확인 =="
+                                    echo "DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}"
+                                    echo "BUILD_NUMBER=${BUILD_NUMBER}"
+                                    echo "dockerImageTag=${dockerImageTag}"
 
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env &&
-                                docker pull ${dockerImageTag} &&
-                                docker stop frontend || true &&
-                                docker rm frontend || true &&
-                                docker run -d --name frontend -p 5557:80 --env-file .env ${dockerImageTag} &&
-                                docker system prune -f'
-                            """
+                                    echo "== EC2에 SSH 접속하여 Docker 컨테이너 실행 =="
+                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
+                                        echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env &&
+                                        docker pull ${dockerImageTag} &&
+                                        docker stop frontend || true &&
+                                        docker rm frontend || true &&
+                                        docker run -d --name frontend -p 5557:80 --env-file .env ${dockerImageTag} &&
+                                        docker system prune -f'
+                                """
                             }
                         }
                         echo '====== EC2 배포 성공 ======'
@@ -112,8 +132,8 @@ pipeline {
                     }
                 }
             }
-        }
-    }
+        }  
+    }  
 
     post {
         always {
@@ -123,10 +143,9 @@ pipeline {
         }
         failure {
             echo '====== 파이프라인 실패 ======'
-            sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
         }
         success {
             echo '====== 파이프라인 성공 ======'
         }
     }
-}
+} 
