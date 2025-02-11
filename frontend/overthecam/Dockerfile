@@ -11,8 +11,9 @@ WORKDIR /app
 # package.json과 package-lock.json만 먼저 복사
 COPY package*.json ./
 
-# npm 패키지 설치
-RUN npm ci
+# npm 캐시 정리 후 패키지 설치
+RUN npm cache clean --force && \
+    npm ci --production
 
 # 나머지 파일들 복사
 COPY . .
