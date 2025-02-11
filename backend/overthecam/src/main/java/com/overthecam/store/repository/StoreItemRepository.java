@@ -19,4 +19,6 @@ public interface StoreItemRepository extends JpaRepository<StoreItem, Long> {
             "WHERE u.id = :userId " +
             "ORDER BY si.price ASC, sp.createdAt DESC")
     List<StoreItem> findAllUserItems(@Param("userId") Long userId);
+
+
 }
