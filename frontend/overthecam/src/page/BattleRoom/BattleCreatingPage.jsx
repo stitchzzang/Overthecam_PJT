@@ -11,21 +11,20 @@ function BattleCreatingPage() {
   const navigate = useNavigate();
   const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
   const userNickname = useUserStore((state) => state.userNickname);
-  const [roomTitle, setRoomTitle] = useState("");
 
-  const createBattleRoomHandler = async (e) => {
-    e.preventDefault();
-
+  const createBattleRoomHandler = async (title) => {
     try {
       // store에 배틀 정보 저장하기 전에 데이터 확인
       console.log("Storing battle info:", {
         userNickname: userNickname,
-        roomTitle: roomTitle,
+        roomTitle: title,
       });
+      await createRoom(title);
+
 
       setBattleInfo({
         userNickname: userNickname,
-        roomTitle: roomTitle,
+        roomTitle: title,
       });
 
       // store 업데이트 후 상태 확인
@@ -33,7 +32,7 @@ function BattleCreatingPage() {
       console.log("Current store state:", currentState);
 
       // 다른 페이지로 이동
-      navigate(`/battle-room/${roomTitle}`);
+      navigate(`/battle-room/${title}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);
     }
@@ -49,7 +48,7 @@ function BattleCreatingPage() {
             <h1 className="text-3xl font-semibold">방 만들기</h1>
             <p className="text-lg">방을 만들고 지금 바로 논쟁을 즐겨보세요!</p>
           </div>
-          <BattleCreateForm />
+          <BattleCreateForm onCreateRoom={createBattleRoomHandler} />
         </div>
       </div>
     </>

@@ -4,7 +4,7 @@ import MyInventory from "../../components/ItemShop/MyInventory";
 function ItemShopPage() {
   return (
     <>
-      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
+      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
           아이템 상점
         </h1>

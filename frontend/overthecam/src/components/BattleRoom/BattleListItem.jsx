@@ -48,13 +48,13 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
           <p className="text-lg font-semibold text-cusBlue">{totalUsers}/6</p>
           {status === 0 ? (
             <button
-              className="btn bg-cusRed-light hover:bg-cusRed w-32"
+              className="btn bg-cusRed-light hover:bg-cusRed w-32 h-11"
               onClick={() => gotoBattleRoom(battleId)}
             >
               입장하기
             </button>
           ) : (
-            <button className="btn-disabled bg-cusBlue-light w-32">
+            <button className="btn-disabled bg-cusBlue-light w-32 h-11">
               진행중
             </button>
           )}
