@@ -1,6 +1,7 @@
 package com.overthecam.battle.service;
 
 import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.exception.RedisErrorCode;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.dto.UserScoreInfo;
@@ -27,6 +28,32 @@ public class BattleScoreRedisService {
     private static final String BATTLE_TEMP_SCORE_KEY = "battle:temp:score:";
     private static final String USER_LOCKED_SCORE_KEY = "user:locked:score:";
     private static final String LOCK_KEY_PREFIX = "lock:battle:";
+
+    public int getTemporaryBattleScore(Long battleId, Long userId) {
+        String key = BATTLE_TEMP_SCORE_KEY + battleId;
+        Object score = redisTemplate.opsForHash().get(key, userId.toString());
+        return score != null ? Integer.parseInt(score.toString()) : 0;
+    }
+
+    /**
+     * 사용자의 응원점수/포인트 정보 캐싱
+     */
+    public void cacheUserScore(Long battleId, Long userId, UserScoreInfo userScore) {
+        String battleKey = BATTLE_TEMP_SCORE_KEY + battleId;
+        String userKey = userId.toString();
+
+        redisTemplate.execute(new SessionCallback<List<Object>>() {
+            @Override
+            public List<Object> execute(RedisOperations operations) {
+                operations.multi();
+
+                // 전체 점수 정보를 Hash에 저장
+                operations.opsForHash().put(battleKey, userKey, userScore);
+
+                return operations.exec();
+            }
+        });
+    }
 
     /**
      * 배틀 참여 시 임시 응원점수 확인 및 락
@@ -83,6 +110,116 @@ public class BattleScoreRedisService {
             throw e;
         }
     }
+
+    public void updateTemporaryBattleScore(Long battleId, Long userId, int remainingScore) {
+        String battleKey = BATTLE_TEMP_SCORE_KEY + battleId;
+
+        // Redis 트랜잭션으로 캐싱된 점수 업데이트
+        redisTemplate.execute(new SessionCallback<List<Object>>() {
+            @Override
+            public List<Object> execute(RedisOperations operations) throws DataAccessException {
+                String userKey = userId.toString();
+
+                operations.watch(battleKey);
+
+                // 현재 캐싱된 점수 확인
+                Object currentScore = operations.opsForHash().get(battleKey, userKey);
+                if (currentScore == null) {
+                    throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
+                }
+
+                operations.multi();
+
+                // 남은 점수로 업데이트
+                operations.opsForHash().put(battleKey, userKey, remainingScore);
+
+                return operations.exec();
+            }
+        });
+    }
+
+    /**
+     * 캐싱된 사용자 점수 정보 조회
+     */
+    public UserScoreInfo getCachedUserScore(Long battleId, Long userId) {
+        String battleKey = BATTLE_TEMP_SCORE_KEY + battleId;
+        Object userScore = redisTemplate.opsForHash().get(battleKey, userId.toString());
+        return (UserScoreInfo) userScore;
+    }
+
+    /**
+     * 응원점수 차감
+     */
+    public void deductSupportScore(Long battleId, Long userId, int supportScore) {
+        String battleKey = BATTLE_TEMP_SCORE_KEY + battleId;
+        String userKey = userId.toString();
+
+        redisTemplate.execute(new SessionCallback<List<Object>>() {
+            @Override
+            public List<Object> execute(RedisOperations operations) {
+                operations.watch(battleKey);
+
+                UserScoreInfo currentScore = (UserScoreInfo) operations.opsForHash().get(battleKey, userKey);
+                if (currentScore == null) {
+                    throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
+                }
+
+                operations.multi();
+
+                // 응원점수 차감
+                UserScoreInfo updatedScore = UserScoreInfo.builder()
+                        .supportScore(currentScore.getSupportScore() - supportScore)
+                        .point(currentScore.getPoint())
+                        .build();
+
+                operations.opsForHash().put(battleKey, userKey, updatedScore);
+
+                return operations.exec();
+            }
+        });
+    }
+
+    public UserScoreInfo deductPoints(Long battleId, Long userId, int points) {
+        String battleKey = BATTLE_TEMP_SCORE_KEY + battleId;
+        String userKey = userId.toString();
+
+        return redisTemplate.execute(new SessionCallback<UserScoreInfo>() {
+            @Override
+            public UserScoreInfo execute(RedisOperations operations) {
+                operations.watch(battleKey);
+
+                UserScoreInfo cachedScore = (UserScoreInfo) operations.opsForHash().get(battleKey, userKey);
+                if (cachedScore == null) {
+                    throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
+                }
+
+                // 포인트 부족 체크
+                if (cachedScore.getPoint() < points) {
+                    throw new GlobalException(BattleErrorCode.INSUFFICIENT_POINTS,
+                            String.format("보유한 포인트(%d)가 부족합니다", cachedScore.getPoint()));
+                }
+
+                operations.multi();
+
+                // 포인트 차감된 새로운 정보
+                UserScoreInfo updatedScore = UserScoreInfo.builder()
+                        .supportScore(cachedScore.getSupportScore())
+                        .point(cachedScore.getPoint() - points)
+                        .build();
+
+                // 캐시 업데이트
+                operations.opsForHash().put(battleKey, userKey, updatedScore);
+
+                List<Object> results = operations.exec();
+                if (results == null || results.isEmpty()) {
+                    throw new GlobalException(RedisErrorCode.TRANSACTION_FAILED, "트랜잭션이 실패했습니다.");
+                }
+
+                return updatedScore;
+            }
+        });
+    }
+
 
     public int getLockedScore(Long userId) {
         String key = USER_LOCKED_SCORE_KEY + userId;
