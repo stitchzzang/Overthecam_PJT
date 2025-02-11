@@ -81,8 +81,7 @@ public class BattleWebsocketService {
                 participant.getUser().getId(),
                 participant.getUser().getNickname(),
                 participant.getUser().getProfileImage(),
-                participant.getRole(),
-                participant.getConnectionToken()
+                participant.getRole()
         );
     }
 }

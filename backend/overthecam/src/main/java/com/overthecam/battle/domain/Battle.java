@@ -48,6 +48,8 @@ public class Battle extends TimeStampEntity {
         this.totalUsers = totalUsers;
     }
 
+    public void updateTotalTime(int totalTime) {this.totalTime = totalTime;}
+
     public void updateTitle(String newTitle) {
         this.title = newTitle;
     }
