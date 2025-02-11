@@ -44,4 +44,9 @@ sketch
 .env
 .vite/
 
+# SSL Certificate
+*.pem
+localhost.pem
+localhost-key.pem
+
 # End of https://www.toptal.com/developers/gitignore/api/react
