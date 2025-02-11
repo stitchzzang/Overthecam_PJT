@@ -97,43 +97,43 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-    steps {
-        script {
-            try {
-                echo '====== EC2 배포 시작 ======'
-                def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
-                
-                sshagent(['ssh']) {
-                    withCredentials([
-                        string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
-                    ]) {
-                        sh """
-                            set -x
-                            echo "== EC2 배포 환경 변수 확인 =="
-                            echo "DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}"
-                            echo "BUILD_NUMBER=${BUILD_NUMBER}"
-                            echo "dockerImageTag=${dockerImageTag}"
+            steps {
+                script {
+                    try {
+                        echo '====== EC2 배포 시작 ======'
+                        def dockerImageTag = "${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}"
+                        
+                        sshagent(['ssh']) {
+                            withCredentials([
+                                string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
+                            ]) {
+                                sh """
+                                    set -x
+                                    echo "== EC2 배포 환경 변수 확인 =="
+                                    echo "DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}"
+                                    echo "BUILD_NUMBER=${BUILD_NUMBER}"
+                                    echo "dockerImageTag=${dockerImageTag}"
 
-                            echo "== EC2에 SSH 접속하여 Docker 컨테이너 실행 =="
-                            ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
-                                echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env &&
-                                docker pull ${dockerImageTag} &&
-                                docker stop frontend || true &&
-                                docker rm frontend || true &&
-                                docker run -d --name frontend -p 5557:80 --env-file .env ${dockerImageTag} &&
-                                docker system prune -f'
-                        """
+                                    echo "== EC2에 SSH 접속하여 Docker 컨테이너 실행 =="
+                                    ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io '
+                                        echo "VITE_BASE_URL=${VITE_BASE_URL}" >> .env &&
+                                        docker pull ${dockerImageTag} &&
+                                        docker stop frontend || true &&
+                                        docker rm frontend || true &&
+                                        docker run -d --name frontend -p 5557:80 --env-file .env ${dockerImageTag} &&
+                                        docker system prune -f'
+                                """
+                            }
+                        }
+                        echo '====== EC2 배포 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== EC2 배포 실패 ======'
+                        error "Deployment failed: ${e.message}"
                     }
                 }
-                echo '====== EC2 배포 성공 ======'
-            } catch (Exception e) {
-                echo '====== EC2 배포 실패 ======'
-                error "Deployment failed: ${e.message}"
             }
-        }
-    }
-}
-
+        }  
+    }  
 
     post {
         always {
@@ -148,4 +148,4 @@ pipeline {
             echo '====== 파이프라인 성공 ======'
         }
     }
-}
+} 
