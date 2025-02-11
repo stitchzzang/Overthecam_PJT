@@ -32,7 +32,7 @@ public enum WebSocketErrorCode implements ErrorCode {
 
     // 사용자 응원 및 포인트 에러
     INSUFFICIENT_SCORE(400, "응원점수가 부족합니다"),
-    INSUFFICIENT_POINTS(400, "포인트가 부족합니다"),
+    INSUFFICIENT_POINT(400, "포인트가 부족합니다"),
 
     INTERNAL_SERVER_ERROR(500, "서버 내부 오류가 발생했습니다.");
 
