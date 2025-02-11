@@ -10,12 +10,11 @@ import { useEffect } from "react";
 function BattleCreatingPage() {
   const navigate = useNavigate();
   const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
-  const userNickname = useUserStore((state) => {console.log(state) 
-    return state.userNickname});
+  const userNickname = useUserStore((state) => state.userNickname);
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("현재 userNickname:", userNickname);
-  }, [userNickname])
+  }, [userNickname]);
 
   const createBattleRoomHandler = async (title) => {
     try {
@@ -24,13 +23,23 @@ function BattleCreatingPage() {
         userNickname: userNickname,
         roomTitle: title,
       });
-      const res = await createRoom(title, userNickname);
-      console.log("방 생성 결과: ", res)
+      const response = await createRoom(title, userNickname);
+      console.log("방 생성 결과: ", response.data.token);
+      const token = response.data.token;
 
+      // 저장하기 전 값들 확인
+      console.log("저장할 값들:", {
+        participantName: userNickname,
+        roomName: title,
+        userToken: token,
+        isMaster: true,
+      });
 
       setBattleInfo({
-        userNickname: userNickname,
-        roomTitle: title,
+        participantName: userNickname,
+        roomName: title, // roomTitle 대신 roomName 사용
+        userToken: token, // token 대신 userToken 사용
+        isMaster: true,
       });
 
       // store 업데이트 후 상태 확인

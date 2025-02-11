@@ -75,7 +75,7 @@ public class BattleController {
         if (roomName == null || participantName == null) {
             return ResponseEntity.ok(
                     CommonResponseDto.error(
-                            ErrorResponse.of(BattleErrorCode.INVALID_PARTICIPANT_COUNT)
+                            ErrorResponse.of(BattleErrorCode.MISSING_REQUIRED_FIELD) // 필수 값 누락 오류
                     )
             );
         }
@@ -83,8 +83,8 @@ public class BattleController {
         try {
             // LiveKit 토큰 생성
             AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
-            token.setName(user.getNickname());  // 사용자 닉네임 사용
-            token.setIdentity(userId.toString());
+            token.setName(participantName); 
+            token.setIdentity(participantName);
             token.addGrants(new RoomJoin(true), new RoomName(roomName));
             String tokenStr = token.toJwt();
 

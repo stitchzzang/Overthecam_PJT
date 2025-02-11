@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { publicAxios } from '../../common/axiosinstance';
+import { publicAxios, authAxios } from '../../common/axiosinstance';
 import VoteDetail from '../../components/Vote/VoteDetail';
 import VoteDetailComment from '../../components/Vote/VoteDetailComment';
 
@@ -8,39 +8,35 @@ export default function VoteDetailPage() {
   const navigate = useNavigate();
   const { voteId } = useParams();
   const [voteData, setVoteData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchVoteDetail = async () => {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        alert('로그인이 필요합니다.');
-        navigate('/login');
-        return;
-      }
-
       try {
-        const response = await publicAxios.get(`/vote/${voteId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        console.log('Fetched vote details:', response.data);
-        setVoteData(response.data);
-      } catch (error) {
-        console.error('Failed to fetch vote details:', error);
-        if (error.response?.status === 401) {
-          alert('로그인이 필요하거나 세션이 만료되었습니다.');
-          localStorage.removeItem('token');
-          navigate('/login');
-        } else if (error.response?.status === 400) {
-          alert('잘못된 입력값입니다.');
-        } else if (error.response?.status === 404) {
-          alert('투표를 찾을 수 없습니다.');
-          navigate('/vote');
+        setLoading(true);
+        const response = await authAxios.get(`/vote/${voteId}`);
+        
+        if (response.data.success) {
+          const data = response.data.data;
+          setVoteData({
+            ...data,
+            isCreator: Number(localStorage.getItem('userId')) === Number(data.creatorUserId)
+          });
+          setError(null);
         } else {
-          alert('예기치 않은 오류가 발생했습니다.');
+          throw new Error('투표 정보를 불러오는데 실패했습니다.');
         }
+      } catch (error) {
+        console.error('Failed to fetch vote:', error);
+        setError('투표 정보를 불러오는데 실패했습니다.');
+        
+        if (error.response?.status === 401) {
+          alert('로그인이 필요합니다.');
+          navigate('/login');
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -49,28 +45,31 @@ export default function VoteDetailPage() {
 
   const handleDelete = async () => {
     try {
-      await publicAxios.delete(`/vote/${voteId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      console.log('Vote deleted:', voteId);
-      navigate('/vote');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/login');
+        return false;
+      }
+
+      // publicAxios 대신 authAxios 사용
+      await authAxios.delete(`/vote/${voteId}`);
+      
+      navigate('/vote', { replace: true });
+      return true;
     } catch (error) {
-      if (error.response?.status === 400) {
-        console.error('Invalid input data:', error.response.data);
-        alert('잘못된 입력값입니다.');
-      } else if (error.response?.status === 404) {
-        console.error('Resource not found:', error.response.data);
-        alert('투표를 찾을 수 없습니다.');
+      console.error('Delete error:', error);
+      if (error.response?.status === 403) {
+        alert('투표를 삭제할 권한이 없습니다.');
       } else {
-        console.error('Failed to delete vote:', error);
         alert('투표 삭제에 실패했습니다.');
       }
+      return false;
     }
   };
 
-  if (!voteData) return <div>로딩 중...</div>;
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div>
@@ -78,7 +77,7 @@ export default function VoteDetailPage() {
         <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
       </div>
       
-      <VoteDetail voteData={voteData} />
+      <VoteDetail voteData={voteData} onDelete={handleDelete} />
       <VoteDetailComment voteId={voteId} />
     </div>
   );

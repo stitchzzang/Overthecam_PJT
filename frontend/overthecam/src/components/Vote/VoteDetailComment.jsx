@@ -27,30 +27,22 @@ const VoteDetailComment = ({ voteId }) => {
       });
       
       if (response.data?.comments && Array.isArray(response.data.comments)) {
-        // 현재 로그인한 사용자의 ID 가져오기
-        const currentUserId = localStorage.getItem('userId');
+        const userInfo = localStorage.getItem('userInfo');
+        const currentUserId = userInfo ? JSON.parse(userInfo).userId : null;
         
-        // 댓글에 isAuthor 속성 추가
         const commentsWithAuthor = response.data.comments.map(comment => ({
           ...comment,
-          isAuthor: String(comment.userId) === String(currentUserId) // ID를 문자열로 변환하여 비교
+          isAuthor: currentUserId && Number(comment.userId) === Number(currentUserId)
         }));
         
-        // 최신순 정렬
         const sortedComments = [...commentsWithAuthor].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         
         setComments(sortedComments);
-      } else {
-        console.error('댓글 데이터 형식이 잘못되었습니다:', response.data);
-        setComments([]);
       }
     } catch (error) {
       console.error('댓글 조회 실패:', error);
-      if (error.response?.status === 401) {
-        alert('로그인이 필요합니다.');
-      }
     }
   };
 
@@ -91,17 +83,35 @@ const VoteDetailComment = ({ voteId }) => {
     if (!editContent.trim()) return;
 
     try {
-      await publicAxios.put(`/vote/comment/${commentId}`,
-        { content: editContent },
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const response = await publicAxios({
+        method: 'PUT',
+        url: `/vote/comment/${commentId}`,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          content: editContent
         }
-      );
-      setEditingCommentId(null);
-      setEditContent('');
-      fetchComments(); // 댓글 목록 새로고침
+      });
+
+      if (response.data) {
+        setComments(prevComments => 
+          prevComments.map(comment => 
+            comment.commentId === commentId 
+              ? { ...comment, content: editContent }
+              : comment
+          )
+        );
+        setEditingCommentId(null);
+        setEditContent('');
+      }
     } catch (error) {
       console.error('댓글 수정 실패:', error);
       alert('댓글 수정에 실패했습니다.');
@@ -113,12 +123,25 @@ const VoteDetailComment = ({ voteId }) => {
     if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
 
     try {
-      await publicAxios.delete(`/vote/comment/${commentId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      await publicAxios.delete(
+        `/vote/comment/${commentId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         }
-      });
-      fetchComments(); // 댓글 목록 새로고침
+      );
+
+      // 즉시 UI에서 댓글 제거 
+      setComments(prevComments => 
+        prevComments.filter(comment => comment.commentId !== commentId)
+      );
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
       alert('댓글 삭제에 실패했습니다.');

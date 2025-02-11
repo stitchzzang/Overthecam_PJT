@@ -20,8 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -65,16 +64,17 @@ public class VoteService {
         Page<Vote> votes = searchVotesByCondition(keyword, sortBy, sortedPageable);
 
         return VotePageResponse.of(votes.map(vote ->
-            VoteDetailResponse.of(
-                vote,
-                voteStatisticsService.hasUserVoted(vote.getVoteId(), userId),
-                getVoteComments(vote.getVoteId()),
-                voteStatisticsService.getSelectionStatus(vote.getVoteId(), userId),
-                Collections.emptyMap(),
-                Collections.emptyMap()
-            )
+                VoteDetailResponse.of(
+                        vote,
+                        voteStatisticsService.hasUserVoted(vote.getVoteId(), userId),
+                        getVoteComments(vote.getVoteId()),
+                        voteStatisticsService.getSelectionStatus(vote.getVoteId(), userId),
+                        Collections.emptyMap(),
+                        Collections.emptyMap()
+                )
         ));
     }
+
 
     /**
      * 투표 상세 조회
@@ -130,7 +130,7 @@ public class VoteService {
     public void deleteVote(Long voteId, Long userId) {
         Vote vote = voteValidationService.findVoteById(voteId);
         voteValidationService.validateVoteOwnership(vote, userId);
-
+        voteCommentRepository.deleteByVote_VoteId(voteId);
         voteRecordRepository.deleteByVote_VoteId(voteId);
         voteOptionRepository.deleteByVote_VoteId(voteId);
         voteRepository.delete(vote);

@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import VideoComponent from "../../components/BattleRoom/VideoComponent";
 import AudioComponent from "../../components/BattleRoom/AudioComponent";
-import BattleChating from "../../components/BattleRoom/BattleChating";
-import BattleTimer from "../../components/BattleRoom/BattleTimer";
+import BattleChating from "../../components/BattleRoom/common/BattleChating";
+import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import axios from "axios";
+import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 
 const APPLICATION_SERVER_URL = import.meta.env.VITE_BASE_URL;
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
@@ -14,37 +15,70 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
-  const { roomName, participantName } = battleInfo;
+  const { roomName, participantName, userToken } = battleInfo;
   const navigate = useNavigate();
-
+  // openvidu 관련 설정정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
+  // 방 게임 설정 관련
+  const [isWaiting, setIsWaiting] = useState(true);
 
+  // 새로고침 감지
   useEffect(() => {
-    async function checkMediaPermissions() {
+    const handleBeforeUnload = () => {
+      window.alert("배틀방방을 나가시겠습니까?");
+      navigate("/");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
+  useEffect(() => {
+    if (
+      !battleInfo.roomName ||
+      !battleInfo.participantName ||
+      !battleInfo.userToken
+    ) {
+      console.error("Required information missing:", {
+        roomName: battleInfo.roomName,
+        participantName: battleInfo.participantName,
+        userToken: battleInfo.userToken,
+      });
+      navigate("/");
+      return;
+    }
+
+    async function initializeRoom() {
       try {
         await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         console.log("Media permissions granted");
+        await joinRoom();
       } catch (error) {
-        console.error("Media permissions denied:", error);
+        console.error("Room initialization error:", error);
+        navigate("/");
       }
     }
 
-    if (roomName && participantName) {
-      checkMediaPermissions();
-      joinRoom();
-    }
+    console.log(
+      "방에 조인하게됨:",
+      battleInfo.roomName,
+      battleInfo.participantName
+    );
+    initializeRoom();
 
     return () => {
       leaveRoom();
     };
-  }, [roomName, participantName]);
+  }, []); // 빈 의존성 배열이 맞습니다 - 마운트 시 한 번만 실행
 
   async function joinRoom() {
     console.log("Starting joinRoom with:", {
-      roomName,
-      participantName,
       LIVEKIT_URL,
     });
     const room = new Room();
@@ -83,7 +117,7 @@ function BattleRoomPage() {
     });
 
     try {
-      const token = await getToken(roomName, participantName);
+      const token = battleInfo.userToken;
       console.log("Received token:", token);
 
       await room.connect(LIVEKIT_URL, token);
@@ -114,67 +148,27 @@ function BattleRoomPage() {
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    navigate("/");
-  }
-
-  async function getToken(roomTitle, participantName) {
-    if (!roomTitle || !participantName) {
-      throw new Error("Room title and participant name are required");
-    }
-
-    try {
-      const response = await axios.post(
-        APPLICATION_SERVER_URL + "/token",
-        {
-          roomName: roomTitle,
-          participantName: participantName,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      console.log("Token Response:", response.data);
-      return response.data.token;
-    } catch (error) {
-      console.error("Token Request Error:", error.response?.data || error);
-      throw error;
-    }
+    // navigate("/");
   }
 
   return (
     <div className="room-container">
+      <button onClick={leaveRoom}>Leave Room</button>
       <div className="room-header">
-        <h2>{roomName}</h2>
-        <button onClick={leaveRoom}>Leave Room</button>
+        <h2>{battleInfo.roomName}</h2>
       </div>
-      <div className="video-grid">
-        {localTrack && (
-          <VideoComponent
-            track={localTrack}
-            participantIdentity={`${participantName} (Me)`}
-            local={true}
+      <div>
+        {isWaiting ? (
+          <BattleWaiting
+            room={room}
+            localTrack={localTrack}
+            remoteTracks={remoteTracks}
           />
-        )}
-        {remoteTracks.map((remoteTrack) =>
-          remoteTrack.trackPublication.kind === "video" ? (
-            <VideoComponent
-              key={remoteTrack.trackPublication.trackSid}
-              track={remoteTrack.trackPublication.videoTrack}
-              participantIdentity={remoteTrack.participantIdentity}
-            />
-          ) : (
-            <AudioComponent
-              key={remoteTrack.trackPublication.trackSid}
-              track={remoteTrack.trackPublication.audioTrack}
-            />
-          )
+        ) : (
+          <></>
         )}
       </div>
+
       <BattleChating />
     </div>
   );

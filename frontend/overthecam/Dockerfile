@@ -1,15 +1,26 @@
 FROM node:22 as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
 
 ARG VITE_BASE_URL
-ENV VITE_BASE_URL=${VITE_BASE_URL}
+ARG VITE_LIVEKIT_URL
 
+ENV VITE_BASE_URL=${VITE_BASE_URL}
+ENV VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}
+
+WORKDIR /app
+
+# 프로젝트 전체 복사 (순서 변경)
 COPY . .
+
+# npm 패키지 설치
+RUN npm ci
+
+# React 빌드
 RUN npm run build
 
-FROM nginx:alpine
+FROM nginx:stable-alpine
+
 COPY --from=build /app/dist /usr/share/nginx/html
+
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]
