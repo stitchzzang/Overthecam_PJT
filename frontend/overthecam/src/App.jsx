@@ -55,7 +55,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
           <Route path="/battle-list" element={<BattleMainPage />} />
-<<<<<<< frontend/overthecam/src/App.jsx
+
           <Route path="/create-battle-room" element={
             <PrivateRoute><BattleCreatingPage /></PrivateRoute>
           } />
@@ -81,12 +81,12 @@ function App() {
             <PrivateRoute><MyPageVote /></PrivateRoute>
           } />
           
-=======
+
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
           <Route path="/create-vote" element={<VoteCreatingPage />} />
           <Route path="/vote" element={<VotePage />} />
->>>>>>> frontend/overthecam/src/App.jsx
+
           <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
           <Route path="/login" element={<ProtectedLogin />} />
           <Route path="/signup" element={<Signup />} />
