@@ -8,12 +8,13 @@ ENV VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}
 
 WORKDIR /app
 
-COPY package*.json ./
-
-RUN npm ci
-
+# 프로젝트 전체 복사 (순서 변경)
 COPY . .
 
+# npm 패키지 설치
+RUN npm ci
+
+# React 빌드
 RUN npm run build
 
 FROM nginx:stable-alpine
