@@ -10,7 +10,7 @@ public enum UserErrorCode implements ErrorCode {
 
 
     INSUFFICIENT_SCORE(400, "응원점수가 부족합니다"),
-    INSUFFICIENT_POINTS(400, "포인트가 부족합니다");
+    INSUFFICIENT_POINT(400, "포인트가 부족합니다");
 
     private final int status;
     private final String message;

@@ -8,6 +8,7 @@ import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleVoteRedisRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.dto.UserScoreInfo;
+import com.overthecam.member.exception.UserErrorCode;
 import com.overthecam.member.service.UserScoreService;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.service.VoteValidationService;
@@ -48,7 +49,6 @@ public class BattleBettingService {
      * 배틀 준비 - 사용자의 응원점수/포인트 조회 및 캐싱
      */
     public UserScoreInfo prepareBattle(Long battleId, Long userId) {
-        validateUserRole(battleId, userId, ParticipantRole.PARTICIPANT);
 
         // 현재 사용자의 응원점수/포인트 정보 조회 및 캐싱
         UserScoreInfo userScore = userScoreService.getUserScore(userId)
@@ -78,7 +78,7 @@ public class BattleBettingService {
 
         // 요청한 응원점수가 사용자가 보유한 점수를 초과하는지 검증
         if (supportScore > cachedScore.getSupportScore()) {
-            throw new GlobalException(BattleErrorCode.INSUFFICIENT_SCORE,
+            throw new GlobalException(UserErrorCode.INSUFFICIENT_SCORE,
                     String.format("보유한 응원점수(%d)를 초과하여 투표할 수 없습니다", cachedScore.getSupportScore()));
         }
 
