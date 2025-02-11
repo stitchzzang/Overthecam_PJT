@@ -1,13 +1,15 @@
 FROM node:22 as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
 
 ARG VITE_BASE_URL
 ARG VITE_LIVEKIT_URL
 
 ENV VITE_BASE_URL=${VITE_BASE_URL}
 ENV VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL} 
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
 
 COPY . .
 RUN npm run build
