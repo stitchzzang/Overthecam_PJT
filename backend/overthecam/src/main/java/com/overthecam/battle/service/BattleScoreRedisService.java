@@ -195,7 +195,7 @@ public class BattleScoreRedisService {
 
                 // 포인트 부족 체크
                 if (cachedScore.getPoint() < points) {
-                    throw new GlobalException(BattleErrorCode.INSUFFICIENT_POINTS,
+                    throw new GlobalException(UserErrorCode.INSUFFICIENT_POINT,
                             String.format("보유한 포인트(%d)가 부족합니다", cachedScore.getPoint()));
                 }
 
@@ -243,7 +243,10 @@ public class BattleScoreRedisService {
 
         battleScores.forEach((userId, score) -> {
             String lockedKey = USER_LOCKED_SCORE_KEY + userId;
-            redisTemplate.opsForValue().increment(lockedKey, -Integer.parseInt(score.toString()));
+            if (score instanceof UserScoreInfo) {
+                UserScoreInfo userScore = (UserScoreInfo) score;
+                redisTemplate.opsForValue().increment(lockedKey, -userScore.getSupportScore());
+            }
         });
 
         redisTemplate.delete(key);
