@@ -8,38 +8,34 @@ export default function NavBar() {
   const navigate = useNavigate();
   const isBattleRoomPage = location.pathname.startsWith("/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
   const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);
+
+  // Zustand store 사용
+  const userStore = useUserStore.getState();
+  const isLoggedIn = userStore.isLoggedIn;
+  const userNickname = userStore.userNickname ? decodeURIComponent(escape(userStore.userNickname)) : null;
 
   // 로그인 상태 체크 함수
   const checkLoginStatus = () => {
     const token = localStorage.getItem("token");
+    const userInfoStr = localStorage.getItem("userInfo");
     
     try {
       if (token && userInfoStr) {
         const parsedUserInfo = JSON.parse(userInfoStr);
-        
-        // nickname이 있는지 확인하고 디코딩
         if (parsedUserInfo && parsedUserInfo.nickname) {
           // UTF-8로 디코딩
           const decodedNickname = decodeURIComponent(escape(parsedUserInfo.nickname));
-          parsedUserInfo.nickname = decodedNickname;
-          
-          setIsLoggedIn(true);
-          setUserInfo(parsedUserInfo);
-        } else {
-          console.error("유저 정보 형식이 올바르지 않습니다:", parsedUserInfo);
-          handleLogout();
+          console.log("로그인 상태 체크:", {
+            token,
+            isLoggedIn,
+            nickname: decodedNickname,
+          });
         }
-      } else {
-        setIsLoggedIn(false);
-        setUserInfo(null);
       }
     } catch (error) {
       console.error("유저 정보 파싱 에러:", error);
-      handleLogout();
     }
   };
 
@@ -62,10 +58,7 @@ export default function NavBar() {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userInfo");
     
-    setIsLoggedIn(false);
-    setUserInfo(null);
     setIsProfileDropdownOpen(false);
-    
     navigate("/");
   };
 
@@ -101,7 +94,7 @@ export default function NavBar() {
 
           {/* Right Section with Create Buttons and Profile */}
           <div className="hidden lg:flex items-center justify-end gap-6 w-1/4 ml-auto">
-            {isLoggedIn && userInfo ? (
+            {isLoggedIn && userNickname ? (
               <>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -124,13 +117,13 @@ export default function NavBar() {
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden">
                       <img 
-                        src={userInfo.profileImage || "/placeholder.svg"} 
+                        src="/placeholder.svg" 
                         alt="Profile" 
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="whitespace-nowrap">
-                      <span className="font-bold">{userInfo.nickname}</span> 님,
+                      <span className="font-bold">{userNickname}</span> 님,
                       <br />
                       안녕하세요!
                     </span>
@@ -212,7 +205,7 @@ export default function NavBar() {
         <div className="p-4">
           {/* Mobile Only - Login/Signup/Profile */}
           <div className="lg:hidden mb-6">
-            {isLoggedIn && userInfo ? (
+            {isLoggedIn && userNickname ? (
               <div className="flex flex-col gap-2">
                 <button 
                   onClick={() => setIsMobileProfileDropdownOpen(!isMobileProfileDropdownOpen)}
@@ -220,15 +213,16 @@ export default function NavBar() {
                 >
                   <div className="w-8 h-8 rounded-full overflow-hidden">
                     <img 
-                      src={userInfo.profileImage || "/placeholder.svg"} 
+                      src="/placeholder.svg" 
                       alt="Profile" 
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="text-gray-700">
-                    <span className="font-bold">{userInfo.nickname}</span> 님,
+                  <span className="whitespace-nowrap">
+                    <span className="font-bold">{userNickname}</span> 님,
+                    <br />
+                    안녕하세요!
                   </span>
-                  <p>안녕하세요!</p>
                 </button>
                 
                 {/* 모바일 프로필 드롭다운 메뉴 */}
