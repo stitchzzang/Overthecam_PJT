@@ -15,7 +15,6 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
-  const [roomName, setRoomName] = useState(battleInfo.roomName);
   const navigate = useNavigate();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
@@ -23,12 +22,19 @@ function BattleRoomPage() {
   const [remoteTracks, setRemoteTracks] = useState([]);
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
-
+  const [isMaster, setIsMaster] = useState(true);
   // 개발 환경인지 체크
   const isDevelopment = import.meta.env.MODE === "development";
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
+
+    if (!battleInfo.battleId) {
+      console.log("Battle info is missing!");
+      navigate("/")
+      // 필요한 처리 (예: 홈으로 리다이렉트)
+    }
+
     if (isDevelopment) {
       const devBattleInfo = {
         roomName: "개발용_방",
@@ -70,6 +76,7 @@ function BattleRoomPage() {
       battleInfo.participantName
     );
     initializeRoom();
+    joinRoom();
 
     return () => {
       leaveRoom();
@@ -170,29 +177,30 @@ function BattleRoomPage() {
             </button>
           </div>
           <div className="mx-1">
-            <div
-              className="random-subject bg-cusGray-dark !rounded-xl flex items-center h-12 font-bold px-6 rounded-full border-transparent
-  shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
-  transition-all duration-300 ease-in-out transform scale-100 "
-            >
+            <div className="random-subject bg-cusGray-dark !rounded-xl flex items-center h-12 font-bold px-6 clay">
               현재 참여 인원
             </div>
           </div>
         </div>
       </div>
-      <div>
-        {isWaiting ? (
-          <BattleWaiting
-            room={room}
-            localTrack={localTrack}
-            remoteTracks={remoteTracks}
-          />
+      <div className="render-change flex">
+        {isWaiting && isMaster ? (
+          <>
+            <div className="w-2/3">
+              <BattleWaiting
+                room={room}
+                localTrack={localTrack}
+                remoteTracks={remoteTracks}
+              />
+            </div>
+            <div className="w-1/3">
+              <BattleChating />
+            </div>
+          </>
         ) : (
           <></>
         )}
       </div>
-
-      <BattleChating />
     </div>
   );
 }

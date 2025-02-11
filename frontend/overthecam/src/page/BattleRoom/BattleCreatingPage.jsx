@@ -16,38 +16,26 @@ function BattleCreatingPage() {
     console.log("현재 userNickname:", userNickname);
   }, [userNickname]);
 
-  const createBattleRoomHandler = async (title) => {
+  const createBattleRoomHandler = async (roomName) => {
     try {
-      // store에 배틀 정보 저장하기 전에 데이터 확인
-      console.log("Storing battle info:", {
-        userNickname: userNickname,
-        roomTitle: title,
-      });
-      const response = await createRoom(title, userNickname);
-      console.log("방 생성 결과: ", response.data.token);
-      const token = response.data.token;
+      const response = await createRoom(roomName, userNickname);
 
-      // 저장하기 전 값들 확인
-      console.log("저장할 값들:", {
+      const newBattleInfo = {
+        battleId: response.data.battleId,
         participantName: userNickname,
-        roomName: title,
-        userToken: token,
+        roomName: roomName,
+        userToken: response.data.token,
         isMaster: true,
-      });
+      };
 
-      setBattleInfo({
-        participantName: userNickname,
-        roomName: title, // roomTitle 대신 roomName 사용
-        userToken: token, // token 대신 userToken 사용
-        isMaster: true,
-      });
+      console.log("저장할 결과: ", newBattleInfo);
 
-      // store 업데이트 후 상태 확인
-      const currentState = useBattleStore.getState();
-      console.log("Current store state:", currentState);
+      setBattleInfo(newBattleInfo);
 
-      // 다른 페이지로 이동
-      navigate(`/battle-room/${title}`);
+      // 4. store가 제대로 업데이트 되었는지 확인
+      const updatedState = useBattleStore.getState();
+      console.log("Updated store state:", updatedState);
+      navigate(`/battle-room/${response.data.battleId}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);
     }
