@@ -13,10 +13,33 @@ const VoteInProgressPage = () => {
   let retryCount = 0;
   const maxRetries = 3;
 
+  // 로컬 스토리지에서 투표 정보를 가져오는 함수
+  const getVotedItems = () => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (!userInfo) return {};
+    
+    const userId = JSON.parse(userInfo).userId;
+    const votedItems = localStorage.getItem(`votedItems_${userId}`);
+    return votedItems ? JSON.parse(votedItems) : {};
+  };
+
+  // 투표 정보를 로컬 스토리지에 저장하는 함수
+  const saveVotedItem = (voteId) => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (!userInfo) return;
+    
+    const userId = JSON.parse(userInfo).userId;
+    const votedItems = getVotedItems();
+    votedItems[voteId] = true;
+    localStorage.setItem(`votedItems_${userId}`, JSON.stringify(votedItems));
+  };
+
   const fetchVotes = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const votedItems = getVotedItems();
+
       if (token) {
         // 토큰 유효성 검사 (간단한 형태)
         const tokenParts = token.split('.');
@@ -35,7 +58,8 @@ const VoteInProgressPage = () => {
       const response = await (token ? authAxios : publicAxios).get('/vote/list', {
         params: {
           page: page - 1,
-          size: 5
+          size: 5,
+          includeVoteResult: true
         },
         headers: {
           'Accept': 'application/json'
@@ -45,7 +69,15 @@ const VoteInProgressPage = () => {
       console.log('Response:', response.data);
 
       if (response.data?.data?.content) {
-        setCurrentList(response.data.data.content);
+        const votesWithResults = response.data.data.content.map(vote => ({
+          ...vote,
+          hasVoted: vote.hasVoted || votedItems[vote.voteId] === true,
+          options: vote.options.map(option => ({
+            ...option,
+            votePercentage: option.votePercentage || 0
+          }))
+        }));
+        setCurrentList(votesWithResults);
         setTotalPages(response.data.data.pageInfo.totalPages);
         setError(null);
       } else {
@@ -98,41 +130,23 @@ const VoteInProgressPage = () => {
         return;
       }
 
-      // API 요청 형식 수정
-      const response = await authAxios.post(`/vote/${vote.voteId}/vote`, {
-        optionId: optionId
-      });
+      if (vote.hasVoted) {
+        return;
+      }
+
+      const response = await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
 
       if (response.status === 200) {
-        // 현재 리스트에서 해당 투표를 찾아 업데이트
-        const updatedList = currentList.map(item => {
-          if (item.voteId === vote.voteId) {
-            return {
-              ...item,
-              hasVoted: true,
-              options: item.options.map(option => ({
-                ...option,
-                voteCount: option.optionId === optionId 
-                  ? option.voteCount + 1 
-                  : option.voteCount,
-                votePercentage: option.optionId === optionId
-                  ? ((option.voteCount + 1) / (item.options.reduce((sum, opt) => sum + opt.voteCount, 0) + 1)) * 100
-                  : (option.voteCount / (item.options.reduce((sum, opt) => sum + opt.voteCount, 0) + 1)) * 100
-              }))
-            };
-          }
-          return item;
-        });
-
-        setCurrentList(updatedList);
+        saveVotedItem(vote.voteId);
+        await fetchVotes();
       }
     } catch (err) {
-      console.error('Vote error:', err);
-      if (err.response?.status === 401) {
+      if (err.response?.status === 400 && err.response?.data?.error?.code === 'DUPLICATE_VOTE') {
+        saveVotedItem(vote.voteId);
+        await fetchVotes();
+      } else if (err.response?.status === 401) {
         alert('로그인이 필요합니다.');
         navigate('/login');
-      } else if (err.response?.status === 400) {
-        alert('이미 투표한 항목입니다.');
       } else {
         alert('투표 처리 중 오류가 발생했습니다.');
       }
@@ -191,18 +205,19 @@ const VoteInProgressPage = () => {
                 renderVoteResult(vote)
               ) : (
                 <div className="flex gap-4 mb-4">
-                  <button
-                    onClick={() => handleVote(vote, vote.options[0].optionId)}
-                    className="flex-1 p-4 bg-red-100 hover:bg-red-200 text-red-500 rounded-lg transition-colors"
-                  >
-                    {vote.options[0].optionTitle}
-                  </button>
-                  <button
-                    onClick={() => handleVote(vote, vote.options[1].optionId)}
-                    className="flex-1 p-4 bg-blue-100 hover:bg-blue-200 text-blue-500 rounded-lg transition-colors"
-                  >
-                    {vote.options[1].optionTitle}
-                  </button>
+                  {vote.options.map((option) => (
+                    <button
+                      key={option.optionId}
+                      onClick={() => handleVote(vote, option.optionId)}
+                      className={`flex-1 p-4 ${
+                        option.optionId === vote.options[0].optionId
+                          ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                          : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                      } rounded-lg transition-colors`}
+                    >
+                      {option.optionTitle}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
