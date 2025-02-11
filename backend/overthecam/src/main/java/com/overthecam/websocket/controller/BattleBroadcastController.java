@@ -1,7 +1,7 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.battle.service.BattleResultService;
 import com.overthecam.battle.service.BattleScoreRedisService;
-import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.service.VoteService;
@@ -33,6 +33,7 @@ public class BattleBroadcastController {
     private final BattleWebsocketService battleWebsocketService;
     private final ChatMessageService chatMessageService;
     private final BattleVoteService battleVoteService;
+    private final BattleResultService battleResultService;
     private final BattleScoreRedisService battleScoreRedisService;
     private final WebSocketRequestMapper requestMapper;
 
@@ -57,6 +58,10 @@ public class BattleBroadcastController {
                 case BATTLE_START:
                     return WebSocketResponseDto.ok(MessageType.BATTLE_START,
                             battleDataService.handleBattleStart(battleId));
+
+                case BATTLE_END:
+                    return WebSocketResponseDto.ok(MessageType.BATTLE_END,
+                            battleResultService.finalizeBattleVotes(battleId));
 
                 case BATTLER_SELECT:
                     return WebSocketResponseDto.ok(MessageType.BATTLER_SELECT,
