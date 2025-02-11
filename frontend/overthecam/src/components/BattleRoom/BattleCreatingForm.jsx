@@ -10,7 +10,9 @@ function BattleCreateForm({ onCreateRoom }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("제출된 title 값:", title);
-    await onCreateRoom(title);
+    if(title.trim()){
+      onCreateRoom(title);
+    }
   };
 
   return (
