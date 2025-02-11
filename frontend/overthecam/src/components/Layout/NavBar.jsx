@@ -175,42 +175,12 @@ export default function NavBar() {
 
           {/* Menu items */}
           <div>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            <Link
+              to="/vote"
               className="flex items-center justify-between w-full text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
             >
               투표
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
-                />
-              </svg>
-            </button>
-            {isDropdownOpen && (
-              <div className="ml-4">
-                <Link
-                  to={"/vote-inprogress"}
-                  className="block p-2 hover:bg-gray-100 rounded"
-                >
-                  진행중인 투표
-                </Link>
-                <Link
-                  to={"/vote-closed"}
-                  className="block p-2 hover:bg-gray-100 rounded"
-                >
-                  종료된 투표
-                </Link>
-              </div>
-            )}
+            </Link>
           </div>
           
           <Link

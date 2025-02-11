@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { authAxios } from '../../common/axiosinstance';
+import { publicAxios, authAxios } from '../../common/axiosinstance';
 import VoteDetail from '../../components/Vote/VoteDetail';
 import VoteDetailComment from '../../components/Vote/VoteDetailComment';
 
@@ -45,64 +45,25 @@ export default function VoteDetailPage() {
 
   const handleDelete = async () => {
     try {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
       const token = localStorage.getItem('token');
-      
-      // 사용자 정보 및 토큰 유효성 검사
-      if (!userInfo.userId || !token) {
+      if (!token) {
         alert('로그인이 필요합니다.');
         navigate('/login');
         return false;
       }
 
-      // 작성자 확인
-      if (Number(userInfo.userId) !== Number(voteData.creatorUserId)) {
-        alert('삭제 권한이 없습니다.');
-        return false;
-      }
-
-      // 삭제 요청 전 데이터 유효성 검사
-      if (!voteId || !voteData) {
-        alert('잘못된 요청입니다.');
-        return false;
-      }
-
-      // 삭제 요청
-      const response = await authAxios.delete(`/vote/${voteId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        data: {
-          userId: Number(userInfo.userId),
-          battleId: voteData.battleId || null
-        }
-      });
-
-      // 응답 처리
-      if (response.data?.success) {
-        alert('투표가 삭제되었습니다.');
-        navigate('/vote-inprogress', { replace: true });
-        return true;
-      }
-
-      throw new Error(response.data?.error?.message || '투표 삭제에 실패했습니다.');
+      // publicAxios 대신 authAxios 사용
+      await authAxios.delete(`/vote/${voteId}`);
+      
+      navigate('/vote', { replace: true });
+      return true;
     } catch (error) {
-      console.error('Delete error details:', {
-        error,
-        response: error.response?.data,
-        status: error.response?.status,
-        message: error.message
-      });
-
-      let errorMessage = '투표 삭제 중 오류가 발생했습니다.';
-      if (error.response?.data?.error?.message) {
-        errorMessage = error.response.data.error.message;
-      } else if (error.response?.status === 500) {
-        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      console.error('Delete error:', error);
+      if (error.response?.status === 403) {
+        alert('투표를 삭제할 권한이 없습니다.');
+      } else {
+        alert('투표 삭제에 실패했습니다.');
       }
-
-      alert(errorMessage);
       return false;
     }
   };
