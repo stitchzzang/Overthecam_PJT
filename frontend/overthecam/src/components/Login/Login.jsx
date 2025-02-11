@@ -22,7 +22,7 @@ const Login = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault()                                                                                                                                                                                                                                                  
     setError("")
 
     if (!formData.id.trim() || !formData.password.trim()) {
