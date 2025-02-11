@@ -21,8 +21,7 @@ public class VoteStatisticsService {
      * 사용자의 투표 여부 확인
      */
     public boolean hasUserVoted(Long voteId, Long userId) {
-        Map<Long, Boolean> selectionStatus = getSelectionStatus(voteId, userId);
-        return selectionStatus.values().stream().anyMatch(Boolean::booleanValue);
+        return voteRecordRepository.existsByUser_IdAndVote_VoteId(userId, voteId);
     }
 
     /**
