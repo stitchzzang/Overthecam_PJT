@@ -71,8 +71,8 @@ pipeline {
                 echo '====== Docker Build & Push 완료 ======'
             } catch (Exception e) {
                 echo '====== Docker Build/Push 실패 ======'
-                error "Docker build/push failed: ${e.message}"
                 sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+                error "Docker build/push failed: ${e.message}"
             }
         }
     }
