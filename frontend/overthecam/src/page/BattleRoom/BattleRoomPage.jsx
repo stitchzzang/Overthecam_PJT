@@ -14,32 +14,65 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
-  const { roomName, participantName } = battleInfo;
+  const { roomName, participantName, userToken } = battleInfo;
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
 
+  // 새로고침 감지
   useEffect(() => {
-    async function checkMediaPermissions() {
+    const handleBeforeUnload = () => {
+      window.alert("배틀방방을 나가시겠습니까?");
+      navigate("/");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
+  useEffect(() => {
+    if (
+      !battleInfo.roomName ||
+      !battleInfo.participantName ||
+      !battleInfo.userToken
+    ) {
+      console.error("Required information missing:", {
+        roomName: battleInfo.roomName,
+        participantName: battleInfo.participantName,
+        userToken: battleInfo.userToken,
+      });
+      navigate("/");
+      return;
+    }
+
+    async function initializeRoom() {
       try {
         await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         console.log("Media permissions granted");
+        await joinRoom();
       } catch (error) {
-        console.error("Media permissions denied:", error);
+        console.error("Room initialization error:", error);
+        navigate("/");
       }
     }
 
-    if (roomName && participantName) {
-      checkMediaPermissions();
-      joinRoom();
-    }
+    console.log(
+      "방에 조인하게됨:",
+      battleInfo.roomName,
+      battleInfo.participantName
+    );
+    initializeRoom();
 
     return () => {
       leaveRoom();
     };
-  }, [roomName, participantName]);
+  }, []); // 빈 의존성 배열이 맞습니다 - 마운트 시 한 번만 실행
 
   async function joinRoom() {
     console.log("Starting joinRoom with:", {
@@ -83,7 +116,7 @@ function BattleRoomPage() {
     });
 
     try {
-      const token = await getToken(roomName, participantName);
+      const token = battleInfo.userToken;
       console.log("Received token:", token);
 
       await room.connect(LIVEKIT_URL, token);
@@ -115,35 +148,6 @@ function BattleRoomPage() {
     setRemoteTracks([]);
     clearBattleInfo();
     navigate("/");
-  }
-
-  async function getToken(roomTitle, participantName) {
-    if (!roomTitle || !participantName) {
-      throw new Error("Room title and participant name are required");
-    }
-
-    try {
-      const response = await axios.post(
-        APPLICATION_SERVER_URL + "/token",
-        {
-          roomName: roomTitle,
-          participantName: participantName,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      console.log("Token Response:", response.data);
-      return response.data.token;
-    } catch (error) {
-      console.error("Token Request Error:", error.response?.data || error);
-      throw error;
-    }
   }
 
   return (

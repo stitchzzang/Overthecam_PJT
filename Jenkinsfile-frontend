@@ -51,12 +51,19 @@ pipeline {
         script {
             try {
                 echo '====== Docker Build 시작 ======'
+
+                // 기존 컨테이너/이미지 정리 - 한 번만 실행
+                sh '''
+                    docker ps -a | grep overthecam-frontend | awk '{print $1}' | xargs -r docker rm -f || true
+                    docker images | grep overthecam-frontend | awk '{print $3}' | xargs -r docker rmi -f || true
+                '''
+
                 dir('frontend/overthecam') {
                     withCredentials([
                         string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
                     ]) {
+                        // 도커 빌드는 한 번만 실행
                         sh """
-                            docker images | grep ${DOCKER_IMAGE_FRONTEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_FRONTEND}:{} || true
                             docker build --build-arg VITE_BASE_URL=${VITE_BASE_URL} -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} .
                             echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                             docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
@@ -67,8 +74,9 @@ pipeline {
                 echo '====== Docker Build & Push 완료 ======'
             } catch (Exception e) {
                 echo '====== Docker Build/Push 실패 ======'
-                error "Docker build/push failed: ${e.message}"
+                sh "docker logout || true"
                 sh "docker rmi ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} || true"
+                error "Docker build/push failed: ${e.message}"
             }
         }
     }

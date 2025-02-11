@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
+import useUserStore from "../../store/User/UserStore";
 
 export default function NavBar() {
   const location = useLocation();
@@ -8,27 +9,20 @@ export default function NavBar() {
   const isBattleRoomPage = location.pathname.startsWith("/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
+  const userStore = useUserStore.getState();
+  const isLoggedIn = userStore.isLoggedIn;
+  const userNickname = userStore.userNickname;
 
   // 로그인 상태 체크 함수
   const checkLoginStatus = () => {
     const token = localStorage.getItem("token");
-    const userInfoStr = localStorage.getItem("userInfo");
     
     console.log("로그인 상태 체크:", {
       token,
-      userInfoStr
+      isLoggedIn,
+      userNickname,
     });
-    
-    if (token && userInfoStr) {
-      setIsLoggedIn(true);
-      setUserInfo(JSON.parse(userInfoStr));
-    } else {
-      setIsLoggedIn(false);
-      setUserInfo(null);
-    }
   };
 
   // 컴포넌트 마운트 및 location 변경 시 로그인 상태 체크
@@ -46,14 +40,12 @@ export default function NavBar() {
 
   const handleLogout = () => {
     // 로그아웃 시 모든 관련 데이터 삭제
-    localStorage.removeItem("token");
-    localStorage.removeItem("rememberMe");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userInfo");
+    // localStorage.removeItem("token");
+    // localStorage.removeItem("rememberMe");
+    // localStorage.removeItem("isLoggedIn");
+    // localStorage.removeItem("userNickname");
     
     // 상태 초기화
-    setIsLoggedIn(false);
-    setUserInfo(null);
     setIsProfileDropdownOpen(false);
     
     // 홈으로 이동
@@ -93,7 +85,7 @@ export default function NavBar() {
 
           {/* Right Section with Create Buttons and Profile */}
           <div className="flex items-center justify-end gap-6 w-1/4 ml-auto">
-            {isLoggedIn && userInfo ? (
+            {isLoggedIn && userNickname ? (
               <>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -116,7 +108,7 @@ export default function NavBar() {
                   >
                     <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
                     <span className="text-gray-700 whitespace-nowrap text-sm">
-                      {userInfo.nickname} 님,
+                      {userNickname} 님,
                       <br />
                       안녕하세요!
                     </span>
