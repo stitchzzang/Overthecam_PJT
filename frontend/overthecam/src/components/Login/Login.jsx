@@ -56,7 +56,7 @@ const Login = () => {
         };
 
         // localStorage에 정보 저장
-        // localStorage.setItem("token", token);
+        localStorage.setItem("token", token);
         // localStorage.setItem("userInfo", JSON.stringify(userInfo));
         // localStorage.setItem("isLoggedIn", "true");
 
