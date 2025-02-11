@@ -50,7 +50,7 @@ public class User extends TimeStampEntity {
     private String refreshToken; // Refresh Token 저장
 
     @Builder
-    public User(String nickname, String email, String username,Integer gender, String password, LocalDate birth, String phoneNumber) {
+    public User(String nickname, String email, String username, Integer gender, String password, LocalDate birth, String phoneNumber) {
         this.nickname = nickname;
         this.email = email;
         this.username = username;
@@ -82,5 +82,9 @@ public class User extends TimeStampEntity {
     // 비밀번호 찾기 - 새 비밀번호 설정
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    public void setPoint(int point) {
+        this.point = point;
     }
 }
