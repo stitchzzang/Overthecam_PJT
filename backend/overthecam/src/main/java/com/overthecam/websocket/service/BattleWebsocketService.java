@@ -10,6 +10,8 @@ import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.battle.repository.BattleVoteRedisRepository;
 import com.overthecam.websocket.dto.BattlerNotificationDto;
 import com.overthecam.websocket.dto.ParticipantInfo;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,7 @@ public class BattleWebsocketService {
     @Transactional
     public Battle updateBattleStatus(Long battleId, Status status) {
         Battle battle = battleRepository.findById(battleId)
-                .orElseThrow(() -> new RuntimeException("Battle not found"));
+                .orElseThrow(() -> new WebSocketException(WebSocketErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다."));
         battle.updateStatus(status);
         log.info("Battle status updated - battleId: {}, status: {}", battleId, status);
         return battleRepository.save(battle);
@@ -46,10 +48,6 @@ public class BattleWebsocketService {
         List<BattleParticipant> battlers = participantRepository.findAllByBattleIdWithUser(battleId).stream()
                 .filter(p -> ParticipantRole.isBattler(p.getRole()))
                 .collect(Collectors.toList());
-
-        if (battlers.size() != 2) {
-            throw new RuntimeException("Invalid number of battlers");
-        }
 
         List<BattleBettingInfo> battlerVotes = battleVoteRedisRepository.getAllVotesForBattle(battleId).stream()
                 .filter(BattleBettingInfo::isBattler)
@@ -68,7 +66,7 @@ public class BattleWebsocketService {
         BattleBettingInfo vote = battlerVotes.stream()
                 .filter(v -> v.getUserId().equals(battler.getUser().getId()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Battler vote not found"));
+                .orElseThrow(() -> new WebSocketException(WebSocketErrorCode.BATTLER_VOTE_NOT_FOUND, "배틀러의 투표 옵션을 찾을 수 없습니다."));
 
         return BattlerNotificationDto.BattlerInfo.builder()
                 .userId(battler.getUser().getId())
