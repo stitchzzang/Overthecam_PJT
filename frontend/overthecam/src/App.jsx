@@ -80,7 +80,7 @@ function App() {
           <Route path="/mypagevote" element={
             <PrivateRoute><MyPageVote /></PrivateRoute>
           } />
-          <Route path="/vote" element={<VotePage />} />
+          
 =======
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
