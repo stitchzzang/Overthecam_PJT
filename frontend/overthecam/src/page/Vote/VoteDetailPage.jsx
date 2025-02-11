@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { publicAxios, authAxios } from '../../common/axiosinstance';
+import { authAxios } from '../../common/axiosinstance';
 import VoteDetail from '../../components/Vote/VoteDetail';
 import VoteDetailComment from '../../components/Vote/VoteDetailComment';
 
