@@ -37,9 +37,9 @@ public class BattlePrivateController {
 
         try {
             switch (request.getType()) {
-                case USER_SCORE:
+                case BATTLE_READY:
                     UserScoreInfo userScore = battleBettingService.prepareBattle(battleId, user.getUserId());
-                    return WebSocketResponseDto.ok(MessageType.USER_SCORE, userScore);
+                    return WebSocketResponseDto.ok(MessageType.BATTLE_READY, userScore);
 
                 default:
                     throw new WebSocketException(WebSocketErrorCode.INVALID_MESSAGE_FORMAT, "올바르지 않은 메시지 타입입니다.");
