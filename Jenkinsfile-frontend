@@ -52,12 +52,6 @@ pipeline {
                     try {
                         echo '====== Docker Build 시작 ======'
 
-                        // 기존 컨테이너 정리
-                        sh '''
-                            # 'overthecam-frontend' 이름을 포함하는 모든 컨테이너 제거
-                            docker ps -a | grep overthecam-frontend | awk '{print $1}' | xargs -r docker rm -f || true
-                        '''
-
                         dir('frontend/overthecam') {
                             withCredentials([
                                 string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL'),
