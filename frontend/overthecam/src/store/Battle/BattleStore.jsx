@@ -1,28 +1,40 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-export const useBattleStore = create((set) => ({
-  battleInfo: {
-    participantName: null,
-    roomName: null, // roomTitle 대신 roomName으로 통일
-    userToken: null, // token 대신 userToken으로 통일
-    isMaster: null,
-  },
-  setBattleInfo: (info) =>
-    set({
+export const useBattleStore = create(
+  persist(
+    (set) => ({
       battleInfo: {
-        participantName: info.participantName,
-        roomName: info.roomName,
-        userToken: info.userToken,
-        isMaster: info.isMaster,
+        battleId: 0,
+        participantName: "",
+        roomName: "",
+        userToken: "",
+        isMaster: false, // boolean 값은 false로 초기화
       },
+      setBattleInfo: (info) =>
+        set({
+          battleInfo: {
+            battleId: info.battleId || 0,
+            participantName: info.participantName || "",
+            roomName: info.roomName || "",
+            userToken: info.userToken || "",
+            isMaster: info.isMaster || false,
+          },
+        }),
+      clearBattleInfo: () =>
+        set({
+          battleInfo: {
+            battleId: 0,
+            participantName: "",
+            roomName: "",
+            userToken: "",
+            isMaster: false,
+          },
+        }),
     }),
-  clearBattleInfo: () =>
-    set({
-      battleInfo: {
-        participantName: null,
-        roomName: null,
-        userToken: null,
-        isMaster: null,
-      },
-    }),
-}));
+    {
+      name: "battle-storage",
+      storage: createJSONStorage(() => sessionStorage),
+    }
+  )
+);
