@@ -51,6 +51,15 @@ pipeline {
         script {
             try {
                 echo '====== Docker Build 시작 ======'
+
+                // 빌드 시작 전 정리 작업
+                sh '''
+                    # 실행 중인 컨테이너 정리
+                    docker ps -a | grep overthecam-frontend | awk '{print $1}' | xargs -r docker rm -f
+                    # 이미지 정리
+                    docker images | grep overthecam-frontend | awk '{print $3}' | xargs -r docker rmi -f
+                '''
+
                 dir('frontend/overthecam') {
                     withCredentials([
                         string(credentialsId: 'front-base-url', variable: 'VITE_BASE_URL')
