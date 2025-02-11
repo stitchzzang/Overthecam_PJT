@@ -58,7 +58,9 @@ dependencies {
 
 
     //openvidu
-    implementation 'io.openvidu:openvidu-java-client:2.31.0'
+    implementation 'io.livekit:livekit-server:0.8.2'
+    implementation 'io.openvidu:openvidu-java-client:2.30.0'
+    implementation 'com.google.protobuf:protobuf-java:3.21.12'
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'

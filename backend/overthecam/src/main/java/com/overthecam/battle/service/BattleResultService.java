@@ -23,6 +23,7 @@ import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.repository.VoteOptionRepository;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -87,6 +88,9 @@ public class BattleResultService {
     private void finalizeBattleAndVote(Battle battle) {
         // 배틀 종료 처리
         battle.updateStatus(Status.END);
+        // 총 방송 시간 계산 (현재 시간 - 생성 시간)
+        long totalTimeInMinutes = ChronoUnit.MINUTES.between(battle.getCreatedAt(), LocalDateTime.now());
+        battle.updateTotalTime((int) totalTimeInMinutes);
         battleRepository.save(battle);
 
         // 투표 비활성화
@@ -141,15 +145,17 @@ public class BattleResultService {
                                                     Map<Long, Integer> optionScores, Map<Long, Integer> rewardResults) {
         int totalScore = calculateTotalScore(optionScores);
         Map<Long, Long> voterCountByOption = calculateVoterCountByOption(votes);
-        Long winningOptionId = findWinningOptionId(voterCountByOption);
         boolean isDraw = isDrawBattle(voterCountByOption);
+
+        // 무승부일 때는 winningOptionId를 null로 설정
+        Long winningOptionId = isDraw ? null : findWinningOptionId(voterCountByOption);
 
         List<OptionResult> optionResults = createOptionResults(optionScores, totalScore, winningOptionId);
         List<UserResult> userResults = createUserResults(votes, winningOptionId, rewardResults);
 
         WinningInfo winningInfo = WinningInfo.builder()
                 .isDraw(isDraw)
-                .winningOptionId(isDraw ? null : winningOptionId)
+                .winningOptionId(winningOptionId)
                 .totalParticipants(votes.size())
                 .totalBettingScore(totalScore)
                 .build();
@@ -193,20 +199,32 @@ public class BattleResultService {
     }
 
     private List<OptionResult> createOptionResults(Map<Long, Integer> optionScores, int totalScore, Long winningOptionId) {
-        return optionScores.entrySet().stream()
-                .map(entry -> {
-                    VoteOption option = voteOptionRepository.findById(entry.getKey())
-                            .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
+        // 무승부 여부 확인
+        boolean isDraw = winningOptionId == null;
 
-                    return OptionResult.builder()
-                            .optionId(option.getVoteOptionId())
-                            .optionTitle(option.getOptionTitle())
-                            .percentage(calculatePercentage(entry.getValue(), totalScore))
-                            .totalScore(entry.getValue())
-                            .isWinner(option.getVoteOptionId().equals(winningOptionId))
-                            .build();
-                })
-                .collect(Collectors.toList());
+        return optionScores.entrySet().stream()
+            .map(entry -> {
+                VoteOption option = voteOptionRepository.findById(entry.getKey())
+                    .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
+
+                // 무승부일 때는 모든 옵션이 isWinner = false
+                boolean isWinner = !isDraw && option.getVoteOptionId().equals(winningOptionId);
+
+                // VoteOption 엔티티의 isWinner도 업데이트
+                if (option.isWinner() != isWinner) {
+                    option.updateWinnerStatus(isWinner);
+                    voteOptionRepository.save(option);
+                }
+
+                return OptionResult.builder()
+                    .optionId(option.getVoteOptionId())
+                    .optionTitle(option.getOptionTitle())
+                    .percentage(calculatePercentage(entry.getValue(), totalScore))
+                    .totalScore(entry.getValue())
+                    .isWinner(isWinner)
+                    .build();
+            })
+            .collect(Collectors.toList());
     }
 
 
@@ -217,9 +235,15 @@ public class BattleResultService {
                     User user = userRepository.findById(vote.getUserId())
                             .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
-                    boolean isWinner = vote.getVoteOptionId().equals(winningOptionId);
+                    boolean isWinner = false; // 무승부면 모두 false
                     int originalScore = vote.getSupportScore();
-                    int resultScore = calculateResultScore(vote.getUserId(), originalScore, isWinner, rewardResults);
+                    int resultScore = 0; // 무승부면 모두 0
+
+                    // 무승부가 아닐 때만 승패와 결과점수 계산
+                    if (winningOptionId != null) {
+                        isWinner = vote.getVoteOptionId().equals(winningOptionId);
+                        resultScore = calculateResultScore(vote.getUserId(), originalScore, isWinner, rewardResults);
+                    }
 
                     return UserResult.builder()
                             .userId(user.getId())

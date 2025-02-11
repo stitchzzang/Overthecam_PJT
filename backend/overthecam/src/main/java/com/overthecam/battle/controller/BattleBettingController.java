@@ -5,6 +5,7 @@ import com.overthecam.battle.dto.BattleBettingRequest;
 import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
 import com.overthecam.common.dto.CommonResponseDto;
+import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.security.util.SecurityUtils;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,9 @@ public class BattleBettingController {
     private final BattleResultService battleResultService;
     private final SecurityUtils securityUtils;
 
+    /*
+    배틀러 전용 투표
+     */
     @PostMapping("/{battleId}/battler")
     public CommonResponseDto<?> voteBattler(Authentication authentication,
                                             @PathVariable Long battleId,
@@ -35,13 +39,16 @@ public class BattleBettingController {
         return CommonResponseDto.ok();
     }
 
+    /*
+    일반 참여자 전용 투표
+     */
     @PostMapping("/{battleId}/participant")
     public CommonResponseDto<?> voteParticipant(Authentication authentication,
                                                 @PathVariable Long battleId,
                                                 @RequestBody BattleBettingRequest request) {
         Long userId = securityUtils.getCurrentUserId(authentication);
-        battleBettingService.vote(battleId, userId, request.getOptionId(), request.getSupportScore());
-        return CommonResponseDto.ok();
+        UserScoreInfo userScoreInfo = battleBettingService.vote(battleId, userId, request.getOptionId(), request.getSupportScore());
+        return CommonResponseDto.ok(userScoreInfo);
     }
 
     /**
