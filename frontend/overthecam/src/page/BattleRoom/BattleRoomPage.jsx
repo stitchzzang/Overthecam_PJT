@@ -154,7 +154,7 @@ function BattleRoomPage() {
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    // navigate("/");
+    navigate("/");
   }
 
   return (

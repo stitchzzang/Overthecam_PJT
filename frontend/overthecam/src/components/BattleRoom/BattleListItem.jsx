@@ -10,14 +10,15 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
     console.log(battleId);
     try {
       const response = await JoinRoom(battleId);
-      console.log(response.data);
-      setBattleInfo({
-        battleId: battleId,
-        title: title,
-        sessionId: response.data.sessionId,
-        connectionToken: response.data.connectionToken,
-        isMaster: false,
-      });
+
+      const newBattleInfo = {
+        battleId: response.data.battleId,
+        participantName: userNickname,
+        roomName: response.data.roomName,
+        userToken: response.data.token,
+        isMaster: true,
+      };
+      setBattleInfo(newBattleInfo);
       navigate(`/battle-room/${battleId}`)
     } catch (error) {
       console.error("Battle room navigation error:", error);
