@@ -43,4 +43,8 @@ out/
 ### 로컬 환경변수 ###
 application-local.properties
 
+# Python virtual environment
+venv/
+**/venv/
+python/venv/
 python-analyzer/venv/
