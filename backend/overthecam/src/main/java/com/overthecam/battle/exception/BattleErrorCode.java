@@ -19,7 +19,9 @@ public enum BattleErrorCode implements ErrorCode {
 
     // OpenVidu 관련 에러
     OPENVIDU_CONNECTION_ERROR(500, "OpenVidu 서버 연동 중 오류가 발생했습니다"),
-    OPENVIDU_SESSION_ERROR(500, "OpenVidu 세션 생성에 실패했습니다");
+    OPENVIDU_SESSION_ERROR(500, "OpenVidu 세션 생성에 실패했습니다"),
+    MISSING_REQUIRED_FIELD(400, "필수 입력값이 누락되었습니다.");
+
 
     private final int status;
     private final String message;

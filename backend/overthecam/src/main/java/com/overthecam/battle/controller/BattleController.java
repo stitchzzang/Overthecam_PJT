@@ -75,7 +75,7 @@ public class BattleController {
         if (roomName == null || participantName == null) {
             return ResponseEntity.ok(
                     CommonResponseDto.error(
-                            ErrorResponse.of(BattleErrorCode.INVALID_PARTICIPANT_COUNT)
+                            ErrorResponse.of(BattleErrorCode.MISSING_REQUIRED_FIELD) // 필수 값 누락 오류
                     )
             );
         }
