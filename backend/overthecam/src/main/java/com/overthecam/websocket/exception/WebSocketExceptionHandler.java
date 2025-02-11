@@ -1,6 +1,7 @@
 package com.overthecam.websocket.exception;
 
 import com.overthecam.common.dto.ErrorResponse;
+import com.overthecam.common.exception.GlobalException;
 import com.overthecam.websocket.dto.MessageType;
 import com.overthecam.websocket.dto.WebSocketResponseDto;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,8 @@ public class WebSocketExceptionHandler {
     @MessageExceptionHandler({WebSocketException.class, Exception.class})  // 모든 예외 처리
     @SendToUser(destinations = "/queue/battle/{battleId}", broadcast = false)
     public WebSocketResponseDto<?> handleWebSocketException(Exception e) {
-        log.error("WebSocket 통신 오류:", e);
+        // log.error("WebSocket Exception occurred: {} - {}", e.getMessage());
+
 
         if (e instanceof WebSocketException) {
             WebSocketException wsException = (WebSocketException) e;
@@ -23,7 +25,13 @@ public class WebSocketExceptionHandler {
             return WebSocketResponseDto.error(MessageType.ERROR, errorResponse);
         }
 
-        // Redis 등 다른 예외들도 WebSocket 응답으로 변환
+        if (e instanceof GlobalException) {
+            GlobalException globalException = (GlobalException) e;
+            ErrorResponse errorResponse = ErrorResponse.of(globalException.getErrorCode());
+            return WebSocketResponseDto.error(MessageType.ERROR, errorResponse);
+        }
+
+        // 기타 예외는 INTERNAL_SERVER_ERROR로 처리
         ErrorResponse errorResponse = ErrorResponse.of(WebSocketErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         return WebSocketResponseDto.error(MessageType.ERROR, errorResponse);
     }
