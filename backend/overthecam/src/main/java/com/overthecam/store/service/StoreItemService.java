@@ -1,18 +1,19 @@
 package com.overthecam.store.service;
 
 import com.overthecam.auth.domain.User;
+import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.common.exception.GlobalException;
-import com.overthecam.auth.exception.AuthErrorCode;
-import com.overthecam.store.exception.StoreErrorCode;
 import com.overthecam.store.domain.ItemType;
 import com.overthecam.store.domain.StoreItem;
 import com.overthecam.store.domain.StorePurchase;
 import com.overthecam.store.dto.StoreAllItemsResponseDto;
+import com.overthecam.store.exception.StoreErrorCode;
 import com.overthecam.store.repository.StoreItemRepository;
 import com.overthecam.store.repository.StorePurchaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class StoreItemService {
         List<StoreItem> items = storeItemRepository.findAllByOrderByCreatedAtDesc();
 
         if (items.isEmpty()) {
-            throw new GlobalException(StoreErrorCode.STORE_ITEM_NOT_PURCHASE, "등록된 상품이 없습니다.");
+            throw new GlobalException(StoreErrorCode.STORE_ITEM_NOT_FOUND, "등록된 상품이 없습니다.");
         }
 
         return items.stream()
@@ -51,7 +52,7 @@ public class StoreItemService {
         List<StoreItem> items = storeItemRepository.findAllUserItems(userId);
 
         if (items.isEmpty()) {
-            throw new GlobalException(StoreErrorCode.STORE_ITEM_NOT_FOUND, "구매한 상품이 없습니다.");
+            throw new GlobalException(StoreErrorCode.STORE_ITEM_NOT_PURCHASE, "구매한 상품이 없습니다.");
         }
 
         return items.stream()
@@ -67,6 +68,7 @@ public class StoreItemService {
 
     }
 
+    @Transactional
     public void purchaseItem(Long storeItemId, Long userId) {
         //타임 제외하고는 모든 아이템은 중복 구매가 안되는 로직 설정
         User user = userRepository.findById(userId)
@@ -83,8 +85,21 @@ public class StoreItemService {
             }
         }
 
+        //포인트 차감 로직
+        int itemPrice = item.getPrice();
+        int myPoint = user.getPoint();
+
+        if (itemPrice > myPoint) {
+            throw new GlobalException(StoreErrorCode.INSUFFICIENT_POINTS, "포인트가 부족합니다.");
+        }
+
+        user.setPoint(myPoint - itemPrice);
+        userRepository.save(user); // 변경된 포인트 한 번만 저장
+
         StorePurchase storePurchase = StorePurchase.createStorePurchase(user, item);
         storePurchaseRepository.save(storePurchase);
 
     }
+    
+
 }

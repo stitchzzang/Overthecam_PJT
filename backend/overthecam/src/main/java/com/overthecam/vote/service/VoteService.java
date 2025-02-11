@@ -130,7 +130,7 @@ public class VoteService {
     public void deleteVote(Long voteId, Long userId) {
         Vote vote = voteValidationService.findVoteById(voteId);
         voteValidationService.validateVoteOwnership(vote, userId);
-
+        voteCommentRepository.deleteByVote_VoteId(voteId);
         voteRecordRepository.deleteByVote_VoteId(voteId);
         voteOptionRepository.deleteByVote_VoteId(voteId);
         voteRepository.delete(vote);

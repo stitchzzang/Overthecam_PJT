@@ -1,38 +1,30 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { publicAxios } from '../../common/axiosinstance';
 
-const VoteDetail = ({ voteData }) => {
-  const navigate = useNavigate();
+const VoteDetail = ({ voteData, onDelete }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // 현재 로그인한 사용자의 닉네임 가져오기
-  const currentUserNickname = localStorage.getItem('nickname');
-  
-  // 현재 사용자가 투표 작성자인지 확인
-  const isCreator = currentUserNickname === voteData.creatorNickname;
+  // creatorUserId로 비교 로직 수정
+  const userInfo = localStorage.getItem('userInfo');
+  const currentUserId = JSON.parse(userInfo).userId;
+  const isCreator = Number(currentUserId) === Number(voteData?.creatorUserId);
 
-  if (!voteData) return <div>로딩 중...</div>;
+  console.log('비교 확인:', {
+    currentUserId: Number(currentUserId),
+    creatorUserId: Number(voteData?.creatorUserId),
+    isCreator: isCreator
+  });
 
-  // 삭제 버튼 핸들러
-  const handleDelete = async () => {
-    try {
-      await publicAxios.delete(`/api/vote/${voteData.voteId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      navigate('/vote-inprogress', { replace: true });
-    } catch (error) {
-      console.error('Failed to delete vote:', error);
-      if (error.response?.status === 403) {
-        alert('자신이 작성한 투표만 삭제할 수 있습니다.');
-      } else {
-        alert('투표 삭제에 실패했습니다.');
+  const handleDeleteClick = async () => {
+    const confirmed = window.confirm('정말로 이 투표를 삭제하시겠습니까?');
+    if (confirmed) {
+      const success = await onDelete();
+      if (success) {
+        // 삭제 성공 시 추가 처리
       }
     }
   };
+
+  if (!voteData) return <div>로딩 중...</div>;
 
   return (
     <div className="max-w-[800px] mx-auto p-4">
@@ -163,7 +155,7 @@ const VoteDetail = ({ voteData }) => {
           </div>
         </div>
 
-        {/* 하단 정보 */}
+        {/* 하단 정보와 삭제 버튼 */}
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
@@ -180,19 +172,17 @@ const VoteDetail = ({ voteData }) => {
             </span>
           </div>
           {isCreator && (
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowDeleteModal(true)}
-                className="px-6 py-2 bg-[#FFE2E2] text-[#FF8989] rounded-lg shadow-inner hover:bg-[#FFD8D8] transition-colors"
-              >
-                삭제
-              </button>
-            </div>
+            <button 
+              onClick={() => setShowDeleteModal(true)}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              삭제
+            </button>
           )}
         </div>
       </div>
 
-      {/* 삭제 확인 모달 */}
+      {/* 삭제 모달 */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
@@ -206,10 +196,7 @@ const VoteDetail = ({ voteData }) => {
                 취소
               </button>
               <button
-                onClick={() => {
-                  handleDelete();
-                  setShowDeleteModal(false);
-                }}
+                onClick={handleDeleteClick}
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
               >
                 삭제

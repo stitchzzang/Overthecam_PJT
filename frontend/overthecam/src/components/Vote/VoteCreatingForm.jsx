@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authAxios } from '../../common/axiosinstance';  // publicAxios -> authAxios
 
 const VoteCreatingForm = ({ onCreateVote }) => {
-  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [option1, setOption1] = useState('');
   const [option2, setOption2] = useState('');
-  const [battleId, setBattleId] = useState(3);
+  // battleId state 제거 (API 명세에 없음)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,11 +15,14 @@ const VoteCreatingForm = ({ onCreateVote }) => {
       return;
     }
 
+    // API 명세와 정확히 일치하는 데이터 구조
     const voteData = {
       title: title.trim(),
       content: content.trim(),
-      battleId: Number(battleId),
-      options: [option1.trim(), option2.trim()]
+      options: [
+        option1.trim(),
+        option2.trim()
+      ]
     };
 
     if (voteData.options.some(option => option === '')) {
@@ -30,7 +30,6 @@ const VoteCreatingForm = ({ onCreateVote }) => {
       return;
     }
 
-    // 부모 컴포넌트의 핸들러에게 데이터 전달
     onCreateVote(voteData);
   };
 
