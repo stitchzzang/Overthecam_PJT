@@ -87,7 +87,25 @@ function BattleRoomPage() {
     console.log("Starting joinRoom with:", {
       LIVEKIT_URL,
     });
-    const room = new Room();
+    const room = new Room({
+      iceServers: [
+        {
+          urls: [
+            "stun:stun1.l.google.com:19302",
+            "stun:stun2.l.google.com:19302",
+            "stun:overthecam.site:443", // livekit.yaml의 turn.udp_port 값 사용
+          ],
+        },
+        {
+          urls: [
+            "turn:overthecam.site:443", // UDP TURN
+            "turns:overthecam.site:5349", // TLS TURN (turn.tls_port 값)
+          ],
+          username: "overthecam", // keys의 키 값
+          credential: "dkssudgktpdydkssudgktpdydksdugtkdp", // keys의 값
+        },
+      ],
+    });
     setRoom(room);
 
     room.on(RoomEvent.TrackSubscribed, (_track, publication, participant) => {
