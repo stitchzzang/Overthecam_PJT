@@ -22,8 +22,6 @@ public enum BattleErrorCode implements ErrorCode {
     OPENVIDU_SESSION_ERROR(500, "OpenVidu 세션 생성에 실패했습니다"),
     MISSING_REQUIRED_FIELD(400, "필수 입력값이 누락되었습니다."),
 
-    OPENVIDU_SESSION_ERROR(500, "OpenVidu 세션 생성에 실패했습니다"),
-
     // 배틀 배팅 관련 에러
     INVALID_VOTE_RESULT(500, "투표 결과를 처리할 수 없습니다"),
     INVALID_BATTLE_STATUS(400, "현재 투표 가능한 상태가 아닙니다"),
