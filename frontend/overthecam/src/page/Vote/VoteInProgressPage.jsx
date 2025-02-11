@@ -18,39 +18,21 @@ const VoteInProgressPage = () => {
   const fetchVotes = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
       const response = await publicAxios.get(`/vote/list`, {
         params: {
           page: page - 1,
           size: 5
-        },
-        headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
 
       if (response.data?.content) {
-        const mappedVotes = response.data.content.map(vote => ({
-          ...vote,
-          hasVoted: vote.hasVoted
-        }));
-
-        setVotes(mappedVotes);
+        setVotes(response.data.content);
         setTotalPages(response.data.pageInfo.totalPages);
-        setCurrentList(mappedVotes);
+        setCurrentList(response.data.content);
       }
     } catch (err) {
       console.error('Error fetching votes:', err);
-      if (err.response?.status === 401) {
-        alert('로그인이 필요합니다.');
-        navigate('/login');
-      } else if (err.response?.status === 404) {
+      if (err.response?.status === 404) {
         setVotes([]);
         setCurrentList([]);
         setTotalPages(0);
@@ -68,7 +50,13 @@ const VoteInProgressPage = () => {
 
   const handleVote = async (voteId, optionId) => {
     try {
-      // 로컬 스토리지에서 사용자 정보 가져오기
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/login');
+        return;
+      }
+
       const userGender = localStorage.getItem('gender');
       const userAge = localStorage.getItem('age');
       
@@ -78,26 +66,20 @@ const VoteInProgressPage = () => {
         userAge: userAge
       };
 
-      await publicAxios.post(`/vote/${voteId}/vote/${optionId}`, voteData, {
+      await publicAxios.post(`/vote/${voteId}/vote`, voteData, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
-      // 투표 후 최신 데이터로 업데이트
+      // 투표 성공 후 즉시 데이터 갱신
       await fetchVotes();
     } catch (err) {
-      alert('투표 처리 중 오류가 발생했습니다.');
+      if (err.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/login');
+      }
     }
-  };
-
-  const calculateNewPercentages = (options, selectedOptionId) => {
-    const totalVotes = options.reduce((sum, option) => sum + option.voteCount, 0) + 1;
-    return options.map(option => 
-      option.optionId === selectedOptionId 
-        ? ((option.voteCount + 1) / totalVotes) * 100 
-        : (option.voteCount / totalVotes) * 100
-    );
   };
 
   const handleError = (err) => {
@@ -115,28 +97,22 @@ const VoteInProgressPage = () => {
 
   return (
     <div className="max-w-[800px] mx-auto p-4">
-      {/* 그라데이션 헤더 */}
       <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
         <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
       </div>
       
-      {/* 투표 목록 */}
       <div className="space-y-4 mt-4">
         {currentList.map((vote) => (
           <div key={vote.voteId} className="bg-white rounded-lg shadow-lg p-6">
-            {/* 투표 제목 - 클릭 시 디테일 페이지로 이동 */}
             <Link to={`/vote-detail/${vote.voteId}`}>
               <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
                 {vote.title}
               </h2>
             </Link>
             
-            {/* 투표 내용 */}
             <p className="text-gray-600 mb-4">{vote.content}</p>
 
-            {/* 투표 옵션 - hasVoted로 참여 여부 확인 */}
             {vote.hasVoted ? (
-              // 이미 투표한 경우 - 결과 그래프 표시
               <div className="mb-4">
                 <div className="flex justify-between mb-2">
                   <div className="text-red-500">A. {vote.options[0].optionTitle}</div>
@@ -162,7 +138,6 @@ const VoteInProgressPage = () => {
                 </div>
               </div>
             ) : (
-              // 아직 투표하지 않은 경우 - 투표 버튼 표시
               <div className="flex gap-4 mb-4">
                 <button
                   onClick={() => handleVote(vote.voteId, vote.options[0].optionId)}
@@ -179,7 +154,6 @@ const VoteInProgressPage = () => {
               </div>
             )}
 
-            {/* 메타 정보 */}
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>{vote.creatorNickname}</span>
               <span>·</span>
@@ -189,7 +163,6 @@ const VoteInProgressPage = () => {
         ))}
       </div>
 
-      {/* ItemShopPage와 동일한 페이지네이션 */}
       <div className="flex justify-center mt-6 pb-10">
         <div className="flex items-center gap-2">
           <button
