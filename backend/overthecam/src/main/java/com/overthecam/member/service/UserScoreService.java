@@ -50,7 +50,7 @@ public class UserScoreService {
         UserScoreInfo userScoreInfo = userRepository.findScoreAndPointByUserId(userId).get();
         int newPoints = userScoreInfo.getPoint() - points;
         if (newPoints < 0) {
-            throw new WebSocketException(WebSocketErrorCode.INSUFFICIENT_POINTS, "포인트가 부족합니다.");
+            throw new GlobalException(UserErrorCode.INSUFFICIENT_POINT, "포인트가 부족합니다.");
         }
         userRepository.updatePoint(userId, newPoints);
         return UserScoreInfo.updatePoints(newPoints);
