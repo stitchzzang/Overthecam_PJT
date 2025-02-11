@@ -1,5 +1,5 @@
 # 빌드 스테이지
-FROM node:22-alpine as build
+FROM node:22 as build
 
 WORKDIR /app
 
