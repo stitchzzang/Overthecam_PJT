@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { JoinRoom } from "../../service/BattleRoom/api";
-import { useBattleInitStore } from "../../store/Battle/BattleStore";
+import { useBattleStore } from "../../store/Battle/BattleStore";
 
 function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
   const navigate = useNavigate();
-  const setBattleInfo = useBattleInitStore((state) => state.setBattleInfo);
+  const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
 
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId);
