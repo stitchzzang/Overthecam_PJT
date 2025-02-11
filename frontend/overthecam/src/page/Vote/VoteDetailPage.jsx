@@ -17,8 +17,8 @@ export default function VoteDetailPage() {
         setLoading(true);
         const response = await authAxios.get(`/vote/${voteId}`);
         
-        if (response.data.success) {
-          const data = response.data.data;
+        if (response.success) {
+          const data = response.data;
           setVoteData({
             ...data,
             isCreator: Number(localStorage.getItem('userId')) === Number(data.creatorUserId)

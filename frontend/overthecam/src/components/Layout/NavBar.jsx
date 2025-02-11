@@ -14,7 +14,7 @@ export default function NavBar() {
   // Zustand store 사용
   const userStore = useUserStore();
   const isLoggedIn = userStore.isLoggedIn;
-  const userNickname = userStore.userNickname ? decodeURIComponent(escape(userStore.userNickname)) : null;
+  const userNickname = userStore.userNickname ? userStore.userNickname : null;
 
   // 로그인 상태 체크 함수
   const checkLoginStatus = () => {
@@ -25,12 +25,11 @@ export default function NavBar() {
       if (token && userInfoStr) {
         const parsedUserInfo = JSON.parse(userInfoStr);
         if (parsedUserInfo && parsedUserInfo.nickname) {
-          // UTF-8로 디코딩
-          const decodedNickname = decodeURIComponent(escape(parsedUserInfo.nickname));
+          // 디코딩 로직 제거
           console.log("로그인 상태 체크:", {
             token,
             isLoggedIn,
-            nickname: decodedNickname,
+            nickname: parsedUserInfo.nickname,
           });
         }
       }
