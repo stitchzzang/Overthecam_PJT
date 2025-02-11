@@ -8,15 +8,16 @@ import BattleChating from "../../components/BattleRoom/common/BattleChating";
 import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import axios from "axios";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
-  const { roomName, participantName, userToken } = battleInfo;
+  const [roomName, setRoomName] = useState(battleInfo.roomName);
   const navigate = useNavigate();
-  // openvidu 관련 설정정
+  // openvidu 관련 설정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
@@ -28,29 +29,29 @@ function BattleRoomPage() {
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
-        if (isDevelopment) {
-          const devBattleInfo = {
-            roomName: "개발용_방",
-            participantName: "개발자",
-            userToken: "dev_token",
-          };
+    if (isDevelopment) {
+      const devBattleInfo = {
+        roomName: "개발용_방",
+        participantName: "개발자",
+        userToken: "dev_token",
+      };
 
-          // 상태 업데이트
-          useBattleStore.getState().setBattleInfo(devBattleInfo);
+      // 상태 업데이트
+      useBattleStore.getState().setBattleInfo(devBattleInfo);
 
-          // localStorage에도 저장
-          localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
-        }
+      // localStorage에도 저장
+      localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
+    }
 
-        if (
-          !battleInfo.roomName &&
-          !battleInfo.participantName &&
-          !battleInfo.userToken &&
-          !isDevelopment
-        ) {
-          navigate("/");
-          return;
-        }
+    if (
+      !battleInfo.roomName &&
+      !battleInfo.participantName &&
+      !battleInfo.userToken &&
+      !isDevelopment
+    ) {
+      navigate("/");
+      return;
+    }
 
     async function initializeRoom() {
       try {
@@ -150,12 +151,34 @@ function BattleRoomPage() {
   }
 
   return (
-    <div className="room-container ">
-      <button onClick={leaveRoom} className="btn">
-        Leave Room
-      </button>
-      <div className="room-header">
-        <h2>{battleInfo.roomName}</h2>
+    <div className="room-container flex flex-col bg-white h-full p-5 rounded-xl m-4">
+      <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
+        <button
+          onClick={leaveRoom}
+          className="btn justify-start bg-cusLightBlue-light !rounded-xl flex items-center h-12"
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+          나가기
+        </button>
+        <div className="room-header-name w-1/2 m-1 text-2xl font-semibold">
+          <h2>방 제목</h2>
+        </div>
+        <div className="flex">
+          <div className="mx-1">
+            <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
+              랜덤 주제 생성기
+            </button>
+          </div>
+          <div className="mx-1">
+            <div
+              className="random-subject bg-cusGray-dark !rounded-xl flex items-center h-12 font-bold px-6 rounded-full border-transparent
+  shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  transition-all duration-300 ease-in-out transform scale-100 "
+            >
+              현재 참여 인원
+            </div>
+          </div>
+        </div>
       </div>
       <div>
         {isWaiting ? (
