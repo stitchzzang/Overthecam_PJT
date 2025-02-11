@@ -34,7 +34,7 @@ export const useBattleStore = create(
     }),
     {
       name: "battle-storage",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
