@@ -34,29 +34,29 @@ function BattleRoomPage() {
       // 필요한 처리 (예: 홈으로 리다이렉트)
     }
 
-    if (isDevelopment) {
-      const devBattleInfo = {
-        roomName: "개발용_방",
-        participantName: "개발자",
-        userToken: "dev_token",
-      };
+    // if (isDevelopment) {
+    //   const devBattleInfo = {
+    //     roomName: "개발용_방",
+    //     participantName: "개발자",
+    //     userToken: "dev_token",
+    //   };
 
-      // 상태 업데이트
-      useBattleStore.getState().setBattleInfo(devBattleInfo);
+    //   // 상태 업데이트
+    //   useBattleStore.getState().setBattleInfo(devBattleInfo);
 
-      // localStorage에도 저장
-      localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
-    }
+    //   // localStorage에도 저장
+    //   localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
+    // }
 
-    if (
-      !battleInfo.roomName &&
-      !battleInfo.participantName &&
-      !battleInfo.userToken &&
-      !isDevelopment
-    ) {
-      navigate("/");
-      return;
-    }
+    // if (
+    //   !battleInfo.roomName &&
+    //   !battleInfo.participantName &&
+    //   !battleInfo.userToken &&
+    //   !isDevelopment
+    // ) {
+    //   navigate("/");
+    //   return;
+    // }
 
     async function initializeRoom() {
       try {
