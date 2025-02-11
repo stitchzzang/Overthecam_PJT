@@ -1,4 +1,4 @@
-FROM node:20 as build
+FROM node:22 as build
 
 ARG VITE_BASE_URL
 ARG VITE_LIVEKIT_URL
