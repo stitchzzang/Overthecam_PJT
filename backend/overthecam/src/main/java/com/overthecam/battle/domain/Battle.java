@@ -19,23 +19,17 @@ public class Battle extends TimeStampEntity {
     @Column(name = "battle_id")
     private Long id;
 
-    private String sessionId;
-
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "room_url", nullable = false)
+    @Column(name = "room_url")
     private String roomUrl;
 
-    @Column(name = "thumbnail_url", nullable = false)
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
     @Column(name = "total_time")
     private Integer totalTime;
-
-    @Builder.Default
-    @Column(name = "user_count")
-    private Integer userCount = 0;
 
     @Builder.Default
     @Column(name = "status")
@@ -43,6 +37,7 @@ public class Battle extends TimeStampEntity {
 
     @Column(name = "total_users")
     private int totalUsers;
+
 
     public void updateStatus(Status status) {
         this.status = status;
@@ -55,10 +50,6 @@ public class Battle extends TimeStampEntity {
 
     public void updateTitle(String newTitle) {
         this.title = newTitle;
-    }
-
-    public void updateTotalTime(Integer totalTime) {
-        this.totalTime = totalTime;
     }
 }
 

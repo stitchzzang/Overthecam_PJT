@@ -57,7 +57,7 @@ function BattleMainPage() {
   return (
     <>
       <div className="battle-main-page">
-        <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue pt-6 pl-6">
+        <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
           <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
             배틀방 목록 보기
           </h1>

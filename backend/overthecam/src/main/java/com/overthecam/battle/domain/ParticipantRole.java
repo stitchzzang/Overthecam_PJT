@@ -4,12 +4,12 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 public enum ParticipantRole {
-    HOST(1),         // 001
-    PARTICIPANT(2),  // 010
-    HOST_PARTICIPANT(3), // 011
-    BATTLER(4),      // 100
-    HOST_BATTLER(5), // 101
-    PARTICIPANT_BATTLER(6); // 110
+    HOST(1),
+    PARTICIPANT(2),
+    HOST_PARTICIPANT(3),
+    BATTLER(4),
+    HOST_BATTLER(5),
+    PARTICIPANT_BATTLER(6);
 
     private final int value;
 
