@@ -1,4 +1,4 @@
-FROM node:20 as build  # 22 대신 20 사용 (현재 LTS 버전)
+FROM node:20 as build
 
 ARG VITE_BASE_URL
 ARG VITE_LIVEKIT_URL
