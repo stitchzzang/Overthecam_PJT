@@ -17,10 +17,10 @@ export default function VoteCreatingPage() {
       
       console.log("서버 응답:", response.data);
       
-      if (response.data.success && response.data.data?.voteId) {
-        navigate(`/vote-detail/${response.data.data.voteId}`);
+      if (response.success && response.data?.voteId) {
+        navigate(`/vote-detail/${response.data.voteId}`);
       } else {
-        throw new Error(response.data.error?.message || '투표 생성에 실패했습니다.');
+        throw new Error(response.error?.message || '투표 생성에 실패했습니다.');
       }
     } catch (error) {
       console.error("투표 생성 실패:", error);

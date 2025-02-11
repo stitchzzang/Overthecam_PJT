@@ -12,9 +12,9 @@ export default function NavBar() {
   const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);
 
   // Zustand store 사용
-  const userStore = useUserStore.getState();
+  const userStore = useUserStore();
   const isLoggedIn = userStore.isLoggedIn;
-  const userNickname = userStore.userNickname ? decodeURIComponent(escape(userStore.userNickname)) : null;
+  const userNickname = userStore.userNickname ? userStore.userNickname : null;
 
   // 로그인 상태 체크 함수
   const checkLoginStatus = () => {
@@ -25,12 +25,11 @@ export default function NavBar() {
       if (token && userInfoStr) {
         const parsedUserInfo = JSON.parse(userInfoStr);
         if (parsedUserInfo && parsedUserInfo.nickname) {
-          // UTF-8로 디코딩
-          const decodedNickname = decodeURIComponent(escape(parsedUserInfo.nickname));
+          // 디코딩 로직 제거
           console.log("로그인 상태 체크:", {
             token,
             isLoggedIn,
-            nickname: decodedNickname,
+            nickname: parsedUserInfo.nickname,
           });
         }
       }
@@ -53,12 +52,25 @@ export default function NavBar() {
   }, []);
 
   const handleLogout = () => {
+    // localStorage 데이터 삭제
     localStorage.removeItem("token");
     localStorage.removeItem("rememberMe");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userInfo");
+    localStorage.removeItem("userId");
     
+    // Zustand store 상태 초기화
+    useUserStore.setState({ 
+      isLoggedIn: false, 
+      userNickname: null,
+      userId: null 
+    });
+    
+    // UI 상태 초기화
     setIsProfileDropdownOpen(false);
+    setIsMobileProfileDropdownOpen(false);
+    
+    // 홈으로 이동
     navigate("/");
   };
 

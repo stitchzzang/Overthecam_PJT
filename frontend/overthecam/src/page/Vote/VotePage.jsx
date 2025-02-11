@@ -16,26 +16,25 @@ const VotePage = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const votedItems = getVotedItems();
-
+      
       if (!navigator.onLine) {
         setError('인터넷 연결이 없습니다. 네트워크 상태를 확인해주세요.');
         return;
       }
-
-      // status 파라미터 추가
+      
       const params = {
         page: page - 1,
         size: 5,
         includeVoteResult: true
       };
 
-      // voteStatus가 'all'이 아닐 때만 status 파라미터 추가
+      // 투표 상태가 'all'이 아닐 경우에만 status 파라미터 추가
       if (voteStatus !== 'all') {
         params.status = voteStatus;
       }
-
+      
       const response = await publicAxios.get('/vote/list', { params });
-
+      
       if (response.data?.content) {
         const votesWithResults = response.data.content.map(vote => ({
           ...vote,
@@ -48,19 +47,46 @@ const VotePage = () => {
         setCurrentList(votesWithResults);
         setTotalPages(response.data.pageInfo.totalPages);
         setError(null);
+      } else {
+        throw new Error('데이터 형식이 올바르지 않습니다.');
       }
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err.response?.data?.message || '오류가 발생했습니다.');
+      if (retryCount < maxRetries) {
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        return fetchVotes();
+      }
+      console.error('Fetch error:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        stack: err.stack
+      });
+      setCurrentList([]);
+      setTotalPages(0);
+      
+      if (err.response) {
+        if (err.response.status === 401) {
+          setError('로그인이 필요합니다.');
+        } else if (err.response.status === 404) {
+          setError('투표 목록을 찾을 수 없습니다.');
+        } else {
+          setError('서버 오류가 발생했습니다.');
+        }
+      } else if (err.request) {
+        setError('서버와의 연결에 실패했습니다.');
+      } else {
+        setError('투표 목록을 불러오는데 실패했습니다.');
+      }
     } finally {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     fetchVotes();
   }, [page, voteStatus]);
-
+  
   // 로컬 스토리지에서 투표 정보를 가져오는 함수
   const getVotedItems = () => {
     const userInfo = localStorage.getItem('userInfo');
@@ -81,37 +107,11 @@ const VotePage = () => {
     votedItems[voteId] = true;
     localStorage.setItem(`votedItems_${userId}`, JSON.stringify(votedItems));
   };
-
-  // 사용자 나이 계산 함수
-  const calculateAge = (birthDate) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
-
-  // 연령대 변환 함수
-  const getAgeGroup = (age) => {
-    if (age < 20) return '10';
-    if (age < 30) return '20';
-    if (age < 40) return '30';
-    if (age < 50) return '40';
-    return '50';
-  };
-
-  // 투표 처리 함수 수정
+  
   const handleVote = async (vote, optionId) => {
     try {
       const token = localStorage.getItem('token');
-      const userInfoStr = localStorage.getItem('userInfo');
-      
-      if (!token || !userInfoStr) {
+      if (!token) {
         alert('로그인이 필요합니다.');
         navigate('/login');
         return;
@@ -121,17 +121,7 @@ const VotePage = () => {
         return;
       }
 
-      // 사용자 정보에서 성별과 생년월일 가져오기
-      const userInfo = JSON.parse(userInfoStr);
-      const age = calculateAge(userInfo.birth);
-      const ageGroup = getAgeGroup(age);
-      const gender = userInfo.gender === 0 ? 'male' : 'female';
-
-      // 투표 요청에 성별과 연령대 정보 포함
-      const response = await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`, {
-        age: ageGroup,
-        gender: gender
-      });
+      const response = await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
 
       if (response.status === 200) {
         saveVotedItem(vote.voteId);
@@ -150,7 +140,6 @@ const VotePage = () => {
     }
   };
 
-  // 투표 결과 렌더링 함수
   const renderVoteResult = (vote) => (
     <div className="mb-4">
       {vote.options && vote.options.length >= 2 && (
@@ -186,93 +175,86 @@ const VotePage = () => {
 
   return (
     <div className="max-w-[800px] mx-auto p-4">
-      {/* 그라데이션 헤더 */}
       <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
         <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
       </div>
-
-      {/* 필터링 버튼 */}
-      <div className="flex justify-center gap-4 my-6">
+      
+      {/* 투표 상태 필터 버튼 추가 */}
+      <div className="flex gap-4 mt-6 mb-4">
         <button
           onClick={() => setVoteStatus('all')}
-          className={`px-6 py-2 rounded-full transition-colors ${
+          className={`px-4 py-2 rounded-lg ${
             voteStatus === 'all'
-              ? 'bg-gray-800 text-white'
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
           전체보기
         </button>
         <button
           onClick={() => setVoteStatus('active')}
-          className={`px-6 py-2 rounded-full transition-colors ${
+          className={`px-4 py-2 rounded-lg ${
             voteStatus === 'active'
-              ? 'bg-gray-800 text-white'
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
           진행중
         </button>
         <button
           onClick={() => setVoteStatus('ended')}
-          className={`px-6 py-2 rounded-full transition-colors ${
+          className={`px-4 py-2 rounded-lg ${
             voteStatus === 'ended'
-              ? 'bg-gray-800 text-white'
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
           종료됨
         </button>
       </div>
-
-      {/* 투표 목록 */}
+      
       <div className="space-y-4 mt-4">
-        {currentList.length > 0 ? (
-          currentList.map((vote) => (
-            <div key={vote.voteId} className="bg-white rounded-lg shadow-lg p-6">
-              <Link to={`/vote-detail/${vote.voteId}`}>
-                <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
-                  {vote.title}
-                </h2>
-              </Link>
-              
-              <p className="text-gray-600 mb-4">{vote.content}</p>
+        {currentList.map((vote) => (
+          <div key={vote.voteId} className="bg-white rounded-lg shadow-lg p-6">
+            <Link to={`/vote-detail/${vote.voteId}`}>
+              <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
+                {vote.title}
+              </h2>
+            </Link>
+            
+            <p className="text-gray-600 mb-4">{vote.content}</p>
 
-              <div className="transition-all duration-300">
-                {vote.hasVoted ? (
-                  renderVoteResult(vote)
-                ) : (
-                  <div className="flex gap-4 mb-4">
-                    {vote.options.map((option) => (
-                      <button
-                        key={option.optionId}
-                        onClick={() => handleVote(vote, option.optionId)}
-                        className={`flex-1 p-4 ${
-                          option.optionId === vote.options[0].optionId
-                            ? 'bg-red-100 hover:bg-red-200 text-red-500'
-                            : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                        } rounded-lg transition-colors`}
-                      >
-                        {option.optionTitle}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span>{vote.creatorNickname}</span>
-                <span>·</span>
-                <span>댓글 {vote.commentCount}</span>
-              </div>
+            <div className="transition-all duration-300">
+              {vote.hasVoted ? (
+                renderVoteResult(vote)
+              ) : (
+                <div className="flex gap-4 mb-4">
+                  {vote.options.map((option) => (
+                    <button
+                      key={option.optionId}
+                      onClick={() => handleVote(vote, option.optionId)}
+                      className={`flex-1 p-4 ${
+                        option.optionId === vote.options[0].optionId
+                          ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                          : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                      } rounded-lg transition-colors`}
+                    >
+                      {option.optionTitle}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          ))
-        ) : (
-          <div className="text-center py-8">투표가 없습니다.</div>
-        )}
+
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>{vote.creatorNickname}</span>
+              <span>·</span>
+              <span>댓글 {vote.commentCount}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* 페이지네이션 */}
       <div className="flex justify-center mt-6 pb-10">
         <div className="flex items-center gap-2">
           <button
@@ -320,4 +302,4 @@ const VotePage = () => {
   );
 };
 
-export default VotePage; 
+export default VotePage;

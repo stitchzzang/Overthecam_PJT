@@ -7,20 +7,20 @@ const useUserStore = create(
       userId: null,
       isLoggedIn: false,
       userNickname: null,
-      token: null,
+      // token: null,
       setUser: (userData) =>
         set((state) => ({
           userId: userData.userId,
           isLoggedIn: userData.isLoggedIn,
           userNickname: userData.userNickname,
-          token: userData.token,
+          // token: userData.token,
         })),
       clearUser: () => 
         set({ 
           userId: null, 
           isLoggedIn: false, 
           userNickname: null,
-          token: null,
+          // token: null,
         }),
     }),
     {

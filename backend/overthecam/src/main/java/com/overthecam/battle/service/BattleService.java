@@ -116,8 +116,8 @@ public class BattleService {
 
     public BattleRoomAllResponse getAllBattleRooms() {
 
-        // status 0, 1인 배틀방만 조회
-        List<Battle> battles = battleRepository.findByStatusIn(Arrays.asList(Status.WAITING, Status.PROGRESS));
+        // status 0, 1인 배틀방만 최신순으로 조회
+        List<Battle> battles = battleRepository.findByStatusInOrderByCreatedAtDesc(Arrays.asList(Status.WAITING, Status.PROGRESS));
 
 
         List<BattleInfo> battleInfos = battles.stream()

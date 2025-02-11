@@ -34,32 +34,34 @@ const Signup = () => {
 
     try {
       const signupData = {
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
-        username: formData.username,
-        nickname: formData.nickname,
-        gender: parseInt(formData.gender),
+        username: formData.username.trim(),
+        nickname: formData.nickname.trim(),
+        gender: formData.gender === "male" ? 0 : 1,
         birth: formData.birth,
-        phoneNumber: formData.phoneNumber
+        phoneNumber: formData.phoneNumber.trim()
       }
 
       const response = await publicAxios.post("/auth/signup", signupData)
       
       if (response.data) {
-        setMessage("회원가입이 완료되었습니다.")
+        setMessage("회원가입이 완료되었습니다")
         setIsError(false)
-        setTimeout(() => {
-          navigate("/login")
-        }, 2000)
+        window.location.replace("/")
       }
     } catch (error) {
       setIsError(true)
       if (error.response) {
-        setMessage(error.response.data.message || "회원가입에 실패했습니다.")
+        if (error.response.status === 409) {
+          setMessage("요청 중 오류가 발생했습니다.")
+        } else {
+          setMessage(error.response.data.message || "회원가입에 실패했습니다.")
+        }
       } else if (error.request) {
         setMessage("서버와의 통신에 실패했습니다.")
       } else {
-        setMessage("요청 중 오류가 발생했습니다.")
+        setMessage("이미 존재하는 이메일 또는 닉네임입니다.")
       }
     }
   }

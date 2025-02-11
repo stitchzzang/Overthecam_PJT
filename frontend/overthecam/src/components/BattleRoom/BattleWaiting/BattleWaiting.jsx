@@ -1,7 +1,9 @@
 import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
+import { useBattleStore } from "../../../store/Battle/BattleStore";
 
 function BattleWaiting({room, localTrack, remoteTracks}) {
+  const participantName = useBattleStore((state)=> state.participantName)
     return (
       <>
         <div className="video-grid">

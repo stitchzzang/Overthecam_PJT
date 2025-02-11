@@ -10,41 +10,18 @@ const VoteInProgressPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [currentList, setCurrentList] = useState([]);
 
-  let retryCount = 0;
-  const maxRetries = 3;
-
-  // 로컬 스토리지에서 투표 정보를 가져오는 함수
-  const getVotedItems = () => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (!userInfo) return {};
-    
-    const userId = JSON.parse(userInfo).userId;
-    const votedItems = localStorage.getItem(`votedItems_${userId}`);
-    return votedItems ? JSON.parse(votedItems) : {};
-  };
-
-  // 투표 정보를 로컬 스토리지에 저장하는 함수
-  const saveVotedItem = (voteId) => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (!userInfo) return;
-    
-    const userId = JSON.parse(userInfo).userId;
-    const votedItems = getVotedItems();
-    votedItems[voteId] = true;
-    localStorage.setItem(`votedItems_${userId}`, JSON.stringify(votedItems));
-  };
-
+  
   const fetchVotes = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const votedItems = getVotedItems();
-
+      
       if (!navigator.onLine) {
         setError('인터넷 연결이 없습니다. 네트워크 상태를 확인해주세요.');
         return;
       }
-
+      
       const response = await publicAxios.get('/vote/list', {
         params: {
           page: page - 1,
@@ -52,7 +29,7 @@ const VoteInProgressPage = () => {
           includeVoteResult: true
         }
       });
-
+      
       if (response.data?.content) {
         const votesWithResults = response.data.content.map(vote => ({
           ...vote,
@@ -100,11 +77,32 @@ const VoteInProgressPage = () => {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     fetchVotes();
   }, [page]);
+  
+  // 로컬 스토리지에서 투표 정보를 가져오는 함수
+  const getVotedItems = () => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (!userInfo) return {};
+    
+    const userId = JSON.parse(userInfo).userId;
+    const votedItems = localStorage.getItem(`votedItems_${userId}`);
+    return votedItems ? JSON.parse(votedItems) : {};
+  };
 
+  // 투표 정보를 로컬 스토리지에 저장하는 함수
+  const saveVotedItem = (voteId) => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (!userInfo) return;
+    
+    const userId = JSON.parse(userInfo).userId;
+    const votedItems = getVotedItems();
+    votedItems[voteId] = true;
+    localStorage.setItem(`votedItems_${userId}`, JSON.stringify(votedItems));
+  };
+  
   const handleVote = async (vote, optionId) => {
     try {
       const token = localStorage.getItem('token');

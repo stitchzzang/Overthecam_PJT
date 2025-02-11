@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { publicAxios, authAxios } from '../../common/axiosinstance';
+import { authAxios } from '../../common/axiosinstance';
 import VoteDetail from '../../components/Vote/VoteDetail';
 import VoteDetailComment from '../../components/Vote/VoteDetailComment';
 
@@ -17,8 +17,8 @@ export default function VoteDetailPage() {
         setLoading(true);
         const response = await authAxios.get(`/vote/${voteId}`);
         
-        if (response.data.success) {
-          const data = response.data.data;
+        if (response.success) {
+          const data = response.data;
           setVoteData({
             ...data,
             isCreator: Number(localStorage.getItem('userId')) === Number(data.creatorUserId)

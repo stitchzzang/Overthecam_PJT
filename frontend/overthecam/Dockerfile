@@ -8,11 +8,15 @@ ENV VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}
 
 WORKDIR /app
 
-# 프로젝트 전체 복사 (순서 변경)
-COPY . .
+# package.json과 package-lock.json만 먼저 복사
+COPY package*.json ./
 
-# npm 패키지 설치
-RUN npm ci
+# npm 캐시 정리 후 패키지 설치
+RUN npm cache clean --force && \
+    npm ci --production
+
+# 나머지 파일들 복사
+COPY . .
 
 # React 빌드
 RUN npm run build
