@@ -164,18 +164,9 @@ const Login = () => {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-gray-50 text-gray-500">또는</span>
-              </div>
+             
             </div>
 
-            <button
-              type="button"
-              className="w-full bg-[#FEE500] text-gray-800 py-3.5 rounded-xl hover:bg-[#FDD800] transition-colors font-medium flex items-center justify-center gap-2"
-            >
-              <img src="/kakao-icon.png" alt="Kakao" className="w-5 h-5" />
-              Login with Kakao
-            </button>
 
             <div className="flex justify-center items-center space-x-6 text-sm text-gray-500">
               <Link to="/find-account" className="hover:text-gray-700">
