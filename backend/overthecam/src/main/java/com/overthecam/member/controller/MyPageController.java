@@ -3,17 +3,19 @@ package com.overthecam.member.controller;
 import com.overthecam.auth.domain.User;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.member.dto.*;
-import com.overthecam.member.service.BattleHIstoryService;
-import com.overthecam.member.service.MyPageService;
-import com.overthecam.member.service.UserFollowService;
-import com.overthecam.member.service.UserScoreService;
+import com.overthecam.member.repository.VoteStatsPageResponse;
+import com.overthecam.member.service.*;
 import com.overthecam.security.util.SecurityUtils;
+import com.overthecam.vote.dto.VoteDetailResponse;
+import com.overthecam.vote.repository.VotePageResponse;
+import com.overthecam.vote.service.VoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/mypage")
@@ -25,6 +27,7 @@ public class MyPageController {
     private final BattleHIstoryService battleHIstoryService;
     private final UserScoreService userScoreService;
     private final UserFollowService userFollowService;
+    private final VoteHistoryService voteHistoryService;
 
 
     @GetMapping("/revert")
@@ -40,6 +43,41 @@ public class MyPageController {
                 targetUserId :
                 securityUtils.getCurrentUserId(authentication);
         return CommonResponseDto.ok(battleHIstoryService.findBattleHistoryViewByUserId(userId));
+    }
+
+    @GetMapping("/vote/history")
+    public CommonResponseDto<VoteStatsPageResponse> getMyVotes(
+            Authentication authentication,
+            @RequestParam(value = "userId", required = false) Long targetUserId,
+            @RequestParam(value = "createdByMe", defaultValue = "false") boolean createdByMe,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Long userId = targetUserId != null ?
+                targetUserId :
+                securityUtils.getCurrentUserId(authentication);
+
+        // 1부터 시작하는 페이지 번호를 0부터 시작하도록 조정
+        Pageable adjustedPageable = PageRequest.of(page - 1,
+                pageable.getPageSize(),
+                pageable.getSort());
+
+        VoteStatsPageResponse response = voteHistoryService.getMyVotes(userId, createdByMe, adjustedPageable);
+        return CommonResponseDto.ok(response);
+    }
+
+    @GetMapping("/vote/detail/{voteId}")
+    public CommonResponseDto<VoteDetailResponse> getVoteDetail(
+            Authentication authentication,
+            @PathVariable Long voteId,
+            @RequestParam(value = "userId", required = false) Long targetUserId
+    ) {
+        Long userId = targetUserId != null ?
+                targetUserId :
+                securityUtils.getCurrentUserId(authentication);
+
+        VoteDetailResponse response = voteHistoryService.getVoteDetail(voteId, userId);
+        return CommonResponseDto.ok(response);
     }
 
     @GetMapping("/stats")
