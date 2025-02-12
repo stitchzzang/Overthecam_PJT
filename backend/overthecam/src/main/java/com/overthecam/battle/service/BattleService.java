@@ -114,27 +114,69 @@ public class BattleService {
                 .build();
     }
 
+    @Transactional
     public BattleRoomAllResponse getAllBattleRooms() {
-
         // status 0, 1인 배틀방만 최신순으로 조회
         List<Battle> battles = battleRepository.findByStatusInOrderByCreatedAtDesc(Arrays.asList(Status.WAITING, Status.PROGRESS));
 
-
         List<BattleInfo> battleInfos = battles.stream()
-                .map(battle -> BattleInfo.builder()
-                        .battleId(battle.getId())
-                        .thumbnailUrl(battle.getThumbnailUrl())
-                        .title(battle.getTitle())
-                        .status(battle.getStatus().getCode())
-                        .totalUsers(battle.getTotalUsers())
-                        .build())
+                .map(battle -> {
+                    // 6명이 된 방은 상태를 COMPLETED로 변경
+                    if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
+                        battle.updateStatus(Status.PROGRESS);
+                        battleRepository.save(battle);
+                        log.info("배틀룸 {} 인원이 6명이 되어 상태가 COMPLETED로 변경되었습니다.", battle.getId());
+                    }
+
+                    return BattleInfo.builder()
+                            .battleId(battle.getId())
+                            .thumbnailUrl(battle.getThumbnailUrl())
+                            .title(battle.getTitle())
+                            .status(battle.getStatus().getCode())
+                            .totalUsers(battle.getTotalUsers())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return BattleRoomAllResponse.builder()
                 .battleInfo(battleInfos)
                 .build();
-
     }
 
 
+    @Transactional
+    public void handleUserLeave(Long battleId, Long userId) {
+        Battle battle = battleRepository.findById(battleId)
+                .orElseThrow(() -> new RuntimeException("배틀룸을 찾을 수 없습니다."));
+
+        // 현재 참가자 수를 직접 조회
+        long currentParticipants = battleParticipantRepository.countByBattleId(battleId);
+        log.info("Battle {} 현재 참가자 수 조회: {}", battleId, currentParticipants);
+
+        // 해당 유저의 참가 정보 삭제
+        battleParticipantRepository.deleteByBattleIdAndUserId(battleId, userId);
+
+        // 참가자 삭제 후 남은 참가자 수 재조회
+        long remainingParticipants = battleParticipantRepository.countByBattleId(battleId);
+        log.info("Battle {} 남은 참가자 수: {}", battleId, remainingParticipants);
+
+        if (remainingParticipants <= 0) {
+            battleRepository.delete(battle);
+            log.info("배틀룸 {} 인원이 0명이 되어 삭제되었습니다.", battleId);
+            return;
+        }
+
+        // 배틀룸의 총 참가자 수 업데이트
+        battle.updateTotalUsers((int) remainingParticipants);
+
+        // 6명 미만이면 상태를 WAITING으로 변경
+        if (remainingParticipants < 6 && battle.getStatus() == Status.END) {
+            battle.updateStatus(Status.WAITING);
+            log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battleId);
+        }
+
+        Battle savedBattle = battleRepository.save(battle);
+        log.info("사용자 {} 가 배틀룸 {} 에서 퇴장했습니다. 최종 인원: {}",
+                userId, battleId, savedBattle.getTotalUsers());
+    }
 }
