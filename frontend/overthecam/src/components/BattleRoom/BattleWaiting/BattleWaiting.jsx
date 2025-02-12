@@ -42,7 +42,7 @@ function BattleWaiting({
     });
 
   return (
-    <div className="w-full h-full p-4 mt-3">
+    <div className="w-full h-3/4 p-4 mt-3">
       <div className="grid grid-cols-3 grid-rows-2 gap-4">
         {slots.map((slot, index) => (
           <div key={index} className="flex flex-col">
