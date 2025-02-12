@@ -10,6 +10,7 @@ import axios from "axios";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import FailAlertModal from "../../components/@common/FailAlertModal";
+import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -24,6 +25,7 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(true);
+  const battlerSettingModal = useRef();
   // 예외처리 토스트 모달
   const failTost = useRef();
 
@@ -235,6 +237,10 @@ function BattleRoomPage() {
     navigate("/");
   }
 
+  const battlerModalShow = (e) => {
+    battlerSettingModal.current?.showModal();
+  };
+
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
       <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
@@ -255,7 +261,10 @@ function BattleRoomPage() {
             </button>
           </div>
           <div className="mx-1">
-            <button className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12">
+            <button
+              onClick={battlerModalShow}
+              className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
+            >
               배틀러 선정하기
             </button>
           </div>
@@ -287,6 +296,7 @@ function BattleRoomPage() {
           <></>
         )}
       </div>
+      <BattlerSettingModal ref={battlerSettingModal} />
       <FailAlertModal ref={failTost} />
     </div>
   );
