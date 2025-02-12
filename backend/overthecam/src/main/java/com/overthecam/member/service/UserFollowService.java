@@ -71,24 +71,14 @@ public class UserFollowService {
                         userType + " ID: " + userId + "를 찾을 수 없습니다"));
     }
 
-    // 내가(follower) → 팔로우하는 사람들(following)
-    public List<UserProfileInfo> getMyFollowingList(Long userId) {
-        return userFollowRepository.findFollowingListWithStatus(userId, userId);
+    // 팔로잉 목록 조회 (내 것이든 다른 사람 것이든)
+    public List<UserProfileInfo> getFollowingList(Long targetUserId, Long currentUserId) {
+        return userFollowRepository.findFollowingListWithStatus(targetUserId, currentUserId);
     }
 
-    // 나를(following) → 팔로우하는 사람들(follower)
-    public List<UserProfileInfo> getMyFollowerList(Long userId) {
-        return userFollowRepository.findFollowerListWithStatus(userId, userId);
-    }
-
-    // 특정 사용자의 팔로잉 목록 조회
-    public List<UserProfileInfo> getOtherFollowingList(Long userId, Long currentUserId) {
-        return userFollowRepository.findFollowingListWithStatus(userId, currentUserId);
-    }
-
-    // 특정 사용자의 팔로워 목록 조회
-    public List<UserProfileInfo> getOtherFollowerList(Long userId, Long currentUserId) {
-        return userFollowRepository.findFollowerListWithStatus(userId, currentUserId);
+    // 팔로워 목록 조회 (내 것이든 다른 사람 것이든)
+    public List<UserProfileInfo> getFollowerList(Long targetUserId, Long currentUserId) {
+        return userFollowRepository.findFollowerListWithStatus(targetUserId, currentUserId);
     }
 
 }
