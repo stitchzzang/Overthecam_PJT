@@ -122,38 +122,40 @@ const VotePage = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="max-w-[800px] mx-auto p-4">
-      <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
-        <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
+    <div className="vote-main-page bg-cusGray-light min-h-screen">
+      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
+          투표 목록 보기
+        </h1>
       </div>
       
       <div className="flex gap-4 mt-6 mb-4">
         <button
           onClick={() => setVoteStatus('all')}
-          className={`px-4 py-2 rounded-lg ${
+          className={`clay px-6 py-2 rounded-xl transition-colors ${
             voteStatus === 'all'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-cusBlue text-white'
+              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
           }`}
         >
           전체보기
         </button>
         <button
           onClick={() => setVoteStatus('active')}
-          className={`px-4 py-2 rounded-lg ${
+          className={`clay px-6 py-2 rounded-xl transition-colors ${
             voteStatus === 'active'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-cusBlue text-white'
+              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
           }`}
         >
           진행중
         </button>
         <button
           onClick={() => setVoteStatus('ended')}
-          className={`px-4 py-2 rounded-lg ${
+          className={`clay px-6 py-2 rounded-xl transition-colors ${
             voteStatus === 'ended'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-cusBlue text-white'
+              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
           }`}
         >
           종료됨
