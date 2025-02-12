@@ -8,30 +8,35 @@ export default function VoteDetailPage() {
   const navigate = useNavigate();
   const { voteId } = useParams();
   const [voteData, setVoteData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchVoteDetail = async () => {
       try {
+        setLoading(true);
         const response = await authAxios.get(`/vote/${voteId}`);
-        console.log('Vote detail response:', response.data);
         
-        if (response.data.success) {
-          // userId와 creatorUserId를 포함하여 데이터 설정
-          const data = response.data.data;
-          console.log('Current userId:', localStorage.getItem('userId'));
-          console.log('Creator userId:', data.creatorUserId);
-          
+        if (response.success) {
+          const data = response.data;
           setVoteData({
             ...data,
             isCreator: Number(localStorage.getItem('userId')) === Number(data.creatorUserId)
           });
+          setError(null);
+        } else {
+          throw new Error('투표 정보를 불러오는데 실패했습니다.');
         }
       } catch (error) {
         console.error('Failed to fetch vote:', error);
+        setError('투표 정보를 불러오는데 실패했습니다.');
+        
         if (error.response?.status === 401) {
           alert('로그인이 필요합니다.');
           navigate('/login');
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -40,83 +45,31 @@ export default function VoteDetailPage() {
 
   const handleDelete = async () => {
     try {
-      // 사용자 정보와 토큰 확인
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
       const token = localStorage.getItem('token');
-      
-      if (!userInfo.userId || !token) {
+      if (!token) {
         alert('로그인이 필요합니다.');
         navigate('/login');
         return false;
       }
 
-      // 권한 체크
-      if (Number(userInfo.userId) !== Number(voteData.creatorUserId)) {
-        alert('삭제 권한이 없습니다.');
-        return false;
-      }
-
-      const response = await authAxios({
-        method: 'DELETE',
-        url: `/vote/${voteId}`,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        data: { userId: userInfo.userId }  // 필요한 경우 userId 전송
-      });
-
-      console.log('Delete API Response:', response);
-
-      // 성공 처리
-      if (response.status === 200 || response.status === 204 || response.data?.success) {
-        alert('투표가 삭제되었습니다.');
-        navigate('/vote-inprogress', { replace: true });
-        return true;
-      }
-
-      throw new Error('투표 삭제에 실패했습니다.');
+      // publicAxios 대신 authAxios 사용
+      await authAxios.delete(`/vote/${voteId}`);
+      
+      navigate('/vote', { replace: true });
+      return true;
     } catch (error) {
-      console.error('Delete error details:', {
-        error,
-        response: error.response?.data,
-        status: error.response?.status,
-        message: error.message
-      });
-
-      // 서버 에러 상세 정보
-      if (error.response?.data?.error) {
-        console.error('Server error details:', error.response.data.error);
+      console.error('Delete error:', error);
+      if (error.response?.status === 403) {
+        alert('투표를 삭제할 권한이 없습니다.');
+      } else {
+        alert('투표 삭제에 실패했습니다.');
       }
-
-      let errorMessage;
-      switch (error.response?.status) {
-        case 400:
-          errorMessage = '잘못된 요청입니다.';
-          break;
-        case 401:
-          errorMessage = '로그인이 필요합니다.';
-          navigate('/login');
-          break;
-        case 403:
-          errorMessage = '삭제 권한이 없습니다.';
-          break;
-        case 404:
-          errorMessage = '투표를 찾을 수 없습니다.';
-          break;
-        case 500:
-          errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-          break;
-        default:
-          errorMessage = '투표 삭제 중 오류가 발생했습니다.';
-      }
-
-      alert(errorMessage);
       return false;
     }
   };
 
-  if (!voteData) return <div>로딩 중...</div>;
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div>

@@ -5,7 +5,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
 
   // creatorUserId로 비교 로직 수정
   const userInfo = localStorage.getItem('userInfo');
-  console.log('currentUserId:', userInfo);
   const currentUserId = JSON.parse(userInfo).userId;
   const isCreator = Number(currentUserId) === Number(voteData?.creatorUserId);
 
@@ -16,9 +15,69 @@ const VoteDetail = ({ voteData, onDelete }) => {
   });
 
   const handleDeleteClick = async () => {
-    const success = await onDelete();
-    if (success) {
-      setShowDeleteModal(false);
+    const confirmed = window.confirm('정말로 이 투표를 삭제하시겠습니까?');
+    if (confirmed) {
+      const success = await onDelete();
+      if (success) {
+        // 삭제 성공 시 추가 처리
+      }
+    }
+  };
+
+  // 사용자 나이 계산 함수
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+  // 연령대 변환 함수
+  const getAgeGroup = (age) => {
+    if (age < 20) return '10';
+    if (age < 30) return '20';
+    if (age < 40) return '30';
+    if (age < 50) return '40';
+    return '50';
+  };
+
+  // 투표 처리 함수 수정
+  const handleVote = async (optionId) => {
+    try {
+      const userInfoStr = localStorage.getItem('userInfo');
+      if (!userInfoStr) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      // 사용자 정보에서 성별과 생년월일 가져오기
+      const userInfo = JSON.parse(userInfoStr);
+      const age = calculateAge(userInfo.birth);
+      const ageGroup = getAgeGroup(age);
+      const gender = userInfo.gender === 0 ? 'male' : 'female';
+
+      // 투표 요청에 성별과 연령대 정보 포함
+      const response = await authAxios.post(`/vote/${voteData.voteId}/vote/${optionId}`, {
+        age: ageGroup,
+        gender: gender
+      });
+
+      if (response.status === 200) {
+        window.location.reload(); // 또는 다른 상태 업데이트 방식 사용
+      }
+    } catch (error) {
+      console.error('투표 처리 중 오류 발생:', error);
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+      } else {
+        alert('투표 처리 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -87,18 +146,18 @@ const VoteDetail = ({ voteData, onDelete }) => {
               <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
                   className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                  style={{ width: `${voteData.options[0].genderDistribution?.male || 0}%` }}
+                  style={{ width: `${voteData.options[0].genderDistribution['남성'] || 0}%` }}
                 >
-                  {Math.round(voteData.options[0].genderDistribution?.male || 0)}%
+                  {Math.round(voteData.options[0].genderDistribution['남성'] || 0)}%
                 </div>
               </div>
               <span className="w-16 text-center font-bold">남성</span>
               <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
                   className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                  style={{ width: `${voteData.options[1].genderDistribution?.male || 0}%` }}
+                  style={{ width: `${voteData.options[1].genderDistribution['남성'] || 0}%` }}
                 >
-                  {Math.round(voteData.options[1].genderDistribution?.male || 0)}%
+                  {Math.round(voteData.options[1].genderDistribution['남성'] || 0)}%
                 </div>
               </div>
             </div>
@@ -107,18 +166,18 @@ const VoteDetail = ({ voteData, onDelete }) => {
               <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
                   className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                  style={{ width: `${voteData.options[0].genderDistribution?.female || 0}%` }}
+                  style={{ width: `${voteData.options[0].genderDistribution['여성'] || 0}%` }}
                 >
-                  {Math.round(voteData.options[0].genderDistribution?.female || 0)}%
+                  {Math.round(voteData.options[0].genderDistribution['여성'] || 0)}%
                 </div>
               </div>
               <span className="w-16 text-center font-bold">여성</span>
               <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                 <div
                   className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                  style={{ width: `${voteData.options[1].genderDistribution?.female || 0}%` }}
+                  style={{ width: `${voteData.options[1].genderDistribution['여성'] || 0}%` }}
                 >
-                  {Math.round(voteData.options[1].genderDistribution?.female || 0)}%
+                  {Math.round(voteData.options[1].genderDistribution['여성'] || 0)}%
                 </div>
               </div>
             </div>
@@ -129,23 +188,23 @@ const VoteDetail = ({ voteData, onDelete }) => {
         <div className="mb-8">
           <h3 className="text-xl font-bold text-center mb-4">연령별 통계</h3>
           <div className="space-y-3">
-            {['10', '20', '30', '40'].map((age) => (
+            {['10대', '20대', '30대', '40대', '50대 이상'].map((age) => (
               <div key={age} className="flex items-center justify-center gap-4">
                 <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                   <div
                     className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                    style={{ width: `${voteData.options[0].ageDistribution?.[age] || 0}%` }}
+                    style={{ width: `${voteData.options[0].ageDistribution[age] || 0}%` }}
                   >
-                    {Math.round(voteData.options[0].ageDistribution?.[age] || 0)}%
+                    {Math.round(voteData.options[0].ageDistribution[age] || 0)}%
                   </div>
                 </div>
-                <span className="w-16 text-center font-bold">{age}대</span>
+                <span className="w-16 text-center font-bold">{age}</span>
                 <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
                   <div
                     className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                    style={{ width: `${voteData.options[1].ageDistribution?.[age] || 0}%` }}
+                    style={{ width: `${voteData.options[1].ageDistribution[age] || 0}%` }}
                   >
-                    {Math.round(voteData.options[1].ageDistribution?.[age] || 0)}%
+                    {Math.round(voteData.options[1].ageDistribution[age] || 0)}%
                   </div>
                 </div>
               </div>
@@ -169,7 +228,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
               댓글 {voteData.commentCount}개
             </span>
           </div>
-          {/* creatorUserId 일치 시 삭제 버튼 표시 */}
           {isCreator && (
             <button 
               onClick={() => setShowDeleteModal(true)}
@@ -190,13 +248,13 @@ const VoteDetail = ({ voteData, onDelete }) => {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={handleDeleteClick}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
               >
                 삭제
               </button>

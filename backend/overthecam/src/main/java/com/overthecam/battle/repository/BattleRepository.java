@@ -12,4 +12,8 @@ public interface BattleRepository extends JpaRepository<Battle, Long> {
     long countUsersById(Long battleId);  // 참가자 수 카운트 메서드
 
     List<Battle> findByStatusIn(List<Status> list);
+
+    // 상태 목록으로 조회 + 생성일시 내림차순 정렬
+    List<Battle> findByStatusInOrderByCreatedAtDesc(List<Status> list);
+
 }

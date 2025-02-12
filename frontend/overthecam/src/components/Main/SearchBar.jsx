@@ -1,13 +1,20 @@
 import { useState } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-const SearchBar = ({ placeholder = "Search..." }) => {
+const SearchBar = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchTerm);
-    setSearchTerm("");
+    onSearch(searchTerm.trim());  // 빈 문자열도 전달하도록 수정
+  };
+
+  const handleChange = (e) => {
+    const newValue = e.target.value;
+    setSearchTerm(newValue);
+    if (newValue === '') {  // 입력값이 비어있으면
+      onSearch('');  // 빈 문자열 전달
+    }
   };
 
   return (
@@ -19,8 +26,8 @@ const SearchBar = ({ placeholder = "Search..." }) => {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={placeholder}
+                onChange={handleChange}
+                placeholder=""
                 className="w-full h-16 px-4 py-2 rounded-2xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
               />
               <button

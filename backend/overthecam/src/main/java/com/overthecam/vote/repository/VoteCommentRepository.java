@@ -11,4 +11,7 @@ public interface VoteCommentRepository extends JpaRepository<VoteComment, Long> 
 
     // 댓글 개수 조회
     long countByVote_VoteId(Long voteId);
+
+    // 투표 ID로 댓글 삭제
+    void deleteByVote_VoteId(Long voteId);
 }

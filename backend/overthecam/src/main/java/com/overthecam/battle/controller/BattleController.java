@@ -75,7 +75,7 @@ public class BattleController {
         if (roomName == null || participantName == null) {
             return ResponseEntity.ok(
                     CommonResponseDto.error(
-                            ErrorResponse.of(BattleErrorCode.INVALID_PARTICIPANT_COUNT)
+                            ErrorResponse.of(BattleErrorCode.MISSING_REQUIRED_FIELD) // 필수 값 누락 오류
                     )
             );
         }
@@ -83,8 +83,8 @@ public class BattleController {
         try {
             // LiveKit 토큰 생성
             AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
-            token.setName(user.getNickname());  // 사용자 닉네임 사용
-            token.setIdentity(userId.toString());
+            token.setName(participantName);
+            token.setIdentity(participantName);
             token.addGrants(new RoomJoin(true), new RoomName(roomName));
             String tokenStr = token.toJwt();
 
@@ -124,32 +124,48 @@ public class BattleController {
     /**
      * 배틀방 참가 토큰을 발급합니다.
      *
-     * @param battleId 참가할 배틀방 ID
-     * @param user     참가자 정보
+     * @param battleId       참가할 배틀방 ID
+     * @param authentication 참가자 정보
      * @return 발급된 토큰 정보
      */
     @PostMapping("/room/{battleId}/join")
     public ResponseEntity<CommonResponseDto<?>> joinBattleRoom(
             @PathVariable Long battleId,
-            @RequestAttribute("user") User user) {
+            @RequestBody Map<String, String> params,
+            Authentication authentication) {
+
+        String participantName = params.get("participantName"); // 참가자의 이름을 요청에서 받음
+
+        if (participantName == null) {
+            return ResponseEntity.ok(
+                    CommonResponseDto.error(
+                            ErrorResponse.of(BattleErrorCode.MISSING_REQUIRED_FIELD) // 필수 값 누락 오류
+                    )
+            );
+        }
 
         try {
+            // 현재 인증된 사용자의 ID 가져오기
+            Long userId = securityUtils.getCurrentUserId(authentication);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 배틀방 정보 조회
             Battle battle = battleRepository.findById(battleId)
                     .orElseThrow(() -> new RuntimeException("Battle not found"));
 
-
             // LiveKit 토큰 생성
             AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
-            token.setName(user.getNickname());
-            token.setIdentity(user.getId().toString());
+            token.setName(participantName);
+            token.setIdentity(user.getId().toString()); // 유저 ID를 Identity로 사용
             token.addGrants(new RoomJoin(true), new RoomName(battle.getTitle()));
             String tokenStr = token.toJwt();
 
-            // 참가자 등록
+            // 참가자 등록 (방장이 아닌 일반 참가자로 설정)
             BattleParticipant participant = BattleParticipant.builder()
                     .battle(battle)
                     .user(user)
-                    .role(ParticipantRole.PARTICIPANT)
+                    .role(ParticipantRole.PARTICIPANT) // 일반 참가자로 설정
                     .build();
             battleParticipantRepository.save(participant);
 
@@ -171,6 +187,7 @@ public class BattleController {
             );
         }
     }
+
 
     /**
      * 배틀러 선정 API

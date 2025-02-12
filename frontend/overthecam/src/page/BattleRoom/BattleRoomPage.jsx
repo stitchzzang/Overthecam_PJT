@@ -4,50 +4,106 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import VideoComponent from "../../components/BattleRoom/VideoComponent";
 import AudioComponent from "../../components/BattleRoom/AudioComponent";
-import BattleChating from "../../components/BattleRoom/BattleChating";
-import BattleTimer from "../../components/BattleRoom/BattleTimer";
+import BattleChating from "../../components/BattleRoom/common/BattleChating";
+import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import axios from "axios";
+import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
-const APPLICATION_SERVER_URL = import.meta.env.VITE_BASE_URL;
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
-  const { roomName, participantName } = battleInfo;
   const navigate = useNavigate();
-
+  // openvidu 관련 설정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
+  // 방 게임 설정 관련
+  const [isWaiting, setIsWaiting] = useState(true);
+  const [isMaster, setIsMaster] = useState(true);
+  // 개발 환경인지 체크
+  const isDevelopment = import.meta.env.MODE === "development";
 
+  // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
-    async function checkMediaPermissions() {
+    if (!battleInfo.battleId) {
+      console.log("Battle info is missing!");
+      navigate("/");
+      // 필요한 처리 (예: 홈으로 리다이렉트)
+    }
+
+    // if (isDevelopment) {
+    //   const devBattleInfo = {
+    //     roomName: "개발용_방",
+    //     participantName: "개발자",
+    //     userToken: "dev_token",
+    //   };
+
+    //   // 상태 업데이트
+    //   useBattleStore.getState().setBattleInfo(devBattleInfo);
+
+    //   // localStorage에도 저장
+    //   localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
+    // }
+
+    // if (
+    //   !battleInfo.roomName &&
+    //   !battleInfo.participantName &&
+    //   !battleInfo.userToken &&
+    //   !isDevelopment
+    // ) {
+    //   navigate("/");
+    //   return;
+    // }
+
+    async function initializeRoom() {
       try {
         await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         console.log("Media permissions granted");
+        await joinRoom();
       } catch (error) {
-        console.error("Media permissions denied:", error);
+        console.error("Room initialization error:", error);
+        navigate("/");
       }
     }
 
-    if (roomName && participantName) {
-      checkMediaPermissions();
-      joinRoom();
-    }
+    console.log(
+      "방에 조인하게됨:",
+      battleInfo.roomName,
+      battleInfo.participantName
+    );
+    initializeRoom();
 
     return () => {
       leaveRoom();
     };
-  }, [roomName, participantName]);
+  }, []); // 빈 의존성 배열이 맞습니다 - 마운트 시 한 번만 실행
 
   async function joinRoom() {
     console.log("Starting joinRoom with:", {
-      roomName,
-      participantName,
       LIVEKIT_URL,
     });
-    const room = new Room();
+    const room = new Room({
+      iceServers: [
+        {
+          urls: [
+            "stun:stun1.l.google.com:19302",
+            "stun:stun2.l.google.com:19302",
+            "stun:overthecam.site:443", // livekit.yaml의 turn.udp_port 값 사용
+          ],
+        },
+        {
+          urls: [
+            "turn:overthecam.site:3478", // UDP TURN
+            "turns:overthecam.site:5349", // TLS TURN (turn.tls_port 값)
+          ],
+          username: "overthecam", // keys의 키 값
+          credential: "dkssudgktpdydkssudgktpdydksdugtkdp", // keys의 값
+        },
+      ],
+    });
     setRoom(room);
 
     room.on(RoomEvent.TrackSubscribed, (_track, publication, participant) => {
@@ -83,7 +139,7 @@ function BattleRoomPage() {
     });
 
     try {
-      const token = await getToken(roomName, participantName);
+      const token = battleInfo.userToken;
       console.log("Received token:", token);
 
       await room.connect(LIVEKIT_URL, token);
@@ -114,68 +170,54 @@ function BattleRoomPage() {
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    navigate("/");
-  }
-
-  async function getToken(roomTitle, participantName) {
-    if (!roomTitle || !participantName) {
-      throw new Error("Room title and participant name are required");
-    }
-
-    try {
-      const response = await axios.post(
-        APPLICATION_SERVER_URL + "/token",
-        {
-          roomName: roomTitle,
-          participantName: participantName,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      console.log("Token Response:", response.data);
-      return response.data.token;
-    } catch (error) {
-      console.error("Token Request Error:", error.response?.data || error);
-      throw error;
-    }
+    // navigate("/");
   }
 
   return (
-    <div className="room-container">
-      <div className="room-header">
-        <h2>{roomName}</h2>
-        <button onClick={leaveRoom}>Leave Room</button>
+    <div className="room-container flex flex-col bg-white h-full p-5 rounded-xl m-4">
+      <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
+        <button
+          onClick={leaveRoom}
+          className="btn justify-start bg-cusLightBlue-light !rounded-xl flex items-center h-12"
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+          나가기
+        </button>
+        <div className="room-header-name w-1/2 m-1 text-2xl font-semibold">
+          <h2>방 제목</h2>
+        </div>
+        <div className="flex">
+          <div className="mx-1">
+            <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
+              랜덤 주제 생성기
+            </button>
+          </div>
+          <div className="mx-1">
+            <div className="random-subject bg-cusGray-dark !rounded-xl flex items-center h-12 font-bold px-6 clay">
+              현재 참여 인원
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="video-grid">
-        {localTrack && (
-          <VideoComponent
-            track={localTrack}
-            participantIdentity={`${participantName} (Me)`}
-            local={true}
-          />
-        )}
-        {remoteTracks.map((remoteTrack) =>
-          remoteTrack.trackPublication.kind === "video" ? (
-            <VideoComponent
-              key={remoteTrack.trackPublication.trackSid}
-              track={remoteTrack.trackPublication.videoTrack}
-              participantIdentity={remoteTrack.participantIdentity}
-            />
-          ) : (
-            <AudioComponent
-              key={remoteTrack.trackPublication.trackSid}
-              track={remoteTrack.trackPublication.audioTrack}
-            />
-          )
+      <div className="render-change flex">
+        {isWaiting && isMaster ? (
+          <>
+            <div className="w-2/3">
+              <BattleWaiting
+                room={room}
+                localTrack={localTrack}
+                remoteTracks={remoteTracks}
+                participantName={battleInfo.participantName}
+              />
+            </div>
+            <div className="w-1/3">
+              <BattleChating />
+            </div>
+          </>
+        ) : (
+          <></>
         )}
       </div>
-      <BattleChating />
     </div>
   );
 }
