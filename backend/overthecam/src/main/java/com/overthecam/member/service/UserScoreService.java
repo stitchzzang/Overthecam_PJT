@@ -1,4 +1,4 @@
-package com.overthecam.websocket.service;
+package com.overthecam.member.service;
 
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
