@@ -36,48 +36,32 @@ function BattleWaiting({ room, localTrack, remoteTracks, participantName }) {
     });
 
   return (
-    <div className="w-full h-full p-4 bg-gray-900">
+    <div className="w-full h-full p-4">
       <div className="grid grid-cols-3 grid-rows-2 gap-4">
         {slots.map((slot, index) => (
-          <div
-            key={index}
-            className="relative aspect-video bg-gray-800/50 rounded-lg overflow-hidden border border-gray-700"
-          >
-            {slot ? (
-              <>
+          <div key={index} className="flex flex-col">
+            {/* 참가자 이름 */}
+            <div className="text-sm mb-1 text-black">
+              {slot ? slot.participantName : "대기중..."}
+            </div>
+            {/* 비디오 컨테이너 */}
+            <div className="relative aspect-video rounded-sm overflow-hidden border">
+              {slot ? (
                 <VideoComponent
                   track={slot.track}
                   participantIdentity={slot.participantName}
                   local={slot.type === "local"}
                 />
-                <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm">
-                  {slot.participantName}
-                </div>
-              </>
-            ) : (
-              // 빈 슬롯 UI
-              <div className="flex items-center justify-center h-full text-gray-400">
-                <div className="flex flex-col items-center space-y-2">
-                  {/* 사용자 아이콘이나 플레이스홀더 이미지 */}
-                  <div className="w-12 h-12 rounded-full bg-gray-700/50 flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">
+                  <div className="flex flex-col items-center space-y-2">
+                    <span className="text-sm text-gray-500">
+                      다른 참여자 대기 중
+                    </span>
                   </div>
-                  <span className="text-sm text-gray-500">Waiting...</span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ))}
       </div>

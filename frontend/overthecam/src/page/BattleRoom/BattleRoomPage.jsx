@@ -264,7 +264,7 @@ function BattleRoomPage() {
       <div className="render-change flex">
         {isWaiting && isMaster ? (
           <>
-            <div className="w-2/3">
+            <div className="w-3/4">
               <BattleWaiting
                 room={room}
                 localTrack={localTrack}
@@ -272,7 +272,7 @@ function BattleRoomPage() {
                 participantName={battleInfo.participantName}
               />
             </div>
-            <div className="w-1/3">
+            <div className="w-1/4">
               <BattleChating />
             </div>
           </>
