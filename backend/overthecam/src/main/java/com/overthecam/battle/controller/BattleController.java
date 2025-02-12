@@ -130,7 +130,7 @@ public class BattleController {
      */
     @PostMapping("/room/{battleId}/join")
     public ResponseEntity<CommonResponseDto<?>> joinBattleRoom(
-            @PathVariable Long battleId,
+            @PathVariable(name = "battleId") Long battleId,
             @RequestBody Map<String, String> params,
             Authentication authentication) {
 
@@ -200,9 +200,9 @@ public class BattleController {
      */
     @GetMapping("/room/{battleId}/start/{battler1}/{battler2}")
     public ResponseEntity<CommonResponseDto<SelectBattlerResponse>> startBattle(
-            @PathVariable Long battleId,
-            @PathVariable String battler1,
-            @PathVariable String battler2) {
+            @PathVariable(name = "battleId") Long battleId,
+            @PathVariable(name = "battler1") String battler1,
+            @PathVariable(name = "battler2") String battler2) {
         try {
             SelectBattlerResponse response = battleService.selectBattlers(battleId, battler1, battler2);
             return ResponseEntity.ok(CommonResponseDto.ok(response));
@@ -215,6 +215,31 @@ public class BattleController {
             );
         }
     }
+
+
+    /**
+     * 배틀방 나가기 메서드
+     */
+    @DeleteMapping("/room/{battleId}/leave")
+    public ResponseEntity<CommonResponseDto<?>> leaveBattleRoom(
+            @PathVariable(name = "battleId") Long battleId,
+            Authentication authentication) {
+        try {
+            Long userId = securityUtils.getCurrentUserId(authentication);
+            battleService.handleUserLeave(battleId, userId);
+            return ResponseEntity.ok(CommonResponseDto.ok(Map.of(
+                    "message", "성공적으로 퇴장하였습니다."
+            )));
+        } catch (Exception e) {
+            log.error("배틀방 퇴장 실패", e);
+            return ResponseEntity.ok(
+                    CommonResponseDto.error(
+                            ErrorResponse.of(BattleErrorCode.BATTLE_NOT_FOUND)
+                    )
+            );
+        }
+    }
+
 
     /**
      * LiveKit 웹훅 이벤트를 처리합니다.
