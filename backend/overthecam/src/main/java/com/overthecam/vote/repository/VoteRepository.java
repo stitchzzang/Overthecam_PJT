@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
@@ -63,5 +64,16 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Query("SELECT v FROM Vote v WHERE v.user.id = :userId ORDER BY v.createdAt DESC")
     Page<Vote> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
-
+    // isActive 상태로 필터링하여 조회 (키워드 검색 포함)
+    @Query("SELECT v FROM Vote v WHERE " +
+            "v.battle IS NULL AND " +
+            "(:isActive IS NULL OR v.isActive = :isActive) AND " +  // isActive가 null이면 전체 조회
+            "(:keyword IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY v.isActive DESC, v.createdAt DESC")  // 항상 isActive true가 먼저 오도록
+    Page<Vote> findVotesByCondition(
+            @Param("isActive") Boolean isActive,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

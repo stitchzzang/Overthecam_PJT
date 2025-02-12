@@ -50,7 +50,7 @@ public class VoteHistoryService {
     public VoteDetailResponse getVoteDetail(Long voteId, Long userId) {
         Vote vote = voteValidationService.findVoteById(voteId);
 
-        return VoteDetailResponse.of(
+        return VoteDetailResponse.ofDetail(
                 vote,
                 voteStatisticsService.hasUserVoted(vote.getVoteId(), userId),
                 Collections.emptyList(),

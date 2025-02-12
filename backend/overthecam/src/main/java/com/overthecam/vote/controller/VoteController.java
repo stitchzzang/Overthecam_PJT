@@ -1,18 +1,20 @@
 package com.overthecam.vote.controller;
 
 import com.overthecam.common.dto.CommonResponseDto;
+import com.overthecam.common.dto.PageInfo;
 import com.overthecam.security.util.SecurityUtils;
 import com.overthecam.vote.dto.CommentRequest;
 import com.overthecam.vote.dto.VoteComment;
 import com.overthecam.vote.dto.VoteDetailResponse;
 import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.dto.VoteResponse;
-import com.overthecam.vote.repository.VotePageResponse;
+import com.overthecam.vote.dto.VotePageResponse;
 import com.overthecam.vote.service.VoteCommentService;
 import com.overthecam.vote.service.VoteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -43,13 +45,21 @@ public class VoteController {
     public CommonResponseDto<VotePageResponse> getVotes(
             Authentication authentication,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
 
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(direction, "createdAt")
+        );
 
-        VotePageResponse response = voteService.getVotes(keyword, sortBy, pageable, userId);
+        VotePageResponse response = voteService.getVotes(keyword, status, sortBy, pageable, userId);
         return CommonResponseDto.ok(response);
     }
 
