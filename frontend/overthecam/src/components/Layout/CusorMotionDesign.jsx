@@ -57,7 +57,7 @@ const ExactDesign = () => {
             <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
             <feOffset dx="0" dy="4" />
             <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff"/>
-            <feFlood flood-color="#000000" flood-opacity="0.15"/>
+            <feFlood floodColor="#000000" floodOpacity="0.15"/>
             <feComposite in2="shadowDiff" operator="in"/>
             <feComposite in2="SourceGraphic" operator="over" result="firstfilter"/>
             <feGaussianBlur in="firstfilter" stdDeviation="1" />
@@ -68,7 +68,7 @@ const ExactDesign = () => {
             <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
             <feOffset dx="2" dy="2" result="offsetblur"/>
             <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff"/>
-            <feFlood flood-color="#000000" flood-opacity="0.15"/>
+            <feFlood floodColor="#000000" floodOpacity="0.15"/>
             <feComposite in2="shadowDiff" operator="in"/>
             <feComposite in2="SourceGraphic" operator="over"/>
             <feGaussianBlur stdDeviation="1"/>
@@ -98,16 +98,10 @@ const ExactDesign = () => {
             <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
             <feOffset dx="2" dy="2" result="offsetblur"/>
             <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff"/>
-            <feFlood flood-color="#000000" flood-opacity="0.2"/>
+            <feFlood floodColor="#000000" floodOpacity="0.2"/>
             <feComposite in2="shadowDiff" operator="in"/>
             <feComposite in2="SourceGraphic" operator="over"/>
             <feGaussianBlur stdDeviation="1"/>
-            {/* 이너 쉐도우 추가 */}
-            {/* <feOffset dx="0" dy="1"/>
-            <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1"/>
-            <feFlood flood-color="#000000" flood-opacity="0.15"/>
-            <feComposite in2="SourceAlpha" operator="in"/>
-            <feComposite in2="SourceGraphic" operator="over"/> */}
           </filter>
 
           <style>
