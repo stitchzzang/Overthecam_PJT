@@ -1,19 +1,28 @@
 import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
+import { useParams } from "react-router-dom";
 
 function MyPageBattle() {
   const [battles, setBattles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { id } = useParams();  // URL에서 userId를 가져옴
 
-  // 배틀 히스토리 데이터 가져오기
   useEffect(() => {
     const fetchBattleHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await authAxios.get('/battles/history');
-        setBattles(response.data);
+        
+        const url = id ? `/mypage/battle/history?userId=${id}` : '/mypage/battle/history';
+        console.log('요청 URL:', url);  // 디버깅용
+        
+        const response = await authAxios.get(url);
+        console.log('응답:', response);  // 디버깅용
+        
+        if (response.success && response.data) {
+          setBattles(response.data);
+        }
       } catch (err) {
         setError('배틀 기록을 불러오는데 실패했습니다.');
         console.error('Failed to fetch battle history:', err);
@@ -23,29 +32,35 @@ function MyPageBattle() {
     };
 
     fetchBattleHistory();
-  }, []);
+  }, [id]);
 
-  if (isLoading) {
-    return (
-      <div className="bg-[#EEF6FF] rounded-lg p-8">
-        <div className="text-center">로딩 중...</div>
-      </div>
-    );
-  }
+  // 승패 결과 텍스트 및 스타일 결정 함수
+  const getBattleResult = (battle) => {
+    if (battle.winner) {
+      return {
+        text: '승',
+        style: 'text-green-600'
+      };
+    } else if (!battle.winner && battle.earnedScore === 0) {
+      return {
+        text: '무',
+        style: 'text-gray-600'
+      };
+    } else {
+      return {
+        text: '패',
+        style: 'text-red-600'
+      };
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="bg-[#EEF6FF] rounded-lg p-8">
-        <div className="text-center text-red-500">{error}</div>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
+  if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
 
   return (
     <div className="bg-[#EEF6FF] rounded-lg p-8">
       <h2 className="text-2xl font-bold mb-8 text-center">배틀 관리</h2>
       <div className="max-w-4xl mx-auto">
-        {/* Battle History Table */}
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="overflow-x-auto">
             {battles.length === 0 ? (
@@ -63,23 +78,23 @@ function MyPageBattle() {
                   </tr>
                 </thead>
                 <tbody>
-                  {battles.map((battle) => (
-                    <tr key={battle.id} className="border-b border-gray-100">
-                      <td className="py-4 px-4 text-gray-800">
-                        {new Date(battle.date).toLocaleString()}
-                      </td>
-                      <td className="py-4 px-4 text-gray-800">{battle.title}</td>
-                      <td className="py-4 px-4 text-gray-800">{battle.choice}</td>
-                      <td className="py-4 px-4 text-right">
-                        <span className={`${
-                          battle.result === '승' ? 'text-green-600' : 
-                          battle.result === '패' ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {battle.result} ({battle.pointChange > 0 ? '+' : ''}{battle.pointChange})
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {battles.map((battle) => {
+                    const result = getBattleResult(battle);
+                    return (
+                      <tr key={battle.battleId} className="border-b border-gray-100">
+                        <td className="py-4 px-4 text-gray-800">
+                          {new Date(battle.date).toLocaleString()}
+                        </td>
+                        <td className="py-4 px-4 text-gray-800">{battle.title}</td>
+                        <td className="py-4 px-4 text-gray-800">{battle.optionTitle}</td>
+                        <td className="py-4 px-4 text-right">
+                          <span className={result.style}>
+                            {result.text} ({battle.earnedScore >= 0 ? '+' : ''}{battle.earnedScore})
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
