@@ -1,10 +1,8 @@
 package com.overthecam.member.controller;
 
+import com.overthecam.auth.domain.User;
 import com.overthecam.common.dto.CommonResponseDto;
-import com.overthecam.member.dto.BattleStatsInfo;
-import com.overthecam.member.dto.FollowStatsInfo;
-import com.overthecam.member.dto.UserCombinedStatsDto;
-import com.overthecam.member.dto.UserScoreInfo;
+import com.overthecam.member.dto.*;
 import com.overthecam.member.service.BattleHIstoryService;
 import com.overthecam.member.service.MyPageService;
 import com.overthecam.member.service.UserFollowService;
@@ -49,9 +47,19 @@ public class MyPageController {
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId) {
 
-        Long userId = targetUserId != null ?
-                targetUserId :
-                securityUtils.getCurrentUserId(authentication);
+        Long currentUserId = securityUtils.getCurrentUserId(authentication);
+        Long userId = targetUserId != null ? targetUserId : currentUserId;
+
+        User user = userFollowService.findUserById(userId, "사용자");
+        boolean isFollowing = userId.equals(currentUserId) ? false :
+                userFollowService.isFollowing(currentUserId, userId);
+
+        UserProfileInfo profileInfo = UserProfileInfo.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .follow(isFollowing)
+                .build();
 
         UserScoreInfo scoreInfo = userScoreService.getUserScore(userId)
                 .orElse(UserScoreInfo.builder().build());
@@ -59,6 +67,7 @@ public class MyPageController {
         BattleStatsInfo battleStats = battleHIstoryService.getBattleStats(userId);
 
         UserCombinedStatsDto combinedStats = UserCombinedStatsDto.builder()
+                .profileInfo(profileInfo)
                 .scoreInfo(scoreInfo)
                 .followStats(followStats)
                 .battleStats(battleStats)

@@ -23,6 +23,11 @@ public class UserFollowService {
     private final UserFollowRepository userFollowRepository;
     private final UserRepository userRepository;
 
+    // 팔로우 여부 확인
+    public boolean isFollowing(Long currentUserId, Long targetUserId) {
+        return userFollowRepository.isFollowing(currentUserId, targetUserId);
+    }
+
     public FollowResponse follow(Long userId, Long targetId) {
         if (userId.equals(targetId)) {
             throw new GlobalException(FollowErrorCode.SELF_FOLLOW_NOT_ALLOWED,
@@ -66,7 +71,7 @@ public class UserFollowService {
                 .build();
     }
 
-    private User findUserById(Long userId, String userType) {
+    public User findUserById(Long userId, String userType) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
                         userType + " ID: " + userId + "를 찾을 수 없습니다"));

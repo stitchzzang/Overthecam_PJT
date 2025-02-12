@@ -14,6 +14,12 @@ import java.util.Optional;
 @Repository
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
+    @Query("SELECT CASE WHEN COUNT(uf) > 0 THEN true ELSE false END " +
+            "FROM UserFollow uf " +
+            "WHERE uf.follower.id = :currentUserId AND uf.following.id = :targetUserId")
+    boolean isFollowing(@Param("currentUserId") Long currentUserId,
+                        @Param("targetUserId") Long targetUserId);
+
     // 팔로워 수 조회 (나를 팔로우하는 사람 수)
     @Query("SELECT COUNT(uf) FROM UserFollow uf WHERE uf.following.id = :userId")
     long countFollowersByUserId(@Param("userId") Long userId);
