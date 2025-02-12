@@ -16,7 +16,6 @@ const FailAlertModal = forwardRef(function FailAlertModal(_, ref) {
         modalRef.current.showModal();
         console.log("모달 표시 완료");
         
-        // 3초 후 자동으로 닫히도록 설정
         setTimeout(() => {
           modalRef.current?.close();
         }, 1000);
@@ -26,9 +25,16 @@ const FailAlertModal = forwardRef(function FailAlertModal(_, ref) {
     }
   }));
 
+  const handleClick = (e) => {
+    if (e.target === modalRef.current) {
+      modalRef.current.close();
+    }
+  };
+
   return (
     <dialog 
-      ref={modalRef} 
+      ref={modalRef}
+      onClick={handleClick}
       className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 w-96 rounded-xl shadow-xl bg-white border-2 border-red-200"
     >
       <div className="flex items-center gap-4 p-5 bg-red-50">
