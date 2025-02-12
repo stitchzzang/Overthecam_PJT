@@ -3,6 +3,7 @@ import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
 import { useRef } from "react";
+import BattleVote from "../common/BattleVote";
 
 function BattleWaiting({
   room,
@@ -87,7 +88,7 @@ function BattleWaiting({
         </div>
         <div className="flex h-1/4 mt-4">
           <div className="w-3/4 h-full bg-cusGray mx-1 clay">
-            <h1>투표</h1>
+            <BattleVote isWaiting={true}/>
           </div>
           <div className="w-1/4 flex flex-col mx-1">
             <div className="w-full h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
