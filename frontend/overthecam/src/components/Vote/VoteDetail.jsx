@@ -84,8 +84,8 @@ const VoteDetail = ({ voteData, onDelete }) => {
   if (!voteData) return <div>로딩 중...</div>;
 
   return (
-    <div className="max-w-[800px] mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="w-full max-w-[800px] mx-auto mt-8">
+      <div className="clay bg-cusLightBlue-lighter rounded-lg shadow-lg p-6">
         {/* 제목 */}
         <h1 className="text-3xl font-bold text-center mb-4">{voteData.title}</h1>
         
@@ -231,7 +231,7 @@ const VoteDetail = ({ voteData, onDelete }) => {
           {isCreator && (
             <button 
               onClick={() => setShowDeleteModal(true)}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              className="btn clay px-6 py-2 bg-btnPink hover:bg-btnPink-hover hover:text-white rounded-lg transition-colors"
             >
               삭제
             </button>
@@ -248,13 +248,13 @@ const VoteDetail = ({ voteData, onDelete }) => {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                className="clay px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={handleDeleteClick}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                className="clay px-4 py-2 bg-btnPink hover:bg-btnPink-hover hover:text-white rounded transition-colors"
               >
                 삭제
               </button>

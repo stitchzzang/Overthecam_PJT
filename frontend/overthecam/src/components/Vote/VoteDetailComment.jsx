@@ -36,7 +36,7 @@ const VoteDetailComment = ({ voteId }) => {
         }));
         
         const sortedComments = [...commentsWithAuthor].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
         
         setComments(sortedComments);
@@ -89,29 +89,33 @@ const VoteDetailComment = ({ voteId }) => {
         return;
       }
 
-      const response = await publicAxios({
-        method: 'PUT',
-        url: `/vote/comment/${commentId}`,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        data: {
-          content: editContent
+      await publicAxios.put(
+        `/vote/comment/${commentId}`,
+        { content: editContent },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
-      if (response.data) {
-        setComments(prevComments => 
-          prevComments.map(comment => 
-            comment.commentId === commentId 
-              ? { ...comment, content: editContent }
-              : comment
-          )
-        );
-        setEditingCommentId(null);
-        setEditContent('');
-      }
+      // 수정 성공 시 즉시 UI 업데이트
+      setComments(prevComments => 
+        prevComments.map(comment => 
+          comment.commentId === commentId 
+            ? { 
+                ...comment, 
+                content: editContent,
+                updatedAt: new Date().toISOString() // 현재 시간으로 updatedAt 업데이트
+              }
+            : comment
+        )
+      );
+      
+      setEditingCommentId(null);
+      setEditContent('');
+
     } catch (error) {
       console.error('댓글 수정 실패:', error);
       alert('댓글 수정에 실패했습니다.');
@@ -138,103 +142,124 @@ const VoteDetailComment = ({ voteId }) => {
         }
       );
 
-      // 즉시 UI에서 댓글 제거 
+      // 삭제 성공 시 즉시 UI 업데이트
       setComments(prevComments => 
         prevComments.filter(comment => comment.commentId !== commentId)
       );
+
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
       alert('댓글 삭제에 실패했습니다.');
     }
   };
 
+  // formatDate 함수 수정
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/\./g, '.').replace(/ /g, ' ');
+  };
+
   return (
-    <div className="w-full max-w-[800px] mx-auto mt-4">
-      {/* 댓글 목록 */}
-      <div className="mb-4 bg-white rounded-lg p-4">
+    <div className="w-full max-w-[800px] mx-auto my-7">
+      <div className="clay bg-cusLightBlue-lighter p-4">
         <h2 className="text-xl font-bold mb-4">댓글</h2>
-        <div className="space-y-3">
+        
+        {/* 댓글 목록 */}
+        <div className="space-y-4 mb-4">
           {comments.map((comment) => (
-            <div key={comment.commentId} className="border-b border-gray-100 pb-3 last:border-b-0">
-              <div className="flex justify-between items-center mb-1">
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-sm">{comment.userNickname || '익명'}</span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                {/* 수정/삭제 버튼 - 작성자인 경우에만 표시 */}
+            <div key={comment.commentId} className="flex flex-col">
+              {/* 댓글 작성자 정보 */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-semibold text-sm text-cusBlack">{comment.userNickname || '익명'}</span>
+                <span className="text-xs text-gray-500">
+                  {formatDate(comment.createdAt)}
+                  {comment.updatedAt !== comment.createdAt && ' (수정됨)'}
+                </span>
                 {comment.isAuthor && (
-                  <div className="flex gap-2 text-xs">
+                  <div className="flex gap-2 text-xs items-center ml-2">
                     <button
                       onClick={() => {
                         setEditingCommentId(comment.commentId);
                         setEditContent(comment.content);
                       }}
-                      className="text-[#7986CB] hover:text-[#6977BD]"
+                      className="text-cusBlue hover:text-opacity-80 transition-colors"
                     >
-                      수정
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
                     </button>
                     <span className="text-gray-300">|</span>
                     <button
                       onClick={() => handleDelete(comment.commentId)}
-                      className="text-[#7986CB] hover:text-[#6977BD]"
+                      className="text-cusBlue hover:text-opacity-80 transition-colors"
                     >
-                      삭제
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
                     </button>
                   </div>
                 )}
               </div>
+              
+              {/* 댓글 내용 */}
               {editingCommentId === comment.commentId ? (
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex-1 bg-[#EEF1FF] p-3 rounded-lg flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="flex-1 h-9 px-3 text-sm rounded-lg border-0 focus:ring-2 focus:ring-blue-400"
-                    />
-                    <button
-                      onClick={() => handleEdit(comment.commentId)}
-                      className="h-9 px-4 text-sm bg-[#7986CB] text-white rounded-lg hover:bg-[#6977BD] transition-colors"
-                    >
-                      완료
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingCommentId(null);
-                        setEditContent('');
-                      }}
-                      className="h-9 px-4 text-sm bg-[#7986CB] text-white rounded-lg hover:bg-[#6977BD] transition-colors"
-                    >
-                      취소
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="flex-1 h-9 px-3 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-cusBlue focus:border-transparent"
+                  />
+                  <button
+                    onClick={() => handleEdit(comment.commentId)}
+                    className="btn bg-cusBlue text-white px-4 py-2"
+                  >
+                    완료
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingCommentId(null);
+                      setEditContent('');
+                    }}
+                    className="btn bg-gray-500 text-white px-4 py-2"
+                  >
+                    취소
+                  </button>
                 </div>
               ) : (
-                <p className="text-sm text-gray-700">{comment.content}</p>
+                <div className="relative clay bg-white rounded-lg p-3 max-w-[80%] shadow-lg before:content-[''] before:absolute before:top-[-6px] before:left-[15px] before:w-3 before:h-3 before:bg-white before:rotate-45 before:rounded-sm before:shadow-lg">
+                  <p className="text-sm text-gray-700">{comment.content}</p>
+                </div>
               )}
             </div>
           ))}
         </div>
-      </div>
 
-      {/* 댓글 입력 폼 */}
-      <form onSubmit={handleSubmit} className="bg-[#EEF1FF] p-3 rounded-lg flex items-center gap-2">
-        <input
-          type="text"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="댓글을 입력하세요"
-          className="flex-1 h-9 px-3 text-sm rounded-lg border-0 focus:ring-2 focus:ring-blue-400"
-        />
-        <button
-          type="submit"
-          className="h-9 px-4 text-sm bg-[#7986CB] text-white rounded-lg hover:bg-[#6977BD] transition-colors"
-        >
-          등록
-        </button>
-      </form>
+        {/* 댓글 입력 폼 */}
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="댓글을 입력하세요"
+            className="flex-1 h-10 px-4 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-cusBlue focus:border-transparent"
+          />
+          <button
+            type="submit"
+            className="btn bg-cusBlue text-white px-4 h-10"
+          >
+            등록
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
