@@ -261,27 +261,27 @@ function BattleRoomPage() {
           </div>
         </div>
       </div>
-      <div className="render-change flex">
-        {isWaiting && isMaster ? (
-          <>
-            <div className="w-3/4">
-              <BattleWaiting
-                room={room}
-                localTrack={localTrack}
-                remoteTracks={remoteTracks}
-                participantName={battleInfo.participantName}
-                isMaster={battleInfo.isMaster}
-              />
+      <div className="render-change">
+          {isWaiting && isMaster ? (
+            <div className="flex">
+              <div className="w-3/4">
+                <BattleWaiting
+                  room={room}
+                  localTrack={localTrack}
+                  remoteTracks={remoteTracks}
+                  participantName={battleInfo.participantName}
+                  isMaster={battleInfo.isMaster}
+                />
+              </div>
+              <div className="w-1/4">
+                <BattleChating />
+              </div>
             </div>
-            <div className="w-1/4">
-              <BattleChating />
-            </div>
-          </>
-        ) : (
-          <></>
-        )}
+          ) : (
+            <></>
+          )}
       </div>
-      <FailAlertModal ref={failTost}/>
+      <FailAlertModal ref={failTost} />
     </div>
   );
 }

@@ -65,7 +65,7 @@ function BattleWaiting({
                   local={slot.type === "local"}
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-400">
+                <div className="flex items-center justify-center h-full text-gray-400 bg-cusGray">
                   <div className="flex flex-col items-center space-y-2">
                     <span className="text-sm text-gray-500">
                       다른 참여자 대기 중
