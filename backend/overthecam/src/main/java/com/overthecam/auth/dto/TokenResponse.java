@@ -1,10 +1,6 @@
 package com.overthecam.auth.dto;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Builder
@@ -17,4 +13,5 @@ public class TokenResponse {
     private Long accessTokenExpiresIn;  // 만료 시간
     private Long userId;
     private String nickname;
+    private String profileImage;
 }

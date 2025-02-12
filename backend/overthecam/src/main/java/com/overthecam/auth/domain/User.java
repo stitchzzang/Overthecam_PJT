@@ -50,9 +50,10 @@ public class User extends TimeStampEntity {
     private String refreshToken; // Refresh Token 저장
 
     @Builder
-    public User(String nickname, String email, String username, Integer gender, String password, LocalDate birth, String phoneNumber) {
+    public User(String nickname, String email, String profileImage, String username, Integer gender, String password, LocalDate birth, String phoneNumber) {
         this.nickname = nickname;
         this.email = email;
+        this.profileImage = profileImage;
         this.username = username;
         this.gender = gender;
         this.password = password;
