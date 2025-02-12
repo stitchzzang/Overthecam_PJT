@@ -2,7 +2,7 @@ package com.overthecam.websocket.controller;
 
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.websocket.dto.*;
-import com.overthecam.websocket.service.UserScoreService;
+import com.overthecam.member.service.UserScoreService;
 import com.overthecam.websocket.util.WebSocketRequestMapper;
 import com.overthecam.websocket.util.WebSocketSecurityUtils;
 import lombok.RequiredArgsConstructor;
