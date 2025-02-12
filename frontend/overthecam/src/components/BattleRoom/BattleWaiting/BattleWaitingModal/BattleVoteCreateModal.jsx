@@ -7,7 +7,7 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
   ref
 ) {
   const modalRef = useRef();
-  const FailTost = useRef();
+  const failToast = useRef();
   const battleInfo = useBattleStore((state)=>state.battleInfo)
   const [formData, setFormData] = useState({
     title: "",
@@ -88,8 +88,8 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
       if (modalRef.current) {
         modalRef.current.close();
       }
-      if (FailTost.current && FailTost.current.showAlert) {
-        FailTost.current?.showAlert("투표를 생성하지 못했습니다.");
+      if (failToast.current && failToast.current.showAlert) {
+        failToast.current?.showAlert("투표를 생성하지 못했습니다.");
       } else {
         console.error("failAlertRef.current나 showAlert 메서드가 없습니다.");
       }
@@ -180,7 +180,7 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
           </form>
         </div>
       </dialog>
-      <FailAlertModal ref={FailTost} />
+      <FailAlertModal ref={failToast} />
     </>
   );
 });
