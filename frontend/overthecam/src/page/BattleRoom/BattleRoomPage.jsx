@@ -1,5 +1,5 @@
 import { Room, RoomEvent } from "livekit-client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import VideoComponent from "../../components/BattleRoom/VideoComponent";
@@ -9,6 +9,7 @@ import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import axios from "axios";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import FailAlertModal from "../../components/@common/FailAlertModal";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -23,8 +24,8 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(true);
-  // 개발 환경인지 체크
-  const isDevelopment = import.meta.env.MODE === "development";
+  // 예외처리 토스트 모달
+  const failTost = useRef();
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
@@ -45,17 +46,62 @@ function BattleRoomPage() {
       }
     }
 
-    console.log(
-      "방에 조인하게됨:",
-      battleInfo.roomName,
-      battleInfo.participantName
-    );
     initializeRoom();
 
     return () => {
       cleanup(room);
     };
   }, []); // 빈 의존성 배열이 맞습니다 - 마운트 시 한 번만 실행
+
+  // 예외 처리
+  useEffect(() => {
+    if (!room) return;
+
+    // 네트워크 상태 변경 핸들러
+    const handleConnectionStateChange = (state) => {
+      console.log("Connection state changed:", state);
+      if (state === "disconnected" || state === "failed") {
+        cleanup(room);
+        failTost.current?.showAlert("연결이 끊어졌습니다. 다시 접속해주세요.");
+        navigate("/battle-list");
+      }
+    };
+
+    // 예외 처리리
+    const handleError = (error) => {
+      console.error("Room error:", error);
+      cleanup(room);
+      switch (error.code) {
+        case "permission_denied":
+          failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
+          break;
+        case "disconnected":
+          failTost.current?.showAlert(
+            "연결이 끊어졌습니다. 메인 화면으로 돌아갑니다."
+          );
+          navigate("/");
+          break;
+        default:
+          failTost.current?.showAlert(
+            "오류가 발생했습니다. 메인 화면으로 돌아갑니다."
+          );
+          navigate("/");
+      }
+    };
+
+    // 이벤트 리스너 등록
+    room.on(RoomEvent.ConnectionStateChanged, handleConnectionStateChange);
+    room.on(RoomEvent.RoomDisconnected, handleError);
+    room.on("error", handleError);
+
+    // cleanup: 컴포넌트 언마운트나 room 변경 시
+    return () => {
+      cleanup(room);
+      room.off(RoomEvent.ConnectionStateChanged, handleConnectionStateChange);
+      room.off(RoomEvent.RoomDisconnected, handleError);
+      room.off("error", handleError);
+    };
+  }, [room]);
 
   async function joinRoom() {
     const room = new Room({
@@ -142,37 +188,37 @@ function BattleRoomPage() {
   async function cleanup() {
     if (!room) return;
 
-   try {
-     if (room.localParticipant) {
-       // 카메라와 마이크를 먼저 비활성화
-       await room.localParticipant.setCameraEnabled(false);
-       await room.localParticipant.setMicrophoneEnabled(false);
-       // 모든 트랙 정리
-       Array.from(room.localParticipant.trackPublications.values()).forEach(
-         (publication) => {
-           if (publication.track) {
-             publication.track.stop(); // 이 메서드만 제공됨
-           }
-         }
-       );
-     }
+    try {
+      if (room.localParticipant) {
+        // 카메라와 마이크를 먼저 비활성화
+        await room.localParticipant.setCameraEnabled(false);
+        await room.localParticipant.setMicrophoneEnabled(false);
+        // 모든 트랙 정리
+        Array.from(room.localParticipant.trackPublications.values()).forEach(
+          (publication) => {
+            if (publication.track) {
+              publication.track.stop(); // 이 메서드만 제공됨
+            }
+          }
+        );
+      }
 
-     // room 연결 종료
-     await room?.disconnect();
+      // room 연결 종료
+      await room?.disconnect();
 
-     // 상태 초기화
-     setLocalTrack(null);
-     setRemoteTracks([]);
+      // 상태 초기화
+      setLocalTrack(null);
+      setRemoteTracks([]);
 
-     console.log("Cleanup completed successfully");
-   } catch (error) {
-     console.error("Error during cleanup:", error);
-     try {
-       await room?.disconnect();
-     } catch (e) {
-       console.error("Final disconnect attempt failed:", e);
-     }
-   }
+      console.log("Cleanup completed successfully");
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+      try {
+        await room?.disconnect();
+      } catch (e) {
+        console.error("Final disconnect attempt failed:", e);
+      }
+    }
   }
 
   async function handleLeavRoom() {
@@ -234,6 +280,7 @@ function BattleRoomPage() {
           <></>
         )}
       </div>
+      <FailAlertModal ref={failTost}/>
     </div>
   );
 }
