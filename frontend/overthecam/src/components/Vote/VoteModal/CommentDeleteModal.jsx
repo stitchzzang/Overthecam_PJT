@@ -19,19 +19,16 @@ const CommentDeleteModal = forwardRef(function CommentDeleteModal(
         successAlertRef.current?.showAlert("댓글이 삭제되었습니다.");
       }
     } catch (error) {
-      // 현재 모달 닫기
       if (ref.current) {
         ref.current.close();
       }
 
-      // 에러 타입에 따른 메시지 설정
       let errorMessage = "댓글 삭제에 실패했습니다.";
       if (error.code === "ERR_NETWORK") {
         errorMessage =
           "서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.";
       }
 
-      // 실패 알림 표시 시도
       if (failAlertRef.current && failAlertRef.current.showAlert) {
         failAlertRef.current.showAlert(errorMessage);
       } else {

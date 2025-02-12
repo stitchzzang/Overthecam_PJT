@@ -240,8 +240,8 @@ const VoteDetailComment = ({ voteId }) => {
                   </button>
                 </div>
               ) : (
-                <div className="relative clay bg-white rounded-lg p-3 max-w-[80%] shadow-lg before:content-[''] before:absolute before:top-[-6px] before:left-[15px] before:w-3 before:h-3 before:bg-white before:rotate-45 before:rounded-sm before:shadow-lg">
-                  <p className="text-sm text-gray-700">{comment.content}</p>
+                <div className="relative clay bg-white rounded-lg py-3 px-5 w-fit max-w-[80%] shadow-lg before:content-[''] before:absolute before:top-[-6px] before:left-[15px] before:w-3 before:h-3 before:bg-white before:rotate-45 before:rounded-sm before:shadow-lg">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap text-justify">{comment.content}</p>
                 </div>
               )}
             </div>
@@ -249,7 +249,7 @@ const VoteDetailComment = ({ voteId }) => {
         </div>
 
         {/* 댓글 입력 폼 */}
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 mb-3">
           <input
             type="text"
             value={newComment}

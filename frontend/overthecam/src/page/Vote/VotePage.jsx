@@ -122,7 +122,7 @@ const VotePage = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="vote-main-page bg-cusGray-light min-h-screen">
+    <div className="vote-main-page bg-cusGray-light min-h-screen pb-14">
       <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
           Vote
@@ -131,11 +131,11 @@ const VotePage = () => {
       
       <div className="container mx-auto px-4 md:px-6 max-w-6xl">
         <div>
-        <div className="flex justify-between items-center mt-6 mb-4">
+        <div className="flex justify-between items-center mt-6 mb-8">
           <div className="flex gap-4">
             <button
               onClick={() => setVoteStatus('all')}
-              className={`btn px-4 py-1.5 text-md rounded-full transition-colors ${
+              className={`btn px-6 py-2 text-md rounded-full transition-colors ${
                 voteStatus === 'all'
                   ? 'bg-gray-600 text-white'
                   : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
@@ -145,7 +145,7 @@ const VotePage = () => {
             </button>
             <button
               onClick={() => setVoteStatus('active')}
-              className={`btn px-4 py-1.5 text-md rounded-full transition-colors ${
+              className={`btn px-6 py-2 text-md rounded-full transition-colors ${
                 voteStatus === 'active'
                   ? 'bg-gray-600 text-white'
                   : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
@@ -155,7 +155,7 @@ const VotePage = () => {
             </button>
             <button
               onClick={() => setVoteStatus('ended')}
-              className={`btn px-4 py-1.5 text-md rounded-full transition-colors ${
+              className={`btn px-6 py-2 text-md rounded-full transition-colors ${
                 voteStatus === 'ended'
                   ? 'bg-gray-600 text-white'
                   : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
@@ -169,7 +169,7 @@ const VotePage = () => {
             state={{ from: '/vote' }}
             className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
           >
-            방만들기
+            투표 만들기
           </Link>
         </div>
         
