@@ -184,7 +184,7 @@ function BattleRoomPage() {
           나가기
         </button>
         <div className="room-header-name w-1/2 m-1 text-2xl font-semibold">
-          <h2>방 제목</h2>
+          <h2>{battleInfo.roomName}</h2>
         </div>
         <div className="flex">
           <div className="mx-1">
