@@ -260,14 +260,17 @@ function BattleRoomPage() {
               랜덤 주제 생성기
             </button>
           </div>
-          <div className="mx-1">
-            <button
-              onClick={battlerModalShow}
-              className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
-            >
-              배틀러 선정하기
-            </button>
-          </div>
+          {/* 방장만 배틀러 선정 버튼이 보임 */}
+          {isMaster && (
+            <div className="mx-1">
+              <button
+                onClick={battlerModalShow}
+                className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
+              >
+                배틀러 선정하기
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="render-change flex-1 h-0">
@@ -285,11 +288,7 @@ function BattleRoomPage() {
               />
             </div>
             <div className="w-1/4 flex flex-col h-full">
-              {/* flex flex-col과 h-full 추가 */}
-              <div className="overflow-y-auto flex-1">
-                {/* overflow-y-auto와 flex-1 추가 */}
-                <BattleChating />
-              </div>
+              <BattleChating />
             </div>
           </div>
         ) : (
