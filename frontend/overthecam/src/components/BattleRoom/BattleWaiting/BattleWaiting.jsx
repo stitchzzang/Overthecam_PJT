@@ -92,17 +92,29 @@ function BattleWaiting({
           <div className="w-3/4 h-full bg-cusGray mx-1 clay">
             <BattleVote isWaiting={true} />
           </div>
-          <div className="w-1/4 flex flex-col mx-1">
-            <div className="w-full h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
-              <p>배틀 시작하기</p>
-            </div>
-            <div
-              onClick={onShowVoteCreate}
-              className="w-full h-full bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
-            >
-              <p>투표 만들기</p>
-            </div>
-          </div>
+          {isMaster ? (
+            <>
+              <div className="w-1/4 flex flex-col mx-1">
+                <div className="w-full h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
+                  <p>배틀 시작하기</p>
+                </div>
+                <div
+                  onClick={onShowVoteCreate}
+                  className="w-full h-full bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
+                >
+                  <p>투표 만들기</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-1/4 flex flex-col mx-1">
+                <div className="w-full h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
+                  <p>배틀 준비하기</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />
