@@ -125,126 +125,129 @@ const VotePage = () => {
     <div className="vote-main-page bg-cusGray-light min-h-screen">
       <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-          투표 목록 보기
+          Vote
         </h1>
       </div>
       
-      <div className="flex gap-4 mt-6 mb-4">
-        <button
-          onClick={() => setVoteStatus('all')}
-          className={`clay px-6 py-2 rounded-xl transition-colors ${
-            voteStatus === 'all'
-              ? 'bg-cusBlue text-white'
-              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-          }`}
-        >
-          전체보기
-        </button>
-        <button
-          onClick={() => setVoteStatus('active')}
-          className={`clay px-6 py-2 rounded-xl transition-colors ${
-            voteStatus === 'active'
-              ? 'bg-cusBlue text-white'
-              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-          }`}
-        >
-          진행중
-        </button>
-        <button
-          onClick={() => setVoteStatus('ended')}
-          className={`clay px-6 py-2 rounded-xl transition-colors ${
-            voteStatus === 'ended'
-              ? 'bg-cusBlue text-white'
-              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-          }`}
-        >
-          종료됨
-        </button>
-      </div>
-      
-      <div className="space-y-4 mt-4">
-        {currentList.map((vote) => (
-          <div key={vote.voteId} className="bg-white rounded-lg shadow-lg p-6">
-            <Link to={`/vote-detail/${vote.voteId}`}>
-              <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
-                {vote.title}
-              </h2>
-            </Link>
-            
-            <p className="text-gray-600 mb-4">{vote.content}</p>
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <div>
+        <div className="flex gap-4 mt-6 mb-4">
+          <button
+            onClick={() => setVoteStatus('all')}
+            className={`clay px-6 py-2 rounded-xl transition-colors ${
+              voteStatus === 'all'
+                ? 'bg-cusBlue text-white'
+                : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
+            }`}
+          >
+            전체보기
+          </button>
+          <button
+            onClick={() => setVoteStatus('active')}
+            className={`clay px-6 py-2 rounded-xl transition-colors ${
+              voteStatus === 'active'
+                ? 'bg-cusBlue text-white'
+                : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
+            }`}
+          >
+            진행중
+          </button>
+          <button
+            onClick={() => setVoteStatus('ended')}
+            className={`clay px-6 py-2 rounded-xl transition-colors ${
+              voteStatus === 'ended'
+                ? 'bg-cusBlue text-white'
+                : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
+            }`}
+          >
+            종료됨
+          </button>
+        </div>
+        
+        <div className="space-y-4 mt-4">
+          {currentList.map((vote) => (
+            <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <Link to={`/vote-detail/${vote.voteId}`}>
+                <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
+                  {vote.title}
+                </h2>
+              </Link>
+              
+              <p className="text-gray-600 mb-4">{vote.content}</p>
 
-            <div className="transition-all duration-300">
-              {Boolean(vote.hasVoted) ? (
-                renderVoteResult(vote)
-              ) : (
-                <div className="flex gap-4 mb-4">
-                  {vote.options.map((option) => (
-                    <button
-                      key={option.optionId}
-                      onClick={() => handleVote(vote, option.optionId)}
-                      className={`flex-1 p-4 ${
-                        option.optionId === vote.options[0].optionId
-                          ? 'bg-red-100 hover:bg-red-200 text-red-500'
-                          : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                      } rounded-lg transition-colors`}
-                    >
-                      {option.optionTitle}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="transition-all duration-300">
+                {Boolean(vote.hasVoted) ? (
+                  renderVoteResult(vote)
+                ) : (
+                  <div className="flex gap-4 mb-4">
+                    {vote.options.map((option) => (
+                      <button
+                        key={option.optionId}
+                        onClick={() => handleVote(vote, option.optionId)}
+                        className={`clay flex-1 p-4 ${
+                          option.optionId === vote.options[0].optionId
+                            ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                            : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                        } rounded-lg transition-colors`}
+                      >
+                        {option.optionTitle}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>{vote.creatorNickname}</span>
+                <span>·</span>
+                <span>댓글 {vote.commentCount}</span>
+              </div>
             </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>{vote.creatorNickname}</span>
-              <span>·</span>
-              <span>댓글 {vote.commentCount}</span>
-            </div>
+          ))}
+        </div>
+        </div>
+        <div className="flex justify-center mt-6 pb-10">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'<<'}
+            </button>
+            <button
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={page === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'<'}
+            </button>
+            <span className="mx-2">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={page === totalPages}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'>'}
+            </button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'>>'}
+            </button>
           </div>
-        ))}
-      </div>
-
-      <div className="flex justify-center mt-6 pb-10">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setPage(1)}
-            disabled={page === 1}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'<<'}
-          </button>
-          <button
-            onClick={() => setPage(prev => Math.max(1, prev - 1))}
-            disabled={page === 1}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'<'}
-          </button>
-          <span className="mx-2">
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={page === totalPages}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'>'}
-          </button>
-          <button
-            onClick={() => setPage(totalPages)}
-            disabled={page === totalPages}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'>>'}
-          </button>
         </div>
       </div>
     </div>
