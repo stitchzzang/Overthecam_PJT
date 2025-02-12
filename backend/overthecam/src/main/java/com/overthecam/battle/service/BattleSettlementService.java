@@ -26,9 +26,10 @@ import java.util.stream.Collectors;
 @Transactional
 public class BattleSettlementService {
 
+    private static final int REWARD_PER_PARTICIPANT = 1000;  // 참여자 1인당 보상 풀 기여금
+
     private final UserScoreService userScoreService;
     private final VoteValidationService validationService;
-
 
     @Transactional
     public Map<Long, Integer> settleBattleRewards(Long battleId, Map<Long, Integer> optionScores,
@@ -89,7 +90,8 @@ public class BattleSettlementService {
                 if (isWinner) {
                     int voterReward = calculateWinnerReward(vote.getSupportScore(),
                             losingTotalScore,
-                            winningTotalScore);
+                            winningTotalScore,
+                            votes.size());
                     userScoreService.updateSupportScore(vote.getUserId(), -voterReward);
                     rewardResults.put(vote.getUserId(), voterReward);
 
@@ -189,8 +191,21 @@ public class BattleSettlementService {
                 .sum();
     }
 
-    private int calculateWinnerReward(int userBetScore, int losingTotalScore, int winningTotalScore) {
+    private int calculateWinnerReward(int userBetScore, int losingTotalScore,
+                                                            int winningTotalScore, int totalParticipants) {
         if (winningTotalScore == 0) return 0;
+
+        // 패배팀의 응원점수가 없는 경우 (상대가 배틀러)
+        if (losingTotalScore == 0) {
+
+            // 승리자의 보상 = 본인 배팅 응원점수 + (기본 보상 풀 × 본인 배팅 비율)
+            int defaultRewardPool = totalParticipants * REWARD_PER_PARTICIPANT;
+
+            double bettingRatio = (double) userBetScore / winningTotalScore;
+            int additionalReward = (int) (REWARD_PER_PARTICIPANT * bettingRatio);
+
+            return userBetScore + additionalReward;
+        }
 
         // 승리자의 보상 = 본인 배팅 응원점수 + (패배 진영 총 응원점수 × 본인 배팅 비율)
         double bettingRatio = (double) userBetScore / winningTotalScore;
