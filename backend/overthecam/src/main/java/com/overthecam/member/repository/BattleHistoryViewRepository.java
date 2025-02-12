@@ -2,6 +2,8 @@ package com.overthecam.member.repository;
 
 import com.overthecam.member.domain.BattleHistoryView;
 import com.overthecam.member.dto.BattleStatsInfo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,10 @@ public interface BattleHistoryViewRepository extends JpaRepository<BattleHistory
 
     // 사용자의 전적 조회
     List<BattleHistoryView> findByUserId(Long userId);
+
+    // 페이지네이션 메서드 추가
+    Page<BattleHistoryView> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
 
     @Query("SELECT new com.overthecam.member.dto.BattleStatsInfo(" +
             "b.userId, COUNT(*), " +

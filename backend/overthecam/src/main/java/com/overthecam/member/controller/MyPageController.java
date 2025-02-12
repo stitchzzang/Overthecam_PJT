@@ -7,10 +7,7 @@ import com.overthecam.member.repository.VoteStatsPageResponse;
 import com.overthecam.member.service.*;
 import com.overthecam.security.util.SecurityUtils;
 import com.overthecam.vote.dto.VoteDetailResponse;
-import com.overthecam.vote.repository.VotePageResponse;
-import com.overthecam.vote.service.VoteService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -37,12 +34,17 @@ public class MyPageController {
     }
 
     @GetMapping("/battle/history")
-    public CommonResponseDto<?> battleHistory(Authentication authentication,
-                                              @RequestParam(value = "userId", required = false) Long targetUserId) {
+    public CommonResponseDto<?> battleHistory(
+            Authentication authentication,
+            @RequestParam(value = "userId", required = false) Long targetUserId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         Long userId = targetUserId != null ?
                 targetUserId :
                 securityUtils.getCurrentUserId(authentication);
-        return CommonResponseDto.ok(battleHIstoryService.findBattleHistoryViewByUserId(userId));
+
+        return CommonResponseDto.ok(battleHIstoryService.findBattleHistoryViewByUserId(userId, pageable));
     }
 
     @GetMapping("/vote/history")
@@ -57,12 +59,7 @@ public class MyPageController {
                 targetUserId :
                 securityUtils.getCurrentUserId(authentication);
 
-        // 1부터 시작하는 페이지 번호를 0부터 시작하도록 조정
-        Pageable adjustedPageable = PageRequest.of(page - 1,
-                pageable.getPageSize(),
-                pageable.getSort());
-
-        VoteStatsPageResponse response = voteHistoryService.getMyVotes(userId, createdByMe, adjustedPageable);
+        VoteStatsPageResponse response = voteHistoryService.getMyVotes(userId, createdByMe, pageable);
         return CommonResponseDto.ok(response);
     }
 

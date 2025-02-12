@@ -40,5 +40,5 @@ public class BattleHistoryView {
     private Integer earnedScore;
 
     @Column(name = "created_at")
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 }
