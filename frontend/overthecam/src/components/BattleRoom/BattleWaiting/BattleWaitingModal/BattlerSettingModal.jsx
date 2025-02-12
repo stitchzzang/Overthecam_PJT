@@ -169,7 +169,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
             </button>
             <button
               type="submit"
-              className="py-2 px-6 bg-cusPink hover:bg-cusRed text-white rounded-lg transition-all duration-300 font-semibold clay"
+              className="py-2 px-6 bg-cusRed hover:bg-cusPink text-white rounded-lg transition-all duration-300 font-semibold clay"
             >
               확인
             </button>
