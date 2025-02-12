@@ -262,7 +262,7 @@ function BattleRoomPage() {
         </div>
       </div>
       <div className="render-change">
-        {isWaiting && isMaster ? (
+        {isWaiting ? (
           <div className="flex">
             <div className="w-3/4">
               <BattleWaiting
@@ -272,19 +272,6 @@ function BattleRoomPage() {
                 participantName={battleInfo.participantName}
                 isMaster={battleInfo.isMaster}
               />
-              <div className="flex m-3 h-1/4">
-                <div className="w-3/4 h-full bg-cusGray mx-1 clay">
-                  <h1>투표</h1>
-                </div>
-                <div className="w-1/4 flex flex-col mx-1">
-                  <div className="w-full h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
-                    <p>배틀 시작하기</p>
-                  </div>
-                  <div className="w-full h-full bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg">
-                    <p>투표 만들기</p>
-                  </div>
-                </div>
-              </div>
             </div>
             <div className="w-1/4">
               <BattleChating />
