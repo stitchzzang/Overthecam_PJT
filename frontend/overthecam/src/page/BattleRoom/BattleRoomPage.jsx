@@ -193,9 +193,9 @@ function BattleRoomPage() {
             </button>
           </div>
           <div className="mx-1">
-            <div className="random-subject bg-cusGray-dark !rounded-xl flex items-center h-12 font-bold px-6 clay">
-              현재 참여 인원
-            </div>
+            <button className="random-subject btn bg-cusYellow !rounded-xl flex items-center h-12">
+              투표 만들기
+            </button>
           </div>
         </div>
       </div>
