@@ -4,6 +4,7 @@ import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
 import { useRef } from "react";
 import BattleVote from "../common/BattleVote";
+import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 
 function BattleWaiting({
   room,
@@ -13,12 +14,12 @@ function BattleWaiting({
   isMaster,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
-  const VoteCreateModal = useRef();
-
+  const voteCreateModal = useRef();
+  const battlerSettingModal = useRef();
   const onShowVoteCreate = (event) => {
-    VoteCreateModal.current.showModal();
-  }
- 
+    voteCreateModal.current.showModal();
+  };
+
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
     .fill(null)
@@ -51,8 +52,8 @@ function BattleWaiting({
 
   return (
     <>
-      <div className="w-full h-full p-4 mt-3">
-        <div className="grid grid-cols-3 grid-rows-2 gap-4">
+      <div className="w-full h-full p-4 flex flex-col mt-4">
+        <div className="grid grid-cols-3 grid-rows-2 gap-4 flex-1">
           {slots.map((slot, index) => (
             <div key={index} className="flex flex-col">
               {/* 참가자 이름 */}
@@ -66,12 +67,13 @@ function BattleWaiting({
                 </div>
               </div>
               {/* 비디오 컨테이너 */}
-              <div className="relative aspect-video rounded-sm overflow-hidden border">
+              <div className="relative aspect-square rounded-sm overflow-hidden border">
                 {slot ? (
                   <VideoComponent
                     track={slot.track}
                     participantIdentity={slot.participantName}
                     local={slot.type === "local"}
+                    className="object-cover w-full h-full"
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-400 bg-cusGray">
@@ -88,7 +90,7 @@ function BattleWaiting({
         </div>
         <div className="flex h-1/4 mt-4">
           <div className="w-3/4 h-full bg-cusGray mx-1 clay">
-            <BattleVote isWaiting={true}/>
+            <BattleVote isWaiting={true} />
           </div>
           <div className="w-1/4 flex flex-col mx-1">
             <div className="w-full h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
@@ -103,7 +105,8 @@ function BattleWaiting({
           </div>
         </div>
       </div>
-      <BattleVoteCreate ref={VoteCreateModal} />
+      <BattleVoteCreate ref={voteCreateModal} />
+      <BattlerSettingModal ref={battlerSettingModal} />
     </>
   );
 }

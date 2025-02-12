@@ -236,7 +236,7 @@ function BattleRoomPage() {
   }
 
   return (
-    <div className="room-container flex flex-col bg-white h-full p-5 rounded-xl m-4">
+    <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
       <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
         <button
           onClick={handleLeavRoom}
@@ -261,10 +261,12 @@ function BattleRoomPage() {
           </div>
         </div>
       </div>
-      <div className="render-change">
+      <div className="render-change flex-1 h-0">
         {isWaiting ? (
-          <div className="flex">
-            <div className="w-3/4">
+          <div className="flex h-full">
+            {/* h-full 유지 */}
+            <div className="w-3/4 h-full flex flex-col">
+              {/* flex flex-col 추가 */}
               <BattleWaiting
                 room={room}
                 localTrack={localTrack}
@@ -273,8 +275,12 @@ function BattleRoomPage() {
                 isMaster={battleInfo.isMaster}
               />
             </div>
-            <div className="w-1/4">
-              <BattleChating />
+            <div className="w-1/4 flex flex-col h-full">
+              {/* flex flex-col과 h-full 추가 */}
+              <div className="overflow-y-auto flex-1">
+                {/* overflow-y-auto와 flex-1 추가 */}
+                <BattleChating />
+              </div>
             </div>
           </div>
         ) : (
