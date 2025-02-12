@@ -2,7 +2,13 @@ import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 
-function BattleWaiting({ room, localTrack, remoteTracks, participantName }) {
+function BattleWaiting({
+  room,
+  localTrack,
+  remoteTracks,
+  participantName,
+  isMaster,
+}) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
 
   // 6개의 고정 슬롯 생성
@@ -36,13 +42,19 @@ function BattleWaiting({ room, localTrack, remoteTracks, participantName }) {
     });
 
   return (
-    <div className="w-full h-full p-4">
+    <div className="w-full h-full p-4 mt-3">
       <div className="grid grid-cols-3 grid-rows-2 gap-4">
         {slots.map((slot, index) => (
           <div key={index} className="flex flex-col">
             {/* 참가자 이름 */}
-            <div className="text-sm mb-1 text-black">
-              {slot ? slot.participantName : "대기중..."}
+            <div className="px-6">
+              <div
+                className={`text-sm text-black rounded-t-lg ${
+                  isMaster && slot ? "bg-cusPink" : "bg-cusLightBlue"
+                }`}
+              >
+                {slot ? slot.participantName : "대기중..."}
+              </div>
             </div>
             {/* 비디오 컨테이너 */}
             <div className="relative aspect-video rounded-sm overflow-hidden border">

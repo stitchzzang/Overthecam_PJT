@@ -270,6 +270,7 @@ function BattleRoomPage() {
                 localTrack={localTrack}
                 remoteTracks={remoteTracks}
                 participantName={battleInfo.participantName}
+                isMaster={battleInfo.isMaster}
               />
             </div>
             <div className="w-1/4">
