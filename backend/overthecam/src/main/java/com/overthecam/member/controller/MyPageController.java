@@ -66,7 +66,7 @@ public class MyPageController {
         return CommonResponseDto.ok(response);
     }
 
-    @GetMapping("/vote/detail/{voteId}")
+    @GetMapping("/vote/{voteId}/detail")
     public CommonResponseDto<VoteDetailResponse> getVoteDetail(
             Authentication authentication,
             @PathVariable Long voteId,
