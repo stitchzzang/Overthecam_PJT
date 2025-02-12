@@ -4,6 +4,7 @@ import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.member.dto.FollowStatsInfo;
 import com.overthecam.member.exception.FollowErrorCode;
 import com.overthecam.member.domain.UserFollow;
 import com.overthecam.member.dto.FollowResponse;
@@ -79,6 +80,21 @@ public class UserFollowService {
     // 팔로워 목록 조회 (내 것이든 다른 사람 것이든)
     public List<UserProfileInfo> getFollowerList(Long targetUserId, Long currentUserId) {
         return userFollowRepository.findFollowerListWithStatus(targetUserId, currentUserId);
+    }
+
+    // 팔로우 통계 조회
+    public FollowStatsInfo getFollowStats(Long userId) {
+        // 해당 유저가 존재하는지 확인
+        findUserById(userId, "사용자");
+
+        long followerCount = userFollowRepository.countFollowersByUserId(userId);
+        long followingCount = userFollowRepository.countFollowingsByUserId(userId);
+
+        return FollowStatsInfo.builder()
+                .userId(userId)
+                .followerCount(followerCount)
+                .followingCount(followingCount)
+                .build();
     }
 
 }

@@ -14,6 +14,15 @@ import java.util.Optional;
 @Repository
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
+    // 팔로워 수 조회 (나를 팔로우하는 사람 수)
+    @Query("SELECT COUNT(uf) FROM UserFollow uf WHERE uf.following.id = :userId")
+    long countFollowersByUserId(@Param("userId") Long userId);
+
+    // 팔로잉 수 조회 (내가 팔로우하는 사람 수)
+    @Query("SELECT COUNT(uf) FROM UserFollow uf WHERE uf.follower.id = :userId")
+    long countFollowingsByUserId(@Param("userId") Long userId);
+
+
     boolean existsByFollowerAndFollowing(User follower, User following);
 
     Optional<UserFollow> findByFollowerAndFollowing(User follower, User following);

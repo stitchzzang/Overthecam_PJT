@@ -43,7 +43,7 @@ public class UserFollowController {
         return CommonResponseDto.ok(userFollowService.getFollowingList(targetUserId, currentUserId));
     }
 
-    @GetMapping("/followers")
+    @GetMapping("/follower")
     public CommonResponseDto<List<UserProfileInfo>> getFollowerList(
             Authentication authentication,
             @RequestParam(required = false) Long userId
