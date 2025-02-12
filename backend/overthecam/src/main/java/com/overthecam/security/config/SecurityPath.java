@@ -21,17 +21,16 @@ public enum SecurityPath {
     VOTE_LIST("/api/vote/list"),
 
     // 배틀 관련 경로
-    BATTLE_VIEW_LIST("/api/battle/room/all");
+    BATTLE_VIEW_LIST("/api/battle/room/all"),
+
+    // 검색 관련 경로
+    SEARCH("/api/search/**");
 
 
     private final String path;
 
     SecurityPath(String path) {
         this.path = path;
-    }
-
-    public String getPath() {
-        return this.path;
     }
 
     public static String[] getAllPublicPaths() {
@@ -52,5 +51,9 @@ public enum SecurityPath {
                     // 정확한 경로 매칭
                     return pattern.equals(uri);
                 });
+    }
+
+    public String getPath() {
+        return this.path;
     }
 }

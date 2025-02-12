@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import VoteDeleteModal from './VoteModal/VoteDeleteModal';
+import { authAxios } from '../../common/axiosinstance';
 
 const VoteDetail = ({ voteData, onDelete }) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const deleteModalRef = useRef();
 
   // creatorUserId로 비교 로직 수정
   const userInfo = localStorage.getItem('userInfo');
@@ -14,17 +16,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
     isCreator: isCreator
   });
 
-  const handleDeleteClick = async () => {
-    const confirmed = window.confirm('정말로 이 투표를 삭제하시겠습니까?');
-    if (confirmed) {
-      const success = await onDelete();
-      if (success) {
-        // 삭제 성공 시 추가 처리
-      }
-    }
-  };
-
-  // 사용자 나이 계산 함수
   const calculateAge = (birthDate) => {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -38,7 +29,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
     return age;
   };
 
-  // 연령대 변환 함수
   const getAgeGroup = (age) => {
     if (age < 20) return '10';
     if (age < 30) return '20';
@@ -47,7 +37,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
     return '50';
   };
 
-  // 투표 처리 함수 수정
   const handleVote = async (optionId) => {
     try {
       const userInfoStr = localStorage.getItem('userInfo');
@@ -84,8 +73,8 @@ const VoteDetail = ({ voteData, onDelete }) => {
   if (!voteData) return <div>로딩 중...</div>;
 
   return (
-    <div className="max-w-[800px] mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="w-full max-w-[800px] mx-auto mt-8">
+      <div className="clay bg-cusLightBlue-lighter rounded-lg shadow-lg p-6">
         {/* 제목 */}
         <h1 className="text-3xl font-bold text-center mb-4">{voteData.title}</h1>
         
@@ -117,8 +106,12 @@ const VoteDetail = ({ voteData, onDelete }) => {
 
         {/* 투표 옵션 제목 */}
         <div className="flex justify-between mb-4 text-xl">
-          <div className="text-red-500">A. {voteData.options[0].optionTitle}</div>
-          <div className="text-blue-500">B. {voteData.options[1].optionTitle}</div>
+          <div className="text-red-500">
+            A. {voteData.options[0].optionTitle}
+          </div>
+          <div className="text-blue-500">
+            B. {voteData.options[1].optionTitle}
+          </div>
         </div>
 
         {/* 투표 결과 그래프 */}
@@ -230,8 +223,8 @@ const VoteDetail = ({ voteData, onDelete }) => {
           </div>
           {isCreator && (
             <button 
-              onClick={() => setShowDeleteModal(true)}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              onClick={() => deleteModalRef.current?.showModal()}
+              className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               삭제
             </button>
@@ -239,29 +232,7 @@ const VoteDetail = ({ voteData, onDelete }) => {
         </div>
       </div>
 
-      {/* 삭제 모달 */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">투표 삭제</h3>
-            <p className="mb-6">정말로 이 투표를 삭제하시겠습니까?</p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleDeleteClick}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <VoteDeleteModal ref={deleteModalRef} onDelete={onDelete} />
     </div>
   );
 };

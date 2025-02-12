@@ -8,7 +8,6 @@ import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
 import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
 import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
 import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
-import VoteDeleteModal from "./components/Vote/VoteDeleteModal.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage";
 import Login from "./components/Login/Login";
 import Signup from "./components/Login/Signup";
@@ -86,7 +85,7 @@ function App() {
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
           <Route path="/create-vote" element={<VoteCreatingPage />} />
           <Route path="/vote" element={<VotePage />} />
-
+          
           <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
           <Route path="/login" element={<ProtectedLogin />} />
           <Route path="/signup" element={<Signup />} />
