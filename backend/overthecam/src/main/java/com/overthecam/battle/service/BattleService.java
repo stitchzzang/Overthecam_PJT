@@ -1,6 +1,5 @@
 package com.overthecam.battle.service;
 
-import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
@@ -25,10 +24,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BattleService {
 
-    //private final OpenViduService openViduService;
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
-    private final UserRepository userRepository;
+
 
     private final String[] topics = {
             "더 괴로운 상황은?\n" +
@@ -132,7 +130,7 @@ public class BattleService {
                             .battleId(battle.getId())
                             .thumbnailUrl(battle.getThumbnailUrl())
                             .title(battle.getTitle())
-                            .status(battle.getStatus().getCode())
+                            .status(battle.getStatus())
                             .totalUsers(battle.getTotalUsers())
                             .build();
                 })

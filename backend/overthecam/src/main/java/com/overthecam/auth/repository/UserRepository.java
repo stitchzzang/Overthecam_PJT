@@ -2,6 +2,8 @@ package com.overthecam.auth.repository;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.member.dto.UserScoreInfo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +17,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     Optional<User> findByEmail(String email);
+
     Optional<User> findByUsernameAndPhoneNumberAndBirth(String username, String phoneNumber, LocalDate birth);
+
     Optional<User> findByEmailAndUsernameAndPhoneNumber(String email, String username, String phoneNumber);
 
     // 특정 유저의 응원점수와 포인트 조회
@@ -40,4 +44,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     void updateScoreAndPoint(@Param("userId") Long userId,
                              @Param("supportScore") int supportScore,
                              @Param("point") int point);
+
+    Page<User> findByNicknameContainingIgnoreCase(String trim, Pageable pageable);
 }
