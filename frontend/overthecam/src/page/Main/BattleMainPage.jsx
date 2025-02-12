@@ -83,7 +83,7 @@ function BattleMainPage() {
                   {/* 배틀 목록 컴포넌트 생성 */}
                   {currentList.map((room) => (
                     <BattleListItem
-                      key={room.title}
+                      key={room.id}
                       title={room.title}
                       totalUsers={room.totalUsers}
                       thumbnail={room.thumbnailUrl}
