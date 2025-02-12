@@ -34,30 +34,6 @@ function BattleRoomPage() {
       // 필요한 처리 (예: 홈으로 리다이렉트)
     }
 
-    // if (isDevelopment) {
-    //   const devBattleInfo = {
-    //     roomName: "개발용_방",
-    //     participantName: "개발자",
-    //     userToken: "dev_token",
-    //   };
-
-    //   // 상태 업데이트
-    //   useBattleStore.getState().setBattleInfo(devBattleInfo);
-
-    //   // localStorage에도 저장
-    //   localStorage.setItem("devBattleInfo", JSON.stringify(devBattleInfo));
-    // }
-
-    // if (
-    //   !battleInfo.roomName &&
-    //   !battleInfo.participantName &&
-    //   !battleInfo.userToken &&
-    //   !isDevelopment
-    // ) {
-    //   navigate("/");
-    //   return;
-    // }
-
     async function initializeRoom() {
       try {
         await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -77,14 +53,11 @@ function BattleRoomPage() {
     initializeRoom();
 
     return () => {
-      leaveRoom();
+      cleanup(room);
     };
   }, []); // 빈 의존성 배열이 맞습니다 - 마운트 시 한 번만 실행
 
   async function joinRoom() {
-    console.log("Starting joinRoom with:", {
-      LIVEKIT_URL,
-    });
     const room = new Room({
       iceServers: [
         {
@@ -106,6 +79,7 @@ function BattleRoomPage() {
     });
     setRoom(room);
 
+    // 다른 참가자의 상태 실시간 관리
     room.on(RoomEvent.TrackSubscribed, (_track, publication, participant) => {
       console.log(
         "New track subscribed:",
@@ -148,6 +122,7 @@ function BattleRoomPage() {
       await room.localParticipant.enableCameraAndMicrophone();
       console.log("Camera and mic enabled");
 
+      // 내 디바이스 찾아서 가져오기
       const videoTrack = room.localParticipant.videoTrackPublications
         .values()
         .next().value?.videoTrack;
@@ -164,20 +139,61 @@ function BattleRoomPage() {
     }
   }
 
+  async function cleanup() {
+    if (!room) return;
+
+   try {
+     if (room.localParticipant) {
+       // 카메라와 마이크를 먼저 비활성화
+       await room.localParticipant.setCameraEnabled(false);
+       await room.localParticipant.setMicrophoneEnabled(false);
+       // 모든 트랙 정리
+       Array.from(room.localParticipant.trackPublications.values()).forEach(
+         (publication) => {
+           if (publication.track) {
+             publication.track.stop(); // 이 메서드만 제공됨
+           }
+         }
+       );
+     }
+
+     // room 연결 종료
+     await room?.disconnect();
+
+     // 상태 초기화
+     setLocalTrack(null);
+     setRemoteTracks([]);
+
+     console.log("Cleanup completed successfully");
+   } catch (error) {
+     console.error("Error during cleanup:", error);
+     try {
+       await room?.disconnect();
+     } catch (e) {
+       console.error("Final disconnect attempt failed:", e);
+     }
+   }
+  }
+
+  async function handleLeavRoom() {
+    await cleanup(room);
+    navigate("/");
+  }
+
   async function leaveRoom() {
     await room?.disconnect();
     setRoom(undefined);
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    // navigate("/");
+    navigate("/");
   }
 
   return (
     <div className="room-container flex flex-col bg-white h-full p-5 rounded-xl m-4">
       <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
         <button
-          onClick={leaveRoom}
+          onClick={handleLeavRoom}
           className="btn justify-start bg-cusLightBlue-light !rounded-xl flex items-center h-12"
         >
           <ChevronLeftIcon className="w-5 h-5" />
