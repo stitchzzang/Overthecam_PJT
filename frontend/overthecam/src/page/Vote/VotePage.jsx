@@ -96,15 +96,15 @@ const VotePage = () => {
             <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
             <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
           </div>
-          <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden">
+          <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
             <div
-              className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-2 text-white"
+              className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
               style={{ width: `${vote.options[0].votePercentage}%` }}
             >
               {vote.options[0].votePercentage.toFixed(1)}%
             </div>
             <div
-              className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2 text-white"
+              className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
               style={{ width: `${vote.options[1].votePercentage}%` }}
             >
               {vote.options[1].votePercentage.toFixed(1)}%
@@ -131,37 +131,46 @@ const VotePage = () => {
       
       <div className="container mx-auto px-4 md:px-6 max-w-6xl">
         <div>
-        <div className="flex gap-4 mt-6 mb-4">
-          <button
-            onClick={() => setVoteStatus('all')}
-            className={`clay px-6 py-2 rounded-xl transition-colors ${
-              voteStatus === 'all'
-                ? 'bg-cusBlue text-white'
-                : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-            }`}
+        <div className="flex justify-between items-center mt-6 mb-4">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setVoteStatus('all')}
+              className={`btn px-4 py-1.5 text-md rounded-full transition-colors ${
+                voteStatus === 'all'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+              }`}
+            >
+              전체보기
+            </button>
+            <button
+              onClick={() => setVoteStatus('active')}
+              className={`btn px-4 py-1.5 text-md rounded-full transition-colors ${
+                voteStatus === 'active'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+              }`}
+            >
+              진행중
+            </button>
+            <button
+              onClick={() => setVoteStatus('ended')}
+              className={`btn px-4 py-1.5 text-md rounded-full transition-colors ${
+                voteStatus === 'ended'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+              }`}
+            >
+              종료됨
+            </button>
+          </div>
+          <Link
+            to="/create-vote"
+            state={{ from: '/vote' }}
+            className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
           >
-            전체보기
-          </button>
-          <button
-            onClick={() => setVoteStatus('active')}
-            className={`clay px-6 py-2 rounded-xl transition-colors ${
-              voteStatus === 'active'
-                ? 'bg-cusBlue text-white'
-                : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-            }`}
-          >
-            진행중
-          </button>
-          <button
-            onClick={() => setVoteStatus('ended')}
-            className={`clay px-6 py-2 rounded-xl transition-colors ${
-              voteStatus === 'ended'
-                ? 'bg-cusBlue text-white'
-                : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-            }`}
-          >
-            종료됨
-          </button>
+            방만들기
+          </Link>
         </div>
         
         <div className="space-y-4 mt-4">

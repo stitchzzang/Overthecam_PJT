@@ -106,24 +106,24 @@ const VoteDetail = ({ voteData, onDelete }) => {
 
         {/* 투표 옵션 제목 */}
         <div className="flex justify-between mb-4 text-xl">
-          <div className="text-red-500">
+          <div className="text-red-500 font-bold">
             A. {voteData.options[0].optionTitle}
           </div>
-          <div className="text-blue-500">
+          <div className="text-blue-500 font-bold">
             B. {voteData.options[1].optionTitle}
           </div>
         </div>
 
         {/* 투표 결과 그래프 */}
-        <div className="relative h-12 bg-gray-200 rounded-full overflow-hidden mb-8">
+        <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden mb-8">
           <div
-            className="absolute left-0 top-0 h-full bg-red-400 flex items-center justify-start pl-4 text-white font-bold"
+            className="absolute left-0 top-0 h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold"
             style={{ width: `${voteData.options[0].votePercentage}%` }}
           >
             {voteData.options[0].votePercentage}%
           </div>
           <div
-            className="absolute right-0 top-0 h-full bg-blue-400 flex items-center justify-end pr-4 text-white font-bold"
+            className="absolute right-0 top-0 h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold"
             style={{ width: `${voteData.options[1].votePercentage}%` }}
           >
             {voteData.options[1].votePercentage}%
@@ -136,18 +136,18 @@ const VoteDetail = ({ voteData, onDelete }) => {
           <div className="space-y-3">
             {/* 남성 통계 */}
             <div className="flex items-center justify-center gap-4">
-              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                  className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                   style={{ width: `${voteData.options[0].genderDistribution['남성'] || 0}%` }}
                 >
                   {Math.round(voteData.options[0].genderDistribution['남성'] || 0)}%
                 </div>
               </div>
               <span className="w-16 text-center font-bold">남성</span>
-              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                  className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                   style={{ width: `${voteData.options[1].genderDistribution['남성'] || 0}%` }}
                 >
                   {Math.round(voteData.options[1].genderDistribution['남성'] || 0)}%
@@ -156,18 +156,18 @@ const VoteDetail = ({ voteData, onDelete }) => {
             </div>
             {/* 여성 통계 */}
             <div className="flex items-center justify-center gap-4">
-              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                  className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                   style={{ width: `${voteData.options[0].genderDistribution['여성'] || 0}%` }}
                 >
                   {Math.round(voteData.options[0].genderDistribution['여성'] || 0)}%
                 </div>
               </div>
               <span className="w-16 text-center font-bold">여성</span>
-              <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
                 <div
-                  className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                  className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                   style={{ width: `${voteData.options[1].genderDistribution['여성'] || 0}%` }}
                 >
                   {Math.round(voteData.options[1].genderDistribution['여성'] || 0)}%
@@ -183,18 +183,18 @@ const VoteDetail = ({ voteData, onDelete }) => {
           <div className="space-y-3">
             {['10대', '20대', '30대', '40대', '50대 이상'].map((age) => (
               <div key={age} className="flex items-center justify-center gap-4">
-                <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+                <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
                   <div
-                    className="absolute right-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                    className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
                     style={{ width: `${voteData.options[0].ageDistribution[age] || 0}%` }}
                   >
                     {Math.round(voteData.options[0].ageDistribution[age] || 0)}%
                   </div>
                 </div>
                 <span className="w-16 text-center font-bold">{age}</span>
-                <div className="w-[38%] h-8 bg-gray-200 rounded-full relative">
+                <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
                   <div
-                    className="absolute left-0 top-0 h-full bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                    className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
                     style={{ width: `${voteData.options[1].ageDistribution[age] || 0}%` }}
                   >
                     {Math.round(voteData.options[1].ageDistribution[age] || 0)}%
