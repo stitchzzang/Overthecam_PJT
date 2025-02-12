@@ -1,11 +1,11 @@
 package com.overthecam.member.repository;
 
+import com.overthecam.common.dto.PageInfo;
 import com.overthecam.member.domain.BattleHistoryView;
 import lombok.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
-
 
 @Builder
 @Getter
@@ -13,18 +13,12 @@ import java.util.List;
 @AllArgsConstructor
 public class BattleHistoryPageResponse {
     private List<BattleHistoryView> content;
-    private int pageNumber;
-    private int pageSize;
-    private long totalElements;
-    private int totalPages;
+    private PageInfo pageInfo;
 
     public static BattleHistoryPageResponse of(Page<BattleHistoryView> page) {
         return BattleHistoryPageResponse.builder()
                 .content(page.getContent())
-                .pageNumber(page.getNumber() + 1)  // 0-based를 1-based로 변환
-                .pageSize(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
+                .pageInfo(PageInfo.of(page))
                 .build();
     }
 }
