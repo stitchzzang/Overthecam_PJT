@@ -45,46 +45,52 @@ function MyPage() {
     const fetchUserData = async () => {
       try {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        console.log("localStorage userInfo:", userInfo);  // 데이터 확인용
+        
+        // API를 통해 마이페이지 정보 가져오기
+        const response = await authAxios.get("/mypage/stats");
+        const myPageData = response;
         
         setUserData({
           id: userInfo.userId || "",
           email: userInfo.email || "",
           username: userInfo.username || "",
-          nickname: userInfo.nickname || "",
+          nickname: myPageData.data.profileInfo?.nickname || "",
           gender: userInfo.gender || "",
           birth: userInfo.birth || "",
           phoneNumber: userInfo.phoneNumber || "",
-          stats: {
-            cheerPoints: parseInt(userInfo.supportScore) || 0,    // 명시적으로 숫자로 변환
-            points: parseInt(userInfo.point) || 0,                // 명시적으로 숫자로 변환
-            followers: 0,
-            following: 0,
-            record: {
-              wins: 0,
-              draws: 0,
-              losses: 0,
-            },
+          profileInfo: {
+            profileImage: myPageData.data.profileInfo?.profileImage
           },
-        })
+          stats: {
+            cheerPoints: myPageData.data.scoreInfo?.supportScore || 0,
+            points: myPageData.data.scoreInfo?.point || 0,
+            followers: myPageData.data.followStats?.followerCount || 0,
+            following: myPageData.data.followStats?.followingCount || 0,
+          },
+          battleStats: {
+            totalGames: myPageData.data.battleStats?.totalGames || 0,
+            win: myPageData.data.battleStats?.win || 0,
+            draw: myPageData.data.battleStats?.draw || 0,
+            loss: myPageData.data.battleStats?.loss || 0,
+            winRate: myPageData.data.battleStats?.winRate || 0
+          }
+        });
 
-        console.log("설정된 userData:", userData);  // 설정된 데이터 확인용
-
-        // 수정 가능한 필드들만 editedData에 설정
         setEditedData({
-          password: "",  // 비밀번호는 빈 값으로 초기화
+          password: "",
           username: userInfo.username || "",
-          nickname: userInfo.nickname || "",
+          nickname: myPageData.data.profileInfo?.nickname || "",
           phoneNumber: userInfo.phoneNumber || ""
-        })
+        });
 
       } catch (error) {
-        console.error("Failed to load user data from localStorage:", error)
+        console.error("Failed to load user data:", error);
+        setToast({ show: true, message: '사용자 정보를 불러오는데 실패했습니다', type: 'error' });
       }
-    }
+    };
 
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
   const handleChange = (e) => {
     setEditedData({ ...editedData, [e.target.name]: e.target.value })
@@ -186,11 +192,11 @@ function MyPage() {
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg clay">
                     <p className="text-sm text-gray-600">응원점수</p>
-                    <p className="text-2xl font-bold">{userData.stats.cheerPoints}</p>
+                    <p className="text-2xl font-bold">{userData.stats.cheerPoints.toLocaleString()}</p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg clay">
                     <p className="text-sm text-gray-600">포인트</p>
-                    <p className="text-2xl font-bold">{userData.stats.points}</p>
+                    <p className="text-2xl font-bold">{userData.stats.points.toLocaleString()}</p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg clay">
                     <p className="text-sm text-gray-600">팔로워</p>
@@ -208,25 +214,25 @@ function MyPage() {
                   <div className="flex justify-center gap-8">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2 clay">
-                        <span className="text-blue-600 text-xl font-bold">{userData?.battleStats?.win || 0}</span>
+                        <span className="text-blue-600 text-xl font-bold">{userData.battleStats?.win || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">승</p>
                     </div>
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2 clay">
-                        <span className="text-gray-600 text-xl font-bold">{userData?.battleStats?.draw || 0}</span>
+                        <span className="text-gray-600 text-xl font-bold">{userData.battleStats?.draw || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">무</p>
                     </div>
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-2 clay">
-                        <span className="text-red-500 text-xl font-bold">{userData?.battleStats?.loss || 0}</span>
+                        <span className="text-red-500 text-xl font-bold">{userData.battleStats?.loss || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">패</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 text-center mt-2">
-                    {userData.nickname} 님의 승률은 {winRate}% 입니다.
+                    {userData.nickname} 님의 승률은 {userData.battleStats?.winRate || 0}% 입니다.
                   </p>
                 </div>
               </div>

@@ -74,6 +74,10 @@ const Signup = () => {
       const response = await publicAxios.post("/auth/signup", signupData)
       
       if (response.data) {
+        // 포인트와 서포트 스코어를 로컬 스토리지에 저장
+        localStorage.setItem("point", response.data.point || 0);
+        localStorage.setItem("supportScore", response.data.supportScore || 0);
+        
         setMessage("회원가입이 완료되었습니다")
         setIsError(false)
         window.location.replace("/")
