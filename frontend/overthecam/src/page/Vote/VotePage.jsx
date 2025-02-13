@@ -6,29 +6,51 @@ const VotePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState({
+    all: 1,
+    active: 1,
+    ended: 1
+  });
   const [currentList, setCurrentList] = useState([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const [voteStatus, setVoteStatus] = useState('all'); // 'all', 'active', 'ended'
+  const [totalPages, setTotalPages] = useState({
+    all: 0,
+    active: 0,
+    ended: 0
+  });
+  const [voteStatus, setVoteStatus] = useState('all');
+  const [showMyVotes, setShowMyVotes] = useState(false);
+  const userInfo = localStorage.getItem('userInfo');
+  const userId = userInfo ? JSON.parse(userInfo).userId : null;
 
   const fetchVotes = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       
+      const params = {
+        page: pages[voteStatus] - 1,
+        size: 10,
+        status: voteStatus === 'all' ? undefined : voteStatus
+      };
+      
       const response = await publicAxios.get('/vote/list', { 
-        params: {
-          page: page - 1,
-          size: 5,
-          includeVoteResult: true,
-          status: voteStatus === 'all' ? null : voteStatus
-        },
+        params,
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
       if (response.data?.content) {
-        setCurrentList(response.data.content);
-        setTotalPages(response.data.pageInfo.totalPages);
+        // 내 투표만 보기가 활성화된 경우 필터링
+        const filteredContent = showMyVotes && userId
+          ? response.data.content.filter(vote => Number(vote.creatorUserId) === Number(userId))
+          : response.data.content;
+
+        setCurrentList(filteredContent);
+        setTotalPages(prev => ({
+          ...prev,
+          [voteStatus]: showMyVotes 
+            ? Math.ceil(filteredContent.length / 10)  // 필터링된 결과의 페이지 수 계산
+            : response.data.pageInfo.totalPages
+        }));
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -40,8 +62,20 @@ const VotePage = () => {
   
   useEffect(() => {
     fetchVotes();
-  }, [page, voteStatus]);
-  
+  }, [pages[voteStatus], voteStatus, showMyVotes]);
+
+  const handlePageChange = (newPage) => {
+    setPages(prev => ({
+      ...prev,
+      [voteStatus]: newPage
+    }));
+  };
+
+  const handleStatusChange = (newStatus) => {
+    setVoteStatus(newStatus);
+    fetchVotes();
+  };
+
   const handleVote = async (vote, optionId) => {
     try {
       const token = localStorage.getItem('token');
@@ -88,163 +122,257 @@ const VotePage = () => {
     }
   };
 
-  const renderVoteResult = (vote) => (
-    <div className="mb-4">
-      {vote.options && vote.options.length >= 2 && (
-        <>
-          <div className="mb-2 flex justify-between">
-            <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
-            <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
-          </div>
-          <div className="relative h-12 bg-gray-200 rounded-lg overflow-hidden">
-            <div
-              className="absolute left-0 top-0 h-full bg-red-500 flex items-center justify-start pl-2 text-white"
-              style={{ width: `${vote.options[0].votePercentage}%` }}
-            >
-              {vote.options[0].votePercentage.toFixed(1)}%
+  const handleMyVotesToggle = async () => {
+    try {
+      const newShowMyVotes = !showMyVotes;
+      setShowMyVotes(newShowMyVotes);
+      
+      // 페이지 초기화
+      setPages(prev => ({
+        ...prev,
+        [voteStatus]: 1
+      }));
+
+      // 로딩 상태 설정
+      setLoading(true);
+      
+      // 데이터 다시 불러오기
+      const params = {
+        page: 0,  // 첫 페이지부터 시작
+        size: 10,
+        status: voteStatus === 'all' ? undefined : voteStatus
+      };
+      
+      const token = localStorage.getItem('token');
+      const response = await publicAxios.get('/vote/list', { 
+        params,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      if (response.data?.content) {
+        const filteredContent = newShowMyVotes && userId
+          ? response.data.content.filter(vote => Number(vote.creatorUserId) === Number(userId))
+          : response.data.content;
+
+        setCurrentList(filteredContent);
+        setTotalPages(prev => ({
+          ...prev,
+          [voteStatus]: newShowMyVotes 
+            ? Math.ceil(filteredContent.length / 10)
+            : response.data.pageInfo.totalPages
+        }));
+      }
+    } catch (error) {
+      console.error('Toggle error:', error);
+      alert('데이터를 불러오는 중 오류가 발생했습니다.');
+      // 에러 발생 시 토글 상태 원복
+      setShowMyVotes(!newShowMyVotes);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderVoteResult = (vote) => {
+    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
+    
+    return (
+      <div className="mb-4">
+        {vote.options && vote.options.length >= 2 && (
+          <>
+            <div className="mb-2 flex justify-between">
+              <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+              <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
             </div>
-            <div
-              className="absolute right-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2 text-white"
-              style={{ width: `${vote.options[1].votePercentage}%` }}
-            >
-              {vote.options[1].votePercentage.toFixed(1)}%
+            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+              <div
+                className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
+                style={{ width: `${totalVotes > 0 ? vote.options[0].votePercentage : 0}%` }}
+              >
+                {totalVotes > 0 ? vote.options[0].votePercentage.toFixed(1) : 0}%
+              </div>
+              <div
+                className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
+                style={{ width: `${totalVotes > 0 ? vote.options[1].votePercentage : 0}%` }}
+              >
+                {totalVotes > 0 ? vote.options[1].votePercentage.toFixed(1) : 0}%
+              </div>
             </div>
-          </div>
-          <div className="text-right text-sm text-gray-600 mt-2">
-            총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
-          </div>
-        </>
-      )}
-    </div>
-  );
+            <div className="text-right text-sm text-gray-600 mt-2">
+              총 투표수: {totalVotes}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const shouldShowVoteButtons = (vote) => {
+    return vote.active && !vote.hasVoted;
+  };
+
+  const shouldShowVoteResult = (vote) => {
+    // 투표가 종료되었거나(ended), 사용자가 투표했거나(hasVoted)인 경우 결과를 보여줌
+    return voteStatus === 'ended' || !vote.active || vote.hasVoted;
+  };
 
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="vote-main-page bg-cusGray-light min-h-screen">
+    <div className="vote-main-page bg-cusGray-light min-h-screen pb-14">
       <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-          투표 목록 보기
+          투표
         </h1>
       </div>
       
-      <div className="flex gap-4 mt-6 mb-4">
-        <button
-          onClick={() => setVoteStatus('all')}
-          className={`clay px-6 py-2 rounded-xl transition-colors ${
-            voteStatus === 'all'
-              ? 'bg-cusBlue text-white'
-              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-          }`}
-        >
-          전체보기
-        </button>
-        <button
-          onClick={() => setVoteStatus('active')}
-          className={`clay px-6 py-2 rounded-xl transition-colors ${
-            voteStatus === 'active'
-              ? 'bg-cusBlue text-white'
-              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-          }`}
-        >
-          진행중
-        </button>
-        <button
-          onClick={() => setVoteStatus('ended')}
-          className={`clay px-6 py-2 rounded-xl transition-colors ${
-            voteStatus === 'ended'
-              ? 'bg-cusBlue text-white'
-              : 'bg-cusLightBlue hover:bg-cusBlue hover:text-white'
-          }`}
-        >
-          종료됨
-        </button>
-      </div>
-      
-      <div className="space-y-4 mt-4">
-        {currentList.map((vote) => (
-          <div key={vote.voteId} className="bg-white rounded-lg shadow-lg p-6">
-            <Link to={`/vote-detail/${vote.voteId}`}>
-              <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
-                {vote.title}
-              </h2>
-            </Link>
-            
-            <p className="text-gray-600 mb-4">{vote.content}</p>
-
-            <div className="transition-all duration-300">
-              {Boolean(vote.hasVoted) ? (
-                renderVoteResult(vote)
-              ) : (
-                <div className="flex gap-4 mb-4">
-                  {vote.options.map((option) => (
-                    <button
-                      key={option.optionId}
-                      onClick={() => handleVote(vote, option.optionId)}
-                      className={`flex-1 p-4 ${
-                        option.optionId === vote.options[0].optionId
-                          ? 'bg-red-100 hover:bg-red-200 text-red-500'
-                          : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                      } rounded-lg transition-colors`}
-                    >
-                      {option.optionTitle}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>{vote.creatorNickname}</span>
-              <span>·</span>
-              <span>댓글 {vote.commentCount}</span>
-            </div>
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl mt-4">
+        <div>
+        <div className="flex justify-between items-center mt-8 mb-8">
+          <div className="flex gap-4">
+            <button
+              onClick={() => handleStatusChange('all')}
+              className={`btn px-6 py-2 text-md rounded-full transition-colors ${
+                voteStatus === 'all'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+              }`}
+            >
+              전체보기
+            </button>
+            <button
+              onClick={() => handleStatusChange('active')}
+              className={`btn px-6 py-2 text-md rounded-full transition-colors ${
+                voteStatus === 'active'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+              }`}
+            >
+              진행중
+            </button>
+            <button
+              onClick={() => handleStatusChange('ended')}
+              className={`btn px-6 py-2 text-md rounded-full transition-colors ${
+                voteStatus === 'ended'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+              }`}
+            >
+              종료됨
+            </button>
           </div>
-        ))}
-      </div>
+          <div className="flex items-center gap-4">
+            {userId && (
+              <div className="flex items-center">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showMyVotes}
+                    onChange={handleMyVotesToggle}
+                    disabled={loading}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-700">
+                    {loading ? '로딩중...' : '내 투표만'}
+                  </span>
+                </label>
+              </div>
+            )}
+            <Link
+              to="/create-vote"
+              state={{ from: '/vote' }}
+              className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
+            >
+              투표 만들기
+            </Link>
+          </div>
+        </div>
+        
+        <div className="space-y-4 mt-4">
+          {currentList.map((vote) => (
+            <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <Link to={`/vote-detail/${vote.voteId}`}>
+                <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
+                  {vote.title}
+                </h2>
+              </Link>
+              
+              <p className="text-gray-600 mb-4">{vote.content}</p>
 
-      <div className="flex justify-center mt-6 pb-10">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setPage(1)}
-            disabled={page === 1}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'<<'}
-          </button>
-          <button
-            onClick={() => setPage(prev => Math.max(1, prev - 1))}
-            disabled={page === 1}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'<'}
-          </button>
-          <span className="mx-2">
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={page === totalPages}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'>'}
-          </button>
-          <button
-            onClick={() => setPage(totalPages)}
-            disabled={page === totalPages}
-            className={`w-8 h-8 flex items-center justify-center rounded ${
-              page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {'>>'}
-          </button>
+              <div className="transition-all duration-300">
+                {shouldShowVoteResult(vote) ? (
+                  renderVoteResult(vote)
+                ) : shouldShowVoteButtons(vote) ? (
+                  <div className="flex gap-4 mb-4">
+                    {vote.options.map((option) => (
+                      <button
+                        key={option.optionId}
+                        onClick={() => handleVote(vote, option.optionId)}
+                        className={`clay flex-1 p-4 ${
+                          option.optionId === vote.options[0].optionId
+                            ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                            : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                        } rounded-lg transition-colors`}
+                      >
+                        {option.optionTitle}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>{vote.creatorNickname}</span>
+                <span>·</span>
+                <span>댓글 {vote.commentCount}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        </div>
+        <div className="flex justify-center mt-6 pb-10">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={pages[voteStatus] === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                pages[voteStatus] === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'<<'}
+            </button>
+            <button
+              onClick={() => handlePageChange(Math.max(1, pages[voteStatus] - 1))}
+              disabled={pages[voteStatus] === 1}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                pages[voteStatus] === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'<'}
+            </button>
+            <span className="mx-2">
+              {pages[voteStatus]} / {totalPages[voteStatus]}
+            </span>
+            <button
+              onClick={() => handlePageChange(Math.min(totalPages[voteStatus], pages[voteStatus] + 1))}
+              disabled={pages[voteStatus] === totalPages[voteStatus]}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                pages[voteStatus] === totalPages[voteStatus] ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'>'}
+            </button>
+            <button
+              onClick={() => handlePageChange(totalPages[voteStatus])}
+              disabled={pages[voteStatus] === totalPages[voteStatus]}
+              className={`w-8 h-8 flex items-center justify-center rounded ${
+                pages[voteStatus] === totalPages[voteStatus] ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {'>>'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

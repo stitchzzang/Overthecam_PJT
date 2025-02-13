@@ -4,10 +4,14 @@ import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.domain.Status;
+import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.websocket.dto.ChatMessageResponse;
+import com.overthecam.redis.repository.BattleVoteRedisRepository;
+import com.overthecam.websocket.dto.BattlerNotificationDto;
 import com.overthecam.websocket.dto.ParticipantInfo;
+import com.overthecam.websocket.exception.WebSocketErrorCode;
+import com.overthecam.websocket.exception.WebSocketException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,12 +27,12 @@ public class BattleWebsocketService {
 
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository participantRepository;
-    private final ChatMessageService chatMessageService;
+    private final BattleVoteRedisRepository battleVoteRedisRepository;
 
     @Transactional
     public Battle updateBattleStatus(Long battleId, Status status) {
         Battle battle = battleRepository.findById(battleId)
-                .orElseThrow(() -> new RuntimeException("Battle not found"));
+                .orElseThrow(() -> new WebSocketException(WebSocketErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다."));
         battle.updateStatus(status);
         log.info("Battle status updated - battleId: {}, status: {}", battleId, status);
         return battleRepository.save(battle);
@@ -40,16 +44,37 @@ public class BattleWebsocketService {
                 .collect(Collectors.toList());
     }
 
-    public ChatMessageResponse getBattlerNotification(Long battleId) {
-        List<String> battlerNames = participantRepository.findAllByBattleIdWithUser(battleId).stream()
+    public BattlerNotificationDto getBattlerNotification(Long battleId) {
+        List<BattleParticipant> battlers = participantRepository.findAllByBattleIdWithUser(battleId).stream()
                 .filter(p -> ParticipantRole.isBattler(p.getRole()))
-                .map(p -> p.getUser().getNickname())
-                .toList();
+                .collect(Collectors.toList());
 
-        return chatMessageService.sendSystemMessage(
-                String.format("%s님과 %s님 배틀러 선정!\n건강하고 유쾌한 논쟁 되시길 바랍니다!",
-                        battlerNames.get(0), battlerNames.get(1)));
+        List<BattleBettingInfo> battlerVotes = battleVoteRedisRepository.getAllVotesForBattle(battleId).stream()
+                .filter(BattleBettingInfo::isBattler)
+                .collect(Collectors.toList());
+
+        return BattlerNotificationDto.builder()
+                .firstBattler(createBattlerInfo(battlers.get(0), battlerVotes))
+                .secondBattler(createBattlerInfo(battlers.get(1), battlerVotes))
+                .build();
     }
+
+    private BattlerNotificationDto.BattlerInfo createBattlerInfo(
+            BattleParticipant battler,
+            List<BattleBettingInfo> battlerVotes) {
+
+        BattleBettingInfo vote = battlerVotes.stream()
+                .filter(v -> v.getUserId().equals(battler.getUser().getId()))
+                .findFirst()
+                .orElseThrow(() -> new WebSocketException(WebSocketErrorCode.BATTLER_VOTE_NOT_FOUND, "배틀러의 투표 옵션을 찾을 수 없습니다."));
+
+        return BattlerNotificationDto.BattlerInfo.builder()
+                .userId(battler.getUser().getId())
+                .nickname(battler.getUser().getNickname())
+                .optionId(vote.getVoteOptionId())
+                .build();
+    }
+
 
     private ParticipantInfo convertToParticipantInfo(BattleParticipant participant) {
         return new ParticipantInfo(

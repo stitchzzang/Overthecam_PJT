@@ -20,7 +20,15 @@ public enum BattleErrorCode implements ErrorCode {
     // OpenVidu 관련 에러
     OPENVIDU_CONNECTION_ERROR(500, "OpenVidu 서버 연동 중 오류가 발생했습니다"),
     OPENVIDU_SESSION_ERROR(500, "OpenVidu 세션 생성에 실패했습니다"),
-    MISSING_REQUIRED_FIELD(400, "필수 입력값이 누락되었습니다.");
+    MISSING_REQUIRED_FIELD(400, "필수 입력값이 누락되었습니다."),
+
+    // 배틀 배팅 관련 에러
+    INVALID_VOTE_RESULT(500, "투표 결과를 처리할 수 없습니다"),
+    INVALID_BATTLE_STATUS(400, "현재 투표 가능한 상태가 아닙니다"),
+    INVALID_BATTLER_VOTE(400, "배틀러는 투표를 할 수 없습니다"),
+    INVALID_ROLE(400, "올바른 배틀 역할이 아닙니다."),
+    BATTLER_VOTE_NOT_FOUND(404, "배틀러가 선택한 투표 옵션이 존재하지 않습니다"),
+    NOT_PREPARED(400, "배틀 준비가 필요합니다");
 
 
     private final int status;

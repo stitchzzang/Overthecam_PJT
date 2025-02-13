@@ -30,11 +30,11 @@ export const createRoom = async (newTitle, userNickname) => {
   }
 };
 
-export const JoinRoom = async (battleId, userNickname) => {
+export const joinRoom = async (battleId, userNickname) => {
   try {
     const response = await authAxios.post(
       `/battle/room/${battleId}/join`,
-      { participantName: userNickname } // 보낼 data 없음
+      { participantName: userNickname }
     );
     console.log("세션 id", response);
     return response;
@@ -46,3 +46,17 @@ export const JoinRoom = async (battleId, userNickname) => {
     throw error.error;
   }
 };
+
+export const leaveRoom = async (battleId) => {
+  try{
+    const response = await authAxios.delete(`/battle/room/${battleId}/leave`,{})
+    console.log("퇴장 성공 여부: ", response.success);
+    return response;
+  } catch (error) {
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;
+    const errorStatus = error.error.status;
+    console.error("퇴장장 오류: ", errorStatus, errorCode, errorMessage);
+    throw error.error;
+  }
+}

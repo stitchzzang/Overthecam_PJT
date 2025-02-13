@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { JoinRoom } from "../../service/BattleRoom/api";
+import { joinRoom } from "../../service/BattleRoom/api";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import useUserStore from "../../store/User/UserStore";
 
@@ -11,14 +11,13 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId);
     try {
-      const response = await JoinRoom(battleId, userNickname);
-
+      const response = await joinRoom(battleId, userNickname);
       const newBattleInfo = {
         battleId: response.data.battleId,
         participantName: userNickname,
         roomName: response.data.roomName,
         userToken: response.data.token,
-        isMaster: true,
+        isMaster: false,
       };
       setBattleInfo(newBattleInfo);
       navigate(`/battle-room/${battleId}`)
@@ -49,7 +48,7 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
         {/* 하단 버튼 영역 */}
         <div className="flex justify-between items-center px-5 pb-5">
           <p className="text-lg font-semibold text-cusBlue">{totalUsers}/6</p>
-          {status === 0 ? (
+          {status === "WAITING" ? (
             <button
               className="btn bg-cusRed-light hover:bg-cusRed w-32 h-11"
               onClick={() => gotoBattleRoom(battleId)}

@@ -4,6 +4,7 @@ import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.member.dto.FollowStatsInfo;
 import com.overthecam.member.exception.FollowErrorCode;
 import com.overthecam.member.domain.UserFollow;
 import com.overthecam.member.dto.FollowResponse;
@@ -21,6 +22,11 @@ import java.util.List;
 public class UserFollowService {
     private final UserFollowRepository userFollowRepository;
     private final UserRepository userRepository;
+
+    // 팔로우 여부 확인
+    public boolean isFollowing(Long currentUserId, Long targetUserId) {
+        return userFollowRepository.isFollowing(currentUserId, targetUserId);
+    }
 
     public FollowResponse follow(Long userId, Long targetId) {
         if (userId.equals(targetId)) {
@@ -65,30 +71,35 @@ public class UserFollowService {
                 .build();
     }
 
-    private User findUserById(Long userId, String userType) {
+    public User findUserById(Long userId, String userType) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
                         userType + " ID: " + userId + "를 찾을 수 없습니다"));
     }
 
-    // 내가(follower) → 팔로우하는 사람들(following)
-    public List<UserProfileInfo> getMyFollowingList(Long userId) {
-        return userFollowRepository.findFollowingListWithStatus(userId, userId);
+    // 팔로잉 목록 조회 (내 것이든 다른 사람 것이든)
+    public List<UserProfileInfo> getFollowingList(Long targetUserId, Long currentUserId) {
+        return userFollowRepository.findFollowingListWithStatus(targetUserId, currentUserId);
     }
 
-    // 나를(following) → 팔로우하는 사람들(follower)
-    public List<UserProfileInfo> getMyFollowerList(Long userId) {
-        return userFollowRepository.findFollowerListWithStatus(userId, userId);
+    // 팔로워 목록 조회 (내 것이든 다른 사람 것이든)
+    public List<UserProfileInfo> getFollowerList(Long targetUserId, Long currentUserId) {
+        return userFollowRepository.findFollowerListWithStatus(targetUserId, currentUserId);
     }
 
-    // 특정 사용자의 팔로잉 목록 조회
-    public List<UserProfileInfo> getOtherFollowingList(Long userId, Long currentUserId) {
-        return userFollowRepository.findFollowingListWithStatus(userId, currentUserId);
-    }
+    // 팔로우 통계 조회
+    public FollowStatsInfo getFollowStats(Long userId) {
+        // 해당 유저가 존재하는지 확인
+        findUserById(userId, "사용자");
 
-    // 특정 사용자의 팔로워 목록 조회
-    public List<UserProfileInfo> getOtherFollowerList(Long userId, Long currentUserId) {
-        return userFollowRepository.findFollowerListWithStatus(userId, currentUserId);
+        long followerCount = userFollowRepository.countFollowersByUserId(userId);
+        long followingCount = userFollowRepository.countFollowingsByUserId(userId);
+
+        return FollowStatsInfo.builder()
+                .userId(userId)
+                .followerCount(followerCount)
+                .followingCount(followingCount)
+                .build();
     }
 
 }

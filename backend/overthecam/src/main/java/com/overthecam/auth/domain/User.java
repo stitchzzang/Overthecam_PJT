@@ -3,15 +3,18 @@ package com.overthecam.auth.domain;
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+@Builder
 @Entity
 @Table(name = "user")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends TimeStampEntity {
     @Id
@@ -40,11 +43,13 @@ public class User extends TimeStampEntity {
 
     private String password;
 
-    @Column(columnDefinition = "INT DEFAULT 100")
-    private Integer supportScore = 100;
+    @Builder.Default
+    @Column(columnDefinition = "INT DEFAULT 5000")
+    private Integer supportScore = 5000;
 
+    @Builder.Default
     @Column(columnDefinition = "INT DEFAULT 0")
-    private Integer point = 0;
+    private Integer point = 100;
 
     @Column(length = 500)
     private String refreshToken; // Refresh Token 저장
@@ -62,12 +67,7 @@ public class User extends TimeStampEntity {
         this.supportScore = 50000;
     }
 
-    @Builder(builderMethodName = "userIdBuilder")
-    public User(Long id) {
-        this.id = id;
-    }
-
-    public void setSupportScore(Integer supportScore) {
+    public void updateSupportScores(Integer supportScore) {
         this.supportScore = supportScore;
     }
 

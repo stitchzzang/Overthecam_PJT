@@ -34,7 +34,7 @@ const MainPage = () => {
     }
 
     try {
-      // API 명세 받으면 여기만 수정하면 됩니다
+      // API 명세여기만 수정하면 됩 받으면 니다
       const response = await fetch(`${API_URL}/search?query=${query}`);
       const data = await response.json();
       

@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { publicAxios } from "../../common/axiosinstance";
 import "./Auth.css";
 import useUserStore from "../../store/User/UserStore";
+import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const setUser = useUserStore((state) => state.setUser);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -88,64 +91,67 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Side - Login Image */}
-      <div className="hidden lg:block lg:w-[55%] p-12">
-        <div className="h-full w-full rounded-3xl overflow-hidden">
-          <img
-            src="/images/loginPageImage.png"
-            alt="Login decoration"
-            className="w-full h-full object-cover translate-x-8"
-          />
+    <div className="flex justify-center mt-16">
+      <div className="flex bg-white rounded-lg h-[600px] w-max-70vh shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]">
+        {/* Left Side - Motion Design */}
+        <div className="w-1/2 overflow-hidden">
+          <CursorMotionEffect />
         </div>
-      </div>
 
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-[45%] flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Login</h1>
-            <p className="text-gray-600">
-              로그인 후 더 많은 서비스를 만나보세요.
-            </p>
+        {/* Right Side - Login Form */}
+        <div className="flex flex-col w-1/2 items-center justify-center h-full py-8">
+          <div className="flex flex-col items-center justify-center text-center space-y-2 mb-4">
+            <h1 className="text-3xl font-semibold">Login</h1>
+            <p className="text-lg">로그인 후 더 많은 서비스를 만나보세요.</p>
           </div>
 
-          {error && <p className="error-message">{error}</p>}
+          {error && <p className="error-message text-red-500 text-sm">{error}</p>}
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  placeholder="ID"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200 transition-colors"
-                  name="id"
-                  value={formData.id}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200 transition-colors"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-4 w-full max-w-full px-12">
+            <input
+              type="text"
+              placeholder="ID"
+              name="id"
+              value={formData.id}
+              onChange={handleChange}
+              className="w-full px-5 py-4 text-lg border border-gray-200 rounded-xl
+                focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
+                placeholder:text-gray-400"
+              required
+            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-5 py-4 text-lg border border-gray-200 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
+                  placeholder:text-gray-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <EyeIcon className="h-6 w-6" />
+                ) : (
+                  <EyeSlashIcon className="h-6 w-6" />
+                )}
+              </button>
             </div>
 
             <div className="flex items-center">
               <input
                 type="checkbox"
                 id="remember"
-                className="w-4 h-4 text-blue-400 border-gray-300 rounded focus:ring-blue-100"
                 name="rememberMe"
                 checked={formData.rememberMe}
                 onChange={handleChange}
+                className="w-4 h-4 text-cusBlue border-gray-300 rounded focus:ring-cusLightBlue"
               />
               <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
                 로그인 유지하기
@@ -154,23 +160,12 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-400 text-white py-3.5 rounded-xl hover:bg-blue-500 transition-colors font-medium"
+              className="btn w-full bg-cusBlue text-cusLightBlue-lighter hover:bg-cusLightBlue hover:text-cusBlue px-10 py-3"
             >
               Login
             </button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              
-            </div>
-
-            
-              
-           
-
-            <div className="flex justify-center items-center space-x-6 text-sm text-gray-500">
+            <div className="flex justify-center items-center space-x-6 text-sm text-gray-500 mt-4">
               <Link to="/find-account" className="hover:text-gray-700">
                 아이디 찾기
               </Link>

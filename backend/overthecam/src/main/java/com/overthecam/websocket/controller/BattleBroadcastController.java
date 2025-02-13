@@ -1,5 +1,9 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.battle.service.BattleResultService;
+import com.overthecam.redis.service.BattleScoreRedisService;
+import com.overthecam.member.dto.UserScoreInfo;
+import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.service.VoteService;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
@@ -14,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,66 +33,69 @@ public class BattleBroadcastController {
     private final BattleWebsocketService battleWebsocketService;
     private final ChatMessageService chatMessageService;
     private final BattleVoteService battleVoteService;
-
+    private final BattleResultService battleResultService;
+    private final BattleScoreRedisService battleScoreRedisService;
     private final WebSocketRequestMapper requestMapper;
+
+    private static final int TIME_EXTENSION_COST = 300;
 
     @MessageMapping("/battle/{battleId}")
     @SendTo("/api/subscribe/battle/{battleId}")
-    public WebSocketResponseDto<?> broadcast(
-        WebSocketRequestDto<?> request,
-        @DestinationVariable Long battleId,
-        SimpMessageHeaderAccessor headerAccessor
-    ) {
+    public WebSocketResponseDto<?> handleBroadcast(
+            @DestinationVariable Long battleId,
+            @Payload WebSocketRequestDto<?> request,
+            SimpMessageHeaderAccessor headerAccessor) {
+
         UserPrincipal user = authenticateUser(headerAccessor);
 
-        return switch (request.getType()) {
-            case VOTE_CREATE -> {
-                // 기존 투표 삭제
-                battleVoteService.deleteAndCreateNewVote(battleId);
-                // 새 투표 생성
-                yield WebSocketResponseDto.ok(
-                    MessageType.VOTE_CREATE,
-                    voteService.createVote(requestMapper.mapToVoteRequestDto(request.getData()),
-                        user.getUserId())
-                );
+        try {
+            switch (request.getType()) {
+                case CHAT:
+                    ChatMessageRequest chatRequest = requestMapper.mapToChatMessageRequest(request.getData());
+                    return WebSocketResponseDto.ok(MessageType.CHAT,
+                            chatMessageService.sendMessage(chatRequest, user));
+
+                case BATTLE_START:
+                    return WebSocketResponseDto.ok(MessageType.BATTLE_START,
+                            battleDataService.handleBattleStart(battleId));
+
+                case BATTLE_END:
+                    return WebSocketResponseDto.ok(MessageType.BATTLE_END,
+                            battleResultService.finalizeBattleVotes(battleId));
+
+                case BATTLER_SELECT:
+                    return WebSocketResponseDto.ok(MessageType.BATTLER_SELECT,
+                            battleWebsocketService.getBattlerNotification(battleId));
+
+                case VOTE_CREATE:
+                    VoteRequest voteRequest = requestMapper.mapToVoteRequestDto(request.getData());
+                    battleVoteService.deleteAndCreateNewVote(battleId);
+                    return WebSocketResponseDto.ok(MessageType.VOTE_CREATE,
+                            voteService.createVote(voteRequest, user.getUserId()));
+
+                case TIME_EXTENSION:
+                    UserScoreInfo updatedScore = battleScoreRedisService.deductPoints(
+                            battleId, user.getUserId(), TIME_EXTENSION_COST);
+                    return WebSocketResponseDto.ok(MessageType.TIME_EXTENSION,
+                            TimeExtensionResponse.builder()
+                                    .userId(user.getUserId())
+                                    .nickname(user.getNickname())
+                                    .userScore(updatedScore)
+                                    .build());
+
+                default:
+                    throw new WebSocketException(WebSocketErrorCode.INVALID_MESSAGE_FORMAT, "올바르지 않은 메시지 타입입니다.");
             }
-            case BATTLE_START -> WebSocketResponseDto.ok(
-                MessageType.BATTLE_START,
-                battleDataService.handleBattleStart(battleId)
-            );
-            case BATTLER_SELECT -> WebSocketResponseDto.ok(
-                MessageType.BATTLER_SELECT,
-                battleWebsocketService.getBattlerNotification(battleId)
-            );
-            case TIME_EXTENSION -> WebSocketResponseDto.ok(
-                MessageType.TIME_EXTENSION,
-                chatMessageService.sendSystemMessage(user.getNickname() + "님이 시간을 구매했습니다.")
-            );
-            case CHAT -> handleChatMessage(request.getData(), user);
-            default -> throw new IllegalArgumentException("Unknown request type: " + request.getType());
-        };
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to convert request data", e);
+            throw new WebSocketException(WebSocketErrorCode.INVALID_MESSAGE_FORMAT, "올바르지 않은 메시지 타입입니다.");
+        }
     }
+
 
     private UserPrincipal authenticateUser(SimpMessageHeaderAccessor headerAccessor) {
         UserPrincipal user = WebSocketSecurityUtils.getUser(headerAccessor);
         log.debug("User authenticated - userId: {}, email: {}", user.getUserId(), user.getEmail());
         return user;
     }
-
-    private WebSocketResponseDto<?> handleChatMessage(Object data, UserPrincipal user) {
-        try {
-            ChatMessageRequest chatRequest = requestMapper.mapToChatMessageRequest(data);
-            return WebSocketResponseDto.ok(
-                MessageType.CHAT,
-                chatMessageService.sendMessage(chatRequest, user)
-            );
-        } catch (IllegalArgumentException e) {
-            log.error("Failed to convert chat message data", e);
-            throw new WebSocketException(
-                WebSocketErrorCode.INVALID_MESSAGE_FORMAT,
-                "지원하지 않는 메시지 타입입니다."
-            );
-        }
-    }
-
 }
