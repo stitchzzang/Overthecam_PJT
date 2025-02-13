@@ -241,6 +241,10 @@ function BattleRoomPage() {
     battlerSettingModal.current?.showModal();
   };
 
+  const handleBattleStart = (e) => {
+    setIsWaiting(false)
+  }
+
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
       <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
@@ -285,6 +289,7 @@ function BattleRoomPage() {
                 remoteTracks={remoteTracks}
                 participantName={battleInfo.participantName}
                 isMaster={battleInfo.isMaster}
+                onBattleStart={handleBattleStart}
               />
             </div>
             <div className="w-1/4 flex flex-col h-full mb-5">

@@ -12,6 +12,7 @@ function BattleWaiting({
   remoteTracks,
   participantName,
   isMaster,
+  onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const voteCreateModal = useRef();
@@ -107,7 +108,10 @@ function BattleWaiting({
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
-                <div className="h-1/2 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
+                <div
+                  className="h-1/2 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                  onClick={onBattleStart}
+                >
                   <p>배틀 시작하기</p>
                 </div>
                 <div
