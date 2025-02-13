@@ -16,7 +16,7 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
 
   const handleUserClick = (userId) => {
     onClose();
-    navigate(`/otherprofile/${userId}`);
+    navigate(`/profile/${userId}`);
   };
 
   return (
