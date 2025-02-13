@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 public enum VoteErrorCode implements ErrorCode {
     // 투표 생성 관련 에러
     INVALID_VOTE_OPTIONS(400, "투표 옵션은 정확히 2개여야 합니다"),
-    INVALID_END_DATE(400, "종료일은 현재 이후의 날짜여야 합니다"),
 
     // 투표 조회/수정/삭제 관련 에러
     VOTE_NOT_FOUND(404, "투표를 찾을 수 없습니다"),
