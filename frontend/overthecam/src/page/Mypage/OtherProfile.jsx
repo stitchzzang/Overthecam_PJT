@@ -123,59 +123,75 @@ function OtherProfile() {
       const [followingResponse, followerResponse] = await Promise.all([
         authAxios.get('member/following'),
         authAxios.get('member/follower')
-      ])
+      ]);
       
-      console.log("팔로잉 목록:", followingResponse)
-      console.log("팔로워 목록:", followerResponse)
+      console.log("=== 데이터 조회 결과 ===");
+      console.log("팔로잉 목록:", followingResponse);
+      console.log("팔로워 목록:", followerResponse);
+      console.log("현재 조회 중인 userId:", id);
+      console.log("========================");
+
+      // success가 true이고 data가 있는 경우에만 데이터 사용
+      const followingUsers = followingResponse.success ? followingResponse.data : [];
+      const followerUsers = followerResponse.success ? followerResponse.data : [];
+
+      // 팔로잉/팔로워 목록에서 중복 제거하여 모든 유저 목록 생성
+      const allUsers = [...followingUsers, ...followerUsers].reduce((unique, user) => {
+        const exists = unique.find(u => u.userId === user.userId);
+        if (!exists) {
+          unique.push(user);
+        }
+        return unique;
+      }, []);
+
+      console.log("모든 유저 목록:", allUsers);
+      console.log("찾고있는 userId:", Number(id));
+
+      // 현재 프로필 유저 정보 찾기
+      const profileUser = allUsers.find(user => Number(user.userId) === Number(id));
+      console.log("찾은 프로필 유저:", profileUser);
+
+      // 유저 정보 설정
+      const userData = {
+        userId: Number(id),
+        nickname: profileUser?.nickname || "사용자",
+        profileImage: profileUser?.profileImage || null,
+      };
+
+      // 현재 보고 있는 프로필 유저의 팔로워/팔로잉 수 계산
+      const profileFollowers = followerUsers.filter(user => 
+        Number(user.userId) === Number(id)
+      ).length;
+      
+      const profileFollowing = followingUsers.filter(user => 
+        Number(user.userId) === Number(id)
+      ).length;
 
       // 팔로워/팔로잉 수 업데이트
       setCounts({
-        followers: followerResponse.data?.length || 0,
-        following: followingResponse.data?.length || 0
-      })
+        followers: profileFollowers,
+        following: profileFollowing
+      });
 
-      // 팔로잉 목록에서 사용자 찾기
-      const followingUser = followingResponse.data?.find(user => user.userId === Number(id))
-      
-      if (followingUser) {
-        console.log("팔로잉 중인 사용자:", followingUser)
-        setUserData({
-          ...followingUser,
-          follow: true
-        })
-        setIsFollowing(true)
-        return
-      }
+      // 팔로잉 여부 확인
+      const isUserFollowing = followingUsers.some(user => 
+        Number(user.userId) === Number(id)
+      );
 
-      // 팔로워 목록에서 사용자 찾기
-      const followerUser = followerResponse.data?.find(user => user.userId === Number(id))
-      
-      if (followerUser) {
-        console.log("팔로워인 사용자:", followerUser)
-        setUserData({
-          ...followerUser,
-          follow: false
-        })
-        setIsFollowing(false)
-        return
-      }
-
-      // 목록에 없는 경우 기본 정보 설정
-      setUserData({
-        userId: Number(id),
-        nickname: `테스트${id}`,  // 기본 닉네임 형식 변경
-        profileImage: null,
-        follow: false
-      })
-      setIsFollowing(false)
+      setUserData(userData);
+      setIsFollowing(isUserFollowing);
 
     } catch (error) {
-      console.error("데이터 조회 실패:", error)
-      setUserData(null)
-    } finally {
-      setIsLoading(false)
+      console.error("데이터 조회 실패:", error);
+      setUserData({
+        userId: Number(id),
+        nickname: "사용자",
+        profileImage: null,
+      });
+      setIsFollowing(false);
+      setCounts({ followers: 0, following: 0 });
     }
-  }
+  };
 
   // 모달 열기
   const handleOpenModal = async (type) => {
@@ -213,6 +229,50 @@ function OtherProfile() {
       await fetchUserData()
     } catch (error) {
       console.error("팔로우/언팔로우 실패:", error)
+    }
+  }
+
+  // 메인 프로필의 팔로우/언팔로우 처리
+  const handleFollowToggle = async () => {
+    if (!userData) return
+
+    try {
+      const targetId = userData.userId
+      
+      if (isFollowing) {
+        // 언팔로우
+        const response = await authAxios.delete(`/member/follow/${targetId}`)
+        if (response.success) {
+          setIsFollowing(false)  // 버튼 상태 변경
+          
+          // 현재 프로필의 팔로워 수 감소
+          setCounts(prev => ({
+            ...prev,
+            followers: Math.max(0, prev.followers - 1)
+          }))
+
+          // 데이터 새로고침으로 최신 상태 유지
+          await fetchUserData()
+        }
+      } else {
+        // 팔로우
+        const response = await authAxios.post(`/member/follow/${targetId}`)
+        if (response.success) {
+          setIsFollowing(true)  // 버튼 상태 변경
+          
+          // 현재 프로필의 팔로워 수 증가
+          setCounts(prev => ({
+            ...prev,
+            followers: prev.followers + 1
+          }))
+
+          // 데이터 새로고침으로 최신 상태 유지
+          await fetchUserData()
+        }
+      }
+    } catch (error) {
+      console.error("팔로우/언팔로우 실패:", error)
+      alert("팔로우/언팔로우 요청이 실패했습니다.")
     }
   }
 
@@ -263,7 +323,7 @@ function OtherProfile() {
 
           {/* 팔로우 버튼 */}
           <button 
-            onClick={() => handleOpenModal('following')}
+            onClick={handleFollowToggle}
             className={`px-6 py-2 rounded-full font-semibold transition-colors ${
               isFollowing 
                 ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' 
