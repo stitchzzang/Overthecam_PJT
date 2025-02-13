@@ -4,40 +4,57 @@ import { authAxios } from "../../common/axiosinstance"
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
+  const navigate = useNavigate();  // useNavigate 훅 추가
+
   if (!isOpen) return null;
+
+  // 유저 프로필로 이동하는 함수
+  const handleUserClick = (userId) => {
+    onClose();  // 모달 닫기
+    navigate(`/profile/${userId}`);  // 해당 유저의 프로필 페이지로 이동
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-96 max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b">
-          <h3 className="text-xl font-semibold">{title}</h3>
+          <h3 className="text-xl font-semibold text-center">{title}</h3>
         </div>
         <div className="overflow-y-auto max-h-[60vh]">
           {users.length > 0 ? (
             users.map((user) => (
-              <div key={user.userId} className="p-4 border-b flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center gap-3">
+              <div 
+                key={user.userId} 
+                className="p-4 border-b flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80"
+                  onClick={() => handleUserClick(user.userId)}  // 클릭 이벤트 추가
+                >
                   {user.profileImage ? (
                     <img 
                       src={user.profileImage} 
                       alt={user.nickname} 
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover border border-gray-200"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-lg text-gray-600">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-lg text-gray-500">
                         {user.nickname.charAt(0)}
                       </span>
                     </div>
                   )}
-                  <span className="font-medium">{user.nickname}</span>
+                  <span className="font-medium text-gray-800">{user.nickname}</span>
                 </div>
                 {user.userId !== Number(localStorage.getItem('userId')) && (
                   <button
-                    onClick={() => onFollowToggle(user.userId)}
-                    className={`px-4 py-1 rounded-full text-sm font-semibold ${
+                    onClick={(e) => {
+                      e.stopPropagation();  // 상위 요소로의 이벤트 전파 방지
+                      onFollowToggle(user.userId);
+                    }}
+                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                       currentUserFollowing.includes(user.userId)
-                        ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         : 'bg-blue-500 text-white hover:bg-blue-600'
                     }`}
                   >
@@ -47,7 +64,7 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
               </div>
             ))
           ) : (
-            <div className="p-4 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500">
               목록이 비어있습니다
             </div>
           )}
@@ -55,7 +72,7 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
         <div className="p-4 border-t">
           <button
             onClick={onClose}
-            className="w-full py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
+            className="w-full py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors font-medium"
           >
             닫기
           </button>
