@@ -30,7 +30,7 @@ function SearchBar({ value, onChange }) {
     };
 
     return (
-      <div className="flex-grow max-w-3xl mx-auto flex items-center gap-2">
+      <div className="flex-grow max-w-3xl mx-auto flex items-center gap-2 py-4">
         <div 
           className={`flex flex-1 items-center bg-white rounded-full h-[46px]
             border border-gray-200 px-3 transition-all duration-200

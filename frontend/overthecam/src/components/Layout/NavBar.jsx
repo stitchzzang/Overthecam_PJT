@@ -106,7 +106,7 @@ export default function NavBar() {
 
   return (
     <>
-      <header className="h-[80px] mb-4">
+      <header className="h-[80px] mb-4 mt-6">
         <div className="max-w-7xl mx-auto h-full px-3 relative flex items-center justify-between">
           {/* Left Section - Logo */}
           <div className="flex items-center gap-2">
