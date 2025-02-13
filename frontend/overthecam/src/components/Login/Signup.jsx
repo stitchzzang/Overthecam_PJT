@@ -74,6 +74,19 @@ const Signup = () => {
       const response = await publicAxios.post("/auth/signup", signupData)
       
       if (response.data) {
+        console.log("회원가입 응답:", response); // 응답 데이터 확인
+
+        // localStorage에 사용자 정보 저장
+        const userInfo = {
+          userId: response.data.userId,
+          email: response.data.email,
+          nickname: response.data.nickname,
+          supportScore: response.data.supportScore,  // 응원점수 저장
+          point: response.data.point               // 포인트 저장
+        }
+        
+        localStorage.setItem('userInfo', JSON.stringify(userInfo))
+        
         setMessage("회원가입이 완료되었습니다")
         setIsError(false)
         window.location.replace("/")
