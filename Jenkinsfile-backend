@@ -89,8 +89,6 @@ pipeline {
                                 string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
                                 string(credentialsId: 'LIVEKIT_API_KEY', variable: 'LIVEKIT_API_KEY'),
                                 string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET'),
-                                string(credentialsId: 'SPRING_REDIS_HOST', variable: 'SPRING_REDIS_HOST'),
-                                string(credentialsId: 'SPRING_REDIS_PORT', variable: 'SPRING_REDIS_PORT'),
                                 string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD')
                             ]) {
                                 sh '''
@@ -100,8 +98,8 @@ pipeline {
 
                                     # Redis 컨테이너 실행/재시작
                                     echo '기존 Redis 컨테이너 정리 중...' && \
-                                    docker stop redis || true && \
-                                    docker rm redis || true && \
+                                    docker stop spring-redis || true && \
+                                    docker rm spring-redis || true && \
 
                                     echo 'Redis 컨테이너 시작 중...' && \
                                     docker run -d \
@@ -117,6 +115,7 @@ pipeline {
                                     docker rm backend || true && \
                                     echo '새 컨테이너 시작 중...' && \
                                     docker run -d --name backend \
+                                        --network redis-network \
                                         -p 5556:8080 \
                                         -e SPRING_PROFILES_ACTIVE=prod \
                                         -e MYSQL_DB_URL='${MYSQL_DB_URL}' \
@@ -125,8 +124,6 @@ pipeline {
                                         -e JWT_SECRET='${JWT_SECRET}' \
                                         -e LIVEKIT_API_KEY='${LIVEKIT_API_KEY}' \
                                         -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \
-                                        -e SPRING_REDIS_HOST='${SPRING_REDIS_HOST}' \
-                                        -e SPRING_REDIS_PORT='${SPRING_REDIS_PORT}' \
                                         -e SPRING_REDIS_PASSWORD='${SPRING_REDIS_PASSWORD}' \
                                         ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
                                     docker system prune -f && \
