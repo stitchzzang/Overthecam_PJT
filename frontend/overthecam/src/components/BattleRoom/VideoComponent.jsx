@@ -13,15 +13,14 @@ function VideoComponent({ track, participantIdentity, local = false }) {
   }, [track]);
 
   return (
-    <div className="video-container">
+    <div className="video-container aspect-square w-full h-full overflow-hidden">
       <video
         ref={videoRef}
         autoPlay
         playsInline
         muted={local}
-        className="video-element"
+        className="video-element w-full h-full object-cover"
       />
-      <div className="participant-identity">{participantIdentity}</div>
     </div>
   );
 }
