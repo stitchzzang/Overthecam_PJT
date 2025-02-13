@@ -1,4 +1,4 @@
-package com.overthecam.battle.service;
+package com.overthecam.redis.service;
 
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.battle.exception.BattleErrorCode;

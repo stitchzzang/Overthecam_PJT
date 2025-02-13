@@ -3,8 +3,6 @@ package com.overthecam.battle.service;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.exception.BattleErrorCode;
-import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.battle.repository.BattleVoteRedisRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.member.exception.UserErrorCode;

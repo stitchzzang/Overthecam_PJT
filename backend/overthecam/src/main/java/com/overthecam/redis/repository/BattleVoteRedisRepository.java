@@ -1,4 +1,4 @@
-package com.overthecam.battle.repository;
+package com.overthecam.redis.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.battle.dto.BattleBettingInfo;

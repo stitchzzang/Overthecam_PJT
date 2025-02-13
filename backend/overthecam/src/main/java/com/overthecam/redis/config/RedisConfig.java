@@ -1,4 +1,4 @@
-package com.overthecam.battle.config;
+package com.overthecam.redis.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;

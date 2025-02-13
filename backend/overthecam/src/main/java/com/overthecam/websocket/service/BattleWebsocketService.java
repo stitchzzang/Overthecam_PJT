@@ -7,7 +7,7 @@ import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.battle.repository.BattleVoteRedisRepository;
+import com.overthecam.redis.repository.BattleVoteRedisRepository;
 import com.overthecam.websocket.dto.BattlerNotificationDto;
 import com.overthecam.websocket.dto.ParticipantInfo;
 import com.overthecam.websocket.exception.WebSocketErrorCode;

@@ -1,7 +1,7 @@
 package com.overthecam.websocket.controller;
 
 import com.overthecam.battle.service.BattleResultService;
-import com.overthecam.battle.service.BattleScoreRedisService;
+import com.overthecam.redis.service.BattleScoreRedisService;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.service.VoteService;
