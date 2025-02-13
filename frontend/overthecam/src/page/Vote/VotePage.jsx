@@ -6,10 +6,21 @@ const VotePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState({
+    all: 1,
+    active: 1,
+    ended: 1
+  });
   const [currentList, setCurrentList] = useState([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const [voteStatus, setVoteStatus] = useState('all'); // 'all', 'active', 'ended'
+  const [totalPages, setTotalPages] = useState({
+    all: 0,
+    active: 0,
+    ended: 0
+  });
+  const [voteStatus, setVoteStatus] = useState('all');
+  const [showMyVotes, setShowMyVotes] = useState(false);
+  const userInfo = localStorage.getItem('userInfo');
+  const userId = userInfo ? JSON.parse(userInfo).userId : null;
 
   const fetchVotes = async () => {
     try {
@@ -17,11 +28,9 @@ const VotePage = () => {
       const token = localStorage.getItem('token');
       
       const params = {
-        page: page - 1,
-        size: 5,
-        includeVoteResult: true,
-        // 전체보기일 때는 status 파라미터를 보내지 않음
-        ...(voteStatus !== 'all' && { status: voteStatus })
+        page: pages[voteStatus] - 1,
+        size: 10,
+        status: voteStatus === 'all' ? undefined : voteStatus
       };
       
       const response = await publicAxios.get('/vote/list', { 
@@ -30,9 +39,18 @@ const VotePage = () => {
       });
       
       if (response.data?.content) {
-        // 클라이언트 필터링을 제거하고 서버에서 받은 데이터를 그대로 사용
-        setCurrentList(response.data.content);
-        setTotalPages(response.data.pageInfo.totalPages);
+        // 내 투표만 보기가 활성화된 경우 필터링
+        const filteredContent = showMyVotes && userId
+          ? response.data.content.filter(vote => Number(vote.creatorUserId) === Number(userId))
+          : response.data.content;
+
+        setCurrentList(filteredContent);
+        setTotalPages(prev => ({
+          ...prev,
+          [voteStatus]: showMyVotes 
+            ? Math.ceil(filteredContent.length / 10)  // 필터링된 결과의 페이지 수 계산
+            : response.data.pageInfo.totalPages
+        }));
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -44,8 +62,20 @@ const VotePage = () => {
   
   useEffect(() => {
     fetchVotes();
-  }, [page, voteStatus]);
-  
+  }, [pages[voteStatus], voteStatus, showMyVotes]);
+
+  const handlePageChange = (newPage) => {
+    setPages(prev => ({
+      ...prev,
+      [voteStatus]: newPage
+    }));
+  };
+
+  const handleStatusChange = (newStatus) => {
+    setVoteStatus(newStatus);
+    fetchVotes();
+  };
+
   const handleVote = async (vote, optionId) => {
     try {
       const token = localStorage.getItem('token');
@@ -92,42 +122,47 @@ const VotePage = () => {
     }
   };
 
-  const renderVoteResult = (vote) => (
-    <div className="mb-4">
-      {vote.options && vote.options.length >= 2 && (
-        <>
-          <div className="mb-2 flex justify-between">
-            <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
-            <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
-          </div>
-          <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
-            <div
-              className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
-              style={{ width: `${vote.options[0].votePercentage}%` }}
-            >
-              {vote.options[0].votePercentage.toFixed(1)}%
+  const renderVoteResult = (vote) => {
+    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
+    
+    return (
+      <div className="mb-4">
+        {vote.options && vote.options.length >= 2 && (
+          <>
+            <div className="mb-2 flex justify-between">
+              <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+              <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
             </div>
-            <div
-              className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
-              style={{ width: `${vote.options[1].votePercentage}%` }}
-            >
-              {vote.options[1].votePercentage.toFixed(1)}%
+            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+              <div
+                className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
+                style={{ width: `${totalVotes > 0 ? vote.options[0].votePercentage : 0}%` }}
+              >
+                {totalVotes > 0 ? vote.options[0].votePercentage.toFixed(1) : 0}%
+              </div>
+              <div
+                className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
+                style={{ width: `${totalVotes > 0 ? vote.options[1].votePercentage : 0}%` }}
+              >
+                {totalVotes > 0 ? vote.options[1].votePercentage.toFixed(1) : 0}%
+              </div>
             </div>
-          </div>
-          <div className="text-right text-sm text-gray-600 mt-2">
-            총 투표수: {vote.options.reduce((sum, option) => sum + option.voteCount, 0)}
-          </div>
-        </>
-      )}
-    </div>
-  );
+            <div className="text-right text-sm text-gray-600 mt-2">
+              총 투표수: {totalVotes}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const shouldShowVoteButtons = (vote) => {
     return vote.active && !vote.hasVoted;
   };
 
   const shouldShowVoteResult = (vote) => {
-    return !vote.active || vote.hasVoted;
+    // 투표가 종료되었거나(ended), 사용자가 투표했거나(hasVoted)인 경우 결과를 보여줌
+    return voteStatus === 'ended' || !vote.active || vote.hasVoted;
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -146,7 +181,7 @@ const VotePage = () => {
         <div className="flex justify-between items-center mt-6 mb-8">
           <div className="flex gap-4">
             <button
-              onClick={() => setVoteStatus('all')}
+              onClick={() => handleStatusChange('all')}
               className={`btn px-6 py-2 text-md rounded-full transition-colors ${
                 voteStatus === 'all'
                   ? 'bg-gray-600 text-white'
@@ -156,7 +191,7 @@ const VotePage = () => {
               전체보기
             </button>
             <button
-              onClick={() => setVoteStatus('active')}
+              onClick={() => handleStatusChange('active')}
               className={`btn px-6 py-2 text-md rounded-full transition-colors ${
                 voteStatus === 'active'
                   ? 'bg-gray-600 text-white'
@@ -166,7 +201,7 @@ const VotePage = () => {
               진행중
             </button>
             <button
-              onClick={() => setVoteStatus('ended')}
+              onClick={() => handleStatusChange('ended')}
               className={`btn px-6 py-2 text-md rounded-full transition-colors ${
                 voteStatus === 'ended'
                   ? 'bg-gray-600 text-white'
@@ -176,13 +211,34 @@ const VotePage = () => {
               종료됨
             </button>
           </div>
-          <Link
-            to="/create-vote"
-            state={{ from: '/vote' }}
-            className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
-          >
-            투표 만들기
-          </Link>
+          <div className="flex items-center gap-4">
+            {userId && (
+              <button
+                onClick={() => {
+                  setShowMyVotes(!showMyVotes);
+                  // 페이지 초기화
+                  setPages(prev => ({
+                    ...prev,
+                    [voteStatus]: 1
+                  }));
+                }}
+                className={`btn px-6 py-2 text-md rounded-full transition-colors ${
+                  showMyVotes
+                    ? 'bg-gray-600 text-white'
+                    : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
+                }`}
+              >
+                내 투표만
+              </button>
+            )}
+            <Link
+              to="/create-vote"
+              state={{ from: '/vote' }}
+              className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
+            >
+              투표 만들기
+            </Link>
+          </div>
         </div>
         
         <div className="space-y-4 mt-4">
@@ -230,40 +286,40 @@ const VotePage = () => {
         <div className="flex justify-center mt-6 pb-10">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setPage(1)}
-              disabled={page === 1}
+              onClick={() => handlePageChange(1)}
+              disabled={pages[voteStatus] === 1}
               className={`w-8 h-8 flex items-center justify-center rounded ${
-                page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+                pages[voteStatus] === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               {'<<'}
             </button>
             <button
-              onClick={() => setPage(prev => Math.max(1, prev - 1))}
-              disabled={page === 1}
+              onClick={() => handlePageChange(Math.max(1, pages[voteStatus] - 1))}
+              disabled={pages[voteStatus] === 1}
               className={`w-8 h-8 flex items-center justify-center rounded ${
-                page === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+                pages[voteStatus] === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               {'<'}
             </button>
             <span className="mx-2">
-              {page} / {totalPages}
+              {pages[voteStatus]} / {totalPages[voteStatus]}
             </span>
             <button
-              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={page === totalPages}
+              onClick={() => handlePageChange(Math.min(totalPages[voteStatus], pages[voteStatus] + 1))}
+              disabled={pages[voteStatus] === totalPages[voteStatus]}
               className={`w-8 h-8 flex items-center justify-center rounded ${
-                page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+                pages[voteStatus] === totalPages[voteStatus] ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               {'>'}
             </button>
             <button
-              onClick={() => setPage(totalPages)}
-              disabled={page === totalPages}
+              onClick={() => handlePageChange(totalPages[voteStatus])}
+              disabled={pages[voteStatus] === totalPages[voteStatus]}
               className={`w-8 h-8 flex items-center justify-center rounded ${
-                page === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
+                pages[voteStatus] === totalPages[voteStatus] ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               {'>>'}
