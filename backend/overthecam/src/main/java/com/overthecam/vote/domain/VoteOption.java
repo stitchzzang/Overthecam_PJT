@@ -3,7 +3,6 @@ package com.overthecam.vote.domain;
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
@@ -29,7 +28,7 @@ public class VoteOption extends TimeStampEntity {
     private boolean isWinner = false;
 
     // 부모 투표 설정 메서드
-    public void setVote(Vote vote) {    // 엔터티 생성 및 연관관계 일관성 유지
+    public void udpateVote(Vote vote) {    // 엔터티 생성 및 연관관계 일관성 유지
         this.vote = vote;
     }
 

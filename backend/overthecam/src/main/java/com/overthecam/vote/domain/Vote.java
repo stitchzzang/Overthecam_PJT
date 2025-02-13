@@ -46,7 +46,7 @@ public class Vote extends TimeStampEntity {
 
     public void addOption(VoteOption option) {
         this.options.add(option);
-        option.setVote(this);
+        option.udpateVote(this);
     }
 
     // 투표의 활성 상태를 비활성으로 변경

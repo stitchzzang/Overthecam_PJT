@@ -75,7 +75,7 @@ export default function VoteDetailPage() {
     <div className="vote-detail-page bg-cusGray-light min-h-screen pb-14">
       <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-          Vote
+          투표
         </h1>
       </div>
       
