@@ -16,6 +16,7 @@ import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.battle.repository.BettingRecordRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.redis.service.BattleVoteRedisService;
+import com.overthecam.redis.service.UserScoreRedisService;
 import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.domain.VoteOption;
 import com.overthecam.vote.domain.VoteRecord;
@@ -51,6 +52,7 @@ public class BattleResultService {
     private final BettingRecordRepository bettingRecordRepository;
     private final VoteRepository voteRepository;
 
+    private final UserScoreRedisService userScoreRedisService;
     private final BattleVoteRedisService battleVoteRedisService;
     private final BattleRewardService battleRewardService;
     private final UserScoreService userScoreService;
@@ -81,8 +83,9 @@ public class BattleResultService {
             // 3. 투표 기록 및 배팅 기록 저장
             saveRecords(votes, rewardResults);
 
-            // 4. Redis 데이터 정리 - 투표 데이터만 삭제
+            // 4. Redis 데이터 정리 - 투표, 사용자 점수 삭제
             battleVoteRedisService.clearBattleData(battleId);
+            userScoreRedisService.clearBattleScores(battleId);
 
             // 5. 배틀과 투표 종료 처리
             finalizeBattleAndVote(battle);
