@@ -6,7 +6,86 @@ import { authAxios } from "../../common/axiosinstance"
 import MyPageReport from './MyPageReport'
 import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+// 팔로워/팔로잉 모달 컴포넌트
+const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
+  const navigate = useNavigate();
+
+  if (!isOpen) return null;
+
+  const handleUserClick = (userId) => {
+    onClose();
+    navigate(`/otherprofile/${userId}`);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-96 max-h-[80vh] overflow-hidden">
+        <div className="p-4 border-b">
+          <h3 className="text-xl font-semibold text-center">{title}</h3>
+        </div>
+        <div className="overflow-y-auto max-h-[60vh]">
+          {users.length > 0 ? (
+            users.map((user) => (
+              <div 
+                key={user.userId} 
+                className="p-4 border-b flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80"
+                  onClick={() => handleUserClick(user.userId)}
+                >
+                  {user.profileImage ? (
+                    <img 
+                      src={user.profileImage} 
+                      alt={user.nickname} 
+                      className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-lg text-gray-500">
+                        {user.nickname.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <span className="font-medium text-gray-800">{user.nickname}</span>
+                </div>
+                {user.userId !== Number(localStorage.getItem('userId')) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFollowToggle(user.userId);
+                    }}
+                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                      currentUserFollowing.includes(user.userId)
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
+                  >
+                    {currentUserFollowing.includes(user.userId) ? '언팔로우' : '팔로우'}
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              목록이 비어있습니다
+            </div>
+          )}
+        </div>
+        <div className="p-4 border-t">
+          <button
+            onClick={onClose}
+            className="w-full py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 function MyPage() {
   const location = useLocation();
@@ -40,6 +119,9 @@ function MyPage() {
   const [editedData, setEditedData] = useState({ ...userData })
   const fileInputRef = useRef(null)
   const [toast, setToast] = useState({ show: false, message: '', type: null })
+  const [modalType, setModalType] = useState(null);
+  const [modalUsers, setModalUsers] = useState([]);
+  const [currentUserFollowing, setCurrentUserFollowing] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -152,6 +234,56 @@ function MyPage() {
     );
   };
 
+  // 모달 열기
+  const handleOpenModal = async (type) => {
+    try {
+      const response = await authAxios.get(`/member/${type}`);
+      console.log(`${type} 목록:`, response);
+      
+      if (response.success) {
+        setModalUsers(response.data || []);
+        setModalType(type);
+        
+        // 현재 로그인한 사용자의 팔로잉 목록 가져오기
+        const followingResponse = await authAxios.get('/member/following');
+        if (followingResponse.success) {
+          setCurrentUserFollowing(followingResponse.data?.map(user => user.userId) || []);
+        }
+      }
+    } catch (error) {
+      console.error(`${type} 목록 조회 실패:`, error);
+    }
+  };
+
+  // 모달 닫기
+  const handleCloseModal = () => {
+    setModalType(null);
+    setModalUsers([]);
+  };
+
+  // 모달 내에서 팔로우/언팔로우
+  const handleModalFollowToggle = async (targetId) => {
+    try {
+      if (currentUserFollowing.includes(targetId)) {
+        // 언팔로우
+        const response = await authAxios.delete(`/member/follow/${targetId}`);
+        if (response.success) {
+          setCurrentUserFollowing(prev => prev.filter(id => id !== targetId));
+        }
+      } else {
+        // 팔로우
+        const response = await authAxios.post(`/member/follow/${targetId}`);
+        if (response.success) {
+          setCurrentUserFollowing(prev => [...prev, targetId]);
+        }
+      }
+      // 데이터 새로고침
+      await fetchUserData();
+    } catch (error) {
+      console.error("팔로우/언팔로우 실패:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* <NavBar /> */}
@@ -189,20 +321,26 @@ function MyPage() {
                 <h2 className="text-xl font-bold mb-4">{userData.nickname}</h2>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg clay">
-                    <p className="text-sm text-gray-600">응원점수</p>
-                    <p className="text-2xl font-bold">{userData.stats.cheerPoints.toLocaleString()}</p>
+                    <p className="text-sm text-gray-600">응원 점수</p>
+                    <p className="text-2xl font-bold">{userData.stats.cheerPoints}</p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg clay">
                     <p className="text-sm text-gray-600">포인트</p>
-                    <p className="text-2xl font-bold">{userData.stats.points.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{userData.stats.points}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg clay">
+                  <div 
+                    className="bg-blue-50 p-4 rounded-lg clay cursor-pointer hover:bg-blue-100 transition-colors"
+                    onClick={() => handleOpenModal('follower')}
+                  >
                     <p className="text-sm text-gray-600">팔로워</p>
                     <p className="text-2xl font-bold">{userData.stats.followers}</p>
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg clay">
+                  <div 
+                    className="bg-blue-50 p-4 rounded-lg clay cursor-pointer hover:bg-blue-100 transition-colors"
+                    onClick={() => handleOpenModal('following')}
+                  >
                     <p className="text-sm text-gray-600">팔로잉</p>
                     <p className="text-2xl font-bold">{userData.stats.following}</p>
                   </div>
@@ -455,6 +593,16 @@ function MyPage() {
           </div>
         </div>
       </div>
+
+      {/* 팔로워/팔로잉 모달 */}
+      <FollowModal
+        isOpen={modalType !== null}
+        onClose={handleCloseModal}
+        title={modalType === 'follower' ? '팔로워' : '팔로잉'}
+        users={modalUsers}
+        onFollowToggle={handleModalFollowToggle}
+        currentUserFollowing={currentUserFollowing}
+      />
 
       {/* Toast 컴포넌트 렌더링 */}
       <Toast />
