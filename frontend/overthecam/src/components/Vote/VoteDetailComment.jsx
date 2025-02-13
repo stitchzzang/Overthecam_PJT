@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { publicAxios } from '../../common/axiosinstance';
+import CommentDeleteModal from './VoteModal/CommentDeleteModal';
 
 const VoteDetailComment = ({ voteId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editContent, setEditContent] = useState('');
+  const deleteModalRef = useRef();
+  const [selectedCommentId, setSelectedCommentId] = useState(null);
 
   // 댓글 목록 조회
   useEffect(() => {
@@ -124,13 +127,11 @@ const VoteDetailComment = ({ voteId }) => {
 
   // 댓글 삭제
   const handleDelete = async (commentId) => {
-    if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
-
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('로그인이 필요합니다.');
-        return;
+        return false;
       }
 
       await publicAxios.delete(
@@ -146,10 +147,11 @@ const VoteDetailComment = ({ voteId }) => {
       setComments(prevComments => 
         prevComments.filter(comment => comment.commentId !== commentId)
       );
+      return true;
 
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
-      alert('댓글 삭제에 실패했습니다.');
+      return false;
     }
   };
 
@@ -198,7 +200,10 @@ const VoteDetailComment = ({ voteId }) => {
                     </button>
                     <span className="text-gray-300">|</span>
                     <button
-                      onClick={() => handleDelete(comment.commentId)}
+                      onClick={() => {
+                        setSelectedCommentId(comment.commentId);
+                        deleteModalRef.current?.showModal();
+                      }}
                       className="text-cusBlue hover:text-opacity-80 transition-colors"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
@@ -235,8 +240,8 @@ const VoteDetailComment = ({ voteId }) => {
                   </button>
                 </div>
               ) : (
-                <div className="relative clay bg-white rounded-lg p-3 max-w-[80%] shadow-lg before:content-[''] before:absolute before:top-[-6px] before:left-[15px] before:w-3 before:h-3 before:bg-white before:rotate-45 before:rounded-sm before:shadow-lg">
-                  <p className="text-sm text-gray-700">{comment.content}</p>
+                <div className="relative clay bg-white rounded-lg py-3 px-5 w-fit max-w-[80%] shadow-lg before:content-[''] before:absolute before:top-[-6px] before:left-[15px] before:w-3 before:h-3 before:bg-white before:rotate-45 before:rounded-sm before:shadow-lg">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap text-justify">{comment.content}</p>
                 </div>
               )}
             </div>
@@ -244,7 +249,7 @@ const VoteDetailComment = ({ voteId }) => {
         </div>
 
         {/* 댓글 입력 폼 */}
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 mb-3">
           <input
             type="text"
             value={newComment}
@@ -260,6 +265,10 @@ const VoteDetailComment = ({ voteId }) => {
           </button>
         </form>
       </div>
+      <CommentDeleteModal 
+        ref={deleteModalRef} 
+        onDelete={() => handleDelete(selectedCommentId)} 
+      />
     </div>
   );
 };

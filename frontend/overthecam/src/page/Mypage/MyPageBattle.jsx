@@ -1,54 +1,92 @@
 import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
+import { useParams } from "react-router-dom";
 
 function MyPageBattle() {
   const [battles, setBattles] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    totalPages: 1,
+    totalElements: 0,
+    pageSize: 10
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { id } = useParams();
 
-  // 배틀 히스토리 데이터 가져오기
   useEffect(() => {
     const fetchBattleHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await authAxios.get('/battles/history');
-        setBattles(response.data);
+        
+        const url = id 
+          ? `/mypage/battle/history?userId=${id}&page=${currentPage}` 
+          : `/mypage/battle/history?page=${currentPage}`;
+        
+        const response = await authAxios.get(url);
+        
+        // 응답 데이터 구조 확인 및 디버깅
+        console.log("Battle history response:", response);
+        
+        if (response.success && response.data && Array.isArray(response.data.content)) {
+          setBattles(response.data.content);
+          setPageInfo({
+            totalPages: response.data.pageInfo.totalPages,
+            totalElements: response.data.pageInfo.totalElements,
+            pageSize: response.data.pageInfo.pageSize
+          });
+        } else {
+          setBattles([]);
+          console.error("Invalid data structure:", response);
+        }
       } catch (err) {
         setError('배틀 기록을 불러오는데 실패했습니다.');
         console.error('Failed to fetch battle history:', err);
+        setBattles([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchBattleHistory();
-  }, []);
+  }, [id, currentPage]);
 
-  if (isLoading) {
-    return (
-      <div className="bg-[#EEF6FF] rounded-lg p-8">
-        <div className="text-center">로딩 중...</div>
-      </div>
-    );
-  }
+  // 승패 결과 텍스트 및 스타일 결정 함수
+  const getBattleResult = (battle) => {
+    if (battle.winner) {
+      return {
+        text: '승',
+        style: 'text-green-600'
+      };
+    } else if (!battle.winner && battle.earnedScore === 0) {
+      return {
+        text: '무',
+        style: 'text-gray-600'
+      };
+    } else {
+      return {
+        text: '패',
+        style: 'text-red-600'
+      };
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="bg-[#EEF6FF] rounded-lg p-8">
-        <div className="text-center text-red-500">{error}</div>
-      </div>
-    );
-  }
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
+  if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
 
   return (
     <div className="bg-[#EEF6FF] rounded-lg p-8">
       <h2 className="text-2xl font-bold mb-8 text-center">배틀 관리</h2>
       <div className="max-w-4xl mx-auto">
-        {/* Battle History Table */}
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="overflow-x-auto">
-            {battles.length === 0 ? (
+            {!battles || battles.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 아직 참여한 배틀이 없습니다.
               </div>
@@ -63,29 +101,47 @@ function MyPageBattle() {
                   </tr>
                 </thead>
                 <tbody>
-                  {battles.map((battle) => (
-                    <tr key={battle.id} className="border-b border-gray-100">
-                      <td className="py-4 px-4 text-gray-800">
-                        {new Date(battle.date).toLocaleString()}
-                      </td>
-                      <td className="py-4 px-4 text-gray-800">{battle.title}</td>
-                      <td className="py-4 px-4 text-gray-800">{battle.choice}</td>
-                      <td className="py-4 px-4 text-right">
-                        <span className={`${
-                          battle.result === '승' ? 'text-green-600' : 
-                          battle.result === '패' ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {battle.result} ({battle.pointChange > 0 ? '+' : ''}{battle.pointChange})
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {battles.map((battle) => {
+                    const result = getBattleResult(battle);
+                    return (
+                      <tr key={battle.battleId} className="border-b border-gray-100">
+                        <td className="py-4 px-4 text-gray-800">
+                          {new Date(battle.createdAt).toLocaleString()}
+                        </td>
+                        <td className="py-4 px-4 text-gray-800">{battle.title}</td>
+                        <td className="py-4 px-4 text-gray-800">{battle.optionTitle}</td>
+                        <td className="py-4 px-4 text-right">
+                          <span className={result.style}>
+                            {result.text} ({battle.earnedScore >= 0 ? '+' : ''}{battle.earnedScore})
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
           </div>
         </div>
       </div>
+      
+      {pageInfo.totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
+          {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-semibold ${
+                currentPage === page
+                  ? "bg-[#A5C5F4] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

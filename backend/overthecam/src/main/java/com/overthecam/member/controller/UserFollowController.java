@@ -7,12 +7,7 @@ import com.overthecam.member.service.UserFollowService;
 import com.overthecam.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -37,32 +32,26 @@ public class UserFollowController {
         return CommonResponseDto.ok(userFollowService.unfollow(userId, targetId));
     }
 
-    @GetMapping("/my-following")
-    public CommonResponseDto<List<UserProfileInfo>> getMyFollowingList(Authentication authentication) {
-        Long userId = securityUtils.getCurrentUserId(authentication);
-        return CommonResponseDto.ok(userFollowService.getMyFollowingList(userId));
-    }
-
-    @GetMapping("/my-follower")
-    public CommonResponseDto<List<UserProfileInfo>> getMyFollowerList(Authentication authentication) {
-        Long userId = securityUtils.getCurrentUserId(authentication);
-        return CommonResponseDto.ok(userFollowService.getMyFollowerList(userId));
-    }
-
-    @GetMapping("/other-following/{userId}")
-    public CommonResponseDto<List<UserProfileInfo>> getOthersFollowingList(
-        Authentication authentication,
-        @PathVariable Long userId) {
+    @GetMapping("/following")
+    public CommonResponseDto<List<UserProfileInfo>> getFollowingList(
+            Authentication authentication,
+            @RequestParam(required = false) Long userId
+    ) {
         Long currentUserId = securityUtils.getCurrentUserId(authentication);
-        return CommonResponseDto.ok(userFollowService.getOtherFollowingList(userId, currentUserId));
+        Long targetUserId = userId != null ? userId : currentUserId;
+
+        return CommonResponseDto.ok(userFollowService.getFollowingList(targetUserId, currentUserId));
     }
 
-    @GetMapping("/other-follower/{userId}")
-    public CommonResponseDto<List<UserProfileInfo>> getOthersFollowerList(
-        Authentication authentication,
-        @PathVariable Long userId) {
+    @GetMapping("/follower")
+    public CommonResponseDto<List<UserProfileInfo>> getFollowerList(
+            Authentication authentication,
+            @RequestParam(required = false) Long userId
+    ) {
         Long currentUserId = securityUtils.getCurrentUserId(authentication);
-        return CommonResponseDto.ok(userFollowService.getOtherFollowerList(userId, currentUserId));
+        Long targetUserId = userId != null ? userId : currentUserId;
+
+        return CommonResponseDto.ok(userFollowService.getFollowerList(targetUserId, currentUserId));
     }
 
 }

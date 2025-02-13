@@ -12,6 +12,7 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow: hidden; /* 전체 페이지 스크롤 방지 */
+  padding-top: 0;
 }
 
 .main-content {

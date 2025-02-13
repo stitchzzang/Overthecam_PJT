@@ -5,20 +5,25 @@ function Layout() {
   const location = useLocation();
   const getBackgroundColor = () => {
     if (location.pathname.startsWith("/battle-room")) {
-      return "bg-gradient-to-b from-cusPink to-cusLightBlue";
+      return "bg-gradient-to-b from-cusPink to-cusLightBlue flex-1";
     } else if (
       location.pathname === "/login" ||
       location.pathname === "/signup" ||
       location.pathname === "/find-account" ||
-      location.pathname === "/create-battle-room"
+      location.pathname === "/create-battle-room" ||
+      location.pathname === "/create-vote"
     ) {
       return "bg-transparent";
     }
   };
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen">
       <NavBar />
-      <main className={`flex-grow ${getBackgroundColor() || "bg-cusGray" } scrollbar-hide overflow-y-auto transition-all`}>
+      <main
+        className={`flex-grow ${
+          getBackgroundColor() || "bg-cusGray"
+        } scrollbar-hide overflow-y-auto transition-all`}
+      >
         <Outlet /> {/* 여기에 각 페이지가 렌더링됨 */}
       </main>
     </div>

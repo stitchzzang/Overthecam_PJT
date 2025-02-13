@@ -72,9 +72,11 @@ export default function VoteDetailPage() {
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
-      <div className="relative p-10 bg-gradient-to-r from-[#FFD6D6] to-[#D6DFFF]">
-        <h1 className="absolute left-10 text-4xl font-extrabold text-white drop-shadow-xl">Vote</h1>
+    <div className="vote-detail-page bg-cusGray-light min-h-screen pb-14">
+      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
+          투표
+        </h1>
       </div>
       
       <VoteDetail voteData={voteData} onDelete={handleDelete} />

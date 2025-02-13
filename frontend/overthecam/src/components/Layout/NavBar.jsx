@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import useUserStore from "../../store/User/UserStore";
@@ -10,6 +10,9 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const mobileDropdownRef = useRef(null);  // 모바일용 ref 추가
+  const sidebarRef = useRef(null);  // 사이드바용 ref 추가
 
   // Zustand store 사용
   const userStore = useUserStore();
@@ -51,6 +54,29 @@ export default function NavBar() {
     };
   }, []);
 
+  // 외부 클릭 감지를 위한 useEffect 수정
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target)) {
+        setIsMobileProfileDropdownOpen(false);
+      }
+      // 사이드바 외부 클릭 처리 추가
+      if (sidebarRef.current && 
+          !sidebarRef.current.contains(event.target) && 
+          !event.target.closest('button[aria-label="menu"]')) {  // 햄버거 버튼 클릭은 제외
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleLogout = () => {
     // localStorage 데이터 삭제
     localStorage.removeItem("token");
@@ -81,12 +107,13 @@ export default function NavBar() {
   return (
     <>
       <header className="h-[80px] mb-4">
-        <div className="max-w-7xl mx-auto h-full px-3 relative flex items-center">
+        <div className="max-w-7xl mx-auto h-full px-3 relative flex items-center justify-between">
           {/* Left Section - Logo */}
-          <div className="flex justify-start items-center lg:w-1/4 w-full">
+          <div className="flex items-center gap-2">
             <button
-              className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[60px]"
+              className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[50px]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="menu"
             >
               ☰
             </button>
@@ -94,88 +121,92 @@ export default function NavBar() {
               <img
                 src="/images/Logo.png"
                 alt="Logo"
-                className="ml-4 h-12 w-auto"
+                className="h-16 w-auto"
               />
             </Link>
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className="hidden lg:block flex-1 max-w-[550px] mx-4">
+          <div className="hidden xl:block max-w-[550px] flex-1 mx-8">
             <SearchBar />
           </div>
 
-          {/* Right Section with Create Buttons and Profile */}
-          <div className="hidden lg:flex items-center justify-end gap-6 w-1/4 ml-auto">
+          {/* Right Section */}
+          <div className="hidden xl:flex items-center gap-6">
             {isLoggedIn && userNickname ? (
               <>
                 <div className="flex flex-col gap-2">
                   <Link
                     to={"/create-battle-room"}
-                    className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center w-32"
+                    className="btn px-4 xl:px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-32"
                   >
-                    방 만들기
+                    <span>방 만들기</span>
                   </Link>
                   <Link
                     to={"/create-vote"}
-                    className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center w-32"
+                    className="btn px-4 xl:px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-32"
                   >
-                    투표 만들기
+                    <span>투표 만들기</span>
                   </Link>
                 </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105"
-                  >
-                    <div className="w-8 h-8 rounded-full overflow-hidden">
-                      <img 
-                        src="/placeholder.svg" 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="whitespace-nowrap">
-                      <span className="font-bold">{userNickname}</span> 님,
-                      <br />
-                      안녕하세요!
-                    </span>
-                  </button>
+                <div className="relative" ref={dropdownRef}>
+                  <div className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
+                    <Link
+                      to="/mypage"
+                      className="flex items-center gap-6"
+                    >
+                      <div className="w-8 h-8 rounded-full overflow-hidden">
+                        <img 
+                          src="" 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="whitespace-nowrap">
+                        <span className="font-bold">{userNickname}</span> 님,
+                        <br />
+                        안녕하세요!
+                      </span>
+                    </Link>
+                    <button
+                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                      className="ml-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                  </div>
                   
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                      <Link
-                        to="/mypage"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        마이페이지
-                      </Link>
+                    <div className="absolute right-[50%] translate-x-[50%] mt-2 w-44 bg-white rounded-md shadow-lg py-1 z-50">
                       <Link
                         to="/mypagereport"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         논쟁 분석 리포트
                       </Link>
                       <Link
                         to="/mypagebattle"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         배틀 관리
                       </Link>
                       <Link
                         to="/mypagevote"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         투표 관리
                       </Link>
                       <Link
                         to="/mypage/edit"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         회원 정보 수정
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
+                        className="block w-full px-3 py-2 text-sm font-bold text-cusRed hover:bg-gray-100 rounded text-center"
                       >
                         로그아웃
                       </button>
@@ -204,75 +235,79 @@ export default function NavBar() {
       </header>
 
       {/* Mobile Search Bar */}
-      <div className="lg:hidden px-3 mb-4">
+      <div className="xl:hidden px-3 mb-4">
         <SearchBar />
       </div>
 
       {/* Sidebar */}
       <aside
+        ref={sidebarRef}
         className={`fixed left-0 top-[120px] h-[calc(100vh-120px)] w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         } overflow-y-auto z-40`}
       >
         <div className="p-4">
           {/* Mobile Only - Login/Signup/Profile */}
-          <div className="lg:hidden mb-6">
+          <div className="xl:hidden mb-6">
             {isLoggedIn && userNickname ? (
-              <div className="flex flex-col gap-2">
-                <button 
-                  onClick={() => setIsMobileProfileDropdownOpen(!isMobileProfileDropdownOpen)}
-                  className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105 w-full"
-                >
-                  <div className="w-8 h-8 rounded-full overflow-hidden">
-                    <img 
-                      src="/placeholder.svg" 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="whitespace-nowrap">
-                    <span className="font-bold">{userNickname}</span> 님,
-                    <br />
-                    안녕하세요!
-                  </span>
-                </button>
+              <div className="flex flex-col gap-2" ref={mobileDropdownRef}>
+                <div className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
+                  <Link
+                    to="/mypage"
+                    className="flex items-center gap-6"
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden">
+                      <img 
+                        src="" 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="whitespace-nowrap">
+                      <span className="font-bold">{userNickname}</span> 님,
+                      <br />
+                      안녕하세요!
+                    </span>
+                  </Link>
+                  <button
+                    onClick={() => setIsMobileProfileDropdownOpen(!isMobileProfileDropdownOpen)}
+                    className="ml-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                </div>
                 
-                {/* 모바일 프로필 드롭다운 메뉴 */}
                 {isMobileProfileDropdownOpen && (
-                  <div className="mt-2 bg-gray-50 rounded-md overflow-hidden">
-                    <Link
-                      to="/mypage"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-center"
-                    >
-                      마이페이지
-                    </Link>
+                  <div className="mt-2 bg-white rounded-md shadow-lg py-1">
                     <Link
                       to="/mypagereport"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-center"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       논쟁 분석 리포트
                     </Link>
                     <Link
                       to="/mypagebattle"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-center"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       배틀 관리
                     </Link>
                     <Link
                       to="/mypagevote"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-center"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       투표 관리
                     </Link>
                     <Link
                       to="/mypage/edit"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-center"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       회원 정보 수정
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-center"
+                      className="block w-full px-3 py-2 text-sm font-bold text-cusRed hover:bg-gray-100 rounded text-center"
                     >
                       로그아웃
                     </button>

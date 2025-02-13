@@ -12,12 +12,10 @@ public enum MessageType {
     BATTLER_SELECT,  // 배틀러 선정
     VOTE_CREATE,     // 투표 입력
     TIME_EXTENSION, // 시간 추가
+    BATTLE_END,
 
     // 개인 메시지
-    USER_SCORE,      // 사용자 총 점수
-    CHEER_UPDATE,    // 응원 점수
-    POINT_UPDATE,    // 포인트
-    VOTE_UPDATE,     // 투표
+    BATTLE_READY,      // 사용자 총 점수
 
     // 시스템 알림
     ERROR,           // 에러 메시지

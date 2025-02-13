@@ -29,7 +29,7 @@ public class BattleParticipant extends TimeStampEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @JoinColumn(name = "role")
+    @Column(name = "role")
     private ParticipantRole role;
 
     // role 업데이트 메서드

@@ -1,6 +1,8 @@
 package com.overthecam.websocket.service;
 
+import com.overthecam.common.exception.GlobalException;
 import com.overthecam.vote.domain.Vote;
+import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.repository.VoteOptionRepository;
 import com.overthecam.vote.repository.VoteRepository;
 import com.overthecam.websocket.dto.VoteInfo;
@@ -32,7 +34,7 @@ public class BattleVoteService {
 
     public VoteInfo getVoteInfo(Long battleId) {
         Vote vote = voteRepository.findByBattleId(battleId)
-            .orElseThrow(() -> new RuntimeException("Vote not found"));
+            .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_NOT_FOUND, "해당 배틀에 등록된 투표가 존재하지 않습니다."));
 
         return VoteInfo.builder()
             .voteId(vote.getVoteId())
