@@ -1,25 +1,23 @@
 import { useState, useEffect } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-const SearchBar = ({ onSearch, initialValue }) => {
-  const [searchTerm, setSearchTerm] = useState(initialValue || "");
+const SearchBarWithKeyword = ({ onSearch, initialValue = "" }) => {
+  const [searchTerm, setSearchTerm] = useState(initialValue);
 
   useEffect(() => {
-    if (initialValue) {
-      setSearchTerm(initialValue);
-    }
+    setSearchTerm(initialValue);
   }, [initialValue]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    onSearch(searchTerm.trim());  // 빈 문자열도 전달하도록 수정
+    onSearch(searchTerm.trim());
   };
 
   const handleChange = (e) => {
     const newValue = e.target.value;
     setSearchTerm(newValue);
-    if (newValue === '') {  // 입력값이 비어있으면
-      onSearch('');  // 빈 문자열 전달
+    if (newValue === '') {
+      onSearch('');
     }
   };
 
@@ -50,4 +48,4 @@ const SearchBar = ({ onSearch, initialValue }) => {
   );
 };
 
-export default SearchBar;
+export default SearchBarWithKeyword; 
