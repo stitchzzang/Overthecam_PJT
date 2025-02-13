@@ -168,7 +168,7 @@ public class BattleService {
         battle.updateTotalUsers((int) remainingParticipants);
 
         // 6명 미만이면 상태를 WAITING으로 변경
-        if (remainingParticipants < 6 && battle.getStatus() == Status.END) {
+        if (remainingParticipants < 6 && battle.getStatus() != Status.END) {
             battle.updateStatus(Status.WAITING);
             log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battleId);
         }
