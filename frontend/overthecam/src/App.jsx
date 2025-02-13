@@ -19,6 +19,7 @@ import MainPage from "./page/Main/MainPage.jsx";
 import MyPageBattle from "./page/Mypage/MyPageBattle.jsx";
 import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 import VotePage from "./page/Vote/VotePage.jsx";
+import OtherProfile from "./page/Mypage/OtherProfile"
 
 function ProtectedLogin() {
   const isLoggedIn = !!localStorage.getItem('token');
@@ -91,6 +92,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/find-account" element={<FindAccount />} />
           <Route path="/user-profile/:id" element={<UserProfile />} />
+          <Route path="/profile/:id" element={<OtherProfile />} />
         </Route>
       </Routes>
     </Router>
