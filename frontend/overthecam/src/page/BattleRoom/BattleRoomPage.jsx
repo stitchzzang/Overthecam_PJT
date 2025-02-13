@@ -287,7 +287,7 @@ function BattleRoomPage() {
                 isMaster={battleInfo.isMaster}
               />
             </div>
-            <div className="w-1/4 flex flex-col h-full">
+            <div className="w-1/4 flex flex-col h-full mb-5">
               <BattleChating />
             </div>
           </div>
