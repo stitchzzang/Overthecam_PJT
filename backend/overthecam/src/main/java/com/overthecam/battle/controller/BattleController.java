@@ -157,7 +157,7 @@ public class BattleController {
             // LiveKit 토큰 생성
             AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
             token.setName(participantName);
-            token.setIdentity(user.getId().toString()); // 유저 ID를 Identity로 사용
+            token.setIdentity(participantName); 
             token.addGrants(new RoomJoin(true), new RoomName(battle.getTitle()));
             String tokenStr = token.toJwt();
 
