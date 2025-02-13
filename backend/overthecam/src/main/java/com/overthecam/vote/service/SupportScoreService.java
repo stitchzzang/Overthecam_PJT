@@ -21,7 +21,7 @@ public class SupportScoreService {
      */
     public void deductSupportScore(User user, int amount) {
         validateSufficientScore(user, amount);
-        user.setSupportScore(user.getSupportScore() - amount);
+        user.updateSupportScores(user.getSupportScore() - amount);
     }
 
     /**
@@ -29,7 +29,7 @@ public class SupportScoreService {
      * - 점수 누적 로직
      */
     public void addSupportScore(User user, int amount) {
-        user.setSupportScore(user.getSupportScore() + amount);
+        user.updateSupportScores(user.getSupportScore() + amount);
     }
 
     /**

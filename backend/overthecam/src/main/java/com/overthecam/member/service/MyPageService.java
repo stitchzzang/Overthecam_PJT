@@ -61,7 +61,7 @@ public class MyPageService {
 
     private void updateUserScore(Long userId, int newScore) {
         userRepository.findById(userId).ifPresent(user -> {
-            user.setSupportScore(newScore);
+            user.updateSupportScores(newScore);
             userRepository.save(user);
         });
     }
