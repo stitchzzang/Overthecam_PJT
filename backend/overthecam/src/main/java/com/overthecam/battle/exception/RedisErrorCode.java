@@ -1,4 +1,5 @@
-package com.overthecam.member.exception;
+package com.overthecam.battle.exception;
+
 
 import com.overthecam.common.exception.ErrorCode;
 import lombok.Getter;
@@ -6,11 +7,9 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum UserErrorCode implements ErrorCode {
+public enum RedisErrorCode implements ErrorCode {
 
-
-    INSUFFICIENT_SCORE(400, "응원점수가 부족합니다"),
-    INSUFFICIENT_POINT(400, "포인트가 부족합니다");
+    TRANSACTION_FAILED(500, "트랜잭션이 실패했습니다.");
 
     private final int status;
     private final String message;

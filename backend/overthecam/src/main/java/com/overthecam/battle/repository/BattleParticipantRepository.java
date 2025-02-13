@@ -1,6 +1,7 @@
 package com.overthecam.battle.repository;
 
 import com.overthecam.battle.domain.BattleParticipant;
+import com.overthecam.battle.domain.ParticipantRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,9 @@ public interface BattleParticipantRepository extends JpaRepository<BattlePartici
     List<BattleParticipant> findAllByBattleIdWithUser(@Param("battleId") Long battleId);
 
     List<BattleParticipant> findAllByBattleId(Long battleId);
+
+    @Query("SELECT bp.role FROM BattleParticipant bp WHERE bp.battle.id = :battleId AND bp.user.id = :userId")
+    ParticipantRole findRoleByBattleIdAndUserId(@Param("battleId") Long battleId, @Param("userId") Long userId);
 
     void deleteAllByBattleId(Long battleId);
 

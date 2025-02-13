@@ -17,6 +17,10 @@ public enum ParticipantRole {
         this.value = value;
     }
 
+    public int getValue() {
+        return value;
+    }
+
     // 현재 role에 배틀러 권한을 추가하는 메서드
     public static ParticipantRole addBattlerRole(ParticipantRole currentRole) {
         if (isHost(currentRole)) {
@@ -46,10 +50,6 @@ public enum ParticipantRole {
             }
         }
         throw new IllegalArgumentException("Unknown role value: " + value);
-    }
-
-    public int getValue() {
-        return value;
     }
 
     @Converter(autoApply = true)
