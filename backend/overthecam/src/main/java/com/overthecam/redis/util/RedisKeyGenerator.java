@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 public class RedisKeyGenerator {
 
     private static final String BATTLE_VOTE = "battle:vote:";     // 투표 정보
-    private static final String BATTLE_TOTAL = "battle:total:";   // 총 투표수
-    private static final String BATTLE_RESULT = "battle:result:"; // 배틀 결과
     private static final String USER_LOCK = "lock:user:";         // 유저 락
     private static final String USER_SCORE = "battle:%d:user:%d"; // 유저 점수
 
@@ -20,21 +18,6 @@ public class RedisKeyGenerator {
         return BATTLE_VOTE + battleId;
     }
 
-    /**
-     * 배틀의 총계 정보를 저장하는 키
-     * Format: battle:total:{battleId}
-     */
-    public static String getTotalKey(Long battleId) {
-        return BATTLE_TOTAL + battleId;
-    }
-
-    /**
-     * 배틀의 결과를 저장하는 키
-     * Format: battle:result:{battleId}
-     */
-    public static String getResultKey(Long battleId) {
-        return BATTLE_RESULT + battleId;
-    }
 
     /**
      * 유저의 락 정보를 저장하는 키
