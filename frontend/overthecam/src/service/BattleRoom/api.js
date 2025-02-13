@@ -56,7 +56,24 @@ export const leaveRoom = async (battleId) => {
     const errorMessage = error.error.message;
     const errorCode = error.error.code;
     const errorStatus = error.error.status;
-    console.error("퇴장장 오류: ", errorStatus, errorCode, errorMessage);
+    console.error("퇴장 오류: ", errorStatus, errorCode, errorMessage);
+    throw error.error;
+  }
+}
+
+export const setbattler = async (battleId, battler1, battler2) => {
+  try {
+    const response = await authAxios.post(
+      `/battle/room/${battleId}/start/${battler1}/${battler2}`,
+      {}
+    );
+    console.log("배틀러 선정 성공, ", response.success);
+    return response;
+  } catch (error) {
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;
+    const errorStatus = error.error.status;
+    console.error("배틀러 선정 오류: ", errorStatus, errorCode, errorMessage);
     throw error.error;
   }
 }
