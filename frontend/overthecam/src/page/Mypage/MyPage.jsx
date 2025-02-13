@@ -34,7 +34,7 @@ function MyPage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState({ ...userData })
-  const [profileImage, setProfileImage] = useState("/placeholder.svg")
+  const [profileImage, setProfileImage] = useState("")
   const fileInputRef = useRef(null)
   const [activeTab, setActiveTab] = useState('profile')
   const [toast, setToast] = useState({ show: false, message: '', type: null })
@@ -160,7 +160,7 @@ function MyPage() {
             {/* Profile Image Section */}
             <div className="w-full md:w-auto flex flex-col items-center gap-4">
               <div className="w-48 h-48 relative rounded-lg overflow-hidden bg-white shadow-md">
-                <img src={profileImage || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
+                <img src={profileImage || ""} alt="Profile" className="w-full h-full object-cover" />
               </div>
               <button
                 onClick={() => fileInputRef.current.click()}

@@ -18,7 +18,11 @@ function Layout() {
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
-      <main className="flex-grow scrollbar-hide overflow-y-auto transition-all">
+      <main
+        className={`flex-grow ${
+          getBackgroundColor() || "bg-cusGray"
+        } scrollbar-hide overflow-y-auto transition-all`}
+      >
         <Outlet /> {/* 여기에 각 페이지가 렌더링됨 */}
       </main>
     </div>
