@@ -2,18 +2,18 @@ package com.overthecam.auth.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.dto.*;
-import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.common.exception.GlobalException;
 import com.overthecam.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.overthecam.common.exception.GlobalException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +36,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
+                .profileImage("https://d26tym50939cjl.cloudfront.net/profiles/profile_person.jpg")
                 .username(request.getUsername())
                 .gender(request.getGender())
                 .birth(request.getBirth())
@@ -77,6 +78,7 @@ public class AuthService {
                 .grantType(tokenResponse.getGrantType())
                 .accessTokenExpiresIn(tokenResponse.getAccessTokenExpiresIn())
                 .userId(user.getId())
+                .profileImage(user.getProfileImage())
                 .nickname(user.getNickname())
                 .build();
 
@@ -111,7 +113,7 @@ public class AuthService {
         // 토큰에서 사용자 이메일 추출 후 사용자 조회
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
 
         // DB에서 Refresh Token 제거
         user.clearRefreshToken();
@@ -139,8 +141,8 @@ public class AuthService {
                         request.getUsername(),
                         request.getPhoneNumber(),
                         request.getBirth())
-                        .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
-                            String.format("일치하는 사용자 정보가 없습니다. (이름: %s)", request.getUsername())));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
+                        String.format("일치하는 사용자 정보가 없습니다. (이름: %s)", request.getUsername())));
 
         return UserResponse.from(user);
     }
@@ -161,10 +163,10 @@ public class AuthService {
 
     /**
      * 새 비밀번호 설정 (2단계)
-     *  1. 이메일로 사용자 조회
-     *  2. 새 비밀번호 암호화 및 업데이트
-     *  3. 토큰 발급
-     *  4. Refresh Token을 DB와 쿠키에 저장
+     * 1. 이메일로 사용자 조회
+     * 2. 새 비밀번호 암호화 및 업데이트
+     * 3. 토큰 발급
+     * 4. Refresh Token을 DB와 쿠키에 저장
      */
     @Transactional
     public TokenResponse resetPassword(ResetPasswordRequest request, HttpServletResponse response) {

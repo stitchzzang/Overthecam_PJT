@@ -62,9 +62,10 @@ dependencies {
     implementation 'io.openvidu:openvidu-java-client:2.30.0'
     implementation 'com.google.protobuf:protobuf-java:3.21.12'
 
+    //S3
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
 
 }
 
