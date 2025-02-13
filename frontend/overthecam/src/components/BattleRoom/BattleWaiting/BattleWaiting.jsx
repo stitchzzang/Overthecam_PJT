@@ -36,11 +36,13 @@ function BattleWaiting({
 
       // 나머지 슬롯에 리모트 트랙 매핑
       const remoteVideo = remoteTracks.find(
-        (track, trackIndex) =>
-          track.trackPublication.kind === "video" && trackIndex === index - 1
+        (track) => track.trackPublication.kind === "video"
       );
 
       if (remoteVideo) {
+        // 이미 할당된 참가자는 remoteTracks에서 제거
+        remoteTracks = remoteTracks.filter((t) => t !== remoteVideo);
+
         return {
           type: "remote",
           track: remoteVideo.trackPublication.videoTrack,
