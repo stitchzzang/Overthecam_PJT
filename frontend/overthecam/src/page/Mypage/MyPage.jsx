@@ -6,8 +6,12 @@ import { authAxios } from "../../common/axiosinstance"
 import MyPageReport from './MyPageReport'
 import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
+import { useLocation } from 'react-router-dom';
 
 function MyPage() {
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'vote');
+
   const [userData, setUserData] = useState({
     id: "",
     password: "",
@@ -34,50 +38,48 @@ function MyPage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState({ ...userData })
-  const [profileImage, setProfileImage] = useState("")
   const fileInputRef = useRef(null)
-  const [activeTab, setActiveTab] = useState('profile')
   const [toast, setToast] = useState({ show: false, message: '', type: null })
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // 로그인한 사용자의 정보를 가져오는 API 호출
-        const response = await authAxios.get("/members/me")  // 인증된 요청
-        const apiData = response.data
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        console.log("localStorage userInfo:", userInfo);  // 데이터 확인용
         
-        // 회원가입 때 입력했던 모든 정보를 가져옴
         setUserData({
-          id: apiData.id,
-          email: apiData.email,
-          username: apiData.username,
-          nickname: apiData.nickname,
-          gender: apiData.gender,  // 0 또는 1
-          birth: apiData.birth,    // "YYYY-MM-DD" 형식
-          phoneNumber: apiData.phoneNumber,
+          id: userInfo.userId || "",
+          email: userInfo.email || "",
+          username: userInfo.username || "",
+          nickname: userInfo.nickname || "",
+          gender: userInfo.gender || "",
+          birth: userInfo.birth || "",
+          phoneNumber: userInfo.phoneNumber || "",
           stats: {
-            cheerPoints: apiData.stats?.cheerPoints || 0,
-            points: apiData.stats?.points || 0,
-            followers: apiData.stats?.followers || 0,
-            following: apiData.stats?.following || 0,
+            cheerPoints: parseInt(userInfo.supportScore) || 0,    // 명시적으로 숫자로 변환
+            points: parseInt(userInfo.point) || 0,                // 명시적으로 숫자로 변환
+            followers: 0,
+            following: 0,
             record: {
-              wins: apiData.stats?.record?.wins || 0,
-              draws: apiData.stats?.record?.draws || 0,
-              losses: apiData.stats?.record?.losses || 0,
+              wins: 0,
+              draws: 0,
+              losses: 0,
             },
           },
         })
 
+        console.log("설정된 userData:", userData);  // 설정된 데이터 확인용
+
         // 수정 가능한 필드들만 editedData에 설정
         setEditedData({
           password: "",  // 비밀번호는 빈 값으로 초기화
-          username: apiData.username,
-          nickname: apiData.nickname,
-          phoneNumber: apiData.phoneNumber
+          username: userInfo.username || "",
+          nickname: userInfo.nickname || "",
+          phoneNumber: userInfo.phoneNumber || ""
         })
 
       } catch (error) {
-        console.error("Failed to fetch user data:", error)
+        console.error("Failed to load user data from localStorage:", error)
       }
     }
 
@@ -117,7 +119,7 @@ function MyPage() {
             "Content-Type": "multipart/form-data",
           },
         })
-        setProfileImage(response.data.imageUrl)
+        setUserData({ ...userData, profileInfo: { ...userData.profileInfo, profileImage: response.data.imageUrl } })
       } catch (error) {
         console.error("Failed to upload image:", error)
       }
@@ -125,8 +127,8 @@ function MyPage() {
   }
 
   // Calculate win rate
-  const totalGames = userData.stats.record.wins + userData.stats.record.draws + userData.stats.record.losses
-  const winRate = totalGames > 0 ? ((userData.stats.record.wins / totalGames) * 100).toFixed(1) : 0
+  const totalGames = userData?.battleStats?.totalGames || 0;
+  const winRate = userData?.battleStats?.winRate || 0;
 
   // Toast 컴포넌트 정의
   const Toast = () => {
@@ -160,7 +162,11 @@ function MyPage() {
             {/* Profile Image Section */}
             <div className="w-full md:w-auto flex flex-col items-center gap-4">
               <div className="w-48 h-48 relative rounded-lg overflow-hidden bg-white shadow-md">
-                <img src={profileImage || ""} alt="Profile" className="w-full h-full object-cover" />
+                <img 
+                  src={userData.profileInfo?.profileImage || "/default-profile.png"}
+                  alt="Profile" 
+                  className="w-full h-full object-cover" 
+                />
               </div>
               <button
                 onClick={() => fileInputRef.current.click()}
@@ -202,19 +208,19 @@ function MyPage() {
                   <div className="flex justify-center gap-8">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2 clay">
-                        <span className="text-blue-600 text-xl font-bold">{userData.stats.record.wins}</span>
+                        <span className="text-blue-600 text-xl font-bold">{userData?.battleStats?.win || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">승</p>
                     </div>
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2 clay">
-                        <span className="text-gray-600 text-xl font-bold">{userData.stats.record.draws}</span>
+                        <span className="text-gray-600 text-xl font-bold">{userData?.battleStats?.draw || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">무</p>
                     </div>
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-2 clay">
-                        <span className="text-red-500 text-xl font-bold">{userData.stats.record.losses}</span>
+                        <span className="text-red-500 text-xl font-bold">{userData?.battleStats?.loss || 0}</span>
                       </div>
                       <p className="text-sm text-gray-600">패</p>
                     </div>
