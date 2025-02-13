@@ -1,17 +1,32 @@
 import { useState } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
-function SearchBar({ value, onChange, onSearch }) {
+function SearchBar({ value, onChange }) {
     const [isFocused, setIsFocused] = useState(false);
+    const [searchValue, setSearchValue] = useState('');
+    const navigate = useNavigate();
   
     const handleKeyPress = (e) => {
       if (e.key === 'Enter') {
-        onSearch(value);
+        handleSearch();
       }
     };
 
     const handleSearchClick = () => {
-      onSearch(value);
+      handleSearch();
+    };
+
+    const handleSearch = () => {
+      if (searchValue.trim()) {
+        navigate(`/search?search=${encodeURIComponent(searchValue.trim())}`);
+        setSearchValue('');  // 검색 후 검색어 초기화
+      }
+    };
+
+    const handleInputChange = (e) => {
+      setSearchValue(e.target.value);
+      if (onChange) onChange(e);
     };
 
     return (
@@ -26,8 +41,8 @@ function SearchBar({ value, onChange, onSearch }) {
             type="text"
             className="border-0 bg-transparent flex-1 focus:outline-none text-gray-700 h-full text-sm mb-0"
             placeholder=" 관심사나 배틀룸 검색"
-            value={value}
-            onChange={onChange}
+            value={searchValue}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
@@ -41,6 +56,6 @@ function SearchBar({ value, onChange, onSearch }) {
         </button>
       </div>
     );
-  }
+}
 
-  export default SearchBar;
+export default SearchBar;
