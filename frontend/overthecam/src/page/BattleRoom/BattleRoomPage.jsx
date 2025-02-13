@@ -123,13 +123,13 @@ function BattleRoomPage() {
           failTost.current?.showAlert(
             "연결이 끊어졌습니다."
           );
-          navigate("/");
+          setTimeout(() => navigate("/battle-list"), 1500);
           break;
         default:
           failTost.current?.showAlert(
             "오류가 발생했습니다."
           );
-          setTimeout(() => navigate("/"), 1500);
+          setTimeout(() => navigate("/battle-list"), 1500);
       }
     };
 
