@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { publicAxios } from '../../common/axiosinstance';
+import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 
 const Card = ({ children }) => (
@@ -26,6 +26,15 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const ParticipantsBadge = ({ current, max }) => {
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
+  return (
+    <span className={`${baseClasses} bg-cusGray-light text-cusBlack`}>
+      {current} / {max}
+    </span>
+  );
+};
+
 const SearchResultPage = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
@@ -47,20 +56,35 @@ const SearchResultPage = () => {
     try {
       const token = localStorage.getItem('token');
       const headers = token 
-        ? { Authorization: `Bearer ${token}` }
-        : {};
+        ? {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        : {
+            'Content-Type': 'application/json'
+          };
 
-      const response = await publicAxios.get('/search/battle', {
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
         params: { keyword: query },
         headers
       });
       
+      console.log('Search response:', response);
+
       if (response.data.success) {
+        const battles = response.data.data.battleInfo.map(battle => ({
+          ...battle,
+          status: battle.status === "WAITING" ? 0 : 1
+        }));
         setSearchResults({
-          battles: response.data.data.battleInfo.map(battle => ({
-            ...battle,
-            status: battle.status === "WAITING" ? 0 : 1
-          })),
+          battles,
+          votes: [],
+          users: []
+        });
+      } else {
+        console.error("검색 실패:", response.data.error);
+        setSearchResults({
+          battles: [],
           votes: [],
           users: []
         });
@@ -79,22 +103,21 @@ const SearchResultPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="relative">
         {/* 그라데이션 배경 */}
-        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-40" />
+        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
         
-        {/* 검색바 위치 조정 */}
-        <div className="absolute inset-x-0" style={{ top: "calc(10rem - 1.5rem)" }}>
-          <div className="container mx-auto px-4">
-            <SearchBar 
-              onSearch={handleSearch} 
-              initialValue={searchQuery}
-            />
-          </div>
-        </div>
-
-        {/* 검색 결과 콘텐츠 - 여백도 함께 조정 */}
         <div className="container mx-auto px-4">
-          <div className="pt-16">
-          
+          {/* 검색바 위치 조정 - 살짝 더 위로 */}
+          <div className="relative -mt-12">
+            <div className="font-extrabold text-lg">
+              <SearchBar 
+                onSearch={handleSearch} 
+                initialValue={searchQuery}
+              />
+            </div>
+          </div>
+
+          {/* 내부 컨테이너 여백 */}
+          <div className="container mx-auto p-14">
             {/* Battle Section */}
             <section className="flex flex-col mb-12">
               <div className="flex justify-between items-center">
@@ -109,12 +132,11 @@ const SearchResultPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.battles.length > 0 ? (
                   searchResults.battles.map((battle) => (
-                    <Link 
-                      to={`/battle/${battle.battleId}`} 
+                    <div 
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 bg-white h-32 hover:scale-105">
+                      <div className="clay p-4 bg-white h-32 hover:scale-105 transition-transform">
                         <div className="flex h-full gap-4">
                           <div className="w-24 h-24 flex-shrink-0">
                             <img 
@@ -123,22 +145,20 @@ const SearchResultPage = () => {
                               className="w-full h-full object-cover rounded-lg"
                             />
                           </div>
-                          <div className="flex flex-col flex-grow">
-                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-1">
+                          <div className="flex flex-col justify-center flex-grow h-full">
+                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-3">
                               {battle.title}
                             </h3>
-                            <StatusBadge status={battle.status} />
-                            <div className="flex-grow" />
-                            <div className="flex items-center text-gray-600">
-                              <span className="font-medium">참가자:</span>
-                              <span className="ml-2 text-cusBlue font-bold">
-                                {battle.totalUsers} / 6
-                              </span>
+                            <div className="flex justify-center items-center gap-2">
+                              <ParticipantsBadge current={battle.totalUsers} max={6} />
+                              <Link to={`/battle/${battle.battleId}`} className="hover:scale-105 transition-transform">
+                                <StatusBadge status={battle.status} />
+                              </Link>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))
                 ) : (
                   <div className="col-span-3 text-center py-4">
