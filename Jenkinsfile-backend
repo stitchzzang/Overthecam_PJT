@@ -107,7 +107,7 @@ pipeline {
                                     
                                     echo 'Redis 컨테이너 시작 중...' && \
                                     docker run -d \
-                                        --name redis \
+                                        --name spring-redis \
                                         --network redis-network \
                                         -p 6379:6379 \
                                         redis:7.4.1-alpine redis-server --requirepass ${SPRING_REDIS_PASSWORD} && \
