@@ -4,9 +4,15 @@ import { useParams } from "react-router-dom";
 
 function MyPageBattle() {
   const [battles, setBattles] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    totalPages: 1,
+    totalElements: 0,
+    pageSize: 10
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { id } = useParams();  // URL에서 userId를 가져옴
+  const { id } = useParams();
 
   useEffect(() => {
     const fetchBattleHistory = async () => {
@@ -14,25 +20,37 @@ function MyPageBattle() {
         setIsLoading(true);
         setError(null);
         
-        const url = id ? `/mypage/battle/history?userId=${id}` : '/mypage/battle/history';
-        console.log('요청 URL:', url);  // 디버깅용
+        const url = id 
+          ? `/mypage/battle/history?userId=${id}&page=${currentPage}` 
+          : `/mypage/battle/history?page=${currentPage}`;
         
         const response = await authAxios.get(url);
-        console.log('응답:', response);  // 디버깅용
         
-        if (response.success && response.data) {
-          setBattles(response.data);
+        // 응답 데이터 구조 확인 및 디버깅
+        console.log("Battle history response:", response);
+        
+        if (response.success && response.data && Array.isArray(response.data.content)) {
+          setBattles(response.data.content);
+          setPageInfo({
+            totalPages: response.data.pageInfo.totalPages,
+            totalElements: response.data.pageInfo.totalElements,
+            pageSize: response.data.pageInfo.pageSize
+          });
+        } else {
+          setBattles([]);
+          console.error("Invalid data structure:", response);
         }
       } catch (err) {
         setError('배틀 기록을 불러오는데 실패했습니다.');
         console.error('Failed to fetch battle history:', err);
+        setBattles([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchBattleHistory();
-  }, [id]);
+  }, [id, currentPage]);
 
   // 승패 결과 텍스트 및 스타일 결정 함수
   const getBattleResult = (battle) => {
@@ -54,6 +72,11 @@ function MyPageBattle() {
     }
   };
 
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
   if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
   if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
 
@@ -63,7 +86,7 @@ function MyPageBattle() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="overflow-x-auto">
-            {battles.length === 0 ? (
+            {!battles || battles.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 아직 참여한 배틀이 없습니다.
               </div>
@@ -83,7 +106,7 @@ function MyPageBattle() {
                     return (
                       <tr key={battle.battleId} className="border-b border-gray-100">
                         <td className="py-4 px-4 text-gray-800">
-                          {new Date(battle.date).toLocaleString()}
+                          {new Date(battle.createdAt).toLocaleString()}
                         </td>
                         <td className="py-4 px-4 text-gray-800">{battle.title}</td>
                         <td className="py-4 px-4 text-gray-800">{battle.optionTitle}</td>
@@ -101,6 +124,24 @@ function MyPageBattle() {
           </div>
         </div>
       </div>
+      
+      {pageInfo.totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
+          {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-semibold ${
+                currentPage === page
+                  ? "bg-[#A5C5F4] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
