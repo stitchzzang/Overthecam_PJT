@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import FailAlertModal from "../../../@common/FailAlertModal";
 
-const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
+const BattlerSettingModal = forwardRef(function BattlerSettingModal({participants}, ref) {
   const modalRef = useRef();
   const failToast = useRef();
 
@@ -11,20 +11,15 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
     option2: null
   });
 
-  const [participants, setParticipants] = useState([
-    { id: 1, participantName: "우끼끼 정해기" },
-    { id: 2, participantName: "빽다방구라치노" },
-    { id: 3, participantName: "우르르롹끼" },
-    { id: 4, participantName: "붐샤카라카" },
-  ]);
+  const [participantsList, setparticipantsList] = useState(participants);
 
-  const isParticipantSelected = (participantId) => {
+  const isparticipantsListelected = (participantId) => {
     return battlers.option1 === participantId || battlers.option2 === participantId;
   };
 
   const isParticipantDisabled = (optionKey, participantId) => {
     const otherOptionKey = optionKey === 'option1' ? 'option2' : 'option1';
-    return isParticipantSelected(participantId) && battlers[optionKey] !== participantId;
+    return isparticipantsListelected(participantId) && battlers[optionKey] !== participantId;
   };
 
   const handleBattlerSelect = (optionKey, participantId) => {
@@ -94,7 +89,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
               <h2 className="text-lg font-semibold mb-4">선택지 1 {options.option1}</h2>
               <div className="space-y-3">
-                {participants.map((participant) => {
+                {participantsList.map((participant) => {
                   const isDisabled = isParticipantDisabled('option1', participant.id);
                   return (
                     <label
@@ -114,7 +109,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
                       />
                       <span className={`text-gray-700 ${isDisabled ? 'opacity-50' : ''}`}>
                         {participant.participantName}
-                        {isParticipantSelected(participant.id) && battlers.option2 === participant.id && 
+                        {isparticipantsListelected(participant.id) && battlers.option2 === participant.id && 
                           <span className="ml-2 text-sm text-blue-600">(선택지 2 배틀러)</span>
                         }
                       </span>
@@ -128,7 +123,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
               <h2 className="text-lg font-semibold mb-4">선택지 2 {options.option2}</h2>
               <div className="space-y-3">
-                {participants.map((participant) => {
+                {participantsList.map((participant) => {
                   const isDisabled = isParticipantDisabled('option2', participant.id);
                   return (
                     <label
@@ -148,7 +143,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(_, ref) {
                       />
                       <span className={`text-gray-700 ${isDisabled ? 'opacity-50' : ''}`}>
                         {participant.participantName}
-                        {isParticipantSelected(participant.id) && battlers.option1 === participant.id && 
+                        {isparticipantsListelected(participant.id) && battlers.option1 === participant.id && 
                           <span className="ml-2 text-sm text-blue-600">(선택지 1 배틀러)</span>
                         }
                       </span>
