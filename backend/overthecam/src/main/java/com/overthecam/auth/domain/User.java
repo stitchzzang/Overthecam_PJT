@@ -43,28 +43,19 @@ public class User extends TimeStampEntity {
 
     private String password;
 
-    @Column(columnDefinition = "INT DEFAULT 100")
-    private Integer supportScore = 100;
+    @Builder.Default
+    @Column(columnDefinition = "INT DEFAULT 5000")
+    private Integer supportScore = 5000;
 
+    @Builder.Default
     @Column(columnDefinition = "INT DEFAULT 0")
-    private Integer point = 0;
+    private Integer point = 100;
 
     @Column(length = 500)
     private String refreshToken; // Refresh Token 저장
 
-    @Builder
-    public User(String nickname, String email, String username, Integer gender, String password, LocalDate birth, String phoneNumber) {
-        this.nickname = nickname;
-        this.email = email;
-        this.username = username;
-        this.gender = gender;
-        this.password = password;
-        this.birth = birth;
-        this.phoneNumber = phoneNumber;
-        this.supportScore = 50000;
-    }
 
-    public void setSupportScore(Integer supportScore) {
+    public void updateSupportScores(Integer supportScore) {
         this.supportScore = supportScore;
     }
 
