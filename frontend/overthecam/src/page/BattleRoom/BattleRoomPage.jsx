@@ -21,8 +21,10 @@ function BattleRoomPage() {
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [mediaStream, setMediaStream] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [host, setHost] = useState(""); // 방장 이름 담는 로직
 
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
@@ -94,10 +96,10 @@ function BattleRoomPage() {
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("keydown", handleKeyDown);
       if (room) {
-        cleanup(room)
+        cleanup(room);
       }
     };
-  }, []); 
+  }, []);
 
   // 예외 처리
   useEffect(() => {
@@ -120,15 +122,11 @@ function BattleRoomPage() {
           failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
           break;
         case "disconnected":
-          failTost.current?.showAlert(
-            "연결이 끊어졌습니다."
-          );
+          failTost.current?.showAlert("연결이 끊어졌습니다.");
           setTimeout(() => navigate("/battle-list"), 1500);
           break;
         default:
-          failTost.current?.showAlert(
-            "오류가 발생했습니다."
-          );
+          failTost.current?.showAlert("오류가 발생했습니다.");
           setTimeout(() => navigate("/battle-list"), 1500);
       }
     };
@@ -140,9 +138,9 @@ function BattleRoomPage() {
 
     // cleanup: 컴포넌트 언마운트나 room 변경 시
     return () => {
-       if (!isCleanedUp.current) {
-         cleanup(); // 아직 cleanup이 실행되지 않았다면 실행
-       }
+      if (!isCleanedUp.current) {
+        cleanup(); // 아직 cleanup이 실행되지 않았다면 실행
+      }
       room.off(RoomEvent.ConnectionStateChanged, handleConnectionStateChange);
       room.off(RoomEvent.Disconnected, handleError);
       room.off("error", handleError);
@@ -209,12 +207,18 @@ function BattleRoomPage() {
       ]);
     });
 
+    // 방 연결 시 사용
+    room.on(RoomEvent.Connected, () => {
+      checkAllParticipantsMetadata(room);
+    });
+
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
       setRemoteTracks((prev) =>
         prev.filter(
           (track) => track.trackPublication.trackSid !== publication.trackSid
         )
       );
+      getDataFromAll(room);
     });
 
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
@@ -224,6 +228,7 @@ function BattleRoomPage() {
           (track) => track.participantIdentity !== participant.identity
         )
       );
+      getDataFromAll(room);
     });
 
     try {
@@ -285,7 +290,7 @@ function BattleRoomPage() {
       // 상태 초기화
       setLocalTrack(null);
       setRemoteTracks([]);
-      
+
       // room 연결 종료
       await room?.disconnect();
       setRoom(undefined);
@@ -310,6 +315,34 @@ function BattleRoomPage() {
         console.error("Final disconnect attempt failed:", e);
       }
     }
+  }
+
+  function getDataFromAll(room) {
+    const participantList = [];
+
+    try {
+      const myMetadata = JSON.parse(room.localParticipant.metadata || "{}");
+      if (myMetadata.role === "host") {
+        setHost(room.localParticipant.identity);
+      }
+      participantList.push(room.localParticipant.identity);
+    } catch (error) {
+      console.log("Local participant metadata error:", error);
+    }
+
+    room.participants.forEach((participant) => {
+      try {
+        const participantMetaData = JSON.parse(participant.metadata || "{}");
+        if (participantMetaData.role === "host") {
+          setHost(participant.identity);
+          participantList.push(room.participant.identity);
+        }
+      } catch (error) {
+        console.log("Participant metadata error:", error);
+      }
+    });
+
+    setParticipants(participantList);
   }
 
   // handleLeavRoom 함수 수정
@@ -379,7 +412,9 @@ function BattleRoomPage() {
                 localTrack={localTrack}
                 remoteTracks={remoteTracks}
                 participantName={battleInfo.participantName}
-                isMaster={battleInfo.isMaster}
+                isMaster={isMaster}
+                host={host}
+                participants={participants}
                 onBattleStart={handleBattleStart}
               />
             </div>
