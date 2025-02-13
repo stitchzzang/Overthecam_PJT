@@ -2,6 +2,8 @@ package com.overthecam.auth.repository;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.member.dto.UserScoreInfo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -49,4 +51,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("newScore") Integer newScore,
             @Param("currentScore") Integer currentScore
     );
+
+    Page<User> findByNicknameContainingIgnoreCase(String trim, Pageable pageable);
 }
