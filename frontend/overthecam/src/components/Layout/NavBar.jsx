@@ -157,7 +157,7 @@ export default function NavBar() {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <img 
-                          src="/placeholder.svg" 
+                          src="" 
                           alt="Profile" 
                           className="w-full h-full object-cover"
                         />
@@ -258,7 +258,7 @@ export default function NavBar() {
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden">
                       <img 
-                        src="/placeholder.svg" 
+                        src="" 
                         alt="Profile" 
                         className="w-full h-full object-cover"
                       />

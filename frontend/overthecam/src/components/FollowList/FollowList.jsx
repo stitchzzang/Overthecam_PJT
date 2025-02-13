@@ -11,7 +11,7 @@ const FollowList = ({ users, title, onToggleFollow }) => {
             <div key={user.userId} className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
               <div className="flex items-center">
                 <img
-                  src={user.profileImage || "/placeholder.svg"}
+                  src={user.profileImage}
                   alt={`${user.nickname}의 프로필`}
                   className="w-12 h-12 rounded-full mr-4"
                 />

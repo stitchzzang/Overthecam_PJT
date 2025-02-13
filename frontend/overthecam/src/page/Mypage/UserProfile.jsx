@@ -122,7 +122,7 @@ function UserProfile() {
             {/* 프로필 이미지 */}
             <div className="relative w-32 h-32">
               <img
-                src={profileImage || "/placeholder.svg"}
+                src={profileImage || ""}
                 alt="Profile"
                 className="w-full h-full rounded-full object-cover"
               />
