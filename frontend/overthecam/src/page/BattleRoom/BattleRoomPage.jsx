@@ -22,6 +22,7 @@ function BattleRoomPage() {
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
+  const [mediaStream, setMediaStream] = useState(null);
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(true);
@@ -33,26 +34,30 @@ function BattleRoomPage() {
   useEffect(() => {
     if (!battleInfo.battleId) {
       failTost.current?.showAlert("배틀 정보가 없습니다.");
-      setTimeout(() => navigate("/"), 1500); // 토스트 메시지를 보여줄 시간을 줌
+      setTimeout(() => navigate("/battle-list"), 1500); // 토스트 메시지를 보여줄 시간을 줌
       return;
     }
 
     async function initializeRoom() {
       try {
-        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        setMediaStream(stream);
         console.log("Media permissions granted");
         await joinRoom();
       } catch (error) {
         console.error("Room initialization error:", error);
         // 토스트 메시지를 보여준 후 navigate
-         if (error.name === "NotAllowedError") {
-           failTost.current?.showAlert("카메라/마이크 권한이 필요합니다.");
-         } else if (error.name === "NotFoundError") {
-           failTost.current?.showAlert("카메라/마이크를 찾을 수 없습니다.");
-         } else {
-           failTost.current?.showAlert("연결 중 오류가 발생했습니다.");
-         }
-        setTimeout(() => navigate("/"), 1500);
+        if (error.name === "NotAllowedError") {
+          failTost.current?.showAlert("카메라/마이크 권한이 필요합니다.");
+        } else if (error.name === "NotFoundError") {
+          failTost.current?.showAlert("카메라/마이크를 찾을 수 없습니다.");
+        } else {
+          failTost.current?.showAlert("연결 중 오류가 발생했습니다.");
+        }
+        setTimeout(() => navigate("/battle-list"), 1500);
       }
     }
 
@@ -73,14 +78,14 @@ function BattleRoomPage() {
       if (state === "disconnected" || state === "failed") {
         cleanup(room);
         failTost.current?.showAlert("연결이 끊어졌습니다. 다시 접속해주세요.");
-        navigate("/battle-list");
+        setTimeout(() => navigate("/battle-list"), 1500);
       }
     };
 
     // 예외 처리리
-    const handleError = (error) => {
+    const handleError = async (error) => {
       console.error("Room error:", error);
-      cleanup(room);
+      await cleanup(room);
       switch (error.code) {
         case "permission_denied":
           failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
@@ -95,7 +100,7 @@ function BattleRoomPage() {
           failTost.current?.showAlert(
             "오류가 발생했습니다. 메인 화면으로 돌아갑니다."
           );
-          navigate("/");
+          setTimeout(() => navigate("/"), 1500);
       }
     };
 
@@ -192,6 +197,7 @@ function BattleRoomPage() {
     } catch (error) {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
+      cleanup(room);
       setTimeout(() => leaveRoom(), 1500);
     }
   }
@@ -214,12 +220,18 @@ function BattleRoomPage() {
         );
       }
 
-      // room 연결 종료
-      await room?.disconnect();
+      if (mediaStream) {
+        mediaStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        setMediaStream(null);
+      }
 
       // 상태 초기화
       setLocalTrack(null);
       setRemoteTracks([]);
+      // room 연결 종료
+      await room?.disconnect();
 
       console.log("Cleanup completed successfully");
     } catch (error) {
@@ -234,7 +246,7 @@ function BattleRoomPage() {
 
   async function handleLeavRoom() {
     await cleanup(room);
-    navigate("/");
+    navigate("/battle-list");
   }
 
   async function leaveRoom() {
@@ -243,7 +255,7 @@ function BattleRoomPage() {
     setLocalTrack(undefined);
     setRemoteTracks([]);
     clearBattleInfo();
-    navigate("/");
+    navigate("/battle-list");
   }
 
   const battlerModalShow = (e) => {
@@ -251,8 +263,8 @@ function BattleRoomPage() {
   };
 
   const handleBattleStart = (e) => {
-    setIsWaiting(false)
-  }
+    setIsWaiting(false);
+  };
 
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
@@ -267,24 +279,35 @@ function BattleRoomPage() {
         <div className="room-header-name w-1/2 m-1 text-2xl font-semibold">
           <h2>{battleInfo.roomName}</h2>
         </div>
-        <div className="flex">
-          <div className="mx-1">
-            <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
-              랜덤 주제 생성기
-            </button>
-          </div>
-          {/* 방장만 배틀러 선정 버튼이 보임 */}
-          {isMaster && (
+        {isWaiting ? (
+          <div className="flex">
             <div className="mx-1">
-              <button
-                onClick={battlerModalShow}
-                className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
-              >
-                배틀러 선정하기
+              <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
+                랜덤 주제 생성기
               </button>
             </div>
-          )}
-        </div>
+            {/* 방장만 배틀러 선정 버튼이 보임 */}
+            {isMaster && (
+              <div className="mx-1">
+                <button
+                  onClick={battlerModalShow}
+                  className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
+                >
+                  배틀러 선정하기
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="my-points flex bg-cusPink rounded-xl flex items-center h-12 clay">
+            <div className="points">
+              <p>포인트 : </p>
+            </div>
+            <div className="cheer-score">
+              <p>응원 점수: </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="render-change flex-1 h-0">
         {isWaiting ? (
