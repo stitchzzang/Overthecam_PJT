@@ -23,18 +23,14 @@ public class S3Config {
     @Bean
     public AmazonS3 amazonS3Client() {
 
-        // 로깅 설정
-        System.setProperty("com.amazonaws.sdk.enableDefaultMetrics", "true");
-        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-        System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
-        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.wire", "DEBUG");
-
         AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
 
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withRegion(region)
-                .enablePathStyleAccess()
+                .withPathStyleAccessEnabled(true)
+                .disableChunkedEncoding()  // 청크 인코딩 비활성화
+                .enableForceGlobalBucketAccess() // 전역 버킷 접근 활성화
                 .build();
     }
 }
