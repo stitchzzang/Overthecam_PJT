@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from 'axios';
+import { motion } from "framer-motion"; // 메인 Framer motion 추가
+// import Joyride from 'react-joyride'; // 코치마크를 위한 import - 추후 구현 예정
 
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
@@ -37,6 +39,41 @@ const ParticipantsBadge = ({ current, max }) => {
 
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
+  // const [runTour, setRunTour] = useState(true); // 코치마크 상태 - 추후 구현 예정
+
+  // 코치마크 단계 정의 - 추후 구현 예정
+  /*
+  const steps = [
+    {
+      target: '.battle-section',
+      content: '여기서 진행중인 배틀을 확인할 수 있어요!',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '.status-badge',
+      content: '배틀에 참여하려면 이 버튼을 클릭하세요.',
+      placement: 'left',
+    },
+    {
+      target: '.vote-section',
+      content: '투표에 참여하고 우승자를 선택해보세요!',
+      placement: 'top',
+    }
+  ];
+  */
+
+  useEffect(() => {
+    // 코치마크 관련 코드 - 추후 구현 예정
+    /*
+    const isFirstVisit = !localStorage.getItem('hasVisitedBefore');
+    if (isFirstVisit) {
+      setRunTour(true);
+      localStorage.setItem('hasVisitedBefore', 'true');
+    }
+    */
+    fetchBattles();
+  }, []);
 
   const fetchBattles = async () => {
     try {
@@ -70,12 +107,54 @@ const MainPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBattles();
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 코치마크 컴포넌트 - 추후 구현 예정
+      <Joyride
+        steps={steps}
+        run={runTour}
+        continuous={true}
+        showSkipButton={true}
+        showProgress={true}
+        hideCloseButton={true}
+        spotlightClicks={true}
+        styles={{
+          options: {
+            primaryColor: '#4A90E2',
+            zIndex: 10000,
+            backgroundColor: '#ffffff',
+            arrowColor: '#ffffff',
+            overlayColor: 'rgba(0, 0, 0, 0.5)',
+          },
+          spotlight: {
+            backgroundColor: 'transparent',
+          },
+          tooltipContainer: {
+            textAlign: 'center',
+          },
+          buttonNext: {
+            backgroundColor: '#4A90E2',
+          },
+          buttonBack: {
+            marginRight: 10,
+          },
+        }}
+        locale={{
+          back: '이전',
+          close: '닫기',
+          last: '완료',
+          next: '다음',
+          skip: '건너뛰기'
+        }}
+        callback={(data) => {
+          const { status, type } = data;
+          if (['finished', 'skipped'].includes(status)) {
+            setRunTour(false);
+          }
+        }}
+      />
+      */}
+
       <div className="relative">
         {/* 그라데이션 배경 */}
         <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
@@ -83,7 +162,17 @@ const MainPage = () => {
         <div className="container mx-auto px-4">
           <div className="container mx-auto p-14">
             {/* Battle Section */}
-            <section className="flex flex-col mb-12">
+            <motion.section 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false }}
+              transition={{
+                ease: 'easeInOut',
+                duration: 2,
+                x: { duration: 1 },
+              }}
+              className="flex flex-col mb-12 battle-section"
+            >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
                 <Link
@@ -121,9 +210,9 @@ const MainPage = () => {
                             {/* 상태와 참가자 정보 */}
                             <div className="flex justify-center items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              <Link to={`/battle/${battle.battleId}`} className="hover:scale-105 transition-transform">
+                              <div className="status-badge">
                                 <StatusBadge status={battle.status} />
-                              </Link>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -136,10 +225,20 @@ const MainPage = () => {
                   ))
                 )}
               </div>
-            </section>
+            </motion.section>
 
-            {/* Vote Section */}
-            <section className="flex flex-col mb-12">
+            {/* 메인 Framer motion 추가 */}
+            <motion.section 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false }}
+              transition={{
+                ease: 'easeInOut',
+                duration: 2,
+                x: { duration: 2 },
+              }}
+              className="flex flex-col mb-12 vote-section"
+            >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
                 <Link
@@ -154,7 +253,7 @@ const MainPage = () => {
                   <Card key={`vote-${index}`} />
                 ))}
               </div>
-            </section>
+            </motion.section>
           </div>
         </div>
       </div>
