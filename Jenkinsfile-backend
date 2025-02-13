@@ -89,7 +89,9 @@ pipeline {
                                 string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
                                 string(credentialsId: 'LIVEKIT_API_KEY', variable: 'LIVEKIT_API_KEY'),
                                 string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET'),
-                                string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD')
+                                string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD'),
+                                string(credentialsId: 'secretkey-s3', variable:'secretkey-s3'),
+                                string(credentialsId: 'accesskey-s3', variable:'accesskey-s3')
                             ]) {
                                 sh '''
                                     ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
@@ -125,6 +127,8 @@ pipeline {
                                         -e LIVEKIT_API_KEY='${LIVEKIT_API_KEY}' \
                                         -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \
                                         -e SPRING_REDIS_PASSWORD='${SPRING_REDIS_PASSWORD}' \
+                                        -e accesskey-s3='${accesskey-s3}'\
+                                        -e secretkey-s3='${secretkey-s3}'\
                                         ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
                                     docker system prune -f && \
                                     echo '컨테이너 로그:' && \
