@@ -11,6 +11,7 @@ import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiti
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
+import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -26,9 +27,30 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(true);
+
+  // 모달 처리리
   const battlerSettingModal = useRef();
+  const leaveConfirmModal = useRef();
   // 예외처리 토스트 모달
   const failTost = useRef();
+
+  const handleBeforeUnload = (e) => {
+    e.preventDefault();
+    e.returnValue = ""; // Chrome requires returnValue to be set
+    return "정말 나가시겠습니까?";
+  };
+
+  // 브라우저 뒤로가기 이벤트 핸들러
+  const handlePopState = (e) => {
+    e.preventDefault();
+    leaveConfirmModal.current?.showModal();
+    // 현재 페이지에 머무르기 위해 history 상태 추가
+    window.history.pushState(null, "", window.location.pathname);
+  };
+
+  const handleConfirmLeave = async () => {
+    await cleanup(room);
+  };
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
@@ -37,6 +59,12 @@ function BattleRoomPage() {
       setTimeout(() => navigate("/battle-list"), 1500); // 토스트 메시지를 보여줄 시간을 줌
       return;
     }
+
+    window.history.pushState(null, "", window.location.pathname);
+
+    // 이벤트 리스너 등록
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
 
     async function initializeRoom() {
       try {
@@ -63,8 +91,10 @@ function BattleRoomPage() {
 
     initializeRoom();
 
+    // cleanup
     return () => {
-      cleanup(room);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []); // 빈 의존성 배열이 맞습니다 - 마운트 시 한 번만 실행
 
@@ -244,9 +274,9 @@ function BattleRoomPage() {
     }
   }
 
+  // handleLeavRoom 함수 수정
   async function handleLeavRoom() {
-    await cleanup(room);
-    navigate("/battle-list");
+    leaveConfirmModal.current?.showModal();
   }
 
   async function leaveRoom() {
@@ -334,6 +364,10 @@ function BattleRoomPage() {
       </div>
       <BattlerSettingModal ref={battlerSettingModal} />
       <FailAlertModal ref={failTost} />
+      <BattleLeaveConfirmModal
+        ref={leaveConfirmModal}
+        onConfirm={handleConfirmLeave}
+      />
     </div>
   );
 }
