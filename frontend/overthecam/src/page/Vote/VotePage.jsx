@@ -16,17 +16,21 @@ const VotePage = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
+      const params = {
+        page: page - 1,
+        size: 5,
+        includeVoteResult: true,
+        // 전체보기일 때는 status 파라미터를 보내지 않음
+        ...(voteStatus !== 'all' && { status: voteStatus })
+      };
+      
       const response = await publicAxios.get('/vote/list', { 
-        params: {
-          page: page - 1,
-          size: 5,
-          includeVoteResult: true,
-          status: voteStatus === 'all' ? null : voteStatus
-        },
+        params,
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
       if (response.data?.content) {
+        // 클라이언트 필터링을 제거하고 서버에서 받은 데이터를 그대로 사용
         setCurrentList(response.data.content);
         setTotalPages(response.data.pageInfo.totalPages);
       }
@@ -118,6 +122,14 @@ const VotePage = () => {
     </div>
   );
 
+  const shouldShowVoteButtons = (vote) => {
+    return vote.active && !vote.hasVoted;
+  };
+
+  const shouldShowVoteResult = (vote) => {
+    return !vote.active || vote.hasVoted;
+  };
+
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>{error}</div>;
 
@@ -185,9 +197,9 @@ const VotePage = () => {
               <p className="text-gray-600 mb-4">{vote.content}</p>
 
               <div className="transition-all duration-300">
-                {Boolean(vote.hasVoted) ? (
+                {shouldShowVoteResult(vote) ? (
                   renderVoteResult(vote)
-                ) : (
+                ) : shouldShowVoteButtons(vote) ? (
                   <div className="flex gap-4 mb-4">
                     {vote.options.map((option) => (
                       <button
@@ -203,7 +215,7 @@ const VotePage = () => {
                       </button>
                     ))}
                   </div>
-                )}
+                ) : null}
               </div>
               
               <div className="flex items-center gap-2 text-sm text-gray-500">
