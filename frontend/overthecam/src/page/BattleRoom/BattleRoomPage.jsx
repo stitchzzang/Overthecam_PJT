@@ -32,9 +32,9 @@ function BattleRoomPage() {
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
     if (!battleInfo.battleId) {
-      console.log("Battle info is missing!");
-      navigate("/");
-      // 필요한 처리 (예: 홈으로 리다이렉트)
+      failTost.current?.showAlert("배틀 정보가 없습니다.");
+      setTimeout(() => navigate("/"), 1500); // 토스트 메시지를 보여줄 시간을 줌
+      return;
     }
 
     async function initializeRoom() {
@@ -44,7 +44,15 @@ function BattleRoomPage() {
         await joinRoom();
       } catch (error) {
         console.error("Room initialization error:", error);
-        navigate("/");
+        // 토스트 메시지를 보여준 후 navigate
+         if (error.name === "NotAllowedError") {
+           failTost.current?.showAlert("카메라/마이크 권한이 필요합니다.");
+         } else if (error.name === "NotFoundError") {
+           failTost.current?.showAlert("카메라/마이크를 찾을 수 없습니다.");
+         } else {
+           failTost.current?.showAlert("연결 중 오류가 발생했습니다.");
+         }
+        setTimeout(() => navigate("/"), 1500);
       }
     }
 
@@ -183,7 +191,8 @@ function BattleRoomPage() {
       }
     } catch (error) {
       console.error("Room connection error:", error);
-      await leaveRoom();
+      failTost.current?.showAlert("방 연결에 실패했습니다.");
+      setTimeout(() => leaveRoom(), 1500);
     }
   }
 
