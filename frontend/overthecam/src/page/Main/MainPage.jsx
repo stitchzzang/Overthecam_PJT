@@ -1,6 +1,8 @@
-import { useState } from "react";
-import SearchBar from "../../components/Main/SearchBar";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from 'axios';
+import { motion } from "framer-motion"; // 메인 Framer motion 추가
+// import Joyride from 'react-joyride'; // 코치마크를 위한 import - 추후 구현 예정
 
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
@@ -12,69 +14,165 @@ const SectionTitle = ({ title }) => (
   </h2>
 );
 
+const StatusBadge = ({ status }) => {
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold";
+  return status === 0 ? (
+    <span className={`${baseClasses} bg-cusRed-light text-cusBlack`}>
+      입장하기
+    </span>
+  ) : (
+    <span className={`${baseClasses} bg-cusBlue-light text-cusBlack`}>
+      진행 중
+    </span>
+  );
+};
+
+// 참가자 수를 위한 새로운 컴포넌트
+const ParticipantsBadge = ({ current, max }) => {
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
+  return (
+    <span className={`${baseClasses} bg-cusGray-light text-cusBlack`}>
+      {current} / {max}
+    </span>
+  );
+};
+
 const MainPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState({
-    battles: [],
-    votes: [],
-    users: []
-  });
+  const [battleList, setBattleList] = useState([]);
+  // const [runTour, setRunTour] = useState(true); // 코치마크 상태 - 추후 구현 예정
 
-  const handleSearch = async (query) => {
-    console.log("MainPage - 검색 시작:", query);
-    setSearchQuery(query);
-    
-    if (!query.trim()) {
-      setSearchResults({
-        battles: [],
-        votes: [],
-        users: []
-      });
-      return;
+  // 코치마크 단계 정의 - 추후 구현 예정
+  /*
+  const steps = [
+    {
+      target: '.battle-section',
+      content: '여기서 진행중인 배틀을 확인할 수 있어요!',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '.status-badge',
+      content: '배틀에 참여하려면 이 버튼을 클릭하세요.',
+      placement: 'left',
+    },
+    {
+      target: '.vote-section',
+      content: '투표에 참여하고 우승자를 선택해보세요!',
+      placement: 'top',
     }
+  ];
+  */
 
+  useEffect(() => {
+    // 코치마크 관련 코드 - 추후 구현 예정
+    /*
+    const isFirstVisit = !localStorage.getItem('hasVisitedBefore');
+    if (isFirstVisit) {
+      setRunTour(true);
+      localStorage.setItem('hasVisitedBefore', 'true');
+    }
+    */
+    fetchBattles();
+  }, []);
+
+  const fetchBattles = async () => {
     try {
-      // API 명세여기만 수정하면 됩 받으면 니다
-      const response = await fetch(`${API_URL}/search?query=${query}`);
-      const data = await response.json();
-      
-      setSearchResults({
-        battles: data.battles || [],
-        votes: data.votes || [],
-        users: data.users || []
-      });
+      const token = localStorage.getItem('token');
+      const headers = token 
+        ? {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        : {
+            'Content-Type': 'application/json'
+          };
 
-      console.log("검색 완료:", data);
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/room/all`, { headers });
+      
+      if (response.data.success) {
+        const battles = response.data.data.battleInfo.map(battle => ({
+          ...battle,
+          status: typeof battle.status === 'string' 
+            ? battle.status === "WAITING" ? 0 : 1
+            : battle.status
+        }));
+        setBattleList(battles.slice(0, 6));
+      } else {
+        console.error("배틀 목록 조회 실패:", response.data.error);
+        setBattleList([]);
+      }
     } catch (error) {
-      console.error("검색 중 오류 발생:", error);
-      setSearchResults({
-        battles: [],
-        votes: [],
-        users: []
-      });
+      console.error("배틀 목록 조회 중 오류 발생:", error);
+      setBattleList([]);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 코치마크 컴포넌트 - 추후 구현 예정
+      <Joyride
+        steps={steps}
+        run={runTour}
+        continuous={true}
+        showSkipButton={true}
+        showProgress={true}
+        hideCloseButton={true}
+        spotlightClicks={true}
+        styles={{
+          options: {
+            primaryColor: '#4A90E2',
+            zIndex: 10000,
+            backgroundColor: '#ffffff',
+            arrowColor: '#ffffff',
+            overlayColor: 'rgba(0, 0, 0, 0.5)',
+          },
+          spotlight: {
+            backgroundColor: 'transparent',
+          },
+          tooltipContainer: {
+            textAlign: 'center',
+          },
+          buttonNext: {
+            backgroundColor: '#4A90E2',
+          },
+          buttonBack: {
+            marginRight: 10,
+          },
+        }}
+        locale={{
+          back: '이전',
+          close: '닫기',
+          last: '완료',
+          next: '다음',
+          skip: '건너뛰기'
+        }}
+        callback={(data) => {
+          const { status, type } = data;
+          if (['finished', 'skipped'].includes(status)) {
+            setRunTour(false);
+          }
+        }}
+      />
+      */}
+
       <div className="relative">
         {/* 그라데이션 배경 */}
         <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
         
-        {/* 이미지 섹션 */}
         <div className="container mx-auto px-4">
-          <div className="relative -mt-20 mb-8">
-            {/* 이미지 컴포넌트들 */}
-          </div>
-
-          {/* 검색창 */}
-          <div className="mb-8">
-            <SearchBar onSearch={handleSearch} />
-          </div>
-
           <div className="container mx-auto p-14">
             {/* Battle Section */}
-            <section className="flex flex-col mb-12">
+            <motion.section 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false }}
+              transition={{
+                ease: 'easeInOut',
+                duration: 2,
+                x: { duration: 1 },
+              }}
+              className="flex flex-col mb-12 battle-section"
+            >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
                 <Link
@@ -85,95 +183,77 @@ const MainPage = () => {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchQuery ? (
-                  searchResults.battles.length > 0 ? (
-                    searchResults.battles.map((battle) => (
-                      <div key={`battle-${battle.id}`} className="p-4 bg-white rounded-lg shadow h-32">
-                        {battle.title}
+                {battleList.length > 0 ? (
+                  battleList.map((battle) => (
+                    <div 
+                      key={`battle-${battle.battleId}`}
+                      className="block"
+                    >
+                      <div className="clay p-4 bg-white h-32 hover:scale-105 transition-transform">
+                        <div className="flex h-full gap-4">
+                          {/* 썸네일 이미지 */}
+                          <div className="w-24 h-24 flex-shrink-0">
+                            <img 
+                              src={battle.thumbnailUrl} 
+                              alt={battle.title}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          </div>
+                          
+                          {/* 내용 */}
+                          <div className="flex flex-col justify-center flex-grow h-full">
+                            {/* 제목 */}
+                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-3">
+                              {battle.title}
+                            </h3>
+                            
+                            {/* 상태와 참가자 정보 */}
+                            <div className="flex justify-center items-center gap-2">
+                              <ParticipantsBadge current={battle.totalUsers} max={6} />
+                              <div className="status-badge">
+                                <StatusBadge status={battle.status} />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 text-center py-4">
-                      <p className="text-gray-500">Battle 검색 결과가 없습니다</p>
                     </div>
-                  )
+                  ))
                 ) : (
                   [...Array(6)].map((_, index) => (
                     <Card key={`battle-${index}`} />
                   ))
                 )}
               </div>
-            </section>
+            </motion.section>
 
-            {/* Vote Section */}
-            <section className="flex flex-col mb-12">
+            {/* 메인 Framer motion 추가 */}
+            <motion.section 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false }}
+              transition={{
+                ease: 'easeInOut',
+                duration: 2,
+                x: { duration: 2 },
+              }}
+              className="flex flex-col mb-12 vote-section"
+            >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
                 <Link
-                  to="/vote-inprogress"
+                  to="/vote"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
                   + More
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchQuery ? (
-                  searchResults.votes.length > 0 ? (
-                    searchResults.votes.map((vote) => (
-                      <div key={`vote-${vote.id}`} className="p-4 bg-white rounded-lg shadow h-32">
-                        {vote.title}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 text-center py-4">
-                      <p className="text-gray-500">Vote 검색 결과가 없습니다</p>
-                    </div>
-                  )
-                ) : (
-                  [...Array(6)].map((_, index) => (
-                    <Card key={`vote-${index}`} />
-                  ))
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(2)].map((_, index) => (
+                  <Card key={`vote-${index}`} />
+                ))}
               </div>
-            </section>
-
-            {/* User Section - 검색할 때만 표시 */}
-            {searchQuery && (
-              <section className="flex flex-col mb-12">
-                <div className="flex justify-between items-center">
-                  <SectionTitle title="User" />
-                  <Link
-                    to="/users"
-                    className="text-cusBlue text-xl font-medium justify-end mr-5"
-                  >
-                    + More
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {searchResults.users.length > 0 ? (
-                    searchResults.users.map((user) => (
-                      <div 
-                        key={`user-${user.id}`} 
-                        className="p-4 bg-white rounded-lg shadow flex items-center gap-4 h-32"
-                      >
-                        <img 
-                          src={user.profileImage} 
-                          alt={user.nickname} 
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-900">{user.nickname}</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 text-center py-4">
-                      <p className="text-gray-500">User 검색 결과가 없습니다</p>
-                    </div>
-                  )}
-                </div>
-              </section>
-            )}
+            </motion.section>
           </div>
         </div>
       </div>

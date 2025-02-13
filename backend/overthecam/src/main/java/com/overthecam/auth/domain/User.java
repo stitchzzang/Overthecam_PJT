@@ -54,6 +54,18 @@ public class User extends TimeStampEntity {
     @Column(length = 500)
     private String refreshToken; // Refresh Token 저장
 
+    @Builder
+    public User(String nickname, String email, String profileImage, String username, Integer gender, String password, LocalDate birth, String phoneNumber) {
+        this.nickname = nickname;
+        this.email = email;
+        this.profileImage = profileImage;
+        this.username = username;
+        this.gender = gender;
+        this.password = password;
+        this.birth = birth;
+        this.phoneNumber = phoneNumber;
+        this.supportScore = 50000;
+    }
 
     public void updateSupportScores(Integer supportScore) {
         this.supportScore = supportScore;

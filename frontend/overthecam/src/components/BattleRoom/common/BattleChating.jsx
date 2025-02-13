@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
@@ -108,7 +108,14 @@ const WebSocketChat = () => {
     setSubscriptions((prev) => ({ ...prev, [subscriptionPath]: subscription }));
   };
 
-  const sendMessage = () => {
+  const sendMessage = (e) => {
+    e.preventDefault();
+
+    // 빈 메시지 체크
+    if (!message.trim()) {
+      return;
+    }
+
     const client = stompClientRef.current;
     if (!client) {
       console.log("연결이 되어있지 않습니다.");
@@ -118,7 +125,7 @@ const WebSocketChat = () => {
     try {
       const messageObj = {
         battleId: chatId,
-        content: message,
+        content: message.trim(), // 앞뒤 공백 제거
         timestamp: new Date().toISOString(),
       };
       const sendPath = destination.startsWith("/api/publish")

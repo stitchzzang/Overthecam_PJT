@@ -5,7 +5,7 @@ function Layout() {
   const location = useLocation();
   const getBackgroundColor = () => {
     if (location.pathname.startsWith("/battle-room")) {
-      return "bg-gradient-to-b from-cusPink to-cusLightBlue";
+      return "bg-gradient-to-b from-cusPink to-cusLightBlue flex-1";
     } else if (
       location.pathname === "/login" ||
       location.pathname === "/signup" ||
@@ -17,7 +17,7 @@ function Layout() {
     }
   };
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen">
       <NavBar />
       <main
         className={`flex-grow ${

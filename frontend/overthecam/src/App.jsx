@@ -19,7 +19,8 @@ import MainPage from "./page/Main/MainPage.jsx";
 import MyPageBattle from "./page/Mypage/MyPageBattle.jsx";
 import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 import VotePage from "./page/Vote/VotePage.jsx";
-import OtherProfile from "./page/Mypage/OtherProfile"
+import OtherProfile from "./page/Mypage/OtherProfile";
+import SearchResultPage from "./page/Main/SearchResultPage.jsx";
 
 function ProtectedLogin() {
   const isLoggedIn = !!localStorage.getItem('token');
@@ -54,6 +55,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
+          <Route path="/search" element={<SearchResultPage />} />
           <Route path="/battle-list" element={<BattleMainPage />} />
 
           <Route path="/create-battle-room" element={

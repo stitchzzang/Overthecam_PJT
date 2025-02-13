@@ -125,7 +125,7 @@ function BattleWaiting({
               </div>
             ) : (
               <div className="w-1/4 flex flex-col mx-1">
-                <div className="h-full bg-cusYellow mb-1 btn flex items-center justify-center rounded-lg">
+                <div className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
                   <p>배틀 준비하기</p>
                 </div>
               </div>
