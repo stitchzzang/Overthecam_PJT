@@ -128,6 +128,9 @@ pipeline {
                                         -e JWT_SECRET='${JWT_SECRET}' \\
                                         -e LIVEKIT_API_KEY='${LIVEKIT_API_KEY}' \\
                                         -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \\
+                                        -e SPRING_REDIS_HOST='${SPRING_REDIS_HOST}' \\
+                                        -e SPRING_REDIS_PORT='${SPRING_REDIS_PORT}' \\
+                                        -e SPRING_REDIS_PASSWORD='${SPRING_REDIS_PASSWORD}' \\
                                         ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
                                     docker system prune -f && \
                                     echo '컨테이너 로그:' && \`
