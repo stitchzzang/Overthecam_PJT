@@ -51,10 +51,11 @@ public class BattleResultService {
     private final UserScoreService userScoreService;
     private final VoteRecordService voteRecordService;
 
+
     /**
-     * 배틀 종료 시
+     * 배틀 종료 시 전체 처리를 담당하는 메인 메서드
      * 1. 투표 결과 집계
-     * 2, 배팅된 응원 점수 정산 및 정리
+     * 2. 배팅된 응원 점수 정산 및 정리
      * 3. Redis 데이터 정리
      */
     public BattleResultResponse finalizeBattleVotes(Long battleId) {
@@ -88,9 +89,14 @@ public class BattleResultService {
         }
     }
 
+
+    /**
+     * 배틀과 투표를 종료 상태로 변경
+     */
     private void finalizeBattleAndVote(Battle battle) {
-        // 배틀 종료 처리
+        // 배틀 상태를 END로 변경
         battle.updateStatus(Status.END);
+
         // 총 방송 시간 계산 (현재 시간 - 생성 시간)
         long totalTimeInMinutes = ChronoUnit.MINUTES.between(battle.getCreatedAt(), LocalDateTime.now());
         battle.updateTotalTime((int) totalTimeInMinutes);
@@ -105,11 +111,15 @@ public class BattleResultService {
         log.info("Battle {} and its vote have been finalized", battle.getId());
     }
 
+
+    /**
+     * 투표와 배팅에 대한 기록을 DB에 저장
+     */
     private void saveRecords(List<BattleBettingInfo> votes, Map<Long, Integer> rewardResults) {
-        // 1. 먼저 VoteRecord 저장
+        // 1. 투표 기록 저장
         Map<Long, VoteRecord> voteRecords = voteRecordService.saveVoteRecords(votes);
 
-        // 2. BettingRecord 저장
+        // 2. 배팅 기록 (원금, 획득/손실 금액) 저장
         List<BettingRecord> bettingRecords = votes.stream()
                 .map(vote -> {
                     VoteRecord voteRecord = voteRecords.get(vote.getUserId());
@@ -138,22 +148,32 @@ public class BattleResultService {
         bettingRecordRepository.saveAll(bettingRecords);
     }
 
+    /**
+     * DB에서 최종 응원점수 차감 처리
+     */
     private void deductFinalScores(List<BattleBettingInfo> votes) {
         votes.forEach(vote ->
                 userScoreService.updateSupportScore(vote.getUserId(), vote.getSupportScore())
         );
     }
 
+
+    /**
+     * 배틀 결과 응답 객체 생성
+     */
     private BattleResultResponse createBattleResult(Battle battle, List<BattleBettingInfo> votes,
                                                     Map<Long, Integer> optionScores, Map<Long, Integer> rewardResults) {
         int totalScore = calculateTotalScore(optionScores);
         Map<Long, Long> voterCountByOption = calculateVoterCountByOption(votes);
         boolean isDraw = isDrawBattle(voterCountByOption);
 
-        // 무승부일 때는 winningOptionId를 null로 설정
+        // 승패 여부: 무승부일 때는 winningOptionId를 null로 설정
         Long winningOptionId = isDraw ? null : findWinningOptionId(voterCountByOption);
 
+        // 옵션별 투표 결과
         List<OptionResult> optionResults = createOptionResults(optionScores, totalScore, winningOptionId);
+
+        // 사용자별 배팅 결과
         List<UserResult> userResults = createUserResults(votes, winningOptionId, rewardResults);
 
         WinningInfo winningInfo = WinningInfo.builder()
@@ -172,7 +192,7 @@ public class BattleResultService {
     }
 
     /**
-     * 무승부인 경우 정산 로직
+     * 투표 결과가 무승부인지 확인
      */
     private boolean isDrawBattle(Map<Long, Long> voterCountByOption) {
         long maxVoters = voterCountByOption.values().stream()
@@ -186,7 +206,7 @@ public class BattleResultService {
     }
 
     /**
-     * 승리한 투표 옵션 id 반환
+     * 가장 많은 투표를 받은 옵션 ID 반환
      */
     private Long findWinningOptionId(Map<Long, Long> voterCountByOption) {
         return voterCountByOption.entrySet().stream()
@@ -195,10 +215,16 @@ public class BattleResultService {
                 .orElseThrow(() -> new GlobalException(BattleErrorCode.INVALID_VOTE_RESULT, "투표 결과를 처리할 수 없습니다"));
     }
 
+    /**
+     * 전체 투표 점수 합계 계산
+     */
     private int calculateTotalScore(Map<Long, Integer> optionScores) {
         return optionScores.values().stream().mapToInt(Integer::intValue).sum();
     }
 
+    /**
+     * 옵션별 투표자 수 계산
+     */
     private Map<Long, Long> calculateVoterCountByOption(List<BattleBettingInfo> votes) {
         return votes.stream()
                 .collect(Collectors.groupingBy(
@@ -207,6 +233,10 @@ public class BattleResultService {
                 ));
     }
 
+    /**
+     * 옵션별 결과 생성
+     * - 옵션 정보, 득표율, 총 득표수, 승리 여부
+     */
     private List<OptionResult> createOptionResults(Map<Long, Integer> optionScores, int totalScore, Long winningOptionId) {
         // 무승부 여부 확인
         boolean isDraw = winningOptionId == null;
@@ -237,6 +267,10 @@ public class BattleResultService {
     }
 
 
+    /**
+     * 유저별 결과 생성
+     * - 유저 정보, 승패 여부, 원금, 결과 점수 (획득/손실)
+     */
     private List<UserResult> createUserResults(List<BattleBettingInfo> votes, Long winningOptionId,
                                                Map<Long, Integer> rewardResults) {
         return votes.stream()
@@ -266,6 +300,9 @@ public class BattleResultService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 유저별 최종 결과 점수 계산
+     */
     private int calculateResultScore(Long userId, int originalScore, boolean isWinner, Map<Long, Integer> rewardResults) {
         if (isWinner) {
             Integer reward = rewardResults.get(userId);
@@ -274,13 +311,17 @@ public class BattleResultService {
         return -originalScore; // 손실 금액 (- 부호)
     }
 
-
-
+    /**
+     * 득표율 계산 (소수점 첫째자리까지)
+     */
     private double calculatePercentage(int score, int total) {
         if (total == 0) return 0.0;
         return Math.round((score * 100.0 / total) * 10.0) / 10.0;
     }
 
+    /**
+     * 옵션별 총 득표수 DB 업데이트
+     */
     private void updateOptionScores(Map<Long, Integer> optionScores) {
         optionScores.forEach((optionId, totalScore) ->
             voteOptionRepository.findById(optionId)
