@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import VoteDeleteModal from './VoteModal/VoteDeleteModal';
 import { authAxios } from '../../common/axiosinstance';
 
 const VoteDetail = ({ voteData, onDelete }) => {
+  const navigate = useNavigate();
   const deleteModalRef = useRef();
 
   // creatorUserId로 비교 로직 수정
@@ -70,12 +72,35 @@ const VoteDetail = ({ voteData, onDelete }) => {
     }
   };
 
+  // 총 투표 수 계산
+  const totalVotes = voteData.options.reduce((sum, option) => sum + option.voteCount, 0);
+
   if (!voteData) return <div>로딩 중...</div>;
 
   return (
     <div className="w-full max-w-[800px] mx-auto mt-8">
+      <button
+        onClick={() => navigate('/vote')}
+        className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          strokeWidth={2} 
+          stroke="currentColor" 
+          className="w-6 h-6"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            d="M15.75 19.5L8.25 12l7.5-7.5" 
+          />
+        </svg>
+        <span>투표 목록으로</span>
+      </button>
+
       <div className="clay bg-cusLightBlue-lighter rounded-lg shadow-lg p-6">
-        {/* 제목 */}
         <h1 className="text-3xl font-bold text-center mb-4">{voteData.title}</h1>
         
         {/* 메타 정보 */}
@@ -118,92 +143,104 @@ const VoteDetail = ({ voteData, onDelete }) => {
         <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden mb-8">
           <div
             className="absolute left-0 top-0 h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold"
-            style={{ width: `${voteData.options[0].votePercentage}%` }}
+            style={{ width: `${totalVotes > 0 ? voteData.options[0].votePercentage : 0}%` }}
           >
-            {voteData.options[0].votePercentage}%
+            {totalVotes > 0 ? voteData.options[0].votePercentage : 0}%
           </div>
           <div
             className="absolute right-0 top-0 h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold"
-            style={{ width: `${voteData.options[1].votePercentage}%` }}
+            style={{ width: `${totalVotes > 0 ? voteData.options[1].votePercentage : 0}%` }}
           >
-            {voteData.options[1].votePercentage}%
+            {totalVotes > 0 ? voteData.options[1].votePercentage : 0}%
           </div>
         </div>
 
-        {/* 성별 통계 */}
-        <div className="mb-8">
-          <h3 className="text-xl font-bold text-center mb-4">성별 통계</h3>
-          <div className="space-y-3">
-            {/* 남성 통계 */}
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
-                <div
-                  className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                  style={{ width: `${voteData.options[0].genderDistribution['남성'] || 0}%` }}
-                >
-                  {Math.round(voteData.options[0].genderDistribution['남성'] || 0)}%
+        {/* 통계 섹션은 투표가 있을 때만 표시 */}
+        {totalVotes > 0 && (
+          <>
+            {/* 성별 통계 */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-center mb-4">성별 통계</h3>
+              <div className="space-y-3">
+                {/* 남성 통계 */}
+                <div className="flex items-center justify-center gap-4">
+                  <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                    <div
+                      className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                      style={{ width: `${voteData.options[0].genderDistribution['남성'] || 0}%` }}
+                    >
+                      {Math.round(voteData.options[0].genderDistribution['남성'] || 0)}%
+                    </div>
+                  </div>
+                  <span className="w-16 text-center font-bold">남성</span>
+                  <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                    <div
+                      className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                      style={{ width: `${voteData.options[1].genderDistribution['남성'] || 0}%` }}
+                    >
+                      {Math.round(voteData.options[1].genderDistribution['남성'] || 0)}%
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <span className="w-16 text-center font-bold">남성</span>
-              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
-                <div
-                  className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                  style={{ width: `${voteData.options[1].genderDistribution['남성'] || 0}%` }}
-                >
-                  {Math.round(voteData.options[1].genderDistribution['남성'] || 0)}%
+                {/* 여성 통계 */}
+                <div className="flex items-center justify-center gap-4">
+                  <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                    <div
+                      className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                      style={{ width: `${voteData.options[0].genderDistribution['여성'] || 0}%` }}
+                    >
+                      {Math.round(voteData.options[0].genderDistribution['여성'] || 0)}%
+                    </div>
+                  </div>
+                  <span className="w-16 text-center font-bold">여성</span>
+                  <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                    <div
+                      className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                      style={{ width: `${voteData.options[1].genderDistribution['여성'] || 0}%` }}
+                    >
+                      {Math.round(voteData.options[1].genderDistribution['여성'] || 0)}%
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            {/* 여성 통계 */}
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
-                <div
-                  className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                  style={{ width: `${voteData.options[0].genderDistribution['여성'] || 0}%` }}
-                >
-                  {Math.round(voteData.options[0].genderDistribution['여성'] || 0)}%
-                </div>
-              </div>
-              <span className="w-16 text-center font-bold">여성</span>
-              <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
-                <div
-                  className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                  style={{ width: `${voteData.options[1].genderDistribution['여성'] || 0}%` }}
-                >
-                  {Math.round(voteData.options[1].genderDistribution['여성'] || 0)}%
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* 연령별 통계 */}
-        <div className="mb-8">
-          <h3 className="text-xl font-bold text-center mb-4">연령별 통계</h3>
-          <div className="space-y-3">
-            {['10대', '20대', '30대', '40대', '50대 이상'].map((age) => (
-              <div key={age} className="flex items-center justify-center gap-4">
-                <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
-                  <div
-                    className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                    style={{ width: `${voteData.options[0].ageDistribution[age] || 0}%` }}
-                  >
-                    {Math.round(voteData.options[0].ageDistribution[age] || 0)}%
+            {/* 연령별 통계 */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-center mb-4">연령별 통계</h3>
+              <div className="space-y-3">
+                {['10대', '20대', '30대', '40대', '50대 이상'].map((age) => (
+                  <div key={age} className="flex items-center justify-center gap-4">
+                    <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                      <div
+                        className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
+                        style={{ width: `${voteData.options[0].ageDistribution[age] || 0}%` }}
+                      >
+                        {Math.round(voteData.options[0].ageDistribution[age] || 0)}%
+                      </div>
+                    </div>
+                    <span className="w-16 text-center font-bold">{age}</span>
+                    <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                      <div
+                        className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
+                        style={{ width: `${voteData.options[1].ageDistribution[age] || 0}%` }}
+                      >
+                        {Math.round(voteData.options[1].ageDistribution[age] || 0)}%
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <span className="w-16 text-center font-bold">{age}</span>
-                <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
-                  <div
-                    className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                    style={{ width: `${voteData.options[1].ageDistribution[age] || 0}%` }}
-                  >
-                    {Math.round(voteData.options[1].ageDistribution[age] || 0)}%
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+          </>
+        )}
+
+        {/* 투표가 없을 경우 메시지 표시 */}
+        {totalVotes === 0 && (
+          <div className="text-center text-gray-500 my-8">
+            아직 투표 결과가 없습니다.
           </div>
-        </div>
+        )}
 
         {/* 하단 정보와 삭제 버튼 */}
         <div className="flex items-center justify-between text-sm text-gray-500">

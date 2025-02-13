@@ -32,6 +32,7 @@ export default {
         },
         cusYellow: {
           DEFAULT: "rgb(255, 249, 163)",
+          light: "rgb(255, 253, 218)",
         },
         cusBlack: {
           DEFAULT: "rgb(33, 33, 33)",
