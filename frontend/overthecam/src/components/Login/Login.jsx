@@ -43,7 +43,7 @@ const Login = () => {
 
     try {
       const response = await publicAxios.post("/auth/login", loginData);
-      console.log("로그인 응답 전체:", response);
+      console.log("서버 응답 (상세):", JSON.stringify(response.data, null, 2));
 
       if (response.data.accessToken) {
         const token = response.data.accessToken;
@@ -56,13 +56,8 @@ const Login = () => {
           userId: parsedPayload.userId,
           email: parsedPayload.email,
           nickname: response.data.nickname,
-          supportScore: response.data.supportScore,
-          point: response.data.point,
           token: token
         };
-
-        console.log("로그인 응답 데이터:", response.data);
-        console.log("저장할 userInfo:", userInfo);
 
         localStorage.setItem("token", token);
         localStorage.setItem("userInfo", JSON.stringify(userInfo));
