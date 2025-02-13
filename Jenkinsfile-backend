@@ -89,10 +89,29 @@ pipeline {
                                 usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'MYSQL_DB_USERNAME', passwordVariable: 'MYSQL_DB_PASSWORD'),
                                 string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
                                 string(credentialsId: 'LIVEKIT_API_KEY', variable: 'LIVEKIT_API_KEY'),
-                                string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET')
+                                string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET'),
+                                string(credentialsId: 'SPRING_REDIS_HOST', variable: 'SPRING_REDIS_HOST'),
+                                string(credentialsId: 'SPRING_REDIS_PORT', variable: 'SPRING_REDIS_PORT'),
+                                string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD')
                             ]) {
                                 sh '''
                                     ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
+
+                                    # Redis 네트워크 생성 (없는 경우에만)
+                                    docker network create redis-network || true && \
+                                    
+                                    # Redis 컨테이너 실행/재시작
+                                    echo '기존 Redis 컨테이너 정리 중...' && \
+                                    docker stop redis || true && \
+                                    docker rm redis || true && \
+                                    
+                                    echo 'Redis 컨테이너 시작 중...' && \
+                                    docker run -d \
+                                        --name redis \
+                                        --network redis-network \
+                                        -p 6379:6379 \
+                                        redis:7.4.1-alpine redis-server --requirepass ${SPRING_REDIS_PASSWORD} && \
+                            
 
                                     echo '새 이미지 가져오는 중...' && \
                                     docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
@@ -111,7 +130,7 @@ pipeline {
                                         -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \\
                                         ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
                                     docker system prune -f && \
-                                    echo '컨테이너 로그:' && \
+                                    echo '컨테이너 로그:' && \`
                                     sleep 10 && \
                                     docker logs backend"
                                 '''
