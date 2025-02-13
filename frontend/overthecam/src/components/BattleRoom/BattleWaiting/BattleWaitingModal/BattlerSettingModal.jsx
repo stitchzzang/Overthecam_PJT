@@ -1,10 +1,14 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { setbattler } from "../../../../service/BattleRoom/api";
+import { useBattleStore } from "../../../../store/Battle/BattleStore";
 import FailAlertModal from "../../../@common/FailAlertModal";
+import SuccessAlertModal from "../../../@common/SuccessAlertModal"
 
 const BattlerSettingModal = forwardRef(function BattlerSettingModal({participants}, ref) {
   const modalRef = useRef();
   const failToast = useRef();
-
+  const sucessToast = useRef();
+  const battleInfo = useBattleStore((state)=> state.battleInfo)
   const [options, setOptions] = useState({ option1: '', option2: '' });
   const [battlers, setBattlers] = useState({
     option1: null,
@@ -54,19 +58,10 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
       }
 
       // API 호출 로직...
-      // const response = await fetch('/api/battlers', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(battlers),
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error("배틀러 선정 중 오류가 발생했습니다.");
-      // }
-
+      const response = setBattlers(battleInfo.battleId, battlers.option1, battlers.option2)
+      console.log(response.data)
       modalRef.current?.close();
+      sucessToast.current?.showAlert("배틀러가 선정 되었습니다.")
     } catch (error) {
       console.error("배틀러 선정 중 에러:", error);
       failToast.current?.showAlert(error.message || "배틀러를 선정하지 못했습니다.");
@@ -87,31 +82,49 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
           <div className="flex gap-6">
             {/* 선택지 1 */}
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
-              <h2 className="text-lg font-semibold mb-4">선택지 1 {options.option1}</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                선택지 1 {options.option1}
+              </h2>
               <div className="space-y-3">
                 {participantsList.map((participant) => {
-                  const isDisabled = isParticipantDisabled('option1', participant.id);
+                  const isDisabled = isParticipantDisabled(
+                    "option1",
+                    participant.id
+                  );
                   return (
                     <label
                       key={participant.id}
                       className={`flex items-center gap-3 p-3 rounded-lg bg-white 
-                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} 
+                        ${
+                          isDisabled
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-100 cursor-pointer"
+                        } 
                         transition-all duration-300`}
                     >
                       <input
                         type="radio"
                         name="option1"
                         checked={battlers.option1 === participant.id}
-                        onChange={() => handleBattlerSelect('option1', participant.id)}
+                        onChange={() =>
+                          handleBattlerSelect("option1", participant.id)
+                        }
                         disabled={isDisabled}
                         className="w-5 h-5 border-gray-300 text-cusYellow focus:ring-cusYellow
                           disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                      <span className={`text-gray-700 ${isDisabled ? 'opacity-50' : ''}`}>
+                      <span
+                        className={`text-gray-700 ${
+                          isDisabled ? "opacity-50" : ""
+                        }`}
+                      >
                         {participant.participantName}
-                        {isparticipantsListelected(participant.id) && battlers.option2 === participant.id && 
-                          <span className="ml-2 text-sm text-blue-600">(선택지 2 배틀러)</span>
-                        }
+                        {isparticipantsListelected(participant.id) &&
+                          battlers.option2 === participant.id && (
+                            <span className="ml-2 text-sm text-blue-600">
+                              (선택지 2 배틀러)
+                            </span>
+                          )}
                       </span>
                     </label>
                   );
@@ -121,31 +134,49 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
 
             {/* 선택지 2 */}
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
-              <h2 className="text-lg font-semibold mb-4">선택지 2 {options.option2}</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                선택지 2 {options.option2}
+              </h2>
               <div className="space-y-3">
                 {participantsList.map((participant) => {
-                  const isDisabled = isParticipantDisabled('option2', participant.id);
+                  const isDisabled = isParticipantDisabled(
+                    "option2",
+                    participant.id
+                  );
                   return (
                     <label
                       key={participant.id}
                       className={`flex items-center gap-3 p-3 rounded-lg bg-white 
-                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} 
+                        ${
+                          isDisabled
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-100 cursor-pointer"
+                        } 
                         transition-all duration-300`}
                     >
                       <input
                         type="radio"
                         name="option2"
                         checked={battlers.option2 === participant.id}
-                        onChange={() => handleBattlerSelect('option2', participant.id)}
+                        onChange={() =>
+                          handleBattlerSelect("option2", participant.id)
+                        }
                         disabled={isDisabled}
                         className="w-5 h-5 border-gray-300 text-cusYellow focus:ring-cusYellow
                           disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                      <span className={`text-gray-700 ${isDisabled ? 'opacity-50' : ''}`}>
+                      <span
+                        className={`text-gray-700 ${
+                          isDisabled ? "opacity-50" : ""
+                        }`}
+                      >
                         {participant.participantName}
-                        {isparticipantsListelected(participant.id) && battlers.option1 === participant.id && 
-                          <span className="ml-2 text-sm text-blue-600">(선택지 1 배틀러)</span>
-                        }
+                        {isparticipantsListelected(participant.id) &&
+                          battlers.option1 === participant.id && (
+                            <span className="ml-2 text-sm text-blue-600">
+                              (선택지 1 배틀러)
+                            </span>
+                          )}
                       </span>
                     </label>
                   );
@@ -172,6 +203,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
         </form>
       </dialog>
       <FailAlertModal ref={failToast} />
+      <SuccessAlertModal ref={sucessToast} />
     </>
   );
 });
