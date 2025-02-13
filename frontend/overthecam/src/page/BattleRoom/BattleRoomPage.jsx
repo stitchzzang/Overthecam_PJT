@@ -12,6 +12,7 @@ import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
+import { leaveRoom } from "../../service/BattleRoom/api";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -112,7 +113,7 @@ function BattleRoomPage() {
       }
     };
 
-    // 예외 처리리
+    // 예외 처리
     const handleError = async (error) => {
       console.error("Room error:", error);
       await cleanup(room);
@@ -228,7 +229,7 @@ function BattleRoomPage() {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
       cleanup(room);
-      setTimeout(() => leaveRoom(), 1500);
+      setTimeout(() => navigate("/battle-list"), 1500);
     }
   }
 
@@ -262,6 +263,18 @@ function BattleRoomPage() {
       setRemoteTracks([]);
       // room 연결 종료
       await room?.disconnect();
+      setRoom(undefined);
+      setLocalTrack(undefined);
+      setRemoteTracks([]);
+      clearBattleInfo();
+
+      try {
+        console.log(battleInfo.battleId)
+        const response = await leaveRoom(battleInfo.battleId);
+        console.log("방 나가기 처리가 되었음:", response.data.message)
+      } catch (error) {
+        console.error("배틀방 나가기 에러:", error)
+      }
 
       console.log("Cleanup completed successfully");
     } catch (error) {
@@ -277,15 +290,6 @@ function BattleRoomPage() {
   // handleLeavRoom 함수 수정
   async function handleLeavRoom() {
     leaveConfirmModal.current?.showModal();
-  }
-
-  async function leaveRoom() {
-    await room?.disconnect();
-    setRoom(undefined);
-    setLocalTrack(undefined);
-    setRemoteTracks([]);
-    clearBattleInfo();
-    navigate("/battle-list");
   }
 
   const battlerModalShow = (e) => {
