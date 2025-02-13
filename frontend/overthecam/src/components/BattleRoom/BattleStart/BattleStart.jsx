@@ -12,7 +12,7 @@ function BattleStart({ remoteTracks }) {
     >
       <div className="battle-start-content">
         <div className="battler-section">
-
+            <div>게임 시작</div>
         </div>
         <div className="watcher-section">
 
