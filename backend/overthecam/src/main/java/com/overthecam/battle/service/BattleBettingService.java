@@ -60,7 +60,6 @@ public class BattleBettingService {
     }
 
 
-
     /**
      * 일반 판정단 투표 처리
      */
@@ -88,7 +87,7 @@ public class BattleBettingService {
     }
 
     /**
-     *
+     * 포인트로 배틀 시간 구매
      */
     public UserScoreInfo purchaseTime(Long battleId, Long userId, int point){
         return userScoreRedisService.deductPoint(battleId, userId, point);
@@ -128,17 +127,9 @@ public class BattleBettingService {
         return role;
     }
 
-    /**
-     * 현재 투표 현황 조회
-     */
-    public Map<Long, Integer> getCurrentVoteStatus(Long battleId) {
-        Map<Long, Integer> status = battleVoteRedisRepository.getOptionScores(battleId);
-        log.info("Battle {} current vote status: {}", battleId, status);
-        return status;
-    }
 
     /**
-     * 모든 사용자 배팅 정보
+     * 현재 투표/배팅 현황 조회
      */
     public Map<Long, List<BattleBettingInfo>> getDetailedVoteStatus(Long battleId) {
         List<BattleBettingInfo> votes = battleVoteRedisRepository.getAllVotes(battleId);
