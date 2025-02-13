@@ -122,6 +122,56 @@ const VotePage = () => {
     }
   };
 
+  const handleMyVotesToggle = async () => {
+    try {
+      const newShowMyVotes = !showMyVotes;
+      setShowMyVotes(newShowMyVotes);
+      
+      // 페이지 초기화
+      setPages(prev => ({
+        ...prev,
+        [voteStatus]: 1
+      }));
+
+      // 로딩 상태 설정
+      setLoading(true);
+      
+      // 데이터 다시 불러오기
+      const params = {
+        page: 0,  // 첫 페이지부터 시작
+        size: 10,
+        status: voteStatus === 'all' ? undefined : voteStatus
+      };
+      
+      const token = localStorage.getItem('token');
+      const response = await publicAxios.get('/vote/list', { 
+        params,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      if (response.data?.content) {
+        const filteredContent = newShowMyVotes && userId
+          ? response.data.content.filter(vote => Number(vote.creatorUserId) === Number(userId))
+          : response.data.content;
+
+        setCurrentList(filteredContent);
+        setTotalPages(prev => ({
+          ...prev,
+          [voteStatus]: newShowMyVotes 
+            ? Math.ceil(filteredContent.length / 10)
+            : response.data.pageInfo.totalPages
+        }));
+      }
+    } catch (error) {
+      console.error('Toggle error:', error);
+      alert('데이터를 불러오는 중 오류가 발생했습니다.');
+      // 에러 발생 시 토글 상태 원복
+      setShowMyVotes(!newShowMyVotes);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderVoteResult = (vote) => {
     const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
     
@@ -172,13 +222,13 @@ const VotePage = () => {
     <div className="vote-main-page bg-cusGray-light min-h-screen pb-14">
       <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
-          Vote
+          투표
         </h1>
       </div>
       
-      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl mt-4">
         <div>
-        <div className="flex justify-between items-center mt-6 mb-8">
+        <div className="flex justify-between items-center mt-8 mb-8">
           <div className="flex gap-4">
             <button
               onClick={() => handleStatusChange('all')}
@@ -213,23 +263,21 @@ const VotePage = () => {
           </div>
           <div className="flex items-center gap-4">
             {userId && (
-              <button
-                onClick={() => {
-                  setShowMyVotes(!showMyVotes);
-                  // 페이지 초기화
-                  setPages(prev => ({
-                    ...prev,
-                    [voteStatus]: 1
-                  }));
-                }}
-                className={`btn px-6 py-2 text-md rounded-full transition-colors ${
-                  showMyVotes
-                    ? 'bg-gray-600 text-white'
-                    : 'bg-cusGray-light text-gray-700 hover:bg-cusGray'
-                }`}
-              >
-                내 투표만
-              </button>
+              <div className="flex items-center">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showMyVotes}
+                    onChange={handleMyVotesToggle}
+                    disabled={loading}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-700">
+                    {loading ? '로딩중...' : '내 투표만'}
+                  </span>
+                </label>
+              </div>
             )}
             <Link
               to="/create-vote"
