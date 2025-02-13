@@ -4,6 +4,7 @@ import { publicAxios } from "../../common/axiosinstance";
 import "./Auth.css";
 import useUserStore from "../../store/User/UserStore";
 import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const setUser = useUserStore((state) => state.setUser);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -117,17 +119,30 @@ const Login = () => {
                 placeholder:text-gray-400"
               required
             />
-            <input
-              type="password"
-              placeholder="Password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-5 py-4 text-lg border border-gray-200 rounded-xl
-                focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
-                placeholder:text-gray-400"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-5 py-4 text-lg border border-gray-200 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
+                  placeholder:text-gray-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <EyeIcon className="h-6 w-6" />
+                ) : (
+                  <EyeSlashIcon className="h-6 w-6" />
+                )}
+              </button>
+            </div>
 
             <div className="flex items-center">
               <input
