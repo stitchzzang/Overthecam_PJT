@@ -23,6 +23,7 @@ import io.livekit.server.WebhookReceiver;
 import livekit.LivekitWebhook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -81,10 +82,16 @@ public class BattleController {
         }
 
         try {
+
+            // Metadata 객체 생성 (JSON 형태)
+            JSONObject metadata = new JSONObject();
+            metadata.put("role", "host"); // 예: host, participant 등 역할 지정
             // LiveKit 토큰 생성
             AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
             token.setName(participantName);
             token.setIdentity(participantName);
+            // Metadata 설정
+            token.setMetadata(metadata.toString());
             token.addGrants(new RoomJoin(true), new RoomName(roomName));
             String tokenStr = token.toJwt();
 
