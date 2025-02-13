@@ -1,7 +1,7 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
-import com.overthecam.redis.service.BattleScoreRedisService;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.service.VoteService;
@@ -31,10 +31,10 @@ public class BattleBroadcastController {
     private final VoteService voteService;
     private final BattleDataService battleDataService;
     private final BattleWebsocketService battleWebsocketService;
+    private final BattleBettingService battleBettingService;
     private final ChatMessageService chatMessageService;
     private final BattleVoteService battleVoteService;
     private final BattleResultService battleResultService;
-    private final BattleScoreRedisService battleScoreRedisService;
     private final WebSocketRequestMapper requestMapper;
 
     private static final int TIME_EXTENSION_COST = 300;
@@ -74,7 +74,7 @@ public class BattleBroadcastController {
                             voteService.createVote(voteRequest, user.getUserId()));
 
                 case TIME_EXTENSION:
-                    UserScoreInfo updatedScore = battleScoreRedisService.deductPoints(
+                    UserScoreInfo updatedScore = battleBettingService.purchaseTime(
                             battleId, user.getUserId(), TIME_EXTENSION_COST);
                     return WebSocketResponseDto.ok(MessageType.TIME_EXTENSION,
                             TimeExtensionResponse.builder()

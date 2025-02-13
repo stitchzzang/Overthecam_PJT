@@ -13,10 +13,9 @@ import com.overthecam.battle.dto.BattleResultResponse.OptionResult;
 import com.overthecam.battle.dto.BattleResultResponse.UserResult;
 import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleRepository;
-import com.overthecam.redis.repository.BattleVoteRedisRepository;
 import com.overthecam.battle.repository.BettingRecordRepository;
 import com.overthecam.common.exception.GlobalException;
-import com.overthecam.redis.service.BattleScoreRedisService;
+import com.overthecam.redis.service.BattleVoteRedisService;
 import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.domain.VoteOption;
 import com.overthecam.vote.domain.VoteRecord;
@@ -41,25 +40,31 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 public class BattleResultService {
-    private final BattleVoteRedisRepository battleVoteRedisRepository;
     private final VoteOptionRepository voteOptionRepository;
     private final UserRepository userRepository;
     private final BattleRepository battleRepository;
     private final BettingRecordRepository bettingRecordRepository;
     private final VoteRepository voteRepository;
 
+    private final BattleVoteRedisService battleVoteRedisService;
     private final BattleSettlementService battleSettlementService;
-    private final BattleScoreRedisService battleScoreRedisService;
     private final UserScoreService userScoreService;
     private final VoteRecordService voteRecordService;
 
+    /**
+     * 배틀 종료 시
+     * 1. 투표 결과 집계
+     * 2, 배팅된 응원 점수 정산 및 정리
+     * 3. Redis 데이터 정리
+     */
     public BattleResultResponse finalizeBattleVotes(Long battleId) {
         try {
-            List<BattleBettingInfo> votes = battleVoteRedisRepository.getAllVotesForBattle(battleId);
-            Map<Long, Integer> optionScores = battleVoteRedisRepository.getOptionScores(battleId);
+            // BattleVoteRedisService를 통해 데이터 조회
+            List<BattleBettingInfo> votes = battleVoteRedisService.getAllVotes(battleId);
+            Map<Long, Integer> optionScores = battleVoteRedisService.getOptionScores(battleId);
 
             Battle battle = battleRepository.findById(battleId)
-                    .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다"));
 
             // 1. 실제 DB에서 응원점수 차감 처리
             deductFinalScores(votes);
@@ -70,18 +75,15 @@ public class BattleResultService {
             // 3. 투표 기록 및 배팅 기록 저장
             saveRecords(votes, rewardResults);
 
-            // 4. Redis 데이터 정리
-            battleScoreRedisService.releaseLockedScores(battleId);
-            battleVoteRedisRepository.deleteBattleVotes(battleId);
-
+            // 4. Redis 데이터 정리 - 투표 데이터만 삭제
+            battleVoteRedisService.clearBattleData(battleId);
 
             // 5. 배틀과 투표 종료 처리
             finalizeBattleAndVote(battle);
 
             return createBattleResult(battle, votes, optionScores, rewardResults);
         } catch (Exception e) {
-            // 오류 발생시 Redis 록 해제
-            battleScoreRedisService.releaseLockedScores(battleId);
+            log.error("Failed to finalize battle votes for battleId: {}", battleId, e);
             throw e;
         }
     }
@@ -169,6 +171,9 @@ public class BattleResultService {
                 .build();
     }
 
+    /**
+     * 무승부인 경우 정산 로직
+     */
     private boolean isDrawBattle(Map<Long, Long> voterCountByOption) {
         long maxVoters = voterCountByOption.values().stream()
                 .mapToLong(Long::longValue)
@@ -180,6 +185,9 @@ public class BattleResultService {
                 .count() > 1;
     }
 
+    /**
+     * 승리한 투표 옵션 id 반환
+     */
     private Long findWinningOptionId(Map<Long, Long> voterCountByOption) {
         return voterCountByOption.entrySet().stream()
                 .max(Map.Entry.comparingByValue())

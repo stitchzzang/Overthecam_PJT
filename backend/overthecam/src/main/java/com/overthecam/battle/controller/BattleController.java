@@ -226,7 +226,7 @@ public class BattleController {
             Authentication authentication) {
         try {
             Long userId = securityUtils.getCurrentUserId(authentication);
-            battleService.handleUserLeave(battleId, userId);
+            // battleService.handleUserLeave(battleId, userId);
             return ResponseEntity.ok(CommonResponseDto.ok(Map.of(
                     "message", "성공적으로 퇴장하였습니다."
             )));

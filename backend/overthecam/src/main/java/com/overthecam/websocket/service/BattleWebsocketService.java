@@ -49,7 +49,7 @@ public class BattleWebsocketService {
                 .filter(p -> ParticipantRole.isBattler(p.getRole()))
                 .collect(Collectors.toList());
 
-        List<BattleBettingInfo> battlerVotes = battleVoteRedisRepository.getAllVotesForBattle(battleId).stream()
+        List<BattleBettingInfo> battlerVotes = battleVoteRedisRepository.getAllVotes(battleId).stream()
                 .filter(BattleBettingInfo::isBattler)
                 .collect(Collectors.toList());
 
