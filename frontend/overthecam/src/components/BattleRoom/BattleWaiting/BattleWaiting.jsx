@@ -2,7 +2,7 @@ import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 
@@ -12,6 +12,8 @@ function BattleWaiting({
   remoteTracks,
   participantName,
   isMaster,
+  host,
+  participants,
   onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
@@ -20,6 +22,19 @@ function BattleWaiting({
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
+
+  // metadata로 내 role 보기
+  try {
+    const metadata = room.localParticipant.metadata
+      ? JSON.parse(room.localParticipant.metadata)
+      : {};
+    console.log("Role:", metadata.role);
+    if (metadata.role === "host") {
+      setHost(battleInfo.participantName);
+    }
+  } catch (metadataError) {
+    console.log("No metadata or invalid metadata:", metadataError);
+  }
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -66,10 +81,12 @@ function BattleWaiting({
               {slots.map((slot, index) => (
                 <div key={index} className="flex flex-col h-full">
                   {/* Name header */}
-                  <div className="px-6 mb-1">
+                  <div className="px-6">
                     <div
                       className={`text-sm text-black rounded-t-lg ${
-                        isMaster && slot ? "bg-cusPink" : "bg-cusLightBlue"
+                        slot && host === slot.participantName
+                          ? "bg-cusPink"
+                          : "bg-cusLightBlue"
                       }`}
                     >
                       {slot ? slot.participantName : "대기중..."}
@@ -134,7 +151,10 @@ function BattleWaiting({
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />
-      <BattlerSettingModal ref={battlerSettingModal} />
+      <BattlerSettingModal
+        ref={battlerSettingModal}
+        participants={participants}
+      />
     </>
   );
 }
