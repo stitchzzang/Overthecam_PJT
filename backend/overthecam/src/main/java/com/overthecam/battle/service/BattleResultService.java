@@ -35,6 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+/**
+ * 배틀 종료 후 결과 생성 및 기록
+ * 투표율, 승패 여부, 옵션별 결과 등 결과 표시를 위한 기능
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -47,7 +52,7 @@ public class BattleResultService {
     private final VoteRepository voteRepository;
 
     private final BattleVoteRedisService battleVoteRedisService;
-    private final BattleSettlementService battleSettlementService;
+    private final BattleRewardService battleRewardService;
     private final UserScoreService userScoreService;
     private final VoteRecordService voteRecordService;
 
@@ -71,7 +76,7 @@ public class BattleResultService {
             deductFinalScores(votes);
 
             // 2. 정산 처리
-            Map<Long, Integer> rewardResults = battleSettlementService.settleBattleRewards(battleId, optionScores, votes);
+            Map<Long, Integer> rewardResults = battleRewardService.settleBattleRewards(battleId, optionScores, votes);
 
             // 3. 투표 기록 및 배팅 기록 저장
             saveRecords(votes, rewardResults);

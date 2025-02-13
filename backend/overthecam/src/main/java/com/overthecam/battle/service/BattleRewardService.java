@@ -18,26 +18,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
+/**
+ * 배틀 종료 후 보상 정산
+ * 보상 금액, 승패에 따른 점수 분배 등 실제 정산을 위한 기능
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BattleSettlementService {
+public class BattleRewardService {
 
     private static final int REWARD_PER_PARTICIPANT = 1000;  // 참여자 1인당 보상 풀 기여금
 
     private final UserScoreService userScoreService;
     private final VoteValidationService validationService;
 
+    /**
+     * 배틀 보상 정산 처리 메인 메서드
+     */
     @Transactional
     public Map<Long, Integer> settleBattleRewards(Long battleId, Map<Long, Integer> optionScores,
                                                   List<BattleBettingInfo> votes) {
         try {
-            // 1. 배틀 상태 검증
+            // 1. 배틀 및 투표 데이터 일관성 검증
             validationService.validateBattle(battleId);
 
             // 2. Redis 데이터와 DB 데이터 일관성 검증
-            validateDataConsistency(battleId, votes);
+            validateDataConsistency(votes);
 
             // 3. 승패 판정 및 보상 처리
             Map<Long, Long> voterCountByOption = calculateVoterCountByOption(votes);
@@ -45,7 +53,7 @@ public class BattleSettlementService {
 
             Map<Long, Integer> rewardResults = new HashMap<>();
 
-            // 총 응원점수 계산 (배틀러 보상 계산용)
+            // 응원점수 보상 계산 및 지급
             int totalBattleScore = calculateTotalScore(optionScores);
 
             if (isDraw) {
@@ -55,7 +63,6 @@ public class BattleSettlementService {
                 settleWinLoss(votes, winningOptionId, optionScores, totalBattleScore, rewardResults);
             }
 
-
             return rewardResults;
 
         } catch (Exception e) {
@@ -64,6 +71,9 @@ public class BattleSettlementService {
         }
     }
 
+    /**
+     * 승리/패배에 따른 보상 정산
+     */
     private void settleWinLoss(List<BattleBettingInfo> votes, Long winningOptionId,
                                Map<Long, Integer> optionScores, int totalBattleScore,
                                Map<Long, Integer> rewardResults) {
@@ -84,7 +94,7 @@ public class BattleSettlementService {
                 log.info("Battler settlement - User: {}, Winner: {}, Reward: {}",
                         vote.getUserId(), isWinner, battlerReward);
             } else {
-                // 일반 참여자 정산
+                // 일반 참여자: 승리시 원금 + 추가보상, 패배시 0
                 if (isWinner) {
                     int voterReward = calculateWinnerReward(vote.getSupportScore(),
                             losingTotalScore,
@@ -105,11 +115,14 @@ public class BattleSettlementService {
         });
     }
 
+    /**
+     * 무승부 시 보상 정산
+     */
     private void settleDraw(List<BattleBettingInfo> votes, int totalBattleScore,
                             Map<Long, Integer> rewardResults) {
         votes.forEach(vote -> {
             if (vote.isBattler()) {
-                // 배틀러 무승부: 총 응원점수의 1배
+                // 배틀러: 총 응원점수의 1배
                 int battlerReward = totalBattleScore;
                 userScoreService.updateSupportScore(vote.getUserId(), -battlerReward);
                 rewardResults.put(vote.getUserId(), battlerReward);
@@ -117,7 +130,7 @@ public class BattleSettlementService {
                 log.info("Battler draw settlement - User: {}, Reward: {}",
                         vote.getUserId(), battlerReward);
             } else {
-                // 일반 참여자 무승부: 원금 반환
+                // 일반 참여자: 원금 반환
                 int voterRefund = vote.getSupportScore();
                 userScoreService.updateSupportScore(vote.getUserId(), -voterRefund);
                 rewardResults.put(vote.getUserId(), voterRefund);
@@ -134,7 +147,10 @@ public class BattleSettlementService {
                 .sum();
     }
 
-    private void validateDataConsistency(Long battleId, List<BattleBettingInfo> votes) {
+    /**
+     * Redis 투표 데이터와 DB 데이터의 일관성 검증
+     */
+    private void validateDataConsistency(List<BattleBettingInfo> votes) {
         // Redis의 투표 데이터와 DB의 사용자 데이터 검증
         votes.forEach(vote -> {
             UserScoreInfo userScore = userScoreService.getUserScore(vote.getUserId())
@@ -174,14 +190,6 @@ public class BattleSettlementService {
                 .count() > 1;
     }
 
-    private Map<Long, Integer> calculateTotalScoresByOption(List<BattleBettingInfo> votes) {
-        return votes.stream()
-                .collect(Collectors.groupingBy(
-                        BattleBettingInfo::getVoteOptionId,
-                        Collectors.summingInt(BattleBettingInfo::getSupportScore)
-                ));
-    }
-
     private int calculateLosingTotalScore(Map<Long, Integer> totalScoresByOption, Long winningOptionId) {
         return totalScoresByOption.entrySet().stream()
                 .filter(entry -> !entry.getKey().equals(winningOptionId))
@@ -189,6 +197,9 @@ public class BattleSettlementService {
                 .sum();
     }
 
+    /**
+     * 승리자 보상 계산
+     */
     private int calculateWinnerReward(int userBetScore, int losingTotalScore,
                                                             int winningTotalScore, int totalParticipants) {
         if (winningTotalScore == 0) return 0;
