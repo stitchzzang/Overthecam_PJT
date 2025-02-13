@@ -10,7 +10,8 @@ function Layout() {
       location.pathname === "/login" ||
       location.pathname === "/signup" ||
       location.pathname === "/find-account" ||
-      location.pathname === "/create-battle-room"
+      location.pathname === "/create-battle-room" ||
+      location.pathname === "/create-vote"
     ) {
       return "bg-transparent";
     }
