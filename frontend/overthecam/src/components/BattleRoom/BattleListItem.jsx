@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { JoinRoom } from "../../service/BattleRoom/api";
+import { joinRoom } from "../../service/BattleRoom/api";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import useUserStore from "../../store/User/UserStore";
 
@@ -11,14 +11,13 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId);
     try {
-      const response = await JoinRoom(battleId, userNickname);
-
+      const response = await joinRoom(battleId, userNickname);
       const newBattleInfo = {
         battleId: response.data.battleId,
         participantName: userNickname,
         roomName: response.data.roomName,
         userToken: response.data.token,
-        isMaster: true,
+        isMaster: false,
       };
       setBattleInfo(newBattleInfo);
       navigate(`/battle-room/${battleId}`)
