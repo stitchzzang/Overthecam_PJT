@@ -20,4 +20,8 @@ public interface BattleParticipantRepository extends JpaRepository<BattlePartici
     ParticipantRole findRoleByBattleIdAndUserId(@Param("battleId") Long battleId, @Param("userId") Long userId);
 
     void deleteAllByBattleId(Long battleId);
+
+    void deleteByBattleIdAndUserId(Long battleId, Long userId);
+
+    long countByBattleId(Long battleId);
 }

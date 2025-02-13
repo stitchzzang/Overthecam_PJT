@@ -2,6 +2,8 @@ package com.overthecam.battle.repository;
 
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.Status;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +18,5 @@ public interface BattleRepository extends JpaRepository<Battle, Long> {
     // 상태 목록으로 조회 + 생성일시 내림차순 정렬
     List<Battle> findByStatusInOrderByCreatedAtDesc(List<Status> list);
 
+    Page<Battle> findByTitleContainingIgnoreCase(String trim, Pageable pageable);
 }

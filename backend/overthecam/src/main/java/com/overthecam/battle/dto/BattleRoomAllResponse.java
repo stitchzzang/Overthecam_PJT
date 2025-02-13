@@ -1,16 +1,31 @@
 package com.overthecam.battle.dto;
 
-import lombok.AllArgsConstructor;
+import com.overthecam.battle.domain.Battle;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
-@NoArgsConstructor  // 기본 생성자
-@AllArgsConstructor // 모든 필드를 가진 생성자
 public class BattleRoomAllResponse {
     private List<BattleInfo> battleInfo;
+
+    private int totalPages;
+    private int currentPage;
+    private boolean hasNext;
+
+    public static BattleRoomAllResponse of(Page<Battle> battlePage) {
+        return BattleRoomAllResponse.builder()
+                .battleInfo(battlePage.getContent().stream()
+                        .map(BattleInfo::from)
+                        .collect(Collectors.toList()))
+                .totalPages(battlePage.getTotalPages())
+                .currentPage(battlePage.getNumber())
+                .hasNext(battlePage.hasNext())
+                .build();
+    }
+
 }

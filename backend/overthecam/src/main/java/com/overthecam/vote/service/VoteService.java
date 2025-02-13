@@ -2,11 +2,13 @@ package com.overthecam.vote.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.battle.repository.BattleRepository;
+import com.overthecam.common.dto.PageInfo;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.domain.VoteOption;
 import com.overthecam.vote.domain.VoteRecord;
 import com.overthecam.vote.dto.*;
+import com.overthecam.vote.dto.VotePageResponse;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.repository.*;
 import java.time.LocalDateTime;
@@ -59,22 +61,27 @@ public class VoteService {
     /**
      * 투표 목록 조회
      */
-    public VotePageResponse getVotes(String keyword, String sortBy, Pageable pageable, Long userId) {
-        Pageable sortedPageable = getSortedPageable(sortBy, pageable);
-        Page<Vote> votes = searchVotesByCondition(keyword, sortBy, sortedPageable);
+    public VotePageResponse getVotes(String keyword, String status, String sortBy, Pageable pageable, Long userId) {
+        int pageNumber = Math.max(0, pageable.getPageNumber() - 1);
+        Pageable adjustedPageable = PageRequest.of(pageNumber, pageable.getPageSize(), pageable.getSort());
 
-        return VotePageResponse.of(votes.map(vote ->
-                VoteDetailResponse.of(
+        Page<Vote> votes = searchVotesByCondition(keyword, status, adjustedPageable);
+
+        // votes를 VoteDetailResponse로 변환하고 페이지 정보 포함
+        Page<VoteDetailResponse> votePage = votes.map(vote ->
+                VoteDetailResponse.ofList(
                         vote,
                         voteStatisticsService.hasUserVoted(vote.getVoteId(), userId),
-                        getVoteComments(vote.getVoteId()),
                         voteStatisticsService.getSelectionStatus(vote.getVoteId(), userId),
-                        Collections.emptyMap(),
-                        Collections.emptyMap()
+                        voteCommentRepository.countByVote_VoteId(vote.getVoteId())
                 )
-        ));
-    }
+        );
 
+        return VotePageResponse.builder()
+                .content(votePage.getContent())
+                .pageInfo(PageInfo.of(votePage))
+                .build();
+    }
 
     /**
      * 투표 상세 조회
@@ -82,13 +89,13 @@ public class VoteService {
     public VoteDetailResponse getVoteDetail(Long voteId, Long userId) {
         Vote vote = voteValidationService.findVoteById(voteId);
 
-        return VoteDetailResponse.of(
-            vote,
-            voteStatisticsService.hasUserVoted(vote.getVoteId(), userId),
-            getVoteComments(vote.getVoteId()),
-            voteStatisticsService.getSelectionStatus(vote.getVoteId(), userId),
-            voteStatisticsService.getAgeStats(voteId),
-            voteStatisticsService.getGenderStats(voteId)
+        return VoteDetailResponse.ofDetail(
+                vote,
+                voteStatisticsService.hasUserVoted(vote.getVoteId(), userId),
+                getVoteComments(vote.getVoteId()),
+                voteStatisticsService.getSelectionStatus(vote.getVoteId(), userId),
+                voteStatisticsService.getAgeStats(voteId),
+                voteStatisticsService.getGenderStats(voteId)
         );
     }
 
@@ -110,7 +117,7 @@ public class VoteService {
 
             supportScoreService.addSupportScore(user, 1000);
 
-            return VoteDetailResponse.of(
+            return VoteDetailResponse.ofDetail(
                 vote,
                 true,
                 getVoteComments(vote.getVoteId()),
@@ -165,25 +172,29 @@ public class VoteService {
     private Pageable getSortedPageable(String sortBy, Pageable pageable) {
         return switch (sortBy) {
             case "endDate" -> PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                Sort.by("endDate").ascending()
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by("endDate").ascending()
             );
-            case "popularity", "voteCount" -> pageable;
+            case "popularity", "voteCount" -> PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    pageable.getSort()
+            );
             default -> PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                Sort.by("createdAt").descending()
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by("createdAt").descending()
             );
         };
     }
 
-    private Page<Vote> searchVotesByCondition(String keyword, String sortBy, Pageable sortedPageable) {
-        if (StringUtils.hasText(keyword)) {
-            return voteRepository.searchByKeyword(keyword, sortedPageable);
-        } else {
-            return getVotesBySort(sortBy, sortedPageable);
-        }
+    private Page<Vote> searchVotesByCondition(String keyword, String status, Pageable sortedPageable) {
+        Boolean isActive = status == null ? null :
+                status.equals("active") ? true :
+                        status.equals("ended") ? false : null;
+
+        return voteRepository.findVotesByCondition(isActive, keyword, sortedPageable);
     }
 
     private Page<Vote> getVotesBySort(String sortBy, Pageable pageable) {
