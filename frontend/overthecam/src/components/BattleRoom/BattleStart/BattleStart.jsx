@@ -1,4 +1,6 @@
 import BattleVote from "../common/BattleVote";
+import BattleTimer from "../BattleStart/BattleTimer";
+import BattleChating from "../common/BattleChating";
 
 function BattleStart({ remoteTracks }) {
   const battler1Video = null;
@@ -6,39 +8,62 @@ function BattleStart({ remoteTracks }) {
   const watcherSlots = null;
 
   return (
-    <div
-      className="battle-start-container w-full flex flex-col"
-      style={{ height: "calc(100vh - 2rem)" }}
-    >
-      <div className="battle-start-content">
-        <div className="battler-section">
-            <div className="flex"> 비디오 섹션
-                <div>
-                    선택지 1 비디오 자리
-                    {/* 내가 배틀러 1이면 여기에 상점 버튼 */}
+    <div className="battle-start-container w-full">
+      <div className="battle-start-content max-w-7xl mx-auto">
+        {/* 비디오 섹션 */}
+        <div className="battler-section mx-5 my-3 h-[45vh]">
+          <div className="grid grid-cols-3 gap-4 h-full">
+            {/* 배틀러 1 */}
+            <div className="flex flex-col">
+              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusRed-light">
+                배틀러1 닉네임
+                <div className="relative w-full aspect-[4/3] bg-cusGray">
+                  <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
+                    배틀러 화면
+                  </div>
                 </div>
-                <div>
-                    타이머 + 채팅 자리
-                    {/* 게임 시작하면 자동으로 타이머 */}
-                    {/* 타이머에 시간 구매 설정 */}
-                    {/* 채팅자리 비워놓기? */}
-                </div>
-                <div>
-                    선택지 2 비디오 자리
-                    {/* 내가 배틀러 2이면 여기에 상점 버튼 */}
-                </div>
+              </div>
             </div>
-        </div>
-        <div className="watcher-section">
-            <div>
-                시청자 자리
+
+            {/* 중앙 타이머, 채팅팅*/}
+            <div className="flex flex-col items-center justify-start">
+              <div className="w-full h-full">
+                <BattleChating />
+              </div>
             </div>
+
+            {/* 배틀러 2 */}
+            <div className="flex flex-col">
+              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusBlue-light">
+                배틀러2 닉네임
+                <div className="relative w-full aspect-[4/3] bg-cusGray">
+                  <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
+                    배틀러 화면
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="vote-section w-full">
-            <BattleVote/>
-            {/* 옵션 누르면 배팅 모달 */}
+
+        {/* 시청자 섹션 */}
+        <div className="watcher-section mx-5">
+          <div className="relative w-full aspect-[16/1] bg-gray-100 rounded-lg">
+            <div className="absolute inset-0 flex items-center justify-center">
+              시청자 자리
+            </div>
+          </div>
         </div>
-      </div> 
+
+        {/* 투표 섹션 */}
+        <div className="vote-section mx-5 my-3">
+          <div className="relative w-full aspect-[16/2.5] bg-cusGray rounded-lg clay">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <BattleVote isWaiting={false} />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
