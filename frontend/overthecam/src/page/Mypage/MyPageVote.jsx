@@ -84,7 +84,7 @@ function MyPageVote({ userId, isOtherProfile }) {
             <div className="flex-1">
               <h3 
                 className="text-xl font-bold mb-3 cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight"
-                onClick={() => navigate(`/vote-detail/${vote.voteId}`)}
+                onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
               >
                 {vote.title}
               </h3>
