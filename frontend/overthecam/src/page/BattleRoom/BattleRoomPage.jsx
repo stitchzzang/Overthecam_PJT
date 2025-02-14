@@ -5,12 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { leaveRoom } from "../../service/BattleRoom/api";
 
-import BattleChating from "../../components/BattleRoom/common/BattleChating";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
-import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart"
-import FailAlertModal from "../../components/@common/FailAlertModal";
+import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
+import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
+import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
+import FailAlertModal from "../../components/@common/FailAlertModal";
 
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
@@ -40,6 +41,7 @@ function BattleRoomPage() {
 
   // 예외처리 관련련
   const failTost = useRef(); // 토스트
+  const noticeToast = useRef(); // 알림 토스트
   const isCleanedUp = useRef(); // 클린업 함수 수행 여부 판단
 
   // 예외처리
@@ -362,6 +364,10 @@ function BattleRoomPage() {
     setIsWaiting(false);
   };
 
+  const handleTimerStoped = (message) => {
+    noticeToast.current?.showAlert(message)
+  }
+
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
       <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
@@ -395,14 +401,19 @@ function BattleRoomPage() {
             )}
           </div>
         ) : (
-          <div className="my-points flex bg-cusPink rounded-xl flex items-center h-12 clay">
-            <div className="points">
-              <p>나의 포인트 : </p>
+          <>
+            <div className="battle-timer flex bg-cusYellow rounded-xl flex items-center h-12 clay">
+              <BattleTimer onTimerStoped={handleTimerStoped} />
             </div>
-            <div className="cheer-score">
-              <p>나의 응원 점수: </p>
+            <div className="my-points flex bg-cusPink rounded-xl flex items-center h-12 clay">
+              <div className="points">
+                <p>나의 포인트 : </p>
+              </div>
+              <div className="cheer-score">
+                <p>나의 응원 점수: </p>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
       <div className="render-change flex-1 h-0">
@@ -425,12 +436,13 @@ function BattleRoomPage() {
           </div>
         ) : (
           <>
-          <BattleStart/>
+            <BattleStart />
           </>
         )}
       </div>
       <BattlerSettingModal ref={battlerSettingModal} />
       <FailAlertModal ref={failTost} />
+      <NoticeAlertModal ref={noticeToast} />
       <BattleLeaveConfirmModal
         ref={leaveConfirmModal}
         onConfirm={handleConfirmLeave}
