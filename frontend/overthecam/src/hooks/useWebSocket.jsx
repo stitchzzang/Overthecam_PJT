@@ -1,6 +1,6 @@
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 
 // 훅 내부에서 쓰이는 개인 채널 구독 함수
 const subscribePrivate = (client, battleId, onResponse) => {
@@ -55,13 +55,14 @@ const useWebSocket = (battleId) => {
       return;
     }
 
+    const wsUrl = url + "/ws-connect";
+
     try {
-      const socket = new SockJS(url);
-      const stomp = Stomp.over(socket);
+      const stomp = Stomp.over(() => new SockJS(wsUrl));
 
       stomp.configure({
         connectHeaders: {
-          Authorization: `Bearer ${token.replace("Bearer ", "")}`,
+          "Authorization": `Bearer ${token}`,
         },
         debug: (str) => {
           console.log("STOMP Debug:", str);
@@ -102,9 +103,9 @@ const useWebSocket = (battleId) => {
       subscription?.unsubscribe();
     });
     // 연결 해제
-    if (clientRef.current) {
-      clientRef.current.deactivate();
-      clientRef.current = null;
+    if (stompClientRef.current) {
+      stompClientRef.current.deactivate();
+      stompClientRef.current = null;
       setIsWsConnected(false);
     }
   }, []);

@@ -98,6 +98,7 @@ function BattleRoomPage() {
     // 오픈비두 설정 관련 초기화
     initializeRoom();
     // 웹소켓 설정 관련 초기화
+    console.log("야이 미친 토큰 줫잔아",  token)
     connectWS(BASE_URL, token);
 
     // cleanup 언마운트시 해제
