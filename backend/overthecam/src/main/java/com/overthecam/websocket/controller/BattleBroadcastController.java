@@ -75,7 +75,7 @@ public class BattleBroadcastController {
 
                 case VOTE_CREATE:
                     VoteRequest voteRequest = requestMapper.mapToVoteRequestDto(request.getData());
-                    battleVoteService.deleteAndCreateNewVote(battleId);
+                    battleVoteService.deleteVote(battleId);
                     return WebSocketResponseDto.ok(MessageType.VOTE_CREATE,
                             voteService.createVote(voteRequest, user.getUserId()));
 

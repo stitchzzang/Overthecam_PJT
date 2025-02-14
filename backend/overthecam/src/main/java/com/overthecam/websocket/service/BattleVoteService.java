@@ -21,7 +21,7 @@ public class BattleVoteService {
     private final VoteOptionRepository voteOptionRepository;
 
     @Transactional
-    public void deleteAndCreateNewVote(Long battleId) {
+    public void deleteVote(Long battleId) {
         // 기존 투표 찾기
         Optional<Vote> existingVote = voteRepository.findByBattleId(battleId);
 
