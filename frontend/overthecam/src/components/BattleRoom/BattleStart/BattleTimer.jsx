@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import {
-  ClockIcon, // 기본 시계
-} from "@heroicons/react/24/outline";
+import { useEffect, useState, useRef } from "react";
+import { ClockIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import TimeBuyModal from "./BattleStartModal/BattleTimeBuyModal";
 
 function BattleTimer({ onTimerStoped }) {
   const MINUTES_IN_MS = 10 * 60 * 1000; // 10분 시간 주기
@@ -16,6 +15,7 @@ function BattleTimer({ onTimerStoped }) {
   const second = String(Math.floor((timeLeft / 1000) % 60)).padStart(2, "0");
 
   const [isTwoMiNLeft, setIsTwoMinLeft] = useState(false);
+  const timeBuyModal = useRef();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -35,18 +35,26 @@ function BattleTimer({ onTimerStoped }) {
   }, [timeLeft]);
 
   return (
-    <>
+    <div className="flex items-center gap-2 px-2">
       <div
         className={`text-${
           isTwoMiNLeft ? "cusRed" : "cusBlack"
-        } text-2xl font-bold px-5 flex items-center gap-2`}
+        } text-2xl font-bold flex items-center gap-2`}
       >
-        <ClockIcon className="w-7 h-7 "/>
+        <ClockIcon className="w-7 h-7" />
         <p>
           {minutes}:{second}
         </p>
       </div>
-    </>
+      {/* 설정 버튼 */}
+      <div
+        onClick={() => timeBuyModal.current?.showModal()}
+        className="rounded-sm hover:border hover:border-gray-800"
+      >
+        <PlusCircleIcon className="w-5 h-5 text-gray-600" />
+      </div>
+      <TimeBuyModal ref={timeBuyModal}/>
+    </div>
   );
 }
 
