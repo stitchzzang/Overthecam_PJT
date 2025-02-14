@@ -23,6 +23,7 @@ function BattleWaiting({
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
+  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
 
   // metadata로 내 role 보기
   try {
@@ -123,13 +124,19 @@ function BattleWaiting({
 
           {/* Battle vote section */}
           <div className="h-1/4 flex gap-2">
-            <div className="w-3/4 h-full bg-cusGray clay">
-              <BattleVote
-                isWaiting={true}
-                voteTitle={""}
-                voteOption1={""}
-                voteOption2={""}
-              />
+            <div className="w-3/4 h-full bg-cusGray clay p-3">
+              {isVoteSubmitted ? (
+                <BattleVote
+                  isWaiting={true}
+                  voteTitle={""}
+                  voteOption1={""}
+                  voteOption2={""}
+                />
+              ) : (
+                <div className="p-6 bg-white w-full h-full flex items-center justify-center">
+                  <p className="font-semibold text-gray-300">아직 등록된 투표가 없습니다.</p>
+                </div>
+              )}
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">

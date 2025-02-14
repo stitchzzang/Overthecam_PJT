@@ -62,7 +62,7 @@ function BattleStart({ remoteTracks }) {
         {/* 투표 섹션 */}
         <div className="vote-section mx-5 my-3">
           <div className="relative w-full aspect-[16/2.5] bg-cusGray rounded-lg clay">
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center p-3">
               <BattleVote
                 isWaiting={false}
                 voteTitle={voteTitle}
