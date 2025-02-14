@@ -9,10 +9,11 @@ function BattleHeader({
   isMaster,
   onshowLeaveConfirmModal,
   onShowBattlerModal,
+  onShowEndBattleModal,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const noticeToast = useRef();
-  
+
   const handleTimerStoped = (message) => {
     noticeToast.current?.showAlert(message);
   };
@@ -30,7 +31,10 @@ function BattleHeader({
             나가기
           </button>
           {!isWaiting && isMaster ? (
-            <button className="btn justify-start bg-cusYellow !rounded-xl flex items-center h-12">
+            <button
+              onClick={onShowEndBattleModal}
+              className="btn justify-start bg-cusYellow !rounded-xl flex items-center h-12"
+            >
               배틀 종료
             </button>
           ) : null}
@@ -71,7 +75,7 @@ function BattleHeader({
           </div>
         )}
       </div>
-      <NoticeAlertModal ref={noticeToast}/>
+      <NoticeAlertModal ref={noticeToast} />
     </>
   );
 }
