@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import {
+  ClockIcon, // 기본 시계
+} from "@heroicons/react/24/outline";
 
 function BattleTimer({ onTimerStoped }) {
-  const MINUTES_IN_MS = 2 * 60 * 1000; // 10분 시간 주기
+  const MINUTES_IN_MS = 10 * 60 * 1000; // 10분 시간 주기
   const ALERT_MINTS_IN_MS = 2 * 60 * 1000; // 2분 전부터 알람 주기
   const INTERVAL = 1000; // 1초 (1000ms) 간격으로 타이머 설정정
   const [timeLeft, setTimeLeft] = useState(MINUTES_IN_MS);
@@ -35,9 +38,10 @@ function BattleTimer({ onTimerStoped }) {
     <>
       <div
         className={`text-${
-          isTwoMiNLeft ? "red" : "black"
-        }-500 text-2xl font-bold px-5`}
+          isTwoMiNLeft ? "cusRed" : "cusBlack"
+        } text-2xl font-bold px-5 flex items-center gap-2`}
       >
+        <ClockIcon className="w-7 h-7 "/>
         <p>
           {minutes}:{second}
         </p>
