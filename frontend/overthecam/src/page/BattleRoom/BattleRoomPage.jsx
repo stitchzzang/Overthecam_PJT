@@ -210,7 +210,7 @@ function BattleRoomPage() {
 
     // 방 연결 시 사용
     room.on(RoomEvent.Connected, () => {
-      checkAllParticipantsMetadata(room);
+      getDataFromAll(room);
     });
 
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
@@ -322,7 +322,7 @@ function BattleRoomPage() {
     const participantList = [];
 
     try {
-      const myMetadata = JSON.parse(room.localParticipant.metadata || "{}");
+      const myMetadata = JSON.parse(room?.localParticipant?.metadata || "{}");
       if (myMetadata.role === "host") {
         setHost(room.localParticipant.identity);
       }
@@ -331,7 +331,7 @@ function BattleRoomPage() {
       console.log("Local participant metadata error:", error);
     }
 
-    room.participants.forEach((participant) => {
+    room?.participants?.forEach((participant) => {
       try {
         const participantMetaData = JSON.parse(participant.metadata || "{}");
         if (participantMetaData.role === "host") {
