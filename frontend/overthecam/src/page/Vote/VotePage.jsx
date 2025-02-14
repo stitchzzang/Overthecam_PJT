@@ -73,8 +73,12 @@ const VotePage = () => {
   };
 
   const handleStatusChange = (newStatus) => {
+    // 페이지를 1로 리셋
+    setPages(prev => ({
+      ...prev,
+      [newStatus]: 1
+    }));
     setVoteStatus(newStatus);
-    fetchVotes();
   };
 
   const handleVote = async (vote, optionId) => {
