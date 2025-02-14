@@ -19,7 +19,7 @@ function BattleStart({ remoteTracks }) {
           <div className="grid grid-cols-3 gap-4 h-full">
             {/* 배틀러 1 */}
             <div className="flex flex-col">
-              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusRed-light">
+              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusRed-light clay">
                 배틀러1 닉네임
                 <div className="relative w-full aspect-[4/3] bg-cusGray">
                   <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
@@ -38,7 +38,7 @@ function BattleStart({ remoteTracks }) {
 
             {/* 배틀러 2 */}
             <div className="flex flex-col">
-              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusBlue-light">
+              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusBlue-light clay">
                 배틀러2 닉네임
                 <div className="relative w-full aspect-[4/3] bg-cusGray">
                   <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
