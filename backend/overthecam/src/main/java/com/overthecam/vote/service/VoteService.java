@@ -61,10 +61,20 @@ public class VoteService {
     /**
      * 투표 목록 조회
      */
-    public VotePageResponse getVotes(String keyword, String status, Pageable pageable, Long userId) {
-        Page<Vote> votes = searchVotesByCondition(keyword, status, pageable);
+    public VotePageResponse getVotes(String keyword, String status, String sortBy, Pageable pageable, Long userId) {
+        // 페이지 번호 조정 (0부터 시작하도록)
+        int pageNumber = Math.max(0, pageable.getPageNumber() - 1);
 
-        // votes를 VoteDetailResponse로 변환하고 페이지 정보 포함
+        // 정렬 조건 설정
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        if ("voteCount".equals(sortBy) || "popularity".equals(sortBy)) {
+            sort = Sort.by(Sort.Direction.DESC, "voteCount");
+        }
+
+        Pageable adjustedPageable = PageRequest.of(pageNumber, pageable.getPageSize(), sort);
+        Page<Vote> votes = searchVotesByCondition(keyword, status, adjustedPageable);
+
+        // 응답 데이터 변환
         Page<VoteDetailResponse> votePage = votes.map(vote ->
                 VoteDetailResponse.ofList(
                         vote,
@@ -186,12 +196,18 @@ public class VoteService {
         };
     }
 
-    private Page<Vote> searchVotesByCondition(String keyword, String status, Pageable sortedPageable) {
-        Boolean isActive = status == null ? null :
-                status.equals("active") ? true :
-                        status.equals("ended") ? false : null;
+    private Page<Vote> searchVotesByCondition(String keyword, String status, Pageable pageable) {
+        Boolean isActive = null;
+        if (status != null) {
+            isActive = status.equals("active");
+        }
 
-        return voteRepository.findVotesByCondition(isActive, keyword, sortedPageable);
+        // 키워드가 null이거나 빈 문자열인 경우 처리
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
+        }
+
+        return voteRepository.findVotesByCondition(isActive, keyword, pageable);
     }
 
     private Page<Vote> getVotesBySort(String sortBy, Pageable pageable) {
