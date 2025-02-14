@@ -20,7 +20,7 @@ const StatusBadge = ({ status }) => {
       입장하기
     </span>
   ) : (
-    <div className={`${baseClasses} bg-cusBlue-light text-white pointer-events-none`}>
+    <div className={`${baseClasses} bg-cusLightBlue text-white pointer-events-none`}>
       진행 중
     </div>
   );
