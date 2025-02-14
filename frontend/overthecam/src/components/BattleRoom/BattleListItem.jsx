@@ -64,7 +64,7 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
               입장하기
             </button>
           ) : (
-            <button className="btn-disabled bg-cusBlue-light w-32 h-11">
+            <button className="btn-disabled bg-cusLightBlue w-32 h-11 text-white font-bold">
               진행 중
             </button>
           )}
