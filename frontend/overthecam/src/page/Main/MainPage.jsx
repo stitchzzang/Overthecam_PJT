@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { motion } from "framer-motion"; // 메인 Framer motion 추가
 // import Joyride from 'react-joyride'; // 코치마크를 위한 import - 추후 구현 예정
@@ -39,6 +39,7 @@ const ParticipantsBadge = ({ current, max }) => {
 
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
+  const navigate = useNavigate();  // 네비게이션 추가
   // const [runTour, setRunTour] = useState(true); // 코치마크 상태 - 추후 구현 예정
 
   // 코치마크 단계 정의 - 추후 구현 예정
@@ -77,17 +78,8 @@ const MainPage = () => {
 
   const fetchBattles = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = token 
-        ? {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        : {
-            'Content-Type': 'application/json'
-          };
-
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/room/all`, { headers });
+      // 토큰 없이 요청하도록 수정
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/room/all`);
       
       if (response.data.success) {
         const battles = response.data.data.battleInfo.map(battle => ({
@@ -105,6 +97,19 @@ const MainPage = () => {
       console.error("배틀 목록 조회 중 오류 발생:", error);
       setBattleList([]);
     }
+  };
+
+  // 배틀룸 입장 처리 함수
+  const handleBattleEnter = (battleId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // 로그인이 필요하다는 알림
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/main/login');
+      return;
+    }
+    // 로그인된 상태면 배틀룸으로 이동
+    navigate(`/main/battle-room/${battleId}`);
   };
 
   return (
@@ -210,7 +215,10 @@ const MainPage = () => {
                             {/* 상태와 참가자 정보 */}
                             <div className="flex justify-center items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              <div className="status-badge">
+                              <div 
+                                onClick={() => handleBattleEnter(battle.battleId)}
+                                className="hover:scale-105 transition-transform cursor-pointer"
+                              >
                                 <StatusBadge status={battle.status} />
                               </div>
                             </div>

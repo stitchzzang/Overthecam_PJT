@@ -54,49 +54,51 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* 랜딩 페이지 */}
         <Route path="/" element={<FakeMainPage />} />
-        
-        <Route path="/main" element={<Layout />}>
-          <Route index element={<MainPage />} />
-          <Route path="search" element={<SearchResultPage />} />
-          <Route path="battle-list" element={<BattleMainPage />} />
 
-          <Route path="create-battle-room" element={
+        {/* 기존 레이아웃과 라우트들 */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<MainPage />} />
+          <Route path="/search" element={<SearchResultPage />} />
+          <Route path="/battle-list" element={<BattleMainPage />} />
+
+          <Route path="/create-battle-room" element={
             <PrivateRoute><BattleCreatingPage /></PrivateRoute>
           } />
-          <Route path="battle-room/:battleId" element={
+          <Route path="/battle-room/:battleId" element={
             <PrivateRoute><BattleRoomPage /></PrivateRoute>
           } />
-          <Route path="create-vote" element={
+          <Route path="/create-vote" element={
             <PrivateRoute><VoteCreatingPage /></PrivateRoute>
           } />
-          <Route path="store" element={
+          <Route path="/store" element={
             <PrivateRoute><ItemShopPage /></PrivateRoute>
           } />
-          <Route path="mypage" element={
+          <Route path="/mypage" element={
             <PrivateRoute><MyPage /></PrivateRoute>
           } />
-          <Route path="mypagereport" element={
+          <Route path="/mypagereport" element={
             <PrivateRoute><MyPageReport /></PrivateRoute>
           } />
-          <Route path="mypagebattle" element={
+          <Route path="/mypagebattle" element={
             <PrivateRoute><MyPageBattle /></PrivateRoute>
           } />
-          <Route path="mypagevote" element={
+          <Route path="/mypagevote" element={
             <PrivateRoute><MyPageVote /></PrivateRoute>
           } />
 
-          <Route path="create-battle-room" element={<BattleCreatingPage />} />
-          <Route path="battle-room/:battleId" element={<BattleRoomPage />} />
-          <Route path="create-vote" element={<VoteCreatingPage />} />
-          <Route path="vote" element={<VotePage />} />
+          <Route path="/create-battle-room" element={<BattleCreatingPage />} />
+          <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
+          <Route path="/create-vote" element={<VoteCreatingPage />} />
+          <Route path="/vote" element={<VotePage />} />
           
-          <Route path="vote-detail/:voteId" element={<VoteDetailPage />} />
-          <Route path="login" element={<ProtectedLogin />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="find-account" element={<FindAccount />} />
-          <Route path="user-profile/:id" element={<UserProfile />} />
-          <Route path="profile/:id" element={<OtherProfile />} />
+          <Route path="/vote-detail/:voteId" element={<VoteDetailPage />} />
+          <Route path="/login" element={<ProtectedLogin />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/find-account" element={<FindAccount />} />
+          <Route path="/user-profile/:id" element={<UserProfile />} />
+          <Route path="/profile/:id" element={<OtherProfile />} />
         </Route>
       </Routes>
     </Router>
