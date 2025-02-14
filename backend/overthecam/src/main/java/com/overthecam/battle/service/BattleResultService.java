@@ -171,7 +171,10 @@ public class BattleResultService {
      */
     private BattleResultResponse createBattleResult(Battle battle, List<BattleBettingInfo> votes,
                                                     Map<Long, Integer> optionScores, Map<Long, Integer> rewardResults) {
+        // 무승부 여부 확인
         int totalScore = calculateTotalScore(optionScores);
+
+        // 각 옵션별 투표자 수 계산
         Map<Long, Long> voterCountByOption = calculateVoterCountByOption(votes);
         boolean isDraw = isDrawBattle(voterCountByOption);
 
@@ -179,7 +182,7 @@ public class BattleResultService {
         Long winningOptionId = isDraw ? null : findWinningOptionId(voterCountByOption);
 
         // 옵션별 투표 결과
-        List<OptionResult> optionResults = createOptionResults(optionScores, totalScore, winningOptionId);
+        List<OptionResult> optionResults = createOptionResults(optionScores, totalScore, winningOptionId, voterCountByOption);
 
         // 사용자별 배팅 결과
         List<UserResult> userResults = createUserResults(votes, winningOptionId, rewardResults);
@@ -245,7 +248,8 @@ public class BattleResultService {
      * 옵션별 결과 생성
      * - 옵션 정보, 득표율, 총 득표수, 승리 여부
      */
-    private List<OptionResult> createOptionResults(Map<Long, Integer> optionScores, int totalScore, Long winningOptionId) {
+    private List<OptionResult> createOptionResults(Map<Long, Integer> optionScores, int totalScore,
+                                                    Long winningOptionId, Map<Long, Long> voterCountByOption) {
         // 무승부 여부 확인
         boolean isDraw = winningOptionId == null;
 
@@ -257,11 +261,10 @@ public class BattleResultService {
                 // 무승부일 때는 모든 옵션이 isWinner = false
                 boolean isWinner = !isDraw && option.getVoteOptionId().equals(winningOptionId);
 
-                // VoteOption 엔티티의 isWinner도 업데이트
-                if (option.isWinner() != isWinner) {
-                    option.updateWinnerStatus(isWinner);
-                    voteOptionRepository.save(option);
-                }
+                // VoteOption 엔티티의 voteCount, isWinner 업데이트
+                option.updateWinnerStatus(isWinner);
+                option.updateVoteCount(voterCountByOption.get(option.getVoteOptionId()).intValue());
+                voteOptionRepository.save(option);
 
                 return OptionResult.builder()
                     .optionId(option.getVoteOptionId())
