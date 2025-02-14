@@ -5,11 +5,11 @@ import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleParticipantRepository;
-import com.overthecam.redis.repository.BattleVoteRedisRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.member.exception.UserErrorCode;
 import com.overthecam.member.service.UserScoreService;
+import com.overthecam.redis.service.BattleVoteRedisService;
 import com.overthecam.redis.service.UserScoreRedisService;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.service.VoteValidationService;
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class BattleBettingService {
     private final BattleParticipantRepository battleParticipantRepository;
-    private final BattleVoteRedisRepository battleVoteRedisRepository;
+    private final BattleVoteRedisService battleVoteRedisService;
     private final VoteValidationService voteValidationService;
     private final UserScoreRedisService userScoreRedisService;
     private final UserScoreService userScoreService;
@@ -56,7 +56,8 @@ public class BattleBettingService {
         ParticipantRole role = validateUserRole(battleId, userId, ParticipantRole.BATTLER);
 
         // 배틀러는 응원점수 없이 투표 정보만 저장
-        saveBettingInfo(battleId, userId, optionId, 0, role);
+        BattleBettingInfo voteInfo = createVoteInfo(battleId, userId, optionId, 0, role);
+        battleVoteRedisService.processVote(battleId, voteInfo);
     }
 
 
@@ -67,23 +68,11 @@ public class BattleBettingService {
         // 투표 및 판정단 유효성 검증
         validateVote(battleId, optionId, userId);
         ParticipantRole role = validateUserRole(battleId, userId, ParticipantRole.PARTICIPANT);
-
-        // 캐싱된 사용자 점수 정보 확인
-        UserScoreInfo cachedScore = userScoreRedisService.getTemporaryScore(battleId, userId);
-        if (cachedScore == null) {
-            throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
-        }
-
-        // 요청한 응원점수가 사용자가 보유한 점수를 초과하는지 검증
-        if (supportScore > cachedScore.getSupportScore()) {
-            throw new GlobalException(UserErrorCode.INSUFFICIENT_SCORE,
-                    String.format("보유한 응원점수(%d)를 초과하여 투표할 수 없습니다", cachedScore.getSupportScore()));
-        }
+        validateScore(battleId, userId, supportScore);
 
         // 투표 정보 저장 및 점수 차감
-        saveBettingInfo(battleId, userId, optionId, supportScore, role);
-
-        return userScoreRedisService.deductScore(battleId, userId, supportScore);
+        BattleBettingInfo voteInfo = createVoteInfo(battleId, userId, optionId, supportScore, role);
+        return battleVoteRedisService.processVoteWithScore(battleId, voteInfo);
     }
 
     /**
@@ -94,17 +83,24 @@ public class BattleBettingService {
     }
 
 
-    private void saveBettingInfo(Long battleId, Long userId, Long optionId, int supportScore, ParticipantRole role) {
-        BattleBettingInfo voteInfo = BattleBettingInfo.builder()
-            .userId(userId)
-            .battleId(battleId)
-            .voteOptionId(optionId)
-            .supportScore(supportScore)
-            .role(role)
-            .build();
+    /**
+     * 현재 투표/배팅 현황 조회
+     */
+    public Map<Long, List<BattleBettingInfo>> getDetailedVoteStatus(Long battleId) {
+        List<BattleBettingInfo> votes = battleVoteRedisService.getAllVotes(battleId);
+        return votes.stream()
+            .collect(Collectors.groupingBy(BattleBettingInfo::getVoteOptionId));
+    }
 
-        battleVoteRedisRepository.saveVote(battleId, voteInfo);
-        battleVoteRedisRepository.incrementOptionScore(battleId, optionId, supportScore);
+    private BattleBettingInfo createVoteInfo(Long battleId, Long userId, Long optionId,
+                                             int supportScore, ParticipantRole role) {
+        return BattleBettingInfo.builder()
+                .userId(userId)
+                .battleId(battleId)
+                .voteOptionId(optionId)
+                .supportScore(supportScore)
+                .role(role)
+                .build();
     }
 
     /**
@@ -127,22 +123,26 @@ public class BattleBettingService {
         return role;
     }
 
-
-    /**
-     * 현재 투표/배팅 현황 조회
-     */
-    public Map<Long, List<BattleBettingInfo>> getDetailedVoteStatus(Long battleId) {
-        List<BattleBettingInfo> votes = battleVoteRedisRepository.getAllVotes(battleId);
-        return votes.stream()
-            .collect(Collectors.groupingBy(BattleBettingInfo::getVoteOptionId));
-    }
-
     private void validateVote(Long battleId, Long optionId, Long userId) {
         voteValidationService.validateBattle(battleId);
         voteValidationService.findVoteOptionById(optionId);
 
-        if (battleVoteRedisRepository.hasUserVoted(battleId, userId)) {
+        if (battleVoteRedisService.hasUserVoted(battleId, userId)) {
             throw new GlobalException(VoteErrorCode.DUPLICATE_VOTE, "이미 투표에 참여하셨습니다");
+        }
+    }
+
+    private void validateScore(Long battleId, Long userId, int supportScore) {
+        // 캐싱된 사용자 점수 정보 확인
+        UserScoreInfo cachedScore = userScoreRedisService.getTemporaryScore(battleId, userId);
+        if (cachedScore == null) {
+            throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
+        }
+
+        // 요청한 응원점수가 사용자가 보유한 점수를 초과하는지 검증
+        if (supportScore > cachedScore.getSupportScore()) {
+            throw new GlobalException(UserErrorCode.INSUFFICIENT_SCORE,
+                    String.format("보유한 응원점수(%d)를 초과하여 투표할 수 없습니다", cachedScore.getSupportScore()));
         }
     }
 }

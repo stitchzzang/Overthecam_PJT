@@ -15,11 +15,14 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class BattleVoteRedisService {
+
     private final BattleVoteRedisRepository voteRedisRepository;
+    private final UserScoreRedisService userScoreRedisService;
+
     private final RedisTransactionTemplate transactionTemplate;
 
     /**
-     * 배틀러 투표 처리
+     * 단순 투표 처리 (투표 정보만 저장)
      */
     public void processVote(Long battleId, BattleBettingInfo vote) {
         transactionTemplate.execute(operations -> {
@@ -32,15 +35,24 @@ public class BattleVoteRedisService {
     }
 
     /**
-     * 판정단 투표 + 배팅 처리
+     * 투표 + 배팅 처리 (투표 정보 저장 + 업데이트된 점수 반환)
      */
     public UserScoreInfo processVoteWithScore(Long battleId, BattleBettingInfo vote) {
         return transactionTemplate.execute(operations -> {
-            processVote(battleId, vote);
-            return UserScoreInfo.builder()
-                .supportScore(vote.getSupportScore())
-                .build();
+            // 1. 투표 처리
+            voteRedisRepository.saveVote(battleId, vote);
+            voteRedisRepository.incrementOptionScore(battleId, vote.getVoteOptionId(), vote.getSupportScore());
+
+            // 2. 점수 차감
+            return userScoreRedisService.deductScore(battleId, vote.getUserId(), vote.getSupportScore());
         });
+    }
+
+    /**
+     * 사용자의 투표 여부 확인
+     */
+    public boolean hasUserVoted(Long battleId, Long userId) {
+        return voteRedisRepository.hasUserVoted(battleId, userId);
     }
 
     public List<BattleBettingInfo> getAllVotes(Long battleId) {
