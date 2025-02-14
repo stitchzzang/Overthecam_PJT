@@ -37,7 +37,7 @@ public class MyPageController {
     public CommonResponseDto<?> battleHistory(
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId,
-            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "page", defaultValue = "0") int page,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = targetUserId != null ?
@@ -52,7 +52,7 @@ public class MyPageController {
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId,
             @RequestParam(value = "createdByMe", defaultValue = "false") boolean createdByMe,
-            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "page", defaultValue = "0") int page,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = targetUserId != null ?

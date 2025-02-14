@@ -20,6 +20,7 @@ public class VoteStatsInfo {
     private Long voteId;
     private String title;
     private String content;
+    private Long battleId;
     private Long creatorUserId;
     private String creatorNickname;
     private boolean isActive;
@@ -67,6 +68,7 @@ public class VoteStatsInfo {
                 .voteId(vote.getVoteId())
                 .title(vote.getTitle())
                 .content(vote.getContent())
+                .battleId(vote.getBattle().getId())
                 .creatorUserId(vote.getUser().getId())
                 .creatorNickname(vote.getUser().getNickname())
                 .isActive(vote.isActive())
