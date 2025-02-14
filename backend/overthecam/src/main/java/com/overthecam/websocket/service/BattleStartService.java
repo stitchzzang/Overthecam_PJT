@@ -6,6 +6,7 @@ import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.dto.BattleBettingInfo;
+import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
@@ -52,7 +53,7 @@ public class BattleStartService {
     @Transactional
     public BattleData handleBattleStart(Long battleId) {
         if (!battleReadyService.canStartBattle(battleId)) {
-            throw new RuntimeException("모든 참가자가 준비되지 않았습니다.");
+            throw new GlobalException(BattleErrorCode.INVALID_BATTLE_START, "모든 참가자가 준비되지 않았습니다.");
         }
 
         // 모든 참가자의 점수 정보를 초기화

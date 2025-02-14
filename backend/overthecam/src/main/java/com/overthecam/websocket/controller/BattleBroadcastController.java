@@ -57,7 +57,8 @@ public class BattleBroadcastController {
                             chatMessageService.sendMessage(chatRequest, user));
 
                 case BATTLE_READY:
-                    WebSocketResponseDto.ok(MessageType.BATTLE_READY,
+                    BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
+                    return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
                         battleReadyService.toggleReady(battleId, user.getUserId()));
 
                 case BATTLE_START:

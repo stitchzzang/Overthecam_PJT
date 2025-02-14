@@ -28,7 +28,8 @@ public enum BattleErrorCode implements ErrorCode {
     INVALID_BATTLER_VOTE(400, "배틀러는 투표를 할 수 없습니다"),
     INVALID_ROLE(400, "올바른 배틀 역할이 아닙니다."),
     BATTLER_VOTE_NOT_FOUND(404, "배틀러가 선택한 투표 옵션이 존재하지 않습니다"),
-    NOT_PREPARED(400, "배틀 준비가 필요합니다");
+    NOT_PREPARED(400, "배틀 준비가 필요합니다"),
+    INVALID_BATTLE_START(400, "모든 참가자가 준비되지 않았습니다.");
 
 
     private final int status;
