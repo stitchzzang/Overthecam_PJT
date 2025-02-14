@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
 import { useParams } from "react-router-dom";
+import Pagination from 'react-js-pagination';
 
 function MyPageBattle() {
   const [battles, setBattles] = useState([]);
@@ -99,7 +100,7 @@ function MyPageBattle() {
   };
 
   return (
-    <div className="bg-[#EEF6FF] rounded-lg p-8">
+    <div className="bg-white rounded-lg p-8">
       <h2 className="text-2xl font-bold mb-8 text-center">배틀 관리</h2>
       <div className="max-w-4xl mx-auto">
         {isLoading ? (
@@ -152,20 +153,20 @@ function MyPageBattle() {
       </div>
       
       {pageInfo.totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-semibold ${
-                currentPage === page
-                  ? "bg-[#A5C5F4] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+        <div className="flex justify-center mt-6">
+          <Pagination
+            activePage={currentPage}
+            itemsCountPerPage={pageInfo.pageSize}
+            totalItemsCount={pageInfo.totalElements}
+            pageRangeDisplayed={5}
+            prevPageText={"이전"}
+            nextPageText={"다음"}
+            onChange={handlePageChange}
+            innerClass="flex gap-2"
+            itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+            activeClass="bg-cusBlack-light !text-white"
+            linkClass="block w-full h-full text-center"
+          />
         </div>
       )}
     </div>
