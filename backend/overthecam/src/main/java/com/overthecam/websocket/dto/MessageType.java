@@ -8,6 +8,7 @@ public enum MessageType {
 
     // 브로드캐스트 메시지
     CHAT,            // 채팅
+    BATTLE_READY,      // 배틀 준비
     BATTLE_START,    // 배틀 시작 (초기 데이터)
     BATTLER_SELECT,  // 배틀러 선정
     VOTE_CREATE,     // 투표 입력
@@ -15,10 +16,9 @@ public enum MessageType {
     BATTLE_END,
 
     // 개인 메시지
-    BATTLE_READY,      // 사용자 총 점수
+    USER_SCORE, // 사용자 총 점수
 
     // 시스템 알림
-    ERROR,           // 에러 메시지
-    SYSTEM_INVITE    // 회원 초대
+    ERROR           // 에러 메시지
 
 }
