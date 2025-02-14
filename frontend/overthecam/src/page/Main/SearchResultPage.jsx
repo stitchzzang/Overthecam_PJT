@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 
@@ -36,6 +36,7 @@ const ParticipantsBadge = ({ current, max }) => {
 };
 
 const SearchResultPage = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
   const [searchResults, setSearchResults] = useState({
@@ -43,6 +44,27 @@ const SearchResultPage = () => {
     votes: [],
     users: []
   });
+
+  const handleProfileClick = (userId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/main/login');
+      return;
+    }
+
+    // 현재 로그인한 사용자의 ID와 비교
+    const currentUserId = parseInt(localStorage.getItem('userId'));
+    
+    // 클릭한 프로필의 userId와 로그인한 사용자의 userId가 같으면 마이페이지로
+    if (currentUserId === userId) {
+      navigate('/main/mypage', { replace: true });
+      return;
+    }
+    
+    // userId가 다르면 해당 유저의 프로필 페이지로
+    navigate(`/main/profile/${userId}`);
+  };
 
   useEffect(() => {
     const searchParam = searchParams.get('search');
@@ -54,7 +76,6 @@ const SearchResultPage = () => {
 
   const handleSearch = async (query) => {
     try {
-      // 기본 헤더
       const headers = {
         'Content-Type': 'application/json'
       };
@@ -65,7 +86,7 @@ const SearchResultPage = () => {
         headers
       });
 
-      // 유저 검색 - 페이지 크기를 크게 설정
+      // 유저 검색
       const userResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/user`, {
         params: { 
           keyword: query,
@@ -87,7 +108,19 @@ const SearchResultPage = () => {
       }
 
       if (userResponse.data.success) {
-        users = userResponse.data.data.userInfo || [];
+        // 현재 로그인한 사용자의 ID를 문자열로 가져옴
+        const currentUserId = localStorage.getItem('userId');
+        
+        // 검색 결과에서 현재 사용자 제외
+        users = userResponse.data.data.userInfo.filter(user => {
+          // currentUserId가 있을 때만 필터링
+          if (currentUserId) {
+            return user.userId !== parseInt(currentUserId);
+          }
+          return true;  // 로그인하지 않은 경우 모든 결과 표시
+        });
+        
+        console.log('Current User ID:', currentUserId);
         console.log('Processed users:', users);
       }
 
@@ -221,10 +254,10 @@ const SearchResultPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.users.length > 0 ? (
                   searchResults.users.map((user, index) => (
-                    <Link 
-                      to={`/main/profile/${user.userId}`}
+                    <div 
+                      onClick={() => handleProfileClick(user.userId)}
                       key={`user-${index}`}
-                      className="block p-4 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+                      className="block p-4 bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
@@ -248,7 +281,7 @@ const SearchResultPage = () => {
                           </h3>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))
                 ) : (
                   <div className="col-span-3 text-center py-4">

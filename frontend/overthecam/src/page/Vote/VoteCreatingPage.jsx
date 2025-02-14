@@ -14,7 +14,7 @@ export default function VoteCreatingPage() {
       const response = await authAxios.post('/vote/create', formData);
       
       if (response.data?.voteId) {
-        navigate(`/vote-detail/${response.data.voteId}`);
+        navigate(`/main/vote-detail/${response.data.voteId}`);
       } else {
         throw new Error('투표 생성에 실패했습니다.');
       }
@@ -22,7 +22,7 @@ export default function VoteCreatingPage() {
       console.error("투표 생성 실패:", error);
       if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
-        navigate('/login');
+        navigate('/main/login');
       } else {
         alert(error.message || '투표 생성에 실패했습니다.');
       }

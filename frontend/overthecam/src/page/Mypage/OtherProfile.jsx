@@ -132,7 +132,7 @@ function OtherProfile() {
         // 내 프로필인 경우 마이페이지로 이동
         if (Number(userInfo.userId) === Number(id)) {
           console.log("내 프로필로 이동")
-          navigate('/mypage')
+          navigate('/main/mypage')
           return
         }
 
