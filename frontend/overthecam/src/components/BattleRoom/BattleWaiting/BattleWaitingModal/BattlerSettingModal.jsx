@@ -15,7 +15,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
     option2: null
   });
 
-  const [participantsList, setparticipantsList] = useState(participants);
+  const [participantsList, setparticipantsList] = useState(participants || []);
 
   const isparticipantsListelected = (participantId) => {
     return battlers.option1 === participantId || battlers.option2 === participantId;
