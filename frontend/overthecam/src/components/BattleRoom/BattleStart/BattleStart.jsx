@@ -1,11 +1,15 @@
 import BattleVote from "../common/BattleVote";
 import BattleTimer from "../BattleStart/BattleTimer";
 import BattleChating from "../common/BattleChating";
+import { useState } from "react";
 
 function BattleStart({ remoteTracks }) {
   const battler1Video = null;
   const battler2Video = null;
   const watcherSlots = null;
+  const [voteTitle, setVoteTitle] = useState("ㅋㅋ 오늘 저녁 뭐먹지 ㅋㅋ ");
+  const [voteOption1, setVoteOption1] = useState("싸이딥치즈");
+  const [voteOption2, setVoteOption2] = useState("굶어라 걍 뭔 저녁이냐");
 
   return (
     <div className="battle-start-container w-full">
@@ -59,7 +63,12 @@ function BattleStart({ remoteTracks }) {
         <div className="vote-section mx-5 my-3">
           <div className="relative w-full aspect-[16/2.5] bg-cusGray rounded-lg clay">
             <div className="absolute inset-0 flex items-center justify-center">
-              <BattleVote isWaiting={false} />
+              <BattleVote
+                isWaiting={false}
+                voteTitle={voteTitle}
+                voteOption1={voteOption1}
+                voteOption2={voteOption2}
+              />
             </div>
           </div>
         </div>

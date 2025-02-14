@@ -124,7 +124,12 @@ function BattleWaiting({
           {/* Battle vote section */}
           <div className="h-1/4 flex gap-2">
             <div className="w-3/4 h-full bg-cusGray clay">
-              <BattleVote isWaiting={true} />
+              <BattleVote
+                isWaiting={true}
+                voteTitle={""}
+                voteOption1={""}
+                voteOption2={""}
+              />
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
