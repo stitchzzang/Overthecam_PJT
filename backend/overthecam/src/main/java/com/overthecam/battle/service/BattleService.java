@@ -7,8 +7,10 @@ import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.dto.*;
+import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
+import com.overthecam.common.exception.GlobalException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -138,44 +140,43 @@ public class BattleService {
      * 배틀러 선정
      */
     @Transactional
-    public SelectBattlerResponse selectBattlers(Long battleId, String battler1, String battler2) {
-        validateBattlers(battler1, battler2);
+    public void selectBattlers(Long battleId, Long battler1Id, Long battler2Id) {
+        validateBattlers(battler1Id, battler2Id);
         List<BattleParticipant> participants = battleParticipantRepository.findAllByBattleIdWithUser(battleId);
 
-        SelectBattlerResponse response = null;
         int updatedCount = 0;
 
         for (BattleParticipant participant : participants) {
-            String nickname = participant.getUser().getNickname();
+            Long userId = participant.getUser().getId();
 
-            if (nickname.equals(battler1) || nickname.equals(battler2)) {
+            if (userId.equals(battler1Id) || userId.equals(battler2Id)) {
                 ParticipantRole newRole = ParticipantRole.addBattlerRole(participant.getRole());
                 participant.updateRole(newRole);
                 battleParticipantRepository.save(participant);
 
-                response = new SelectBattlerResponse(nickname, newRole);
                 updatedCount++;
 
-                log.info("배틀러 권한 추가 | 닉네임: {}, 이전 역할: {}, 새로운 역할: {}",
-                    nickname, participant.getRole(), newRole);
+                log.info("배틀러 권한 추가 | userId: {}, 이전 역할: {}, 새로운 역할: {}",
+                    userId, participant.getRole(), newRole);
             }
         }
 
         if (updatedCount != 2) {
-            log.error("배틀러 선정 실패 | battleId: {}, battler1: {}, battler2: {}",
-                battleId, battler1, battler2);
-            throw new RuntimeException("배틀러 선정에 실패했습니다. 지정된 닉네임을 찾을 수 없습니다.");
+            log.error("배틀러 선정 실패 | battleId: {}, battler1Id: {}, battler2Id: {}",
+                battleId, battler1Id, battler2Id);
+            throw new GlobalException(BattleErrorCode.FAIL_BATTLER_SELECT,
+                "배틀러 선정에 실패했습니다. 해당 사용자가 배틀방에 참여하고 있는지 확인해주세요.");
         }
-
-        return response;
     }
 
-    private void validateBattlers(String battler1, String battler2) {
-        if (battler1 == null || battler2 == null) {
-            throw new IllegalArgumentException("배틀러 정보가 누락되었습니다.");
+    private void validateBattlers(Long battler1Id, Long battler2Id) {
+        if (battler1Id == null || battler2Id == null) {
+            throw new GlobalException(BattleErrorCode.MISSING_REQUIRED_FIELD,
+                "배틀러 정보가 누락되었습니다. 두 명의 배틀러 정보를 모두 입력해주세요.");
         }
-        if (battler1.equals(battler2)) {
-            throw new IllegalArgumentException("동일한 사용자를 배틀러로 선택할 수 없습니다.");
+        if (battler1Id.equals(battler2Id)) {
+            throw new GlobalException(BattleErrorCode.INVALID_BATTLER_SELECT,
+                "동일한 사용자를 배틀러로 선택할 수 없습니다. 서로 다른 참가자를 선택해주세요.");
         }
     }
 
