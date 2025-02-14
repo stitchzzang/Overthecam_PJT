@@ -164,7 +164,7 @@ public class BattleController {
             // LiveKit 토큰 생성
             AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
             token.setName(participantName);
-            token.setIdentity(participantName); 
+            token.setIdentity(participantName);
             token.addGrants(new RoomJoin(true), new RoomName(battle.getTitle()));
             String tokenStr = token.toJwt();
 
@@ -233,7 +233,7 @@ public class BattleController {
             Authentication authentication) {
         try {
             Long userId = securityUtils.getCurrentUserId(authentication);
-            // battleService.handleUserLeave(battleId, userId);
+            battleService.handleUserLeave(battleId, userId);
             return ResponseEntity.ok(CommonResponseDto.ok(Map.of(
                     "message", "성공적으로 퇴장하였습니다."
             )));

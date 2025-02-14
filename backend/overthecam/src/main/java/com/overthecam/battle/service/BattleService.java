@@ -10,6 +10,7 @@ import com.overthecam.battle.dto.RandomVoteTopicResponse;
 import com.overthecam.battle.dto.SelectBattlerResponse;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
+import com.overthecam.redis.repository.BattleReadyRedisRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class BattleService {
 
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
+    private final BattleReadyRedisRepository battleReadyRedisRepository;
 
 
     private final String[] topics = {
@@ -176,5 +178,25 @@ public class BattleService {
         Battle savedBattle = battleRepository.save(battle);
         log.info("사용자 {} 가 배틀룸 {} 에서 퇴장했습니다. 최종 인원: {}",
                 userId, battleId, savedBattle.getTotalUsers());
+    }
+
+    @Transactional
+    public void markUserReady(Long battleId, Long userId) {
+        battleReadyRedisRepository.markUserReady(battleId, userId);
+        log.info("배틀 준비 완료 | battleId: {}, userId: {}", battleId, userId);
+    }
+
+    @Transactional
+    public boolean canStartBattle(Long battleId) {
+        int totalParticipants = (int) battleParticipantRepository.countByBattleId(battleId);
+        boolean allReady = battleReadyRedisRepository.areAllParticipantsReady(battleId, totalParticipants);
+
+        log.info("배틀 시작 가능 여부 | battleId: {}, allReady: {}", battleId, allReady);
+
+        if (allReady) {
+            battleReadyRedisRepository.clearReadyStatus(battleId);
+        }
+
+        return allReady;
     }
 }

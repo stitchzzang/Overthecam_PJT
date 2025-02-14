@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BattleWebsocketService {
+public class BattleStartService {
 
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository participantRepository;

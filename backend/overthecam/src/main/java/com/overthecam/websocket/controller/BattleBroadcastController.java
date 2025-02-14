@@ -9,7 +9,7 @@ import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
 import com.overthecam.websocket.service.BattleDataService;
 import com.overthecam.websocket.service.BattleVoteService;
-import com.overthecam.websocket.service.BattleWebsocketService;
+import com.overthecam.websocket.service.BattleStartService;
 import com.overthecam.websocket.service.ChatMessageService;
 import com.overthecam.websocket.dto.*;
 import com.overthecam.websocket.util.WebSocketRequestMapper;
@@ -30,7 +30,7 @@ public class BattleBroadcastController {
 
     private final VoteService voteService;
     private final BattleDataService battleDataService;
-    private final BattleWebsocketService battleWebsocketService;
+    private final BattleStartService battleWebsocketService;
     private final BattleBettingService battleBettingService;
     private final ChatMessageService chatMessageService;
     private final BattleVoteService battleVoteService;

@@ -1,7 +1,6 @@
 package com.overthecam.websocket.service;
 
-import com.overthecam.battle.domain.Battle;
-import com.overthecam.battle.domain.Status;
+import com.overthecam.battle.service.BattleService;
 import com.overthecam.websocket.dto.BattleData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,17 +12,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class BattleDataService {
 
-    private final BattleWebsocketService battleService;
+    private final BattleService battleService;
+    private final BattleStartService battleStartService;
     private final BattleVoteService voteService;
 
     @Transactional
     public BattleData handleBattleStart(Long battleId) {
-        Battle battle = battleService.updateBattleStatus(battleId, Status.PROGRESS);
+
+        if (!battleService.canStartBattle(battleId)) {
+            throw new RuntimeException("모든 참가자가 준비되지 않았습니다.");
+        }
 
         return BattleData.builder()
                 .battleId(battleId)
                 .voteInfo(voteService.getVoteInfo(battleId))
-                .participants(battleService.getParticipants(battleId))
+                .participants(battleStartService.getParticipants(battleId))
                 .build();
     }
 }
