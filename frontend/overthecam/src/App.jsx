@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import "./App.css";
 import "./index.css";
 import Layout from "./components/Layout/Layout";
+import FakeMainPage from "./page/Main/FakeMainPage";
 import BattleMainPage from "./page/Main/BattleMainPage";
 import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
 import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
@@ -53,6 +54,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* 랜딩 페이지 */}
+        <Route path="/" element={<FakeMainPage />} />
+
+        {/* 기존 레이아웃과 라우트들 */}
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
           <Route path="/search" element={<SearchResultPage />} />
@@ -82,7 +87,6 @@ function App() {
           <Route path="/mypagevote" element={
             <PrivateRoute><MyPageVote /></PrivateRoute>
           } />
-          
 
           <Route path="/create-battle-room" element={<BattleCreatingPage />} />
           <Route path="/battle-room/:battleId" element={<BattleRoomPage />} />
