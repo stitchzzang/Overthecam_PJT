@@ -97,7 +97,7 @@ export default function NavBar() {
     setIsMobileProfileDropdownOpen(false);
     
     // 홈으로 이동
-    navigate("/");
+    navigate("/main");
   };
 
   if (isBattleRoomPage) {
@@ -117,7 +117,7 @@ export default function NavBar() {
             >
               ☰
             </button>
-            <Link to={"/"}>
+            <Link to={"/main"}>
               <img
                 src="/images/Logo.png"
                 alt="Logo"
@@ -137,13 +137,13 @@ export default function NavBar() {
               <>
                 <div className="flex flex-col gap-2">
                   <Link
-                    to={"/create-battle-room"}
+                    to={"/main/create-battle-room"}
                     className="btn px-4 xl:px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-32"
                   >
                     <span>방 만들기</span>
                   </Link>
                   <Link
-                    to={"/create-vote"}
+                    to={"/main/create-vote"}
                     className="btn px-4 xl:px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-32"
                   >
                     <span>투표 만들기</span>
@@ -152,7 +152,7 @@ export default function NavBar() {
                 <div className="relative" ref={dropdownRef}>
                   <div className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
                     <Link
-                      to="/mypage"
+                      to="/main/mypage"
                       className="flex items-center gap-6"
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -181,25 +181,25 @@ export default function NavBar() {
                   {isProfileDropdownOpen && (
                     <div className="absolute right-[50%] translate-x-[50%] mt-2 w-44 bg-white rounded-md shadow-lg py-1 z-50">
                       <Link
-                        to="/mypagereport"
+                        to="/main/mypagereport"
                         className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         논쟁 분석 리포트
                       </Link>
                       <Link
-                        to="/mypagebattle"
+                        to="/main/mypagebattle"
                         className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         배틀 관리
                       </Link>
                       <Link
-                        to="/mypagevote"
+                        to="/main/mypagevote"
                         className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         투표 관리
                       </Link>
                       <Link
-                        to="/mypage/edit"
+                        to="/main/mypage/edit"
                         className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                       >
                         회원 정보 수정
@@ -217,13 +217,13 @@ export default function NavBar() {
             ) : (
               <div className="flex gap-3">
                 <Link
-                  to="/login"
+                  to="/main/login"
                   className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   로그인
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/main/signup"
                   className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   회원가입
@@ -253,7 +253,7 @@ export default function NavBar() {
               <div className="flex flex-col gap-2" ref={mobileDropdownRef}>
                 <div className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
                   <Link
-                    to="/mypage"
+                    to="/main/mypage"
                     className="flex items-center gap-6"
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -282,25 +282,25 @@ export default function NavBar() {
                 {isMobileProfileDropdownOpen && (
                   <div className="mt-2 bg-white rounded-md shadow-lg py-1">
                     <Link
-                      to="/mypagereport"
+                      to="/main/mypagereport"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       논쟁 분석 리포트
                     </Link>
                     <Link
-                      to="/mypagebattle"
+                      to="/main/mypagebattle"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       배틀 관리
                     </Link>
                     <Link
-                      to="/mypagevote"
+                      to="/main/mypagevote"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       투표 관리
                     </Link>
                     <Link
-                      to="/mypage/edit"
+                      to="/main/mypage/edit"
                       className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
                     >
                       회원 정보 수정
@@ -317,13 +317,13 @@ export default function NavBar() {
             ) : (
               <div className="flex flex-col gap-2">
                 <Link
-                  to="/login"
+                  to="/main/login"
                   className="btn px-4 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   로그인
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/main/signup"
                   className="btn px-4 py-2 bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   회원가입
@@ -335,13 +335,13 @@ export default function NavBar() {
           {/* Action buttons */}
           <div className="flex flex-col gap-2 mb-6">
             <Link
-              to={"/create-battle-room"}
+              to={"/main/create-battle-room"}
               className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               방 만들기
             </Link>
             <Link
-              to={"/create-vote"}
+              to={"/main/create-vote"}
               className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               투표 만들기
@@ -351,19 +351,19 @@ export default function NavBar() {
           {/* Menu items */}
           <div className="flex flex-col gap-2">
             <Link
-              to="/battle-list"
+              to="/main/battle-list"
               className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
             >
               배틀 방 보기
             </Link>
             <Link
-              to="/vote"
+              to="/main/vote"
               className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
             >
               투표
             </Link>
             <Link
-              to={"/store"}
+              to={"/main/store"}
               className="text-gray-700 font-medium p-2 hover:bg-gray-100 rounded"
             >
               상점

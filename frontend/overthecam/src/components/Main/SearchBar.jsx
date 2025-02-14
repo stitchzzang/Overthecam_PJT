@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 const SearchBar = ({ onSearch, initialValue }) => {
   const [searchTerm, setSearchTerm] = useState(initialValue || "");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (initialValue) {
@@ -10,9 +12,14 @@ const SearchBar = ({ onSearch, initialValue }) => {
     }
   }, [initialValue]);
 
-  const handleSearch = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    onSearch(searchTerm.trim());  // 빈 문자열도 전달하도록 수정
+    if (searchTerm.trim()) {
+      navigate(`/main/search?search=${encodeURIComponent(searchTerm)}`);
+      if (onSearch) {
+        onSearch(searchTerm);
+      }
+    }
   };
 
   const handleChange = (e) => {
@@ -27,7 +34,7 @@ const SearchBar = ({ onSearch, initialValue }) => {
     <div className="container mx-auto px-4">
       <div className="relative -mt-6 flex">
         <div className="flex w-full rounded-lg overflow-hidden">
-          <form onSubmit={handleSearch} className="w-full max-w-xl mx-auto">
+          <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto">
             <div className="relative">
               <input
                 type="text"

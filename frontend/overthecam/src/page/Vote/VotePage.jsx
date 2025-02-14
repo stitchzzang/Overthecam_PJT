@@ -280,8 +280,8 @@ const VotePage = () => {
               </div>
             )}
             <Link
-              to="/create-vote"
-              state={{ from: '/vote' }}
+              to="/main/create-vote"
+              state={{ from: '/main/vote' }}
               className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               투표 만들기
@@ -292,7 +292,10 @@ const VotePage = () => {
         <div className="space-y-4 mt-4">
           {currentList.map((vote) => (
             <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <Link to={`/vote-detail/${vote.voteId}`}>
+              <Link 
+                to={`/main/vote-detail/${vote.voteId}`}
+                className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer"
+              >
                 <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
                   {vote.title}
                 </h2>

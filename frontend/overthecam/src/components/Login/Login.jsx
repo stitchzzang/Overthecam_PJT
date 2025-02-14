@@ -75,7 +75,7 @@ const Login = () => {
           token: userInfo.token,
         });
 
-        const from = location.state?.from || "/";
+        const from = location.state?.from || '/main';
         navigate(from);
       }
     } catch (err) {
@@ -166,15 +166,15 @@ const Login = () => {
             </button>
 
             <div className="flex justify-center items-center space-x-6 text-sm text-gray-500 mt-4">
-              <Link to="/find-account" className="hover:text-gray-700">
+              <Link to="/main/find-account" className="hover:text-gray-700">
                 아이디 찾기
               </Link>
               <div className="w-px h-4 bg-gray-300"></div>
-              <Link to="/find-account" className="hover:text-gray-700">
+              <Link to="/main/find-account" className="hover:text-gray-700">
                 비밀번호 찾기
               </Link>
               <div className="w-px h-4 bg-gray-300"></div>
-              <Link to="/signup" className="hover:text-gray-700">
+              <Link to="/main/signup" className="hover:text-gray-700">
                 회원가입
               </Link>
             </div>
