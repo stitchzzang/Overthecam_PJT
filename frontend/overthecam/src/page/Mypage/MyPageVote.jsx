@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
-function MyPageVote() {
+function MyPageVote({ userId, isOtherProfile }) {
   const [votes, setVotes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageInfo, setPageInfo] = useState({
@@ -16,6 +16,7 @@ function MyPageVote() {
   const { id } = useParams();
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const currentUserId = userInfo.userId;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchVotes = async () => {
@@ -76,93 +77,107 @@ function MyPageVote() {
   if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
 
   return (
-    <div className="bg-[#EEF6FF] rounded-lg p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          {!id && (
-            <div className="flex justify-end mb-4">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={showMyVotesOnly}
-                  onChange={(e) => setShowMyVotesOnly(e.target.checked)}
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                <span className="ml-3 text-sm font-medium text-gray-700">내가 만든 투표만 보기</span>
-              </label>
-            </div>
-          )}
-
-          {votes.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              투표 기록이 없습니다.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {votes.map((vote) => (
-                <div key={vote.voteId} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{vote.title}</h3>
-                      <p className="text-sm text-gray-600">{vote.content}</p>
-                      <p className="text-sm text-gray-500">작성자: {vote.creatorNickname}</p>
-                    </div>
-                    {String(vote.creatorUserId) === currentUserId && (
-                      <button
-                        onClick={() => handleDeleteVote(vote.voteId)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        삭제
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {vote.options.map((option) => (
-                      <div key={option.optionId} className="relative">
-                        <div 
-                          className={`h-8 rounded-md ${
-                            option.selected ? 'bg-blue-100' : 'bg-gray-100'
-                          }`}
-                          style={{ width: `${option.votePercentage}%` }}
-                        >
-                          <div className="absolute inset-0 flex items-center justify-between px-3">
-                            <span className="text-sm">{option.optionTitle}</span>
-                            <span className="text-sm">{option.votePercentage}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-2 text-sm text-gray-500">
-                    총 투표수: {vote.totalVoteCount}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {pageInfo.totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-6">
-            {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-semibold ${
-                  currentPage === page
-                    ? "bg-[#A5C5F4] text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
-                }`}
+    <div className="space-y-6">
+      {votes.map((vote) => (
+        <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex-1">
+              <h3 
+                className="text-xl font-bold mb-3 cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight"
+                onClick={() => navigate(`/vote-detail/${vote.voteId}`)}
               >
-                {page}
+                {vote.title}
+              </h3>
+              <p className="text-gray-600 mb-2 leading-relaxed font-medium">{vote.content}</p>
+              <div className="flex items-center text-base text-cusBlack font-medium">
+                <span className="mr-2">작성자: {vote.creatorNickname}</span>
+                <span className="text-cusGray-dark mx-2">•</span>
+                <span className="ml-2">총 투표수: {vote.totalVoteCount}</span>
+              </div>
+            </div>
+            {!isOtherProfile && String(vote.creatorUserId) === currentUserId && (
+              <button
+                onClick={() => handleDeleteVote(vote.voteId)}
+                className="text-cusRed hover:text-cusRed-dark transition-colors ml-4 font-semibold"
+              >
+                삭제
               </button>
+            )}
+          </div>
+          
+          <div className="space-y-3">
+            {vote.options.map((option) => (
+              <div key={option.optionId} className="relative">
+                {!isOtherProfile ? (
+                  <div className="relative">
+                    <div 
+                      className={`h-12 rounded-lg flex items-center px-4 relative ${
+                        option.selected 
+                          ? 'bg-cusLightBlue-lighter clay' 
+                          : 'bg-gray-50 clay'
+                      }`}
+                    >
+                      <div 
+                        className={`absolute left-0 top-0 h-full rounded-lg ${
+                          option.selected 
+                            ? 'bg-cusLightBlue-light' 
+                            : 'bg-gray-200'
+                        }`}
+                        style={{ width: `${option.votePercentage}%`, opacity: '0.5' }}
+                      />
+                      <div className="flex justify-between items-center w-full relative z-10">
+                        <span className="font-semibold text-cusBlack tracking-tight">{option.optionTitle}</span>
+                        <span className={`font-bold ${option.selected ? 'text-cusBlue' : 'text-gray-600'}`}>
+                          {option.votePercentage}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <div className="h-12 rounded-lg bg-gray-50 clay flex items-center px-4 relative">
+                      <div 
+                        className="absolute left-0 top-0 h-full bg-cusBlue"
+                        style={{ 
+                          width: `${option.votePercentage}%`, 
+                          opacity: '0.2',
+                          borderRadius: '0.5rem'
+                        }}
+                      />
+                      <div className="flex justify-between items-center w-full relative z-10">
+                        <span className="font-semibold text-cusBlack tracking-tight">
+                          {option.optionTitle}
+                        </span>
+                        <span className="text-cusBlue font-bold">
+                          {option.votePercentage}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      ))}
+
+      {pageInfo.totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-8">
+          {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
+                currentPage === page
+                  ? "bg-cusBlue text-white clay"
+                  : "bg-white text-cusGray-dark hover:bg-cusLightBlue-lighter clay"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
