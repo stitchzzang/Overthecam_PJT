@@ -1,9 +1,9 @@
 import { forwardRef, useImperativeHandle, useRef } from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { MegaphoneIcon } from "@heroicons/react/24/outline";
 
-const SuccessAlertModal = forwardRef(function SuccessAlertModal(_, ref) {
+const NoticeAlertModal = forwardRef(function NoticeAlertModal(_, ref) {
   const modalRef = useRef();
-  
+
   useImperativeHandle(ref, () => ({
     showAlert: (message) => {
       console.log("showAlert 호출됨, message:", message);
@@ -15,14 +15,14 @@ const SuccessAlertModal = forwardRef(function SuccessAlertModal(_, ref) {
         modalRef.current.querySelector(".message").textContent = message;
         modalRef.current.showModal();
         console.log("모달 표시 완료");
-        
+
         setTimeout(() => {
           modalRef.current?.close();
         }, 3000);
       } catch (error) {
         console.error("모달 표시 중 에러:", error);
       }
-    }
+    },
   }));
 
   const handleClick = (e) => {
@@ -35,14 +35,14 @@ const SuccessAlertModal = forwardRef(function SuccessAlertModal(_, ref) {
     <dialog
       ref={modalRef}
       onClick={handleClick}
-      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 min-w-[384px] max-w-[600px] rounded-xl shadow-xl bg-white border-2 border-green-200"
+      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 min-w-[384px] max-w-[600px] rounded-xl shadow-xl bg-white border-2 border-blue-200"
     >
-      <div className="flex items-center gap-4 p-5 bg-green-50">
-        <CheckCircleIcon className="text-green-500 w-8 h-8 flex-shrink-0" />
+      <div className="flex items-center gap-4 p-5 bg-blue-50">
+        <MegaphoneIcon className="text-blue-500 w-8 h-8 flex-shrink-0" />
         <p className="message text-base font-medium text-gray-800"></p>
       </div>
     </dialog>
   );
 });
 
-export default SuccessAlertModal;
+export default NoticeAlertModal;

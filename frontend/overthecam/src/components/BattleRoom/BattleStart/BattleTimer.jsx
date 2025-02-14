@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { ClockIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import TimeBuyModal from "./BattleStartModal/BattleTimeBuyModal";
 
-function BattleTimer() {
+function BattleTimer({ onTimerStoped }) {
   const MINUTES_IN_MS = 10 * 60 * 1000; // 10분 시간 주기
   const ALERT_MINTS_IN_MS = 2 * 60 * 1000; // 2분 전부터 알람 주기
   const INTERVAL = 1000; // 1초 (1000ms) 간격으로 타이머 설정정
@@ -13,6 +15,7 @@ function BattleTimer() {
   const second = String(Math.floor((timeLeft / 1000) % 60)).padStart(2, "0");
 
   const [isTwoMiNLeft, setIsTwoMinLeft] = useState(false);
+  const timeBuyModal = useRef();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -21,9 +24,10 @@ function BattleTimer() {
 
     if (timeLeft <= 0) {
       clearInterval(timer);
-      alert("타이머가 종료 되었습니다!");
-    } else if (timeLeft <= ALERT_MINTS_IN_MS) {
+      onTimerStoped("게임이 종료 되었습니다.");
+    } else if (timeLeft <= ALERT_MINTS_IN_MS && !isTwoMiNLeft) {
       setIsTwoMinLeft(true);
+      onTimerStoped("2분 남았습니다. 더 이상 시간 구매가 불가합니다.");
     }
     return () => {
       clearInterval(timer);
@@ -31,13 +35,30 @@ function BattleTimer() {
   }, [timeLeft]);
 
   return (
-    <>
-      <div style={{ color: isTwoMiNLeft ? "red" : "black" }} >
-        <p>
+    <div className="flex items-center gap-2 px-2">
+      <div
+        className={`text-${
+          isTwoMiNLeft ? "cusRed" : "cusBlack"
+        } text-2xl font-bold flex items-center gap-2`}
+      >
+        <ClockIcon className="w-7 h-7" />
+        <p className="mx-2">
           {minutes}:{second}
         </p>
       </div>
-    </>
+      {/* 시간 구매 버튼 */}
+      {isTwoMiNLeft ? (
+        <></>
+      ) : (
+        <div
+          onClick={() => timeBuyModal.current?.showModal()}
+          className="rounded-sm hover:border hover:border-gray-800"
+        >
+          <PlusCircleIcon className="w-5 h-5 text-gray-600" />
+        </div>
+      )}
+      <TimeBuyModal ref={timeBuyModal} />
+    </div>
   );
 }
 
