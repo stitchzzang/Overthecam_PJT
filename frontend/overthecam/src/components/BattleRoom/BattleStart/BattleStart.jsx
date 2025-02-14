@@ -25,7 +25,7 @@ function BattleStart({ remoteTracks }) {
               </div>
             </div>
 
-            {/* 중앙 타이머, 채팅팅*/}
+            {/* 채팅 */}
             <div className="flex flex-col items-center justify-start">
               <div className="w-full h-full">
                 <BattleChating />
