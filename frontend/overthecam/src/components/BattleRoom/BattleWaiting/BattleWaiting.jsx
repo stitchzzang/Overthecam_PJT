@@ -3,6 +3,7 @@ import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
 import { useRef, useState } from "react";
+import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 
@@ -70,11 +71,11 @@ function BattleWaiting({
 
   return (
     <>
-      <div className="w-full h-full flex flex-col p-4">
-        <div
-          className="w-full flex flex-col"
-          style={{ height: "calc(100vh - 2rem)" }}
-        >
+      <div
+        className="w-full h-full flex p-4 gap-3"
+        style={{ height: "calc(100vh - 2rem)" }}
+      >
+        <div className="w-3/4 h-full flex flex-col">
           {/* Video grid section */}
           <div className="h-3/4 mb-4">
             <div className="grid grid-cols-3 gap-4 h-full">
@@ -121,8 +122,8 @@ function BattleWaiting({
           </div>
 
           {/* Battle vote section */}
-          <div className="h-1/4 flex">
-            <div className="w-3/4 h-full bg-cusGray mx-1 clay">
+          <div className="h-1/4 flex gap-2">
+            <div className="w-3/4 h-full bg-cusGray clay">
               <BattleVote isWaiting={true} />
             </div>
             {isMaster ? (
@@ -148,6 +149,9 @@ function BattleWaiting({
               </div>
             )}
           </div>
+        </div>
+        <div className="w-1/4 flex flex-col h-full mb-5">
+          <BattleChating />
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />

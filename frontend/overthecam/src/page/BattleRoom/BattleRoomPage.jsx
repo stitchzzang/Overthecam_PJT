@@ -409,7 +409,7 @@ function BattleRoomPage() {
         {isWaiting ? (
           <div className="flex h-full">
             {/* h-full 유지 */}
-            <div className="w-3/4 h-full flex flex-col">
+            <div className="w-full h-full flex flex-col">
               {/* flex flex-col 추가 */}
               <BattleWaiting
                 room={room}
@@ -421,9 +421,6 @@ function BattleRoomPage() {
                 participants={participants}
                 onBattleStart={handleBattleStart}
               />
-            </div>
-            <div className="w-1/4 flex flex-col h-full mb-5">
-              <BattleChating />
             </div>
           </div>
         ) : (
