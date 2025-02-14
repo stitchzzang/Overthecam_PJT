@@ -142,12 +142,10 @@ const SearchResultPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="relative">
-        {/* 그라데이션 배경 */}
-        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
+        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-40" />
         
         <div className="container mx-auto px-4">
-          {/* 검색바 위치 조정 - 살짝 더 위로 */}
-          <div className="relative -mt-12">
+          <div className="relative -mt-8">
             <div className="font-extrabold text-lg">
               <SearchBar 
                 onSearch={handleSearch} 
@@ -157,17 +155,11 @@ const SearchResultPage = () => {
           </div>
 
           {/* 내부 컨테이너 여백 */}
-          <div className="container mx-auto p-14">
+          <div className="container mx-auto p-10">
             {/* Battle Section */}
             <section className="flex flex-col mb-12">
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
-                <Link
-                  to="/main/battle-list"
-                  className="text-cusBlue text-xl font-medium justify-end mr-5"
-                >
-                  + More
-                </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.battles.length > 0 ? (
@@ -219,12 +211,6 @@ const SearchResultPage = () => {
             <section className="flex flex-col mb-12">
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
-                <Link
-                  to="/main/vote"
-                  className="text-cusBlue text-xl font-medium justify-end mr-5"
-                >
-                  + More
-                </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.votes.length > 0 ? (
