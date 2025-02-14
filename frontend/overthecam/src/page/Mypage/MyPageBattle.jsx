@@ -116,10 +116,10 @@ function MyPageBattle() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-4 px-4 font-semibold text-gray-600">날짜</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-600">방송 제목</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-600">선택지</th>
-                    <th className="text-right py-4 px-4 font-semibold text-gray-600">승패여부</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[20%] text-center">날짜</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[35%] text-center">방송 제목</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[35%] text-center">선택지</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[10%] text-center">승패</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -127,13 +127,17 @@ function MyPageBattle() {
                     const result = getBattleResult(battle);
                     return (
                       <tr key={battle.battleId} className="border-b border-gray-100">
-                        <td className="py-4 px-4 text-gray-800">
+                        <td className="py-4 px-4 text-gray-800 text-center whitespace-nowrap">
                           {new Date(battle.createdAt).toLocaleString()}
                         </td>
-                        <td className="py-4 px-4 text-gray-800">{battle.title}</td>
-                        <td className="py-4 px-4 text-gray-800">{battle.optionTitle}</td>
-                        <td className="py-4 px-4 text-right">
-                          <span className={result.style}>
+                        <td className="py-4 px-4 text-gray-800 text-center">
+                          {battle.title}
+                        </td>
+                        <td className="py-4 px-4 text-gray-800 text-center">
+                          {battle.optionTitle}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className={`${result.style} whitespace-nowrap`}>
                             {result.text} ({battle.earnedScore >= 0 ? '+' : ''}{battle.earnedScore})
                           </span>
                         </td>
