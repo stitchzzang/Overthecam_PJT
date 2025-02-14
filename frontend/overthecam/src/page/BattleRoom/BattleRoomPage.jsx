@@ -5,15 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { leaveRoom } from "../../service/BattleRoom/api";
 
+import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
-import BattleTimer from "../../components/BattleRoom/BattleStart/BattleTimer";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
 import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
-
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -69,11 +67,7 @@ function BattleRoomPage() {
     window.history.pushState(null, "", window.location.pathname);
   };
 
-  // 모달 확인 하면 클린업 함수 사용
-  const handleConfirmLeave = async () => {
-    await cleanup(room);
-  };
-
+  
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
     if (!battleInfo.battleId) {
@@ -81,9 +75,9 @@ function BattleRoomPage() {
       setTimeout(() => navigate("/battle-list"), 1500); // 토스트 메시지를 보여줄 시간을 줌
       return;
     }
-
+    
     window.history.pushState(null, "", window.location.pathname);
-
+    
     // 이벤트 리스너 등록
     window.addEventListener("popstate", handlePopState);
     window.addEventListener("beforeunload", handleRefreshAttempt);
@@ -93,9 +87,9 @@ function BattleRoomPage() {
         cleanup(room);
       }
     });
-
+    
     initializeRoom();
-
+    
     // cleanup 언마운트시 해제
     return () => {
       window.removeEventListener("beforeunload", handleRefreshAttempt);
@@ -106,11 +100,11 @@ function BattleRoomPage() {
       }
     };
   }, []);
-
+  
   // 예외 처리
   useEffect(() => {
     if (!room) return;
-
+    
     // 네트워크 상태 변경 핸들러
     const handleConnectionStateChange = (state) => {
       console.log("Connection state changed:", state);
@@ -119,7 +113,7 @@ function BattleRoomPage() {
         setTimeout(() => navigate("/battle-list"), 1500);
       }
     };
-
+    
     // 예외 처리
     const handleError = async (error) => {
       console.error("Room error:", error);
@@ -127,17 +121,17 @@ function BattleRoomPage() {
         case "permission_denied":
           failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
           break;
-        case "disconnected":
-          failTost.current?.showAlert("연결이 끊어졌습니다.");
-          setTimeout(() => navigate("/battle-list"), 1500);
-          break;
-        default:
-          failTost.current?.showAlert("오류가 발생했습니다.");
-          setTimeout(() => navigate("/battle-list"), 1500);
-      }
-    };
-
-    // 이벤트 리스너 등록
+          case "disconnected":
+            failTost.current?.showAlert("연결이 끊어졌습니다.");
+            setTimeout(() => navigate("/battle-list"), 1500);
+            break;
+            default:
+              failTost.current?.showAlert("오류가 발생했습니다.");
+              setTimeout(() => navigate("/battle-list"), 1500);
+            }
+          };
+          
+          // 이벤트 리스너 등록
     room.on(RoomEvent.ConnectionStateChanged, handleConnectionStateChange);
     room.on(RoomEvent.Disconnected, handleError);
     room.on("error", handleError);
@@ -152,7 +146,7 @@ function BattleRoomPage() {
       room.off("error", handleError);
     };
   }, [room]);
-
+  
   async function initializeRoom() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -197,7 +191,7 @@ function BattleRoomPage() {
       ],
     });
     setRoom(room);
-
+    
     // 다른 참가자의 상태 실시간 관리
     room.on(RoomEvent.TrackSubscribed, (_track, publication, participant) => {
       console.log(
@@ -213,12 +207,12 @@ function BattleRoomPage() {
         },
       ]);
     });
-
+    
     // 방 연결 시 사용
     room.on(RoomEvent.Connected, () => {
       getDataFromAll(room);
     });
-
+    
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
       setRemoteTracks((prev) =>
         prev.filter(
@@ -237,22 +231,22 @@ function BattleRoomPage() {
       );
       getDataFromAll(room);
     });
-
+    
     try {
       const token = battleInfo.userToken;
       console.log("Received token:", token);
-
+      
       await room.connect(LIVEKIT_URL, token);
       console.log("Room connected successfully");
-
+      
       await room.localParticipant.enableCameraAndMicrophone();
       console.log("Camera and mic enabled");
-
+      
       // 내 디바이스 찾아서 가져오기
       const videoTrack = room.localParticipant.videoTrackPublications
-        .values()
-        .next().value?.videoTrack;
-
+      .values()
+      .next().value?.videoTrack;
+      
       if (videoTrack) {
         console.log("Video track obtained:", videoTrack);
         setLocalTrack(videoTrack);
@@ -264,13 +258,13 @@ function BattleRoomPage() {
       failTost.current?.showAlert("방 연결에 실패했습니다.");
       setTimeout(() => navigate("/battle-list"), 1500);
     }
-
+    
     setIsConnected(true);
   }
-
+  
   async function cleanup() {
     if (isCleanedUp.current || !room) return;
-
+    
     try {
       isCleanedUp.current = true;
       if (room.localParticipant) {
@@ -286,7 +280,7 @@ function BattleRoomPage() {
           }
         );
       }
-
+      
       if (mediaStream) {
         mediaStream.getTracks().forEach((track) => {
           track.stop();
@@ -297,14 +291,14 @@ function BattleRoomPage() {
       // 상태 초기화
       setLocalTrack(null);
       setRemoteTracks([]);
-
+      
       // room 연결 종료
       await room?.disconnect();
       setRoom(undefined);
       setLocalTrack(undefined);
       setRemoteTracks([]);
       clearBattleInfo();
-
+      
       try {
         console.log(battleInfo.battleId);
         const response = await leaveRoom(battleInfo.battleId);
@@ -312,7 +306,7 @@ function BattleRoomPage() {
       } catch (error) {
         console.error("배틀방 나가기 에러:", error);
       }
-
+      
       console.log("Cleanup completed successfully");
     } catch (error) {
       console.error("Error during cleanup:", error);
@@ -323,10 +317,10 @@ function BattleRoomPage() {
       }
     }
   }
-
+  
   function getDataFromAll(room) {
     const participantList = [];
-
+    
     try {
       const myMetadata = JSON.parse(room?.localParticipant?.metadata || "{}");
       if (myMetadata.role === "host") {
@@ -336,7 +330,7 @@ function BattleRoomPage() {
     } catch (error) {
       console.log("Local participant metadata error:", error);
     }
-
+    
     room?.participants?.forEach((participant) => {
       try {
         const participantMetaData = JSON.parse(participant.metadata || "{}");
@@ -348,15 +342,19 @@ function BattleRoomPage() {
         console.log("Participant metadata error:", error);
       }
     });
-
+    
     setParticipants(participantList);
   }
-
-  // handleLeavRoom 함수 수정
+  
   async function handleLeavRoom() {
     leaveConfirmModal.current?.showModal();
   }
-
+  
+  // 모달 확인 하면 클린업 함수 사용
+  const handleConfirmLeave = async () => {
+    await cleanup(room);
+  };
+  
   const battlerModalShow = (e) => {
     battlerSettingModal.current?.showModal();
   };
@@ -365,64 +363,14 @@ function BattleRoomPage() {
     setIsWaiting(false);
   };
 
-  const handleTimerStoped = (message) => {
-    noticeToast.current?.showAlert(message);
-  };
-
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
-      <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl">
-        {/* 왼쪽 영역 */}
-        <div className="room-leave-controll flex gap-2">
-          <button
-            onClick={handleLeavRoom}
-            className="btn justify-start bg-cusLightBlue-light !rounded-xl flex items-center h-12"
-          >
-            <ChevronLeftIcon className="w-5 h-5" />
-            나가기
-          </button>
-          {!isWaiting && isMaster ? (
-            <button className="btn justify-start bg-cusYellow !rounded-xl flex items-center h-12">
-              배틀 종료
-            </button>
-          ) : null}
-        </div>
-
-        {/* 중앙 영역 - mx-auto로 중앙 정렬 */}
-        <div className="room-header-name mx-auto text-2xl font-semibold max-w-[40%]">
-          <h2 className="truncate">{battleInfo.roomName}</h2>
-        </div>
-
-        {/* 오른쪽 영역 - flex gap-3으로 간격 조절 */}
-        {isWaiting ? (
-          <div className="flex gap-3">
-            <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
-              랜덤 주제 생성기
-            </button>
-            {isMaster && (
-              <button
-                onClick={battlerModalShow}
-                className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
-              >
-                배틀러 선정하기
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex gap-3">
-            {/* gap-3으로 타이머와 포인트 사이 간격 조절 */}
-            <div className="battle-timer flex bg-cusYellow rounded-xl items-center h-12 clay">
-              <BattleTimer onTimerStoped={handleTimerStoped} />
-            </div>
-            <div className="my-points flex bg-gray-300 rounded-xl items-center h-12 clay gap-2 px-2 font-semibold">
-              <span>내 포인트</span>
-              <div className="points bg-white rounded-lg px-1">100</div>
-              <span>내 응원 점수</span>
-              <div className="cheer-score bg-white rounded-lg px-1">1000</div>
-            </div>
-          </div>
-        )}
-      </div>
+      <BattleHeader
+        isWaiting={isWaiting}
+        isMaster={isMaster}
+        onshowLeaveConfirmModal={handleLeavRoom}
+        onShowBattlerModal={battlerModalShow}
+      />
       <div className="render-change flex-1 h-0">
         {isWaiting ? (
           <div className="flex h-full">
