@@ -35,7 +35,7 @@ const NoticeAlertModal = forwardRef(function NoticeAlertModal(_, ref) {
     <dialog
       ref={modalRef}
       onClick={handleClick}
-      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 w-96 rounded-xl shadow-xl bg-white border-2 border-blue-200"
+      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 min-w-[384px] max-w-[600px] rounded-xl shadow-xl bg-white border-2 border-blue-200"
     >
       <div className="flex items-center gap-4 p-5 bg-blue-50">
         <MegaphoneIcon className="text-blue-500 w-8 h-8 flex-shrink-0" />
