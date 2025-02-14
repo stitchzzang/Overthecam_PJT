@@ -7,7 +7,7 @@ import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.service.VoteService;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
-import com.overthecam.websocket.service.BattleDataService;
+import com.overthecam.websocket.service.BattleReadyService;
 import com.overthecam.websocket.service.BattleVoteService;
 import com.overthecam.websocket.service.BattleStartService;
 import com.overthecam.websocket.service.ChatMessageService;
@@ -29,7 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class BattleBroadcastController {
 
     private final VoteService voteService;
-    private final BattleDataService battleDataService;
+    private final BattleReadyService battleReadyService;
+    private final BattleStartService battleStartService;
     private final BattleStartService battleWebsocketService;
     private final BattleBettingService battleBettingService;
     private final ChatMessageService chatMessageService;
@@ -55,9 +56,13 @@ public class BattleBroadcastController {
                     return WebSocketResponseDto.ok(MessageType.CHAT,
                             chatMessageService.sendMessage(chatRequest, user));
 
+                case BATTLE_READY:
+                    WebSocketResponseDto.ok(MessageType.BATTLE_READY,
+                        battleReadyService.toggleReady(battleId, user.getUserId()));
+
                 case BATTLE_START:
                     return WebSocketResponseDto.ok(MessageType.BATTLE_START,
-                            battleDataService.handleBattleStart(battleId));
+                        battleStartService.handleBattleStart(battleId));
 
                 case BATTLE_END:
                     return WebSocketResponseDto.ok(MessageType.BATTLE_END,

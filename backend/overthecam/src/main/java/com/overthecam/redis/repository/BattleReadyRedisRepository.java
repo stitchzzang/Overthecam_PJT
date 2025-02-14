@@ -17,14 +17,23 @@ public class BattleReadyRedisRepository {
         redisTemplate.opsForSet().add(key, userId.toString());
     }
 
+    public void cancelUserReady(Long battleId, Long userId) {
+        String key = RedisKeyGenerator.getReadyKey(battleId);
+        redisTemplate.opsForSet().remove(key, userId.toString());
+    }
+
     public boolean isUserReady(Long battleId, Long userId) {
         String key = RedisKeyGenerator.getReadyKey(battleId);
         return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, userId.toString()));
     }
 
-    public boolean areAllParticipantsReady(Long battleId, int totalParticipants) {
+    public Long getReadyCount(Long battleId) {
         String key = RedisKeyGenerator.getReadyKey(battleId);
-        Long readyCount = redisTemplate.opsForSet().size(key);
+        return redisTemplate.opsForSet().size(key);
+    }
+
+    public boolean areAllParticipantsReady(Long battleId, int totalParticipants) {
+        Long readyCount = getReadyCount(battleId);
         return readyCount != null && readyCount >= totalParticipants;
     }
 
