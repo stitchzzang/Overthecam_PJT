@@ -21,28 +21,37 @@ function MyPageBattle() {
         setError(null);
         
         const url = id 
-          ? `/mypage/battle/history?userId=${id}&page=${currentPage}` 
-          : `/mypage/battle/history?page=${currentPage}`;
+          ? `/mypage/battle/history?userId=${id}&page=${currentPage - 1}` 
+          : `/mypage/battle/history?page=${currentPage - 1}`;
         
+        console.log('Requesting URL:', url);
         const response = await authAxios.get(url);
+        console.log('Full response:', response);
+        console.log('Response data:', response.data);
+        console.log('Content:', response.data.content);
         
-        // 응답 데이터 구조 확인 및 디버깅
-        console.log("Battle history response:", response);
-        
-        if (response.success && response.data && Array.isArray(response.data.content)) {
+        // 응답 데이터 구조 확인
+        if (response.data && response.data.content) {
+          console.log('Setting battles with:', response.data.content);
           setBattles(response.data.content);
-          setPageInfo({
-            totalPages: response.data.pageInfo.totalPages,
-            totalElements: response.data.pageInfo.totalElements,
-            pageSize: response.data.pageInfo.pageSize
-          });
+          
+          if (response.data.pageInfo) {
+            setPageInfo({
+              currentPage: response.data.pageInfo.currentPage,
+              totalPages: response.data.pageInfo.totalPages,
+              totalElements: response.data.pageInfo.totalElements,
+              pageSize: response.data.pageInfo.pageSize
+            });
+          }
+          setError(null);
         } else {
+          console.log('No content in response');
           setBattles([]);
-          console.error("Invalid data structure:", response);
+          setError('데이터를 불러오는데 실패했습니다.');
         }
       } catch (err) {
+        console.error('Error details:', err);
         setError('배틀 기록을 불러오는데 실패했습니다.');
-        console.error('Failed to fetch battle history:', err);
         setBattles([]);
       } finally {
         setIsLoading(false);
@@ -51,6 +60,18 @@ function MyPageBattle() {
 
     fetchBattleHistory();
   }, [id, currentPage]);
+
+  // 디버깅을 위한 추가 useEffect
+  useEffect(() => {
+    console.log('Current battles state:', battles);
+    console.log('Current loading state:', isLoading);
+    console.log('Current error state:', error);
+  }, [battles, isLoading, error]);
+
+  // battles 상태가 변경될 때마다 로그
+  useEffect(() => {
+    console.log('Current battles state:', battles);
+  }, [battles]);
 
   // 승패 결과 텍스트 및 스타일 결정 함수
   const getBattleResult = (battle) => {
@@ -77,27 +98,28 @@ function MyPageBattle() {
     setCurrentPage(newPage);
   };
 
-  if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
-  if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
-
   return (
     <div className="bg-[#EEF6FF] rounded-lg p-8">
       <h2 className="text-2xl font-bold mb-8 text-center">배틀 관리</h2>
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <div className="overflow-x-auto">
-            {!battles || battles.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                아직 참여한 배틀이 없습니다.
-              </div>
-            ) : (
+        {isLoading ? (
+          <div className="text-center">로딩 중...</div>
+        ) : battles.length === 0 ? (
+          <div className="text-center text-gray-500">
+            아직 참여한 배틀이 없습니다.
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
+        ) : (
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-4 px-4 font-semibold text-gray-600">날짜</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-600">방송 제목</th>
-                    <th className="text-left py-4 px-4 font-semibold text-gray-600">선택지</th>
-                    <th className="text-right py-4 px-4 font-semibold text-gray-600">승패여부</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[20%] text-center">날짜</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[35%] text-center">방송 제목</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[35%] text-center">선택지</th>
+                    <th className="py-4 px-4 font-semibold text-gray-600 w-[10%] text-center">승패</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,13 +127,17 @@ function MyPageBattle() {
                     const result = getBattleResult(battle);
                     return (
                       <tr key={battle.battleId} className="border-b border-gray-100">
-                        <td className="py-4 px-4 text-gray-800">
+                        <td className="py-4 px-4 text-gray-800 text-center whitespace-nowrap">
                           {new Date(battle.createdAt).toLocaleString()}
                         </td>
-                        <td className="py-4 px-4 text-gray-800">{battle.title}</td>
-                        <td className="py-4 px-4 text-gray-800">{battle.optionTitle}</td>
-                        <td className="py-4 px-4 text-right">
-                          <span className={result.style}>
+                        <td className="py-4 px-4 text-gray-800 text-center">
+                          {battle.title}
+                        </td>
+                        <td className="py-4 px-4 text-gray-800 text-center">
+                          {battle.optionTitle}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className={`${result.style} whitespace-nowrap`}>
                             {result.text} ({battle.earnedScore >= 0 ? '+' : ''}{battle.earnedScore})
                           </span>
                         </td>
@@ -120,9 +146,9 @@ function MyPageBattle() {
                   })}
                 </tbody>
               </table>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {pageInfo.totalPages > 1 && (

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { authAxios } from "../../common/axiosinstance"
+import MyPageBattle from './MyPageBattle'
+import MyPageVote from './MyPageVote'
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
@@ -85,7 +87,19 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
 function OtherProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [userData, setUserData] = useState(null)
+  const [activeTab, setActiveTab] = useState('vote')
+  const [userData, setUserData] = useState({
+    userId: Number(id),
+    nickname: "알 수 없는 사용자",
+    profileImage: null,
+    battleStats: {
+      totalGames: 0,
+      win: 0,
+      draw: 0,
+      loss: 0,
+      winRate: 0
+    }
+  })
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [counts, setCounts] = useState({ followers: 0, following: 0 })
@@ -148,6 +162,7 @@ function OtherProfile() {
           userId: myPageData.profileInfo.userId,
           nickname: myPageData.profileInfo.nickname,
           profileImage: myPageData.profileInfo.profileImage,
+          battleStats: myPageData.battleStats
         });
 
         // 팔로워/팔로잉 수 설정
@@ -169,6 +184,13 @@ function OtherProfile() {
         userId: Number(id),
         nickname: "알 수 없는 사용자",
         profileImage: null,
+        battleStats: {
+          totalGames: 0,
+          win: 0,
+          draw: 0,
+          loss: 0,
+          winRate: 0
+        }
       });
       setIsFollowing(false);
       setCounts({ followers: 0, following: 0 });
@@ -315,58 +337,121 @@ function OtherProfile() {
   if (!userData) return <div>사용자를 찾을 수 없습니다.</div>
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-        <div className="flex flex-col items-center">
-          {/* 프로필 이미지 */}
-          <div className="relative mb-6">
-            {userData.profileImage ? (
-              <img 
-                src={userData.profileImage} 
-                alt="프로필" 
-                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-              />
-            ) : (
-              <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-4xl text-gray-600">
-                  {userData.nickname.charAt(0)}
-                </span>
+    <div className="min-h-screen bg-cusGray-light">
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Profile Image */}
+          <div className="w-full md:w-72">
+            <div className="bg-white rounded-lg p-6 clay">
+              {userData.profileImage ? (
+                <img 
+                  src={userData.profileImage} 
+                  alt="Profile" 
+                  className="w-full aspect-square rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-full aspect-square rounded-lg bg-cusGray flex items-center justify-center">
+                  <span className="text-4xl text-cusGray-dark">
+                    {userData.nickname?.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <button 
+                onClick={handleFollowToggle}
+                className={`w-full py-2 rounded-lg font-medium mt-4 transition-colors ${
+                  isFollowing 
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                    : 'bg-cusBlue text-white hover:bg-cusBlue-dark'
+                }`}
+              >
+                {isFollowing ? '언팔로우' : '팔로우'}
+              </button>
+            </div>
+          </div>
+
+          {/* User Info & Stats */}
+          <div className="flex-1 w-full">
+            <div className="bg-white rounded-lg p-6 clay">
+              <h2 className="text-xl font-bold mb-4">{userData.nickname}</h2>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div 
+                  className="bg-cusLightBlue-lighter p-4 rounded-lg clay cursor-pointer hover:bg-cusLightBlue-light transition-colors"
+                  onClick={() => handleOpenModal('follower')}
+                >
+                  <p className="text-sm text-gray-600">팔로워</p>
+                  <p className="text-2xl font-bold">{counts.followers}</p>
+                </div>
+                <div 
+                  className="bg-cusLightBlue-lighter p-4 rounded-lg clay cursor-pointer hover:bg-cusLightBlue-light transition-colors"
+                  onClick={() => handleOpenModal('following')}
+                >
+                  <p className="text-sm text-gray-600">팔로잉</p>
+                  <p className="text-2xl font-bold">{counts.following}</p>
+                </div>
               </div>
-            )}
+
+              {/* Battle Record */}
+              <div className="bg-gray-50 p-4 rounded-lg clay">
+                <h3 className="text-lg font-semibold mb-4">내 전적 보기</h3>
+                <div className="flex justify-center gap-8">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-cusLightBlue-lighter flex items-center justify-center mb-2 clay">
+                      <span className="text-blue-600 text-xl font-bold">{userData.battleStats?.win || 0}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">승</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2 clay">
+                      <span className="text-gray-600 text-xl font-bold">{userData.battleStats?.draw || 0}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">무</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-2 clay">
+                      <span className="text-red-500 text-xl font-bold">{userData.battleStats?.loss || 0}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">패</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  {userData.nickname} 님의 승률은 {userData.battleStats?.winRate || 0}% 입니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 탭 UI */}
+        <div className="bg-white rounded-lg shadow-sm mt-6">
+          <div className="flex border-b">
+            <button
+              className={`flex-1 py-4 text-center font-medium ${
+                activeTab === 'battle' 
+                  ? 'text-cusBlue border-b-2 border-cusBlue' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('battle')}
+            >
+              배틀 관리
+            </button>
+            <button
+              className={`flex-1 py-4 text-center font-medium ${
+                activeTab === 'vote' 
+                  ? 'text-cusBlue border-b-2 border-cusBlue' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('vote')}
+            >
+              투표 관리
+            </button>
           </div>
 
-          {/* 사용자 정보 */}
-          <h2 className="text-2xl font-bold mb-4">{userData.nickname}</h2>
-          
-          {/* 팔로워/팔로잉 카운트 */}
-          <div className="flex gap-8 mb-6">
-            <div 
-              onClick={() => handleOpenModal('follower')}
-              className="text-center cursor-pointer hover:bg-gray-50 p-3 rounded-lg"
-            >
-              <div className="text-xl font-semibold">{counts.followers}</div>
-              <div className="text-gray-600">팔로워</div>
-            </div>
-            <div 
-              onClick={() => handleOpenModal('following')}
-              className="text-center cursor-pointer hover:bg-gray-50 p-3 rounded-lg"
-            >
-              <div className="text-xl font-semibold">{counts.following}</div>
-              <div className="text-gray-600">팔로잉</div>
-            </div>
+          <div className="p-6">
+            {activeTab === 'battle' && <MyPageBattle userId={id} />}
+            {activeTab === 'vote' && <MyPageVote userId={id} isOtherProfile={true} />}
           </div>
-
-          {/* 팔로우 버튼 */}
-          <button 
-            onClick={handleFollowToggle}
-            className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-              isFollowing 
-                ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' 
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-            }`}
-          >
-            {isFollowing ? '언팔로우' : '팔로우'}
-          </button>
         </div>
       </div>
 

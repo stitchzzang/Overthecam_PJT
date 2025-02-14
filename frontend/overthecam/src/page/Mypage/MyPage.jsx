@@ -87,6 +87,45 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
   );
 };
 
+// 이미지 리사이징 함수 추가
+const resizeImage = (file, maxWidth) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // 이미지가 maxWidth보다 큰 경우에만 리사이징
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 캔버스를 Blob으로 변환
+        canvas.toBlob((blob) => {
+          // Blob을 File 객체로 변환
+          const resizedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          resolve(resizedFile);
+        }, 'image/jpeg', 0.7); // 품질 70%로 설정
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 function MyPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'vote');
@@ -197,22 +236,97 @@ function MyPage() {
   }
 
   const handleImageChange = async (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      const formData = new FormData()
-      formData.append("image", file)
+      // 파일 크기 제한을 1MB로 줄임
+      const maxSize = 1 * 1024 * 1024; // 1MB
+      if (file.size > maxSize) {
+        setToast({ 
+          show: true, 
+          message: '파일 크기는 1MB 이하여야 합니다.', 
+          type: 'error' 
+        });
+        return;
+      }
+
+      // 파일 형식 체크
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        setToast({ 
+          show: true, 
+          message: 'JPG, PNG 형식의 이미지만 업로드 가능합니다.', 
+          type: 'error' 
+        });
+        return;
+      }
+
+      // 이미지 리사이징
       try {
-        const response = await authAxios.post("/members/profile-image", formData, {
+        const resizedImage = await resizeImage(file, 800); // 최대 너비 800px
+        const formData = new FormData();
+        formData.append("image", resizedImage);
+
+        console.log("업로드 시도:", {
+          fileName: resizedImage.name,
+          fileSize: resizedImage.size,
+          fileType: resizedImage.type
+        });
+
+        const response = await authAxios.post("/mypage/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        })
-        setUserData({ ...userData, profileInfo: { ...userData.profileInfo, profileImage: response.data.imageUrl } })
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log('업로드 진행률:', percentCompleted);
+          },
+        });
+
+        console.log("서버 응답:", response); // 응답 로깅 추가
+
+        if (response.success) {
+          // 이미지 URL이 response.data.imageUrl 또는 response.data.profileImage에 있을 수 있음
+          const imageUrl = response.data?.imageUrl || response.data?.profileImage;
+          
+          if (imageUrl) {
+            setUserData(prev => ({
+              ...prev,
+              profileInfo: {
+                ...prev.profileInfo,
+                profileImage: imageUrl
+              }
+            }));
+            setToast({ 
+              show: true, 
+              message: '프로필 이미지가 성공적으로 업데이트되었습니다.', 
+              type: 'success' 
+            });
+          } else {
+            throw new Error('이미지 URL이 응답에 포함되지 않았습니다.');
+          }
+        } else {
+          throw new Error(response.error?.message || '이미지 업로드에 실패했습니다.');
+        }
       } catch (error) {
-        console.error("Failed to upload image:", error)
+        console.error("이미지 업로드 실패:", error);
+        
+        // 에러 메시지 추출 로직 개선
+        let errorMessage = '이미지 업로드에 실패했습니다. 다시 시도해주세요.';
+        
+        if (error.response?.data?.error?.message) {
+          errorMessage = error.response.data.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        setToast({ 
+          show: true, 
+          message: errorMessage, 
+          type: 'error' 
+        });
       }
     }
-  }
+  };
 
   // Calculate win rate
   const totalGames = userData?.battleStats?.totalGames || 0;
