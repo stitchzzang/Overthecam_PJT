@@ -6,9 +6,10 @@ function BattleVote({ isWaiting, voteTitle, voteDetail, voteOption1, voteOption2
   const bettingModal = useRef();
 
   const handleVote = (option) => {
-    setSelectedOption(option);
     bettingModal.current?.showModal();  
     // 여기에 투표 API 호출 등의 로직 추가
+    // 성공하면 재투표 막기 
+    // setSelectedOption(option);
   };
   // 배틀방 안에서 띄울 투표 시스템
   return (
