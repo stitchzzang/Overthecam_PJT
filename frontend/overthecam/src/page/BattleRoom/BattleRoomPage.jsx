@@ -1,14 +1,18 @@
 import { Room, RoomEvent } from "livekit-client";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { useBattleStore } from "../../store/Battle/BattleStore";
+import { leaveRoom } from "../../service/BattleRoom/api";
+
 import BattleChating from "../../components/BattleRoom/common/BattleChating";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart"
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
-import { leaveRoom } from "../../service/BattleRoom/api";
+
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -393,10 +397,10 @@ function BattleRoomPage() {
         ) : (
           <div className="my-points flex bg-cusPink rounded-xl flex items-center h-12 clay">
             <div className="points">
-              <p>포인트 : </p>
+              <p>나의 포인트 : </p>
             </div>
             <div className="cheer-score">
-              <p>응원 점수: </p>
+              <p>나의 응원 점수: </p>
             </div>
           </div>
         )}
@@ -423,7 +427,9 @@ function BattleRoomPage() {
             </div>
           </div>
         ) : (
-          <></>
+          <>
+          <BattleStart/>
+          </>
         )}
       </div>
       <BattlerSettingModal ref={battlerSettingModal} />
