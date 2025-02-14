@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { publicAxios, authAxios } from '../../common/axiosinstance';
+import Pagination from 'react-js-pagination';
 
 const VotePage = () => {
   const navigate = useNavigate();
@@ -345,48 +346,20 @@ const VotePage = () => {
           ))}
         </div>
         </div>
-        <div className="flex justify-center mt-6 pb-10">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(1)}
-              disabled={pages[voteStatus] === 1}
-              className={`w-8 h-8 flex items-center justify-center rounded ${
-                pages[voteStatus] === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {'<<'}
-            </button>
-            <button
-              onClick={() => handlePageChange(Math.max(1, pages[voteStatus] - 1))}
-              disabled={pages[voteStatus] === 1}
-              className={`w-8 h-8 flex items-center justify-center rounded ${
-                pages[voteStatus] === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {'<'}
-            </button>
-            <span className="mx-2">
-              {pages[voteStatus]} / {totalPages[voteStatus]}
-            </span>
-            <button
-              onClick={() => handlePageChange(Math.min(totalPages[voteStatus], pages[voteStatus] + 1))}
-              disabled={pages[voteStatus] === totalPages[voteStatus]}
-              className={`w-8 h-8 flex items-center justify-center rounded ${
-                pages[voteStatus] === totalPages[voteStatus] ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {'>'}
-            </button>
-            <button
-              onClick={() => handlePageChange(totalPages[voteStatus])}
-              disabled={pages[voteStatus] === totalPages[voteStatus]}
-              className={`w-8 h-8 flex items-center justify-center rounded ${
-                pages[voteStatus] === totalPages[voteStatus] ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {'>>'}
-            </button>
-          </div>
+        <div className="flex justify-center p-4 mt-2">
+          <Pagination
+            activePage={pages[voteStatus]}
+            itemsCountPerPage={10}
+            totalItemsCount={totalPages[voteStatus] * 10}
+            pageRangeDisplayed={5}
+            prevPageText={"이전"}
+            nextPageText={"다음"}
+            onChange={handlePageChange}
+            innerClass="flex gap-2"
+            itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+            activeClass="bg-cusBlack-light !text-white"
+            linkClass="block w-full h-full text-center"
+          />
         </div>
       </div>
     </div>
