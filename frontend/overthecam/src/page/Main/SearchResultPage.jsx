@@ -123,7 +123,7 @@ const SearchResultPage = () => {
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
                 <Link
-                  to="/battle-list"
+                  to="/main/battle-list"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
                   + More
@@ -151,7 +151,10 @@ const SearchResultPage = () => {
                             </h3>
                             <div className="flex justify-center items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              <Link to={`/battle/${battle.battleId}`} className="hover:scale-105 transition-transform">
+                              <Link 
+                                to={`/main/battle-room/${battle.battleId}`}
+                                className="hover:scale-105 transition-transform"
+                              >
                                 <StatusBadge status={battle.status} />
                               </Link>
                             </div>
@@ -173,7 +176,7 @@ const SearchResultPage = () => {
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
                 <Link
-                  to="/vote"
+                  to="/main/vote"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
                   + More
@@ -183,7 +186,12 @@ const SearchResultPage = () => {
                 {searchResults.votes.length > 0 ? (
                   searchResults.votes.map((vote) => (
                     <div key={`vote-${vote.id}`} className="p-4 bg-white rounded-lg shadow h-32">
-                      {vote.title}
+                      <Link 
+                        to={`/main/vote-detail/${vote.voteId}`}
+                        className="hover:scale-105 transition-transform"
+                      >
+                        {vote.title}
+                      </Link>
                     </div>
                   ))
                 ) : (
@@ -203,7 +211,7 @@ const SearchResultPage = () => {
                 {searchResults.users.length > 0 ? (
                   searchResults.users.map((user) => (
                     <Link 
-                      to={`/profile/${user.id}`}
+                      to={`/main/profile/${user.userId}`}
                       key={`user-${user.id}`}
                     >
                       {user.username}

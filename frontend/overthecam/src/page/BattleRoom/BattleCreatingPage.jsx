@@ -35,9 +35,10 @@ function BattleCreatingPage() {
       // 4. store가 제대로 업데이트 되었는지 확인
       const updatedState = useBattleStore.getState();
       console.log("Updated store state:", updatedState);
-      navigate(`/battle-room/${response.data.battleId}`);
+      navigate(`/main/battle-room/${response.data.battleId}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);
+      navigate('/main/battle-list');
     }
   };
   return (

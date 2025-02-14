@@ -20,10 +20,11 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
         isMaster: false,
       };
       setBattleInfo(newBattleInfo);
-      navigate(`/battle-room/${battleId}`)
+      navigate(`/main/battle-room/${battleId}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);
       // 에러 처리 (예: 알림 표시)
+      navigate('/main/battle-list');
     }
   };
 

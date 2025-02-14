@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import VoteDeleteModal from './VoteModal/VoteDeleteModal';
 import { authAxios } from '../../common/axiosinstance';
 
@@ -80,7 +80,7 @@ const VoteDetail = ({ voteData, onDelete }) => {
   return (
     <div className="w-full max-w-[800px] mx-auto mt-8">
       <button
-        onClick={() => navigate('/vote')}
+        onClick={() => navigate('/main/vote')}
         className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
       >
         <svg 

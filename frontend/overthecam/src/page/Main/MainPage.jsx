@@ -121,12 +121,12 @@ const MainPage = () => {
     // 로그인 체크
     if (!token) {
       alert('로그인이 필요한 서비스입니다.');
-      navigate('/login');
+      navigate('/main/login');  // /login -> /main/login 으로 수정
       return;
     }
     
     // 로그인된 상태면 배틀룸으로 이동
-    navigate(`/main/battle-room/${battleId}`);
+    navigate(`/main/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
   };
 
   return (
@@ -198,7 +198,7 @@ const MainPage = () => {
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
                 <Link
-                  to="/battle-list"
+                  to="/main/battle-list"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
                   + More
@@ -276,7 +276,7 @@ const MainPage = () => {
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
                 <Link
-                  to="/vote"
+                  to="/main/vote"  // /vote -> /main/vote 으로 수정
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
                   + More

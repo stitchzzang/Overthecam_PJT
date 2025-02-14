@@ -19,7 +19,7 @@ function SearchBar({ value, onChange }) {
 
     const handleSearch = () => {
       if (searchValue.trim()) {
-        navigate(`/search?search=${encodeURIComponent(searchValue.trim())}`);
+        navigate(`/main/search?search=${encodeURIComponent(searchValue.trim())}`);
         setSearchValue('');  // 검색 후 검색어 초기화
       }
     };
