@@ -4,14 +4,14 @@ import NavBar from "./NavBar";
 function Layout() {
   const location = useLocation();
   const getBackgroundColor = () => {
-    if (location.pathname.startsWith("/battle-room")) {
+    if (location.pathname.startsWith("/main/battle-room")) {
       return "bg-gradient-to-b from-cusPink to-cusLightBlue flex-1";
     } else if (
-      location.pathname === "/login" ||
-      location.pathname === "/signup" ||
-      location.pathname === "/find-account" ||
-      location.pathname === "/create-battle-room" ||
-      location.pathname === "/create-vote"
+      location.pathname === "/main/login" ||
+      location.pathname === "/main/signup" ||
+      location.pathname === "/main/find-account" ||
+      location.pathname === "/main/create-battle-room" ||
+      location.pathname === "/main/create-vote"
     ) {
       return "bg-transparent";
     }
