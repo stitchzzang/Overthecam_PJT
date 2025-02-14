@@ -20,17 +20,20 @@ import java.util.List;
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
-    // 키워드 검색 (일반 투표만)
-    @Query("SELECT v FROM Vote v WHERE " +
-        "v.battle IS NULL AND " +
-        "(:keyword IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-        "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    // 키워드 검색
+    @Query("SELECT v FROM Vote v " +
+            "JOIN v.user u " +
+            "WHERE v.battle IS NULL AND " +
+            "(:keyword IS NULL OR " +
+            "LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(u.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Vote> searchByKeyword(
-        @Param("keyword") String keyword,
-        Pageable pageable
+            @Param("keyword") String keyword,
+            Pageable pageable
     );
 
-    // 총 투표 수 기준 정렬 (일반 투표만)
+    // 총 투표 수 기준 정렬
     @Query("SELECT v FROM Vote v " +
         "LEFT JOIN v.options o " +
         "WHERE v.battle IS NULL " +  // 추가
@@ -64,13 +67,16 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Query("SELECT v FROM Vote v WHERE v.user.id = :userId ORDER BY v.createdAt DESC")
     Page<Vote> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
-    // isActive 상태로 필터링하여 조회 (키워드 검색 포함)
-    @Query("SELECT v FROM Vote v WHERE " +
-            "v.battle IS NULL AND " +
-            "(:isActive IS NULL OR v.isActive = :isActive) AND " +  // isActive가 null이면 전체 조회
-            "(:keyword IS NULL OR LOWER(v.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(v.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "ORDER BY v.isActive DESC, v.createdAt DESC")  // 항상 isActive true가 먼저 오도록
+    // isActive 상태로 필터링하여 조회
+    @Query("SELECT DISTINCT v FROM Vote v " +
+            "LEFT JOIN FETCH v.user u " +
+            "WHERE v.battle IS NULL " +
+            "AND (:isActive IS NULL OR v.isActive = :isActive) " +
+            "AND (:keyword IS NULL OR " +
+            "   LOWER(v.title) LIKE %:keyword% OR " +
+            "   LOWER(v.content) LIKE %:keyword% OR " +
+            "   LOWER(u.nickname) LIKE %:keyword%) " +
+            "ORDER BY CASE WHEN v.isActive = true THEN 0 ELSE 1 END, v.createdAt DESC")
     Page<Vote> findVotesByCondition(
             @Param("isActive") Boolean isActive,
             @Param("keyword") String keyword,
