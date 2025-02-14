@@ -105,26 +105,6 @@ public class BattleController {
         }
     }
 
-    /**
-     * 배틀러 선정 API
-     */
-    @GetMapping("/room/{battleId}/select/{battler1}/{battler2}")
-    public ResponseEntity<CommonResponseDto<SelectBattlerResponse>> selectBattlers(
-        @PathVariable(name = "battleId") Long battleId,
-        @PathVariable(name = "battler1") String battler1,
-        @PathVariable(name = "battler2") String battler2) {
-        try {
-            SelectBattlerResponse response = battleService.selectBattlers(battleId, battler1, battler2);
-            return ResponseEntity.ok(CommonResponseDto.ok(response));
-        } catch (Exception e) {
-            log.error("배틀러 선정 실패", e);
-            return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.BATTLE_NOT_FOUND)
-                )
-            );
-        }
-    }
 
     /**
      * 배틀방 나가기
