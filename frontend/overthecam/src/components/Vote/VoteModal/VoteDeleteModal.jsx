@@ -1,10 +1,12 @@
 import { forwardRef, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import SuccessAlertModal from "../../@common/SuccessAlertModal";
 import FailAlertModal from "../../@common/FailAlertModal";
 
 const VoteDeleteModal = forwardRef(function VoteDeleteModal({ onDelete }, ref) {
   const successAlertRef = useRef();
   const failAlertRef = useRef();
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     try {
@@ -14,6 +16,7 @@ const VoteDeleteModal = forwardRef(function VoteDeleteModal({ onDelete }, ref) {
           ref.current.close();
         }
         successAlertRef.current?.showAlert("삭제가 완료되었습니다.");
+        navigate('/main/vote');
       }
     } catch (error) {
       // 현재 모달 닫기

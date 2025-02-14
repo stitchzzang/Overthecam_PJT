@@ -1,15 +1,15 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
-import com.overthecam.redis.service.BattleScoreRedisService;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.vote.dto.VoteRequest;
 import com.overthecam.vote.service.VoteService;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
-import com.overthecam.websocket.service.BattleDataService;
+import com.overthecam.websocket.service.BattleReadyService;
 import com.overthecam.websocket.service.BattleVoteService;
-import com.overthecam.websocket.service.BattleWebsocketService;
+import com.overthecam.websocket.service.BattleStartService;
 import com.overthecam.websocket.service.ChatMessageService;
 import com.overthecam.websocket.dto.*;
 import com.overthecam.websocket.util.WebSocketRequestMapper;
@@ -29,12 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class BattleBroadcastController {
 
     private final VoteService voteService;
-    private final BattleDataService battleDataService;
-    private final BattleWebsocketService battleWebsocketService;
+    private final BattleReadyService battleReadyService;
+    private final BattleStartService battleStartService;
+    private final BattleStartService battleWebsocketService;
+    private final BattleBettingService battleBettingService;
     private final ChatMessageService chatMessageService;
     private final BattleVoteService battleVoteService;
     private final BattleResultService battleResultService;
-    private final BattleScoreRedisService battleScoreRedisService;
     private final WebSocketRequestMapper requestMapper;
 
     private static final int TIME_EXTENSION_COST = 300;
@@ -55,9 +56,14 @@ public class BattleBroadcastController {
                     return WebSocketResponseDto.ok(MessageType.CHAT,
                             chatMessageService.sendMessage(chatRequest, user));
 
+                case BATTLE_READY:
+                    BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
+                    return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
+                        battleReadyService.toggleReady(battleId, user.getUserId()));
+
                 case BATTLE_START:
                     return WebSocketResponseDto.ok(MessageType.BATTLE_START,
-                            battleDataService.handleBattleStart(battleId));
+                        battleStartService.handleBattleStart(battleId));
 
                 case BATTLE_END:
                     return WebSocketResponseDto.ok(MessageType.BATTLE_END,
@@ -69,12 +75,12 @@ public class BattleBroadcastController {
 
                 case VOTE_CREATE:
                     VoteRequest voteRequest = requestMapper.mapToVoteRequestDto(request.getData());
-                    battleVoteService.deleteAndCreateNewVote(battleId);
+                    battleVoteService.deleteVote(battleId);
                     return WebSocketResponseDto.ok(MessageType.VOTE_CREATE,
                             voteService.createVote(voteRequest, user.getUserId()));
 
                 case TIME_EXTENSION:
-                    UserScoreInfo updatedScore = battleScoreRedisService.deductPoints(
+                    UserScoreInfo updatedScore = battleBettingService.purchaseTime(
                             battleId, user.getUserId(), TIME_EXTENSION_COST);
                     return WebSocketResponseDto.ok(MessageType.TIME_EXTENSION,
                             TimeExtensionResponse.builder()
