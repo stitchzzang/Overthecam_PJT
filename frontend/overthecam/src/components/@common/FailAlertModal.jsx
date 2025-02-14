@@ -32,10 +32,10 @@ const FailAlertModal = forwardRef(function FailAlertModal(_, ref) {
   };
 
   return (
-    <dialog 
+    <dialog
       ref={modalRef}
       onClick={handleClick}
-      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 w-96 rounded-xl shadow-xl bg-white border-2 border-red-200"
+      className="fixed top-6 left-1/2 -translate-x-1/2 p-0 m-0 min-w-[384px] max-w-[600px] rounded-xl shadow-xl bg-white border-2 border-red-200"
     >
       <div className="flex items-center gap-4 p-5 bg-red-50">
         <XCircleIcon className="text-error w-8 h-8 flex-shrink-0" />
