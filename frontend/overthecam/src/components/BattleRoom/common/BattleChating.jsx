@@ -153,7 +153,7 @@ const WebSocketChat = () => {
   };
 
   return (
-    <div className="w-full max-w-md h-full bg-cusGray rounded-lg clay flex flex-col my-10 p-1">
+    <div className="w-full max-w-md h-full bg-cusGray rounded-lg clay flex flex-col p-1">
       {/* 채팅 헤더 */}
       <div className="flex justify-start px-4 py-2">
         <h2 className="text-lg font-semibold text-cusBlack-light">

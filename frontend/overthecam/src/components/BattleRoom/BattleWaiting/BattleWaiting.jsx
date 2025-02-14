@@ -2,7 +2,8 @@ import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 
@@ -12,6 +13,8 @@ function BattleWaiting({
   remoteTracks,
   participantName,
   isMaster,
+  host,
+  participants,
   onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
@@ -20,6 +23,20 @@ function BattleWaiting({
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
+  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
+
+  // metadata로 내 role 보기
+  try {
+    const metadata = room.localParticipant.metadata
+      ? JSON.parse(room.localParticipant.metadata)
+      : {};
+    console.log("Role:", metadata.role);
+    if (metadata.role === "host") {
+      setHost(battleInfo.participantName);
+    }
+  } catch (metadataError) {
+    console.log("No metadata or invalid metadata:", metadataError);
+  }
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -55,21 +72,23 @@ function BattleWaiting({
 
   return (
     <>
-      <div className="w-full h-full flex flex-col p-4">
-        <div
-          className="w-full flex flex-col"
-          style={{ height: "calc(100vh - 2rem)" }}
-        >
+      <div
+        className="w-full h-full flex p-4 gap-3"
+        style={{ height: "calc(100vh - 2rem)" }}
+      >
+        <div className="w-3/4 h-full flex flex-col">
           {/* Video grid section */}
           <div className="h-3/4 mb-4">
             <div className="grid grid-cols-3 gap-4 h-full">
               {slots.map((slot, index) => (
                 <div key={index} className="flex flex-col h-full">
                   {/* Name header */}
-                  <div className="px-6 mb-1">
+                  <div className="px-6">
                     <div
                       className={`text-sm text-black rounded-t-lg ${
-                        isMaster && slot ? "bg-cusPink" : "bg-cusLightBlue"
+                        slot && host === slot.participantName
+                          ? "bg-cusPink"
+                          : "bg-cusLightBlue"
                       }`}
                     >
                       {slot ? slot.participantName : "대기중..."}
@@ -104,9 +123,20 @@ function BattleWaiting({
           </div>
 
           {/* Battle vote section */}
-          <div className="h-1/4 flex">
-            <div className="w-3/4 h-full bg-cusGray mx-1 clay">
-              <BattleVote isWaiting={true} />
+          <div className="h-1/4 flex gap-2">
+            <div className="w-3/4 h-full bg-cusGray clay p-3">
+              {isVoteSubmitted ? (
+                <BattleVote
+                  isWaiting={true}
+                  voteTitle={""}
+                  voteOption1={""}
+                  voteOption2={""}
+                />
+              ) : (
+                <div className="p-6 bg-white w-full h-full flex items-center justify-center">
+                  <p className="font-semibold text-gray-300">아직 등록된 투표가 없습니다.</p>
+                </div>
+              )}
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
@@ -132,9 +162,15 @@ function BattleWaiting({
             )}
           </div>
         </div>
+        <div className="w-1/4 flex flex-col h-full mb-5">
+          <BattleChating />
+        </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />
-      <BattlerSettingModal ref={battlerSettingModal} />
+      <BattlerSettingModal
+        ref={battlerSettingModal}
+        participants={participants}
+      />
     </>
   );
 }
