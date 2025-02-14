@@ -64,31 +64,43 @@ const SearchResultPage = () => {
             'Content-Type': 'application/json'
           };
 
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
+      // 배틀 검색
+      const battleResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
         params: { keyword: query },
         headers
       });
-      
-      console.log('Search response:', response);
 
-      if (response.data.success) {
-        const battles = response.data.data.battleInfo.map(battle => ({
+      // 유저 검색 - 페이지 크기를 크게 설정
+      const userResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/user`, {
+        params: { 
+          keyword: query,
+          size: 100  // 페이지 크기를 크게 설정
+        },
+        headers
+      });
+      
+      console.log('User Search Response:', userResponse.data);
+
+      let battles = [];
+      let users = [];
+
+      if (battleResponse.data.success) {
+        battles = battleResponse.data.data.battleInfo.map(battle => ({
           ...battle,
           status: battle.status === "WAITING" ? 0 : 1
         }));
-        setSearchResults({
-          battles,
-          votes: [],
-          users: []
-        });
-      } else {
-        console.error("검색 실패:", response.data.error);
-        setSearchResults({
-          battles: [],
-          votes: [],
-          users: []
-        });
       }
+
+      if (userResponse.data.success) {
+        users = userResponse.data.data.userInfo || [];
+        console.log('Processed users:', users);
+      }
+
+      setSearchResults({
+        battles,
+        votes: [],
+        users
+      });
     } catch (error) {
       console.error("검색 중 오류 발생:", error);
       setSearchResults({
@@ -213,12 +225,34 @@ const SearchResultPage = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.users.length > 0 ? (
-                  searchResults.users.map((user) => (
+                  searchResults.users.map((user, index) => (
                     <Link 
-                      to={`/main/profile/${user.userId}`}
-                      key={`user-${user.id}`}
+                      to={`/main/profile/${user.nickname}`} 
+                      key={`user-${index}`}
+                      className="block p-4 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
                     >
-                      {user.username}
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+                          {user.profileImage ? (
+                            <img 
+                              src={user.profileImage} 
+                              alt={user.nickname} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-cusGray-light">
+                              <span className="text-white text-xl">
+                                {user.nickname.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg text-gray-900">
+                            {user.nickname}
+                          </h3>
+                        </div>
+                      </div>
                     </Link>
                   ))
                 ) : (
