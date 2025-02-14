@@ -70,7 +70,7 @@ function BattleRoomPage() {
   useEffect(() => {
     if (!battleInfo.battleId) {
       failTost.current?.showAlert("배틀 정보가 없습니다.");
-      setTimeout(() => navigate("/battle-list"), 1500); // 토스트 메시지를 보여줄 시간을 줌
+      setTimeout(() => navigate("/main/battle-list"), 1500); // 토스트 메시지를 보여줄 시간을 줌
       return;
     }
 
@@ -108,7 +108,7 @@ function BattleRoomPage() {
       console.log("Connection state changed:", state);
       if (state === "disconnected" || state === "failed") {
         failTost.current?.showAlert("연결이 끊어졌습니다. 다시 접속해주세요.");
-        setTimeout(() => navigate("/battle-list"), 1500);
+        setTimeout(() => navigate("/main/battle-list"), 1500);
       }
     };
 
@@ -168,7 +168,7 @@ function BattleRoomPage() {
       } else {
         failTost.current?.showAlert("연결 중 오류가 발생했습니다.");
       }
-      setTimeout(() => navigate("/battle-list"), 1500);
+      setTimeout(() => navigate("/main/battle-list"), 1500);
     }
   }
 
@@ -251,7 +251,7 @@ function BattleRoomPage() {
     } catch (error) {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
-      setTimeout(() => navigate("/battle-list"), 1500);
+      setTimeout(() => navigate("/main/battle-list"), 1500);
     }
 
     setIsConnected(true);
