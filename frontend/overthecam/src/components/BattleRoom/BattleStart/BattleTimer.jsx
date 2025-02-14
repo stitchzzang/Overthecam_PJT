@@ -27,7 +27,7 @@ function BattleTimer({ onTimerStoped }) {
       onTimerStoped("게임이 종료 되었습니다.");
     } else if (timeLeft <= ALERT_MINTS_IN_MS && !isTwoMiNLeft) {
       setIsTwoMinLeft(true);
-      onTimerStoped("2분 남았습니다. 더 이상 시간을 구매 할 수 없습니다.");
+      onTimerStoped("2분 남았습니다. 더 이상 시간 구매가 불가합니다.");
     }
     return () => {
       clearInterval(timer);
@@ -42,18 +42,22 @@ function BattleTimer({ onTimerStoped }) {
         } text-2xl font-bold flex items-center gap-2`}
       >
         <ClockIcon className="w-7 h-7" />
-        <p>
+        <p className="mx-2">
           {minutes}:{second}
         </p>
       </div>
-      {/* 설정 버튼 */}
-      <div
-        onClick={() => timeBuyModal.current?.showModal()}
-        className="rounded-sm hover:border hover:border-gray-800"
-      >
-        <PlusCircleIcon className="w-5 h-5 text-gray-600" />
-      </div>
-      <TimeBuyModal ref={timeBuyModal}/>
+      {/* 시간 구매 버튼 */}
+      {isTwoMiNLeft ? (
+        <></>
+      ) : (
+        <div
+          onClick={() => timeBuyModal.current?.showModal()}
+          className="rounded-sm hover:border hover:border-gray-800"
+        >
+          <PlusCircleIcon className="w-5 h-5 text-gray-600" />
+        </div>
+      )}
+      <TimeBuyModal ref={timeBuyModal} />
     </div>
   );
 }
