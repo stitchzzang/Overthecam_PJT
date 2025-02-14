@@ -6,9 +6,15 @@ import MyPageVote from './MyPageVote'
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
-  const navigate = useNavigate();  // useNavigate 훅 추가
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
+
+  const handleBackgroundClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   // 유저 프로필로 이동하는 함수
   const handleUserClick = (userId) => {
@@ -17,7 +23,11 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleBackgroundClick}
+    >
       <div className="bg-white rounded-lg w-96 max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b">
           <h3 className="text-xl font-semibold text-center">{title}</h3>
@@ -51,15 +61,46 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
                 {user.userId !== Number(localStorage.getItem('userId')) && (
                   <button
                     onClick={(e) => {
-                      e.stopPropagation();  // 상위 요소로의 이벤트 전파 방지
+                      e.stopPropagation();
                       onFollowToggle(user.userId);
                     }}
-                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors clay flex items-center justify-center gap-2 ${
                       currentUserFollowing.includes(user.userId)
                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         : 'bg-blue-500 text-white hover:bg-blue-600'
                     }`}
                   >
+                    {currentUserFollowing.includes(user.userId) ? (
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-5 h-5"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" 
+                        />
+                      </svg>
+                    ) : (
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-5 h-5"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" 
+                        />
+                      </svg>
+                    )}
                     {currentUserFollowing.includes(user.userId) ? '언팔로우' : '팔로우'}
                   </button>
                 )}
@@ -337,8 +378,15 @@ function OtherProfile() {
   if (!userData) return <div>사용자를 찾을 수 없습니다.</div>
 
   return (
-    <div className="min-h-screen bg-cusGray-light">
-      <div className="max-w-4xl mx-auto p-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* <NavBar /> */}
+      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
+          프로필 페이지
+        </h1>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Profile Image */}
           <div className="w-full md:w-72">
@@ -358,12 +406,43 @@ function OtherProfile() {
               )}
               <button 
                 onClick={handleFollowToggle}
-                className={`w-full py-2 rounded-lg font-medium mt-4 transition-colors ${
+                className={`w-full py-2 rounded-lg font-medium mt-4 transition-colors clay flex items-center justify-center gap-2 ${
                   isFollowing 
                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                     : 'bg-cusBlue text-white hover:bg-cusBlue-dark'
                 }`}
               >
+                {isFollowing ? (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1.5" 
+                    stroke="currentColor" 
+                    className="w-6 h-6"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" 
+                    />
+                  </svg>
+                ) : (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1.5" 
+                    stroke="currentColor" 
+                    className="w-6 h-6"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" 
+                    />
+                  </svg>
+                )}
                 {isFollowing ? '언팔로우' : '팔로우'}
               </button>
             </div>
@@ -380,21 +459,53 @@ function OtherProfile() {
                   className="bg-cusLightBlue-lighter p-4 rounded-lg clay cursor-pointer hover:bg-cusLightBlue-light transition-colors"
                   onClick={() => handleOpenModal('follower')}
                 >
-                  <p className="text-sm text-gray-600">팔로워</p>
-                  <p className="text-2xl font-bold">{counts.followers}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      strokeWidth="1.5" 
+                      stroke="currentColor" 
+                      className="w-6 h-6 text-gray-600"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" 
+                      />
+                    </svg>
+                    <p className="text-sm text-gray-600">팔로워</p>
+                  </div>
+                  <p className="text-2xl font-bold text-center">{counts.followers}</p>
                 </div>
                 <div 
                   className="bg-cusLightBlue-lighter p-4 rounded-lg clay cursor-pointer hover:bg-cusLightBlue-light transition-colors"
                   onClick={() => handleOpenModal('following')}
                 >
-                  <p className="text-sm text-gray-600">팔로잉</p>
-                  <p className="text-2xl font-bold">{counts.following}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      strokeWidth="1.5" 
+                      stroke="currentColor" 
+                      className="w-6 h-6 text-gray-600"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" 
+                      />
+                    </svg>
+                    <p className="text-sm text-gray-600">팔로잉</p>
+                  </div>
+                  <p className="text-2xl font-bold text-center">{counts.following}</p>
                 </div>
               </div>
 
               {/* Battle Record */}
               <div className="bg-gray-50 p-4 rounded-lg clay">
-                <h3 className="text-lg font-semibold mb-4">내 전적 보기</h3>
+                <h3 className="text-lg font-semibold mb-4">전적 보기</h3>
                 <div className="flex justify-center gap-8">
                   <div className="text-center">
                     <div className="w-16 h-16 rounded-full bg-cusLightBlue-lighter flex items-center justify-center mb-2 clay">
@@ -416,7 +527,7 @@ function OtherProfile() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 text-center mt-2">
-                  {userData.nickname} 님의 승률은 {userData.battleStats?.winRate || 0}% 입니다.
+                  <span className="font-bold">{userData.nickname}</span> 님의 승률은 <span className="font-bold">{userData.battleStats?.winRate || 0}%</span> 입니다.
                 </p>
               </div>
             </div>

@@ -19,8 +19,17 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
     navigate(`/profile/${userId}`);
   };
 
+  const handleBackgroundClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleBackgroundClick}
+    >
       <div className="bg-white rounded-lg w-96 max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b">
           <h3 className="text-xl font-semibold text-center">{title}</h3>
@@ -57,12 +66,43 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
                       e.stopPropagation();
                       onFollowToggle(user.userId);
                     }}
-                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors clay flex items-center justify-center gap-2 ${
                       currentUserFollowing.includes(user.userId)
                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         : 'bg-blue-500 text-white hover:bg-blue-600'
                     }`}
                   >
+                    {currentUserFollowing.includes(user.userId) ? (
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-5 h-5"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" 
+                        />
+                      </svg>
+                    ) : (
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-5 h-5"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" 
+                        />
+                      </svg>
+                    )}
                     {currentUserFollowing.includes(user.userId) ? '언팔로우' : '팔로우'}
                   </button>
                 )}
@@ -401,16 +441,22 @@ function MyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* <NavBar /> */}
-
-      {/* Header with gradient background */}
-      <div className="bg-gradient-to-r from-pink-200 to-blue-200 py-8">
-        <h1 className="text-4xl font-bold text-white text-center drop-shadow-md">My page</h1>
+      <div className="flex justify-start bg-gradient-to-r from-cusPink to-cusLightBlue p-6">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow-xl">
+          프로필 페이지
+        </h1>
       </div>
+      {/* Header with gradient background */}
+      {/* <div className="bg-gradient-to-r from-pink-200 to-blue-200 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <h1 className="text-4xl font-bold text-white text-left drop-shadow-md">프로필 페이지</h1>
+        </div>
+      </div> */}
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6.5xl mx-auto px-4 py-8">
         {/* Profile Section */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-6 items-start clay bg-white p-6">
+          <div className="flex flex-col md:flex-row gap-6 items-start clay bg-cusGray-light p-6">
             {/* Profile Image Section */}
             <div className="w-full md:w-auto flex flex-col items-center gap-4">
               <div className="w-48 h-48 relative rounded-lg overflow-hidden bg-white shadow-md">
@@ -422,7 +468,7 @@ function MyPage() {
               </div>
               <button
                 onClick={() => fileInputRef.current.click()}
-                className="w-48 py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors"
+                className="w-48 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink transition-colors text-sm font-medium clay"
               >
                 이미지 수정
               </button>
@@ -437,32 +483,96 @@ function MyPage() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg clay">
-                    <p className="text-sm text-gray-600">응원 점수</p>
-                    <p className="text-2xl font-bold">{userData.stats.cheerPoints}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-6 h-6 text-gray-600"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" 
+                        />
+                      </svg>
+                      <p className="text-sm text-gray-600">응원 점수</p>
+                    </div>
+                    <p className="text-2xl font-bold text-center">{userData.stats.cheerPoints}</p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg clay">
-                    <p className="text-sm text-gray-600">포인트</p>
-                    <p className="text-2xl font-bold">{userData.stats.points}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-6 h-6 text-gray-600"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" 
+                        />
+                      </svg>
+                      <p className="text-sm text-gray-600">포인트</p>
+                    </div>
+                    <p className="text-2xl font-bold text-center">{userData.stats.points}</p>
                   </div>
                   <div 
                     className="bg-blue-50 p-4 rounded-lg clay cursor-pointer hover:bg-blue-100 transition-colors"
                     onClick={() => handleOpenModal('follower')}
                   >
-                    <p className="text-sm text-gray-600">팔로워</p>
-                    <p className="text-2xl font-bold">{userData.stats.followers}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-6 h-6 text-gray-600"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" 
+                        />
+                      </svg>
+                      <p className="text-sm text-gray-600">팔로워</p>
+                    </div>
+                    <p className="text-2xl font-bold text-center">{userData.stats.followers}</p>
                   </div>
                   <div 
                     className="bg-blue-50 p-4 rounded-lg clay cursor-pointer hover:bg-blue-100 transition-colors"
                     onClick={() => handleOpenModal('following')}
                   >
-                    <p className="text-sm text-gray-600">팔로잉</p>
-                    <p className="text-2xl font-bold">{userData.stats.following}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5" 
+                        stroke="currentColor" 
+                        className="w-6 h-6 text-gray-600"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" 
+                        />
+                      </svg>
+                      <p className="text-sm text-gray-600">팔로잉</p>
+                    </div>
+                    <p className="text-2xl font-bold text-center">{userData.stats.following}</p>
                   </div>
                 </div>
 
                 {/* Battle Record */}
                 <div className="bg-gray-50 p-4 rounded-lg clay">
-                  <h3 className="text-lg font-semibold mb-4">내 전적 보기</h3>
+                  <h3 className="text-lg font-semibold mb-4">전적 보기</h3>
                   <div className="flex justify-center gap-8">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2 clay">
@@ -484,7 +594,7 @@ function MyPage() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 text-center mt-2">
-                    {userData.nickname} 님의 승률은 {userData.battleStats?.winRate || 0}% 입니다.
+                    <span className="font-bold">{userData.nickname}</span> 님의 승률은 <span className="font-bold">{userData.battleStats?.winRate || 0}%</span> 입니다.
                   </p>
                 </div>
               </div>
@@ -492,7 +602,7 @@ function MyPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm clay">
+        <div className="bg-cusGray-light rounded-lg shadow-sm clay">
           <div className="flex border-b">
             <button
               className={`flex-1 py-4 text-center font-medium ${
