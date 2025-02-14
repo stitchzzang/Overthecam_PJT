@@ -54,15 +54,10 @@ const SearchResultPage = () => {
 
   const handleSearch = async (query) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = token 
-        ? {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        : {
-            'Content-Type': 'application/json'
-          };
+      // 기본 헤더
+      const headers = {
+        'Content-Type': 'application/json'
+      };
 
       // 배틀 검색
       const battleResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
@@ -74,7 +69,7 @@ const SearchResultPage = () => {
       const userResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/user`, {
         params: { 
           keyword: query,
-          size: 100  // 페이지 크기를 크게 설정
+          size: 100
         },
         headers
       });
@@ -227,7 +222,7 @@ const SearchResultPage = () => {
                 {searchResults.users.length > 0 ? (
                   searchResults.users.map((user, index) => (
                     <Link 
-                      to={`/main/profile/${user.nickname}`} 
+                      to={`/main/profile/${user.userId}`}
                       key={`user-${index}`}
                       className="block p-4 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
                     >
