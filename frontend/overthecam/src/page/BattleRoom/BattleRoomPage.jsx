@@ -13,8 +13,11 @@ import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLe
 import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
+import useWebSocket from "../../hooks/useWebSocket";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+const token = localStorage.getItem("token");
 
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
@@ -33,6 +36,9 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
+
+  // 웹소켓 관련
+  const { client, connectWS, disconnectWS, isWsConnected } = useWebSocket();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -89,7 +95,10 @@ function BattleRoomPage() {
       }
     });
 
+    // 오픈비두 설정 관련 초기화
     initializeRoom();
+    // 웹소켓 설정 관련 초기화
+    connectWS(BASE_URL, token);
 
     // cleanup 언마운트시 해제
     return () => {
@@ -97,6 +106,7 @@ function BattleRoomPage() {
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("keydown", handleKeyDown);
       if (room) {
+        disconnectWS();
         cleanup(room);
       }
     };
@@ -374,45 +384,51 @@ function BattleRoomPage() {
 
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
-      <BattleHeader
-        isWaiting={isWaiting}
-        isMaster={isMaster}
-        onshowLeaveConfirmModal={handleLeavRoom}
-        onShowBattlerModal={battlerModalShow}
-        onShowEndBattleModal={endBattleModalShow}
-      />
-      <div className="render-change flex-1 h-0">
-        {isWaiting ? (
-          <div className="flex h-full">
-            {/* h-full 유지 */}
-            <div className="w-full h-full flex flex-col">
-              {/* flex flex-col 추가 */}
-              <BattleWaiting
-                room={room}
-                localTrack={localTrack}
-                remoteTracks={remoteTracks}
-                participantName={battleInfo.participantName}
-                isMaster={isMaster}
-                host={host}
-                participants={participants}
-                onBattleStart={handleBattleStart}
-              />
-            </div>
+      {isConnected && isWsConnected ? (
+        <>
+          <BattleHeader
+            isWaiting={isWaiting}
+            isMaster={isMaster}
+            onshowLeaveConfirmModal={handleLeavRoom}
+            onShowBattlerModal={battlerModalShow}
+            onShowEndBattleModal={endBattleModalShow}
+          />
+          <div className="render-change flex-1 h-0">
+            {isWaiting ? (
+              <div className="flex h-full">
+                {/* h-full 유지 */}
+                <div className="w-full h-full flex flex-col">
+                  {/* flex flex-col 추가 */}
+                  <BattleWaiting
+                    room={room}
+                    localTrack={localTrack}
+                    remoteTracks={remoteTracks}
+                    participantName={battleInfo.participantName}
+                    isMaster={isMaster}
+                    host={host}
+                    participants={participants}
+                    onBattleStart={handleBattleStart}
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <BattleStart />
+              </>
+            )}
           </div>
-        ) : (
-          <>
-            <BattleStart />
-          </>
-        )}
-      </div>
-      <BattlerSettingModal ref={battlerSettingModal} />
-      <FailAlertModal ref={failTost} />
-      <NoticeAlertModal ref={noticeToast} />
-      <BattleLeaveConfirmModal
-        ref={leaveConfirmModal}
-        onConfirm={handleConfirmLeave}
-      />
-      <BattleEndModal ref={endBattleModal} onFinish={handleEndBattle} />
+          <BattlerSettingModal ref={battlerSettingModal} />
+          <FailAlertModal ref={failTost} />
+          <NoticeAlertModal ref={noticeToast} />
+          <BattleLeaveConfirmModal
+            ref={leaveConfirmModal}
+            onConfirm={handleConfirmLeave}
+          />
+          <BattleEndModal ref={endBattleModal} onFinish={handleEndBattle} />
+        </>
+      ) : (
+        <><p>배틀방 로딩중...</p></>
+      )}
     </div>
   );
 }
