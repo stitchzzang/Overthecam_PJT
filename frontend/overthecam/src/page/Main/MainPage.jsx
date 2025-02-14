@@ -14,14 +14,20 @@ const SectionTitle = ({ title }) => (
   </h2>
 );
 
-const StatusBadge = ({ status }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold";
+const StatusBadge = ({ status, onClick }) => {
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold cursor-pointer";
   return status === 0 ? (
-    <span className={`${baseClasses} bg-cusRed-light text-cusBlack`}>
+    <span 
+      onClick={onClick}
+      className={`${baseClasses} bg-cusRed-light text-cusBlack hover:bg-cusRed-dark`}
+    >
       입장하기
     </span>
   ) : (
-    <span className={`${baseClasses} bg-cusBlue-light text-cusBlack`}>
+    <span 
+      onClick={onClick}
+      className={`${baseClasses} bg-cusBlue-light text-cusBlack hover:bg-cusBlue-dark`}
+    >
       진행 중
     </span>
   );
@@ -78,8 +84,16 @@ const MainPage = () => {
 
   const fetchBattles = async () => {
     try {
-      // 토큰 없이 요청하도록 수정
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/room/all`);
+      // baseURL 설정 확인
+      const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:8080';
+      
+      const response = await axios.get(`${baseURL}/battle/room/all`, {
+        // timeout 설정 추가
+        timeout: 5000,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
       if (response.data.success) {
         const battles = response.data.data.battleInfo.map(battle => ({
@@ -95,19 +109,22 @@ const MainPage = () => {
       }
     } catch (error) {
       console.error("배틀 목록 조회 중 오류 발생:", error);
+      // 에러 발생시 빈 배열로 설정하여 UI가 깨지지 않도록 함
       setBattleList([]);
     }
   };
 
-  // 배틀룸 입장 처리 함수
-  const handleBattleEnter = (battleId) => {
+  // 배틀룸 입장 처리 함수 수정
+  const handleBattleEnter = (battleId, status) => {
     const token = localStorage.getItem('token');
+    
+    // 로그인 체크
     if (!token) {
-      // 로그인이 필요하다는 알림
       alert('로그인이 필요한 서비스입니다.');
-      navigate('/main/login');
+      navigate('/login');
       return;
     }
+    
     // 로그인된 상태면 배틀룸으로 이동
     navigate(`/main/battle-room/${battleId}`);
   };
@@ -216,10 +233,19 @@ const MainPage = () => {
                             <div className="flex justify-center items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
                               <div 
-                                onClick={() => handleBattleEnter(battle.battleId)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBattleEnter(battle.battleId, battle.status);
+                                }}
                                 className="hover:scale-105 transition-transform cursor-pointer"
                               >
-                                <StatusBadge status={battle.status} />
+                                <StatusBadge 
+                                  status={battle.status} 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBattleEnter(battle.battleId, battle.status);
+                                  }}
+                                />
                               </div>
                             </div>
                           </div>
