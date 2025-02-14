@@ -78,13 +78,21 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
           {/* Header */}
           <h4 className="text-xl font-bold text-cusBlack">배팅</h4>
 
+          {/* Error Message */}
+          {isWrongInput && (
+            <p className="text-cusRed text-sm text-center bg-red-50 py-2 px-4 rounded-lg">
+              배팅은 1000점부터 가능합니다.
+            </p>
+          )}
+
           {/* Confirmation Text */}
           <h5 className="text-lg font-semibold text-cusBlack">
-            배팅할 금액을 입력해주세요.
+            배팅할 금액을 입력해주세요. 투표는 번복할 수 없으니 신중하게
+            선택해주세요.
           </h5>
 
           {/* Exchange Form */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-3">
             <div className="flex-1">
               <label
                 htmlFor="scoreinput"
@@ -103,20 +111,20 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
             </div>
 
             {/* Buttons */}
-            <div className="flex gap-3 w-full mt-2">
+            <div className="flex gap-3 w-full mt-2 justify-center">
               <button
                 type="button"
                 onClick={closeModal}
-                className="btn flex-1 py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300 font-semibold"
+                className="btn px-4 py-2 w-24 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300 font-semibold"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={() => onBet()}
-                className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
+                className="btn px-4 py-2 w-32 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
               >
-                구매 확정
+                배팅 확정
               </button>
             </div>
           </div>
