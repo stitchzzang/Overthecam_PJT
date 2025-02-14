@@ -3,17 +3,21 @@ package com.overthecam.security.jwt;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.dto.TokenResponse;
+import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.common.exception.GlobalException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -88,6 +92,21 @@ public class JwtTokenProvider {
     // 토큰 만료 시간
     private Date getExpirationTime(Date now, long validityInMilliseconds) {
         return new Date(now.getTime() + validityInMilliseconds);
+    }
+
+    // 토큰의 남은 만료 시간을 밀리초 단위로 반환
+    public long getExpirationTime(String token) {
+        try {
+            Claims claims = getClaims(token);
+            Date expiration = claims.getExpiration();
+            Date now = new Date();
+            return Math.max(0, expiration.getTime() - now.getTime());
+        } catch (ExpiredJwtException e) {
+            return 0L;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("토큰 만료 시간 계산 중 오류 발생", e);
+            throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE, "유효하지 않은 토큰입니다");
+        }
     }
 
     // 토큰에서 사용자 ID 추출
