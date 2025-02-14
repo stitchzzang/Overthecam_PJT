@@ -20,9 +20,9 @@ const StatusBadge = ({ status }) => {
       입장하기
     </span>
   ) : (
-    <span className={`${baseClasses} bg-cusBlue-light text-cusBlack`}>
+    <div className={`${baseClasses} bg-cusBlue-light text-white pointer-events-none`}>
       진행 중
-    </span>
+    </div>
   );
 };
 
@@ -151,12 +151,16 @@ const SearchResultPage = () => {
                             </h3>
                             <div className="flex justify-center items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              <Link 
-                                to={`/main/battle-room/${battle.battleId}`}
-                                className="hover:scale-105 transition-transform"
-                              >
+                              {battle.status === 0 ? (
+                                <Link 
+                                  to={`/main/battle-room/${battle.battleId}`}
+                                  className="hover:scale-105 transition-transform"
+                                >
+                                  <StatusBadge status={battle.status} />
+                                </Link>
+                              ) : (
                                 <StatusBadge status={battle.status} />
-                              </Link>
+                              )}
                             </div>
                           </div>
                         </div>

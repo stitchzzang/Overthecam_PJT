@@ -81,7 +81,7 @@ const VotePage = () => {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('로그인이 필요합니다.');
-        navigate('/login');
+        navigate('/main/login');
         return;
       }
 
@@ -116,8 +116,12 @@ const VotePage = () => {
       
     } catch (err) {
       console.error('Vote error:', err);
+      if (err.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
       alert('투표 처리 중 오류가 발생했습니다.');
-      // 에러 발생 시 원래 상태로 복구
       await fetchVotes();
     }
   };
@@ -294,6 +298,13 @@ const VotePage = () => {
             <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
               <Link 
                 to={`/main/vote-detail/${vote.voteId}`}
+                onClick={(e) => {
+                  if (!localStorage.getItem('token')) {
+                    e.preventDefault();
+                    alert('로그인이 필요합니다.');
+                    navigate('/main/login');
+                  }
+                }}
                 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer"
               >
                 <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">

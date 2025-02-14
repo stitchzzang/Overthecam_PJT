@@ -11,6 +11,13 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId);
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요한 서비스입니다.');
+        navigate('/main/login');
+        return;
+      }
+
       const response = await joinRoom(battleId, userNickname);
       const newBattleInfo = {
         battleId: response.data.battleId,
@@ -58,7 +65,7 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
             </button>
           ) : (
             <button className="btn-disabled bg-cusBlue-light w-32 h-11">
-              진행중
+              진행 중
             </button>
           )}
         </div>
