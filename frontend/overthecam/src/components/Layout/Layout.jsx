@@ -4,9 +4,7 @@ import NavBar from "./NavBar";
 function Layout() {
   const location = useLocation();
   const getBackgroundColor = () => {
-    if (location.pathname.startsWith("/main/battle-room")) {
-      return "bg-gradient-to-b from-cusPink to-cusLightBlue flex-1";
-    } else if (
+    if (
       location.pathname === "/main/login" ||
       location.pathname === "/main/signup" ||
       location.pathname === "/main/find-account" ||
