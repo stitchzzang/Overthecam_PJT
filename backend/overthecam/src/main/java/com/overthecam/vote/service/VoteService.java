@@ -61,11 +61,8 @@ public class VoteService {
     /**
      * 투표 목록 조회
      */
-    public VotePageResponse getVotes(String keyword, String status, String sortBy, Pageable pageable, Long userId) {
-        int pageNumber = Math.max(0, pageable.getPageNumber() - 1);
-        Pageable adjustedPageable = PageRequest.of(pageNumber, pageable.getPageSize(), pageable.getSort());
-
-        Page<Vote> votes = searchVotesByCondition(keyword, status, adjustedPageable);
+    public VotePageResponse getVotes(String keyword, String status, Pageable pageable, Long userId) {
+        Page<Vote> votes = searchVotesByCondition(keyword, status, pageable);
 
         // votes를 VoteDetailResponse로 변환하고 페이지 정보 포함
         Page<VoteDetailResponse> votePage = votes.map(vote ->

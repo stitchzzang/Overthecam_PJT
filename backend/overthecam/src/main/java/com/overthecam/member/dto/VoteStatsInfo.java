@@ -20,6 +20,7 @@ public class VoteStatsInfo {
     private Long voteId;
     private String title;
     private String content;
+    private Long battleId;
     private Long creatorUserId;
     private String creatorNickname;
     private boolean isActive;
@@ -40,39 +41,41 @@ public class VoteStatsInfo {
     }
 
     public static VoteStatsInfo of(
-            Vote vote,
-            boolean hasVoted,
-            Map<Long, Boolean> selectionStatus
+        Vote vote,
+        boolean hasVoted,
+        Map<Long, Boolean> selectionStatus
     ) {
         int totalVotes = vote.getOptions().stream()
-                .mapToInt(VoteOption::getVoteCount)
-                .sum();
+            .mapToInt(VoteOption::getVoteCount)
+            .sum();
 
         List<VoteOptionDetail> options = vote.getOptions().stream()
-                .map(option -> {
-                    double percentage = totalVotes > 0 ?
-                            (double) option.getVoteCount() / totalVotes * 100 : 0;
+            .map(option -> {
+                double percentage = totalVotes > 0 ?
+                    (double) option.getVoteCount() / totalVotes * 100 : 0;
 
-                    return VoteOptionDetail.builder()
-                            .optionId(option.getVoteOptionId())
-                            .optionTitle(option.getOptionTitle())
-                            .voteCount(option.getVoteCount())
-                            .votePercentage(Math.round(percentage * 10.0) / 10.0)
-                            .isSelected(selectionStatus.getOrDefault(option.getVoteOptionId(), false))
-                            .build();
-                })
-                .collect(Collectors.toList());
+                return VoteOptionDetail.builder()
+                    .optionId(option.getVoteOptionId())
+                    .optionTitle(option.getOptionTitle())
+                    .voteCount(option.getVoteCount())
+                    .votePercentage(Math.round(percentage * 10.0) / 10.0)
+                    .isSelected(selectionStatus.getOrDefault(option.getVoteOptionId(), false))
+                    .build();
+            })
+            .collect(Collectors.toList());
 
-        return VoteStatsInfo.builder()
-                .voteId(vote.getVoteId())
-                .title(vote.getTitle())
-                .content(vote.getContent())
-                .creatorUserId(vote.getUser().getId())
-                .creatorNickname(vote.getUser().getNickname())
-                .isActive(vote.isActive())
-                .hasVoted(hasVoted)
-                .totalVoteCount(totalVotes)
-                .options(options)
-                .build();
+        VoteStatsInfoBuilder builder = VoteStatsInfo.builder()
+            .voteId(vote.getVoteId())
+            .title(vote.getTitle())
+            .content(vote.getContent())
+            .battleId(vote.getBattle() != null ? vote.getBattle().getId() : null)  // null 체크 추가
+            .creatorUserId(vote.getUser().getId())
+            .creatorNickname(vote.getUser().getNickname())
+            .isActive(vote.isActive())
+            .hasVoted(hasVoted)
+            .totalVoteCount(totalVotes)
+            .options(options);
+
+        return builder.build();
     }
 }

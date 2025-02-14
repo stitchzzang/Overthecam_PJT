@@ -46,20 +46,13 @@ public class VoteController {
             Authentication authentication,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "DESC") Sort.Direction direction
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = securityUtils.getCurrentUserId(authentication);
 
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(direction, "createdAt")
-        );
 
-        VotePageResponse response = voteService.getVotes(keyword, status, sortBy, pageable, userId);
+        VotePageResponse response = voteService.getVotes(keyword, status, pageable, userId);
         return CommonResponseDto.ok(response);
     }
 

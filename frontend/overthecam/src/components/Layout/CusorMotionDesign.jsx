@@ -107,30 +107,36 @@ const ExactDesign = () => {
           <style>
             {`
               @keyframes gentleFloat {
-                0%, 100% { transform: translate(0, 0); }
-                50% { transform: translate(0, -15px); }
+                0%, 100% { transform: translate(0, 0) rotate(0deg); }
+                25% { transform: translate(3px, -12px) rotate(1deg); }
+                50% { transform: translate(0, -22px) rotate(2deg); }
+                75% { transform: translate(-3px, -12px) rotate(1deg); }
               }
 
               @keyframes gentleWave {
-                0%, 100% { transform: translate(0, 0) scale(1); }
-                50% { transform: translate(-8px, -8px) scale(1.03); }
+                0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+                25% { transform: translate(-8px, -8px) scale(1.03) rotate(-1deg); }
+                50% { transform: translate(-13px, -13px) scale(1.07) rotate(-2deg); }
+                75% { transform: translate(-8px, -8px) scale(1.03) rotate(-1deg); }
               }
 
               @keyframes gentlePulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.08); }
+                0%, 100% { transform: scale(1) translate(0, 0) rotate(0deg); }
+                25% { transform: scale(1.06) translate(-3px, -3px) rotate(0.5deg); }
+                50% { transform: scale(1.13) translate(-6px, -6px) rotate(1deg); }
+                75% { transform: scale(1.06) translate(-3px, -3px) rotate(0.5deg); }
               }
 
               .float-blob {
-                animation: gentleFloat 4s ease-in-out infinite;
+                animation: gentleFloat 6s ease-in-out infinite;
               }
 
               .wave-blob {
-                animation: gentleWave 5s ease-in-out infinite;
+                animation: gentleWave 7s ease-in-out infinite;
               }
 
               .pulse-blob {
-                animation: gentlePulse 6s ease-in-out infinite;
+                animation: gentlePulse 8s ease-in-out infinite;
               }
             `}
           </style>

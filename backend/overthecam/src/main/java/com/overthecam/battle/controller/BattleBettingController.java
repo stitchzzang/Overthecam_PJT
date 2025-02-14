@@ -2,8 +2,10 @@ package com.overthecam.battle.controller;
 
 import com.overthecam.battle.dto.BattleBettingInfo;
 import com.overthecam.battle.dto.BattleBettingRequest;
+import com.overthecam.battle.dto.BattlerVoteRequest;
 import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
+import com.overthecam.battle.service.BattleService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.security.util.SecurityUtils;
@@ -23,24 +25,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/battle/betting")
 public class BattleBettingController {
 
+    private final BattleService battleService;
     private final BattleBettingService battleBettingService;
     private final BattleResultService battleResultService;
     private final SecurityUtils securityUtils;
 
-    /*
-    배틀러 전용 투표
+    /**
+     * 배틀러 선정 및 배틀러 전용 투표
      */
     @PostMapping("/{battleId}/battler")
-    public CommonResponseDto<?> voteBattler(Authentication authentication,
-                                            @PathVariable Long battleId,
-                                            @RequestBody BattleBettingRequest request) {
-        Long userId = securityUtils.getCurrentUserId(authentication);
-        battleBettingService.voteBattler(battleId, userId, request.getOptionId());
+    public CommonResponseDto<?> voteBattler(@PathVariable Long battleId,
+        @RequestBody BattlerVoteRequest request) {
+        // 1. 배틀러 선정 - userId 직접 사용
+        battleService.selectBattlers(battleId, request.getFirstBattlerId(), request.getSecondBattlerId());
+
+        // 2. 배틀러 투표 처리
+        battleBettingService.voteBattler(battleId, request.getFirstBattlerId(), request.getFirstOptionId());
+        battleBettingService.voteBattler(battleId, request.getSecondBattlerId(), request.getSecondOptionId());
+
         return CommonResponseDto.ok();
     }
 
-    /*
-    일반 참여자 전용 투표
+    /**
+     * 일반 참여자 전용 투표
      */
     @PostMapping("/{battleId}/participant")
     public CommonResponseDto<?> voteParticipant(Authentication authentication,
