@@ -13,7 +13,7 @@ public enum BattleErrorCode implements ErrorCode {
     INVALID_PARTICIPANT_COUNT(400, "참가자 수가 올바르지 않습니다"),
 
     // Battle 제목/주제 관련 에러
-    TOPIC_GENERATION_FAILED(500, "주제 생성에 실패했습니다"),
+    TOPIC_GENERATION_FAILED(500, "랜덤 주제 생성에 실패했습니다"),
     BATTLE_TITLE_UPDATE_FAILED(500, "방제 변경에 실패했습니다"),
     BATTLE_ROOM_READ_FAILED(404, "만들어진 배틀방이 없습니다"),
 
