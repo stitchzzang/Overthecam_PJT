@@ -15,21 +15,18 @@ const SectionTitle = ({ title }) => (
 );
 
 const StatusBadge = ({ status, onClick }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold cursor-pointer";
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold";
   return status === 0 ? (
     <span 
       onClick={onClick}
-      className={`${baseClasses} bg-cusRed-light text-cusBlack hover:bg-cusRed-dark`}
+      className={`${baseClasses} bg-cusRed-light text-cusBlack hover:bg-cusRed-dark cursor-pointer`}
     >
       입장하기
     </span>
   ) : (
-    <span 
-      onClick={onClick}
-      className={`${baseClasses} bg-cusBlue-light text-cusBlack hover:bg-cusBlue-dark`}
-    >
+    <div className={`${baseClasses} bg-cusBlue-light text-white pointer-events-none`}>
       진행 중
-    </span>
+    </div>
   );
 };
 
@@ -232,21 +229,25 @@ const MainPage = () => {
                             {/* 상태와 참가자 정보 */}
                             <div className="flex justify-center items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              <div 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBattleEnter(battle.battleId, battle.status);
-                                }}
-                                className="hover:scale-105 transition-transform cursor-pointer"
-                              >
-                                <StatusBadge 
-                                  status={battle.status} 
+                              {battle.status === 0 ? (
+                                <div 
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleBattleEnter(battle.battleId, battle.status);
                                   }}
-                                />
-                              </div>
+                                  className="hover:scale-105 transition-transform cursor-pointer"
+                                >
+                                  <StatusBadge 
+                                    status={battle.status} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleBattleEnter(battle.battleId, battle.status);
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <StatusBadge status={battle.status} />
+                              )}
                             </div>
                           </div>
                         </div>

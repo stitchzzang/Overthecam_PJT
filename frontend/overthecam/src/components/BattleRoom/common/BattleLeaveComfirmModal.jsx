@@ -18,7 +18,7 @@ const BattleLeaveConfirmModal = forwardRef(function BattleLeaveConfirmModal(
     if (onConfirm) {
       await onConfirm(); // cleanup 실행
     }
-    navigate("/battle-list"); // 페이지 이동
+    navigate("/main/battle-list"); // /battle-list -> /main/battle-list로 수정
   };
 
   return (

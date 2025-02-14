@@ -123,13 +123,13 @@ function BattleRoomPage() {
           failTost.current?.showAlert(
             "연결이 끊어졌습니다."
           );
-          navigate("/");
+          navigate("/main");
           break;
         default:
           failTost.current?.showAlert(
             "오류가 발생했습니다."
           );
-          setTimeout(() => navigate("/"), 1500);
+          setTimeout(() => navigate("/main"), 1500);
       }
     };
 
@@ -160,7 +160,6 @@ function BattleRoomPage() {
       await joinRoom();
     } catch (error) {
       console.error("Room initialization error:", error);
-      // 토스트 메시지를 보여준 후 navigate
       if (error.name === "NotAllowedError") {
         failTost.current?.showAlert("카메라/마이크 권한이 필요합니다.");
       } else if (error.name === "NotFoundError") {
