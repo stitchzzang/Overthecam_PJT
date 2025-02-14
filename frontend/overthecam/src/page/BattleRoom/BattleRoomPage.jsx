@@ -365,55 +365,61 @@ function BattleRoomPage() {
   };
 
   const handleTimerStoped = (message) => {
-    noticeToast.current?.showAlert(message)
-  }
+    noticeToast.current?.showAlert(message);
+  };
 
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
-      <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl justify-between">
-        <button
-          onClick={handleLeavRoom}
-          className="btn justify-start bg-cusLightBlue-light !rounded-xl flex items-center h-12"
-        >
-          <ChevronLeftIcon className="w-5 h-5" />
-          나가기
-        </button>
-        <div className="room-header-name w-1/2 m-1 text-2xl font-semibold">
-          <h2>{battleInfo.roomName}</h2>
+      <div className="room-header flex items-center w-full h-16 bg-cusGray p-3 rounded-xl">
+        {/* 왼쪽 영역 */}
+        <div className="room-leave-controll flex gap-2">
+          <button
+            onClick={handleLeavRoom}
+            className="btn justify-start bg-cusLightBlue-light !rounded-xl flex items-center h-12"
+          >
+            <ChevronLeftIcon className="w-5 h-5" />
+            나가기
+          </button>
+          {!isWaiting && isMaster ? (
+            <button className="btn justify-start bg-cusYellow !rounded-xl flex items-center h-12">
+              배틀 종료
+            </button>
+          ) : null}
         </div>
+
+        {/* 중앙 영역 - mx-auto로 중앙 정렬 */}
+        <div className="room-header-name mx-auto text-2xl font-semibold max-w-[40%]">
+          <h2 className="truncate">{battleInfo.roomName}</h2>
+        </div>
+
+        {/* 오른쪽 영역 - flex gap-3으로 간격 조절 */}
         {isWaiting ? (
-          <div className="flex">
-            <div className="mx-1">
-              <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
-                랜덤 주제 생성기
-              </button>
-            </div>
-            {/* 방장만 배틀러 선정 버튼이 보임 */}
+          <div className="flex gap-3">
+            <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
+              랜덤 주제 생성기
+            </button>
             {isMaster && (
-              <div className="mx-1">
-                <button
-                  onClick={battlerModalShow}
-                  className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
-                >
-                  배틀러 선정하기
-                </button>
-              </div>
+              <button
+                onClick={battlerModalShow}
+                className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
+              >
+                배틀러 선정하기
+              </button>
             )}
           </div>
         ) : (
-          <>
-            <div className="battle-timer flex bg-cusYellow rounded-xl flex items-center h-12 clay">
+          <div className="flex gap-3">
+            {/* gap-3으로 타이머와 포인트 사이 간격 조절 */}
+            <div className="battle-timer flex bg-cusYellow rounded-xl items-center h-12 clay">
               <BattleTimer onTimerStoped={handleTimerStoped} />
             </div>
-            <div className="my-points flex bg-cusPink rounded-xl flex items-center h-12 clay">
-              <div className="points">
-                <p>나의 포인트 : </p>
-              </div>
-              <div className="cheer-score">
-                <p>나의 응원 점수: </p>
-              </div>
+            <div className="my-points flex bg-gray-300 rounded-xl items-center h-12 clay gap-2 px-2 font-semibold">
+              <span>내 포인트</span>
+              <div className="points bg-white rounded-lg px-1">100</div>
+              <span>내 응원 점수</span>
+              <div className="cheer-score bg-white rounded-lg px-1">1000</div>
             </div>
-          </>
+          </div>
         )}
       </div>
       <div className="render-change flex-1 h-0">
