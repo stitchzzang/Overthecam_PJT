@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
 import { useParams, useNavigate } from "react-router-dom";
+import Pagination from 'react-js-pagination';
 
 function MyPageVote({ userId, isOtherProfile }) {
   const [votes, setVotes] = useState([]);
@@ -73,6 +74,75 @@ function MyPageVote({ userId, isOtherProfile }) {
     }
   };
 
+  const renderVoteResult = (vote) => {
+    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
+    
+    const mySelectedOption = vote.options.find(option => option.selected);
+    const winningOption = vote.options.reduce((prev, current) => 
+      (current.voteCount > prev.voteCount) ? current : 
+      (current.voteCount === prev.voteCount) ? current : prev  // 동점일 때도 현재 옵션을 선택
+    );
+    
+    const selectedFirst = mySelectedOption?.optionId === vote.options[0].optionId;
+    const selectedSecond = mySelectedOption?.optionId === vote.options[1].optionId;
+    const didIWin = mySelectedOption?.optionId === winningOption.optionId;
+
+    const getLeftBarColor = () => {
+      if (selectedFirst) {
+        return 'bg-red-500';  // 1번 선택시 항상 빨간색
+      }
+      return 'bg-gray-300';  // 미선택시 연한 회색
+    };
+
+    const getRightBarColor = () => {
+      if (selectedSecond) {
+        return 'bg-blue-500';  // 2번 선택시 항상 파란색
+      }
+      return 'bg-gray-300';  // 미선택시 연한 회색
+    };
+
+    const leftPercentage = totalVotes > 0 ? Math.round(vote.options[0].votePercentage * 10) / 10 : 0;
+    const rightPercentage = totalVotes > 0 ? Math.round(vote.options[1].votePercentage * 10) / 10 : 0;
+
+    return (
+      <div className="mb-4">
+        {vote.options && vote.options.length >= 2 && (
+          <>
+            <div className="mb-2 flex justify-between">
+              <span className={`font-medium ${selectedFirst ? 'text-red-500' : 'text-gray-600'}`}>
+                {vote.options[0].optionTitle}
+              </span>
+              <span className={`font-medium ${selectedSecond ? 'text-blue-500' : 'text-gray-600'}`}>
+                {vote.options[1].optionTitle}
+              </span>
+            </div>
+            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden flex">
+              {leftPercentage > 0 && (
+                <div
+                  className={`h-full clay ${getLeftBarColor()} flex items-center justify-start pl-2 text-white`}
+                  style={{ width: `${leftPercentage}%` }}
+                >
+                  {leftPercentage}%
+                </div>
+              )}
+              {rightPercentage > 0 && (
+                <div
+                  className={`h-full clay ${getRightBarColor()} flex items-center justify-end pr-2 text-white`}
+                  style={{ width: `${rightPercentage}%` }}
+                >
+                  {rightPercentage}%
+                </div>
+              )}
+            </div>
+            <div className="text-right text-sm text-gray-600 mt-2">
+              총 투표수: {totalVotes}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
   if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
 
@@ -106,76 +176,26 @@ function MyPageVote({ userId, isOtherProfile }) {
           </div>
           
           <div className="space-y-3">
-            {vote.options.map((option) => (
-              <div key={option.optionId} className="relative">
-                {!isOtherProfile ? (
-                  <div className="relative">
-                    <div 
-                      className={`h-12 rounded-lg flex items-center px-4 relative ${
-                        option.selected 
-                          ? 'bg-cusLightBlue-lighter clay' 
-                          : 'bg-gray-50 clay'
-                      }`}
-                    >
-                      <div 
-                        className={`absolute left-0 top-0 h-full rounded-lg ${
-                          option.selected 
-                            ? 'bg-cusLightBlue-light' 
-                            : 'bg-gray-200'
-                        }`}
-                        style={{ width: `${option.votePercentage}%`, opacity: '0.5' }}
-                      />
-                      <div className="flex justify-between items-center w-full relative z-10">
-                        <span className="font-semibold text-cusBlack tracking-tight">{option.optionTitle}</span>
-                        <span className={`font-bold ${option.selected ? 'text-cusBlue' : 'text-gray-600'}`}>
-                          {option.votePercentage}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <div className="h-12 rounded-lg bg-gray-50 clay flex items-center px-4 relative">
-                      <div 
-                        className="absolute left-0 top-0 h-full bg-cusBlue"
-                        style={{ 
-                          width: `${option.votePercentage}%`, 
-                          opacity: '0.2',
-                          borderRadius: '0.5rem'
-                        }}
-                      />
-                      <div className="flex justify-between items-center w-full relative z-10">
-                        <span className="font-semibold text-cusBlack tracking-tight">
-                          {option.optionTitle}
-                        </span>
-                        <span className="text-cusBlue font-bold">
-                          {option.votePercentage}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+            {renderVoteResult(vote)}
           </div>
         </div>
       ))}
 
       {pageInfo.totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-8">
-          {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
-                currentPage === page
-                  ? "bg-cusBlue text-white clay"
-                  : "bg-white text-cusGray-dark hover:bg-cusLightBlue-lighter clay"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+        <div className="flex justify-center mt-6">
+          <Pagination
+            activePage={currentPage}
+            itemsCountPerPage={pageInfo.pageSize}
+            totalItemsCount={pageInfo.totalElements}
+            pageRangeDisplayed={5}
+            prevPageText={"이전"}
+            nextPageText={"다음"}
+            onChange={handlePageChange}
+            innerClass="flex gap-2"
+            itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+            activeClass="bg-cusBlack-light !text-white"
+            linkClass="block w-full h-full text-center"
+          />
         </div>
       )}
     </div>
