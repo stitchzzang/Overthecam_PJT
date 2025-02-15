@@ -6,7 +6,6 @@ import { useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
-import BattleRandomTopic from "./BattleWaitingModal/BattleRandomTopic";
 
 function BattleWaiting({
   room,
@@ -21,11 +20,6 @@ function BattleWaiting({
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
-  const randomTopicModal = useRef();
-  const onShowVoteCreate = (event) => {
-    voteCreateModal.current.showModal();
-  };
-  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
 
   // metadata로 내 role 보기
   try {
@@ -72,9 +66,11 @@ function BattleWaiting({
       return null;
     });
 
-  const onShowRandomTopic = () => {
-    randomTopicModal.current.showModal();
+  const onShowVoteCreate = (event) => {
+    voteCreateModal.current.showModal();
   };
+
+  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
 
   return (
     <>
@@ -158,12 +154,6 @@ function BattleWaiting({
                 >
                   <p>투표 만들기</p>
                 </div>
-                <div
-                  className="h-1/3 bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
-                  onClick={onShowRandomTopic}
-                >
-                  <p>랜덤 주제 뽑기</p>
-                </div>
               </div>
             ) : (
               <div className="w-1/4 flex flex-col mx-1">
@@ -183,7 +173,6 @@ function BattleWaiting({
         ref={battlerSettingModal}
         participants={participants}
       />
-      <BattleRandomTopic ref={randomTopicModal} />
     </>
   );
 }
