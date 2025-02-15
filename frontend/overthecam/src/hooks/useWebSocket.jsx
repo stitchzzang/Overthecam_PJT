@@ -72,6 +72,8 @@ const useWebSocket = (battleId) => {
             content: data.content,
             option1: data.options[0]?.optionTitle,
             option2: data.options[1]?.optionTitle,
+            option1Id: data.options[0]?.optionId,
+            option2Id: data.options[1]?.optionId,
           });
           break;
         case "BATTLE_READY":
