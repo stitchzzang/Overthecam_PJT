@@ -6,15 +6,17 @@ package com.overthecam.vote.repository;
  */
 
 import com.overthecam.vote.domain.Vote;
-import java.util.Optional;
+import com.overthecam.vote.dto.VoteStatsProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -35,10 +37,10 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     // 총 투표 수 기준 정렬
     @Query("SELECT v FROM Vote v " +
-        "LEFT JOIN v.options o " +
-        "WHERE v.battle IS NULL " +  // 추가
-        "GROUP BY v " +
-        "ORDER BY SUM(o.voteCount) DESC NULLS LAST")
+            "LEFT JOIN v.options o " +
+            "WHERE v.battle IS NULL " +  // 추가
+            "GROUP BY v " +
+            "ORDER BY SUM(o.voteCount) DESC NULLS LAST")
     Page<Vote> findAllOrderByVoteCountDesc(Pageable pageable);
 
     // 일반 투표 전체 조회
@@ -47,8 +49,8 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     // 만료된 투표 조회 (일반 투표만)
     @Query("SELECT v FROM Vote v WHERE " +
-        "v.battle IS NULL AND " +
-        "v.endDate < :now AND v.isActive = true")
+            "v.battle IS NULL AND " +
+            "v.endDate < :now AND v.isActive = true")
     List<Vote> findAllByEndDateBeforeAndIsActiveTrue(@Param("now") LocalDateTime now);
 
     @Query("SELECT DISTINCT v FROM Vote v " +
@@ -82,4 +84,19 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    @Query(value =
+            "SELECT v.title, " +
+                    "       vo.option_title, " +
+                    "       vo.is_winner, " +
+                    "       COUNT(vr.vote_record_id) as vote_count, " +
+                    "       ROUND(COUNT(vr.vote_record_id) * 100.0 / SUM(COUNT(vr.vote_record_id)) OVER(), 1) as vote_percentage " +
+                    "FROM vote v " +
+                    "JOIN vote_option vo ON v.vote_id = vo.vote_id " +
+                    "LEFT JOIN vote_record vr ON vo.vote_option_id = vr.vote_option_id " +
+                    "WHERE v.battle_id = :battleId " +
+                    "GROUP BY vo.vote_option_id",
+            nativeQuery = true)
+    List<VoteStatsProjection> findVoteStatsByBattleId(@Param("battleId") Long battleId);
+
 }

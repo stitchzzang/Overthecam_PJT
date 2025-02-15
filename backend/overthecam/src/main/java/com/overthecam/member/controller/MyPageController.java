@@ -8,8 +8,8 @@ import com.overthecam.member.service.*;
 import com.overthecam.security.util.SecurityUtils;
 import com.overthecam.vote.dto.VoteDetailResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -110,4 +110,21 @@ public class MyPageController {
 
         return CommonResponseDto.ok(combinedStats);
     }
+
+    @GetMapping("/battle/{battleId}/detail")
+    public CommonResponseDto<BattleCombinedStatusDto> getBattleDetailStatus(
+            Authentication authentication,
+            @PathVariable(name = "battleId") Long battleId,
+            @RequestParam(value = "userId", required = false) Long targetUserId) {
+
+        Long userId = targetUserId != null ?
+                targetUserId :
+                securityUtils.getCurrentUserId(authentication);
+
+        BattleCombinedStatusDto response = battleHIstoryService.getBattleDetail(battleId, userId);
+        return CommonResponseDto.ok(response);
+
+    }
+
+
 }
