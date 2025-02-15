@@ -277,7 +277,7 @@ export default function NavBar() {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <img 
-                          src="" 
+                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/images/default-profile.png"}
                           alt="Profile" 
                           className="w-full h-full object-cover"
                         />
