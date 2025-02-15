@@ -9,8 +9,7 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
 ) {
   const modalRef = useRef();
   const failToast = useRef();
-  const battleInfo = useBattleStore((state) => state.battleInfo);
-  const { error, createVote } = useWebSocketContext();
+  const { createVote } = useWebSocketContext();
   const [formData, setFormData] = useState({
     title: "",
     content: "",

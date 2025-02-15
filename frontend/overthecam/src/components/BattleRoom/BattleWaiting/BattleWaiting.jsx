@@ -2,7 +2,7 @@ import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
@@ -26,18 +26,22 @@ function BattleWaiting({
   };
   const { isVoteSubmitted } = useWebSocketContext();
 
-  // metadata로 내 role 보기
-  try {
-    const metadata = room.localParticipant.metadata
-      ? JSON.parse(room.localParticipant.metadata)
-      : {};
-    console.log("Role:", metadata.role);
-    if (metadata.role === "host") {
-      setHost(battleInfo.participantName);
+  useEffect(()=>{
+    // metadata로 내 role 보기
+    try {
+      const metadata = room.localParticipant.metadata
+        ? JSON.parse(room.localParticipant.metadata)
+        : {};
+      console.log("Role:", metadata.role);
+      if (metadata.role === "host") {
+        setHost(battleInfo.participantName);
+      }
+    } catch (metadataError) {
+      console.log("No metadata or invalid metadata:", metadataError);
     }
-  } catch (metadataError) {
-    console.log("No metadata or invalid metadata:", metadataError);
-  }
+  }, [])
+
+  
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
