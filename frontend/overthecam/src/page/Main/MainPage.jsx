@@ -55,7 +55,7 @@ const PopularVote = ({ onVoteComplete }) => {
           page: 0,
           size: 1,
           status: 'active',
-          sort: 'totalVoteCount,DESC'
+          sort: ['totalVoteCount,DESC', 'createdAt,DESC']  // 투표수 내림차순, 같으면 최신순
         },
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
