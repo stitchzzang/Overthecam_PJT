@@ -57,8 +57,7 @@ public class AuthController {
     @PostMapping("/verify-password-reset")
     public CommonResponseDto<Void> verifyPasswordReset(
             @Valid @RequestBody VerifyPasswordResetRequest request) {
-        authService.verifyPasswordReset(request);
-        return CommonResponseDto.ok();
+        return authService.verifyPasswordReset(request);
     }
 
     /**

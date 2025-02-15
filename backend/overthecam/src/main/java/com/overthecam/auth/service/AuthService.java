@@ -185,13 +185,15 @@ public class AuthService {
      * - 이메일, 이름, 전화번호로 사용자 검증
      */
     @Transactional(readOnly = true)
-    public void verifyPasswordReset(VerifyPasswordResetRequest request) {
-        User user = userRepository.findByEmailAndUsernameAndPhoneNumber(
+    public CommonResponseDto<Void> verifyPasswordReset(VerifyPasswordResetRequest request) {
+        userRepository.findByEmailAndUsernameAndPhoneNumber(
                         request.getEmail(),
                         request.getUsername(),
                         request.getPhoneNumber())
                 .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
                         String.format("일치하는 사용자 정보가 없습니다. (이메일: %s)", request.getEmail())));
+
+        return CommonResponseDto.ok();
     }
 
     /**
