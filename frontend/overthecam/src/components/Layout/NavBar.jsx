@@ -148,13 +148,13 @@ export default function NavBar() {
       </svg>
 
       <header className="h-[80px] mb-2 mt-6">
-        <div className="max-w-7xl mx-auto h-full px-3 relative flex items-center justify-between">
+        <div className="max-w-7xl mx-auto h-full px-1 relative flex items-center justify-between">
           {/* Left Section - Logo & Menu Button */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <div className="relative">
               {/* 햄버거 버튼 */}
               <button
-                className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[50px] relative z-20"
+                className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[40px] relative z-20"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="menu"
               >
@@ -165,16 +165,12 @@ export default function NavBar() {
               <div className="absolute left-0 top-[60px]" ref={sidebarRef}>
                 {/* gooey 효과가 적용될 배경 버튼들 */}
                 <div className="absolute left-0 top-0" style={{ filter: 'url(#gooey)', zIndex: 10 }}>
-                  {isLoggedIn && (
-                    <div className={`absolute w-36 h-12 bg-cusBlue/90 rounded-full clay transition-all duration-500 ease-in-out shadow-[4px_4px_10px_rgba(0,0,0,0.08),-4px_-4px_10px_rgba(255,255,255,0.8),inset_2px_2px_4px_rgba(0,0,0,0.08),inset_-2px_-2px_4px_rgba(255,255,255,0.8)] ${
-                      isMenuOpen ? 'translate-y-[10px] opacity-100 scale-100' : 'translate-y-0 opacity-0 scale-95'
-                    }`} />
-                  )}
-                  {isLoggedIn && (
-                    <div className={`absolute w-36 h-12 bg-cusBlue/90 rounded-full clay transition-all duration-500 ease-in-out delay-[50ms] shadow-[4px_4px_10px_rgba(0,0,0,0.08),-4px_-4px_10px_rgba(255,255,255,0.8),inset_2px_2px_4px_rgba(0,0,0,0.08),inset_-2px_-2px_4px_rgba(255,255,255,0.8)] ${
-                      isMenuOpen ? 'translate-y-[75px] opacity-100 scale-100' : 'translate-y-0 opacity-0 scale-95'
-                    }`} />
-                  )}
+                  <div className={`absolute w-36 h-12 bg-cusBlue/90 rounded-full clay transition-all duration-500 ease-in-out shadow-[4px_4px_10px_rgba(0,0,0,0.08),-4px_-4px_10px_rgba(255,255,255,0.8),inset_2px_2px_4px_rgba(0,0,0,0.08),inset_-2px_-2px_4px_rgba(255,255,255,0.8)] ${
+                    isMenuOpen ? 'translate-y-[10px] opacity-100 scale-100' : 'translate-y-0 opacity-0 scale-95'
+                  }`} />
+                  <div className={`absolute w-36 h-12 bg-cusBlue/90 rounded-full clay transition-all duration-500 ease-in-out delay-[50ms] shadow-[4px_4px_10px_rgba(0,0,0,0.08),-4px_-4px_10px_rgba(255,255,255,0.8),inset_2px_2px_4px_rgba(0,0,0,0.08),inset_-2px_-2px_4px_rgba(255,255,255,0.8)] ${
+                    isMenuOpen ? 'translate-y-[75px] opacity-100 scale-100' : 'translate-y-0 opacity-0 scale-95'
+                  }`} />
                   <div className={`absolute w-36 h-12 bg-cusBlue/90 rounded-full clay transition-all duration-500 ease-in-out delay-[100ms] shadow-[4px_4px_10px_rgba(0,0,0,0.08),-4px_-4px_10px_rgba(255,255,255,0.8),inset_2px_2px_4px_rgba(0,0,0,0.08),inset_-2px_-2px_4px_rgba(255,255,255,0.8)] ${
                     isMenuOpen ? 'translate-y-[140px] opacity-100 scale-100' : 'translate-y-0 opacity-0 scale-95'
                   }`} />
@@ -188,28 +184,40 @@ export default function NavBar() {
 
                 {/* 실제 링크와 텍스트 */}
                 <div className="relative z-20">
-                  {isLoggedIn && (
-                    <Link
-                      to="/main/create-battle-room"
-                      className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
-                        isMenuOpen ? 'translate-y-[10px] opacity-100' : 'translate-y-0 opacity-0 pointer-events-none'
-                      }`}
-                    >
-                      <i className="ri-message-2-line text-2xl"></i>
-                      <span className="text-[15px] font-bold ml-3">배틀 생성</span>
-                    </Link>
-                  )}
-                  {isLoggedIn && (
-                    <Link
-                      to="/main/create-vote"
-                      className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
-                        isMenuOpen ? 'translate-y-[75px] opacity-100' : 'translate-y-0 opacity-0 pointer-events-none'
-                      }`}
-                    >
-                      <i className="ri-chat-poll-line text-2xl"></i>
-                      <span className="text-[15px] font-bold ml-3">투표 생성</span>
-                    </Link>
-                  )}
+                  <Link
+                    to={isLoggedIn ? "/main/create-battle-room" : "/main/login"}
+                    onClick={(e) => {
+                      if (!isLoggedIn) {
+                        e.preventDefault();
+                        alert('로그인이 필요한 서비스입니다.');
+                        navigate('/main/login');
+                      }
+                    }}
+                    className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
+                      isMenuOpen ? 'translate-y-[10px] opacity-100' : 'translate-y-0 opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <i className="ri-message-2-line text-2xl"></i>
+                    <span className="text-[15px] font-bold ml-3">배틀 생성</span>
+                  </Link>
+                  
+                  <Link
+                    to={isLoggedIn ? "/main/create-vote" : "/main/login"}
+                    onClick={(e) => {
+                      if (!isLoggedIn) {
+                        e.preventDefault();
+                        alert('로그인이 필요한 서비스입니다.');
+                        navigate('/main/login');
+                      }
+                    }}
+                    className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
+                      isMenuOpen ? 'translate-y-[75px] opacity-100' : 'translate-y-0 opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <i className="ri-chat-poll-line text-2xl"></i>
+                    <span className="text-[15px] font-bold ml-3">투표 생성</span>
+                  </Link>
+                  
                   <Link
                     to="/main/battle-list"
                     className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
@@ -219,6 +227,7 @@ export default function NavBar() {
                     <i className="ri-live-line text-2xl"></i>
                     <span className="text-[15px] font-bold ml-3">배틀</span>
                   </Link>
+                  
                   <Link
                     to="/main/vote"
                     className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
@@ -228,6 +237,7 @@ export default function NavBar() {
                     <i className="ri-bar-chart-line text-2xl"></i>
                     <span className="text-[15px] font-bold ml-3">투표</span>
                   </Link>
+                  
                   <Link
                     to="/main/store"
                     className={`absolute w-36 h-12 flex items-center justify-start px-4 text-white transition-all duration-500 ease-in-out ${
@@ -313,7 +323,7 @@ export default function NavBar() {
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className="hidden xl:block max-w-[550px] flex-1 mx-8">
+          <div className="hidden xl:block max-w-[550px] flex-1 -ml-24">
             <SearchBar />
           </div>
 
@@ -321,18 +331,18 @@ export default function NavBar() {
           <div className="hidden xl:flex items-center gap-6">
             {isLoggedIn && userNickname ? (
               <>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col justify-center h-full gap-2">
                   <Link
                     to={"/main/create-battle-room"}
-                    className="btn px-4 xl:px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-32"
+                    className="btn px-2 xl:px-3 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-28"
                   >
-                    <span>방 만들기</span>
+                    <span>배틀 생성</span>
                   </Link>
                   <Link
                     to={"/main/create-vote"}
-                    className="btn px-4 xl:px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-32"
+                    className="btn px-2 xl:px-3 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center whitespace-nowrap w-28"
                   >
-                    <span>투표 만들기</span>
+                    <span>투표 생성</span>
                   </Link>
                 </div>
                 <div className="relative" ref={dropdownRef}>
