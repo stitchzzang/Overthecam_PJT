@@ -38,7 +38,8 @@ function BattleRoomPage() {
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
 
   // 웹소켓 관련
-  const { status, error, connectWS, disconnectWS, vote } = useWebSocketContext();
+  const { status, error, connectWS, disconnectWS, vote } =
+    useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -74,6 +75,11 @@ function BattleRoomPage() {
     // 현재 페이지에 머무르기 위해 history 상태 추가
     window.history.pushState(null, "", window.location.pathname);
   };
+
+  // participants가 업데이트될 때마다 실행됨
+  useEffect(() => {
+    console.log("업데이트된 참가자 목록:", participants);
+  }, [participants]);
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
@@ -229,7 +235,7 @@ function BattleRoomPage() {
         {
           trackPublication: publication,
           participantIdentity: participant.identity,
-          participantMetadata: participant.metadata
+          participantMetadata: participant.metadata,
         },
       ]);
     });
@@ -238,25 +244,18 @@ function BattleRoomPage() {
     room.on(RoomEvent.Connected, async () => {
       // 잠시 기다려서 localParticipant가 설정될 시간 주기
       await new Promise((resolve) => setTimeout(resolve, 800));
-      
+
       const allParticipants = [];
       // localParticipant 추가
       if (room.localParticipant?.metadata) {
         const localMeta = JSON.parse(room.localParticipant.metadata);
-        allParticipants.push({
-          userId: localMeta.userId,
-          nickname: localMeta.nickname,
-          role: localMeta.role,
-        });
+        allParticipants.push(localMeta);
       }
 
       if (room.remoteParticipants) {
         room.remoteParticipants.forEach((participant, key) => {
-          allParticipants.push({
-            userId: JSON.parse(participant.metadata).userId,
-            nickname: JSON.parse(participant.metadata).nickname,
-            role: JSON.parse(participant.metadata).role,
-          });
+          const remoteMeta = JSON.parse(participant.metadata);
+          allParticipants.push(remoteMeta);
           if (JSON.parse(participant.metadata).role === "host") {
             setHost(JSON.parse(participant.metadata).nickname);
           }
@@ -274,9 +273,10 @@ function BattleRoomPage() {
     });
 
     room.on(RoomEvent.ParticipantConnected, (participant) => {
-      console.log("participant connected:", participant.metadata)
+      console.log("participant connected:", participant.metadata);
       setParticipants((prev) => [...prev, JSON.parse(participant.metadata)]);
-    })
+      console.log(participants);
+    });
 
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
       console.log("Participant disconnected:", participant.identity);
@@ -285,11 +285,12 @@ function BattleRoomPage() {
           (track) => track.participantIdentity !== participant.identity
         )
       );
-      setParticipants((prev) =>
-        prev.filter(
-          (p) => p.userId !== participant.userId
-        )
-      );
+      setParticipants((prev) => {
+        const filteredParticipants = prev.filter(
+          (p) => p.nickname !== participant.identity
+        );
+        return filteredParticipants;
+      });
     });
 
     try {
