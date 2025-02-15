@@ -111,6 +111,23 @@ public class MyPageController {
         return CommonResponseDto.ok(combinedStats);
     }
 
+    @GetMapping("/battle/{battleId}/detail")
+    public CommonResponseDto<BattleCombinedStatusDto> getBattleDetailStatus(
+            Authentication authentication,
+            @PathVariable(name = "battleId") Long battleId,
+            @RequestParam(value = "userId", required = false) Long targetUserId) {
+
+        Long userId = targetUserId != null ?
+                targetUserId :
+                securityUtils.getCurrentUserId(authentication);
+
+        BattleCombinedStatusDto response = battleHIstoryService.getBattleDetail(battleId, userId);
+        return CommonResponseDto.ok(response);
+
+    }
+
+
+
     @GetMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> getMyProfile(
             Authentication authentication,
