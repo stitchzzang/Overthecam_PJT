@@ -1,8 +1,13 @@
 package com.overthecam.member.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
+import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.member.dto.UserScoreInfo;
+import com.overthecam.member.dto.UserUpdateRequestDto;
+import com.overthecam.member.dto.UserUpdateResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MyPageService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     //100점당 1점
     public UserScoreInfo revertScoreToPoint(Long userId, int amount) {
@@ -64,5 +70,30 @@ public class MyPageService {
             user.updateSupportScores(newScore);
             userRepository.save(user);
         });
+    }
+    @Transactional(readOnly = true)
+    public UserUpdateResponseDto getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
+        return UserUpdateResponseDto.from(user);
+    }
+
+    public UserUpdateResponseDto updateUserProfile(Long userId, UserUpdateRequestDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 비밀번호가 제공되고 비어있지 않은 경우에만 업데이트
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            user.updatePassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        // 닉네임과 전화번호 업데이트 (null이 아닌 경우에만)
+        user.updateProfile(
+                request.getNickname() != null && !request.getNickname().trim().isEmpty() ? request.getNickname() : null,
+                request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty() ? request.getPhoneNumber() : null
+        );
+
+        User savedUser = userRepository.save(user);
+        return UserUpdateResponseDto.from(savedUser);
     }
 }
