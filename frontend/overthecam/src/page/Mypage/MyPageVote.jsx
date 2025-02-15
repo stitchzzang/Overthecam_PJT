@@ -80,60 +80,62 @@ function MyPageVote({ userId, isOtherProfile }) {
     const mySelectedOption = vote.options.find(option => option.selected);
     const winningOption = vote.options.reduce((prev, current) => 
       (current.voteCount > prev.voteCount) ? current : 
-      (current.voteCount === prev.voteCount) ? current : prev  // 동점일 때도 현재 옵션을 선택
+      (current.voteCount === prev.voteCount) ? current : prev
     );
     
     const selectedFirst = mySelectedOption?.optionId === vote.options[0].optionId;
     const selectedSecond = mySelectedOption?.optionId === vote.options[1].optionId;
     const didIWin = mySelectedOption?.optionId === winningOption.optionId;
 
-    const getLeftBarColor = () => {
+    const getFirstBarColor = () => {
       if (selectedFirst) {
-        return 'bg-red-500';  // 1번 선택시 항상 빨간색
+        return 'bg-cusRed';  
       }
-      return 'bg-gray-300';  // 미선택시 연한 회색
+      return 'bg-cusGray';  
     };
 
-    const getRightBarColor = () => {
+    const getSecondBarColor = () => {
       if (selectedSecond) {
-        return 'bg-blue-500';  // 2번 선택시 항상 파란색
+        return 'bg-cusBlue'; 
       }
-      return 'bg-gray-300';  // 미선택시 연한 회색
+      return 'bg-cusGray'; 
     };
 
-    const leftPercentage = totalVotes > 0 ? Math.round(vote.options[0].votePercentage * 10) / 10 : 0;
-    const rightPercentage = totalVotes > 0 ? Math.round(vote.options[1].votePercentage * 10) / 10 : 0;
+    const firstPercentage = totalVotes > 0 ? Math.round(vote.options[0].votePercentage * 10) / 10 : 0;
+    const secondPercentage = totalVotes > 0 ? Math.round(vote.options[1].votePercentage * 10) / 10 : 0;
 
     return (
       <div className="mb-4">
         {vote.options && vote.options.length >= 2 && (
           <>
             <div className="mb-2 flex justify-between">
-              <span className={`font-medium ${selectedFirst ? 'text-red-500' : 'text-gray-600'}`}>
+              <span className={`font-medium ${selectedFirst ? 'text-cusRed' : 'text-cusBlack-light'}`}>
                 {vote.options[0].optionTitle}
               </span>
-              <span className={`font-medium ${selectedSecond ? 'text-blue-500' : 'text-gray-600'}`}>
+            </div>
+            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+              <div
+                className={`h-full clay ${getFirstBarColor()} flex items-center justify-start pl-2 text-white`}
+                style={{ width: `${firstPercentage}%` }}
+              >
+                {firstPercentage}%
+              </div>
+            </div>
+
+            <div className="mt-4 mb-2 flex justify-between">
+              <span className={`font-medium ${selectedSecond ? 'text-cusBlue' : 'text-cusBlack-light'}`}>
                 {vote.options[1].optionTitle}
               </span>
             </div>
-            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden flex">
-              {leftPercentage > 0 && (
-                <div
-                  className={`h-full clay ${getLeftBarColor()} flex items-center justify-start pl-2 text-white`}
-                  style={{ width: `${leftPercentage}%` }}
-                >
-                  {leftPercentage}%
-                </div>
-              )}
-              {rightPercentage > 0 && (
-                <div
-                  className={`h-full clay ${getRightBarColor()} flex items-center justify-end pr-2 text-white`}
-                  style={{ width: `${rightPercentage}%` }}
-                >
-                  {rightPercentage}%
-                </div>
-              )}
+            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+              <div
+                className={`h-full clay ${getSecondBarColor()} flex items-center justify-start pl-2 text-white`}
+                style={{ width: `${secondPercentage}%` }}
+              >
+                {secondPercentage}%
+              </div>
             </div>
+
             <div className="text-right text-sm text-gray-600 mt-2">
               총 투표수: {totalVotes}
             </div>
@@ -150,20 +152,40 @@ function MyPageVote({ userId, isOtherProfile }) {
     <div className="space-y-6">
       {votes.map((vote) => (
         <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex justify-between items-start">
             <div className="flex-1">
-              <h3 
-                className="text-xl font-bold mb-3 cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight"
-                onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
-              >
-                {vote.title}
-              </h3>
-              <p className="text-gray-600 mb-2 leading-relaxed font-medium">{vote.content}</p>
-              <div className="flex items-center text-base text-cusBlack font-medium">
-                <span className="mr-2">작성자: {vote.creatorNickname}</span>
-                <span className="text-cusGray-dark mx-2">•</span>
-                <span className="ml-2">총 투표수: {vote.totalVoteCount}</span>
+              <div className="flex items-center justify-center gap-2">
+                <h3 
+                  className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center"
+                  onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
+                >
+                  {vote.title}
+                </h3>
+                {vote.battleId && (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1.5" 
+                    stroke="currentColor" 
+                    className="w-7 h-7 text-red-500"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" 
+                    />
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" 
+                    />
+                  </svg>
+                )}
               </div>
+              <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
+                {vote.content}
+              </p>
             </div>
             {!isOtherProfile && String(vote.creatorUserId) === currentUserId && (
               <button
@@ -175,7 +197,7 @@ function MyPageVote({ userId, isOtherProfile }) {
             )}
           </div>
           
-          <div className="space-y-3">
+          <div className="space-y-3 mt-4">
             {renderVoteResult(vote)}
           </div>
         </div>

@@ -16,7 +16,7 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
 
   const handleUserClick = (userId) => {
     onClose();
-    navigate(`/profile/${userId}`);
+    navigate(`/main/profile/${userId}`);
   };
 
   const handleBackgroundClick = (e) => {
@@ -572,7 +572,7 @@ function MyPage() {
 
                 {/* Battle Record */}
                 <div className="bg-gray-50 p-4 rounded-lg clay">
-                  <h3 className="text-lg font-semibold mb-4">전적 보기</h3>
+                  <h3 className="text-lg font-semibold mb-4">배틀 전적 보기</h3>
                   <div className="flex justify-center gap-8">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2 clay">
