@@ -41,6 +41,154 @@ const ParticipantsBadge = ({ current, max }) => {
   );
 };
 
+// 새로운 PopularVote 컴포넌트 추가
+const PopularVote = () => {
+  const navigate = useNavigate();
+  const [popularVote, setPopularVote] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPopularVote = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await publicAxios.get('/vote/list', {
+        params: {
+          page: 0,
+          size: 1,
+          status: 'active',
+          sort: 'totalVoteCount,DESC'
+        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      if (response.data?.content?.[0]) {
+        setPopularVote(response.data.content[0]);
+      }
+    } catch (error) {
+      console.error('인기 투표 조회 중 오류 발생:', error.response || error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVote = async (optionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      await authAxios.post(`/vote/${popularVote.voteId}/vote/${optionId}`);
+      await fetchPopularVote(); // 투표 후 데이터 새로고침
+    } catch (err) {
+      console.error('Vote error:', err);
+      if (err.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+      alert('투표 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  useEffect(() => {
+    fetchPopularVote();
+  }, []);
+
+  if (loading || !popularVote) return null;
+
+  return (
+    <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[650px] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border border-gray-200">
+      <div className="flex items-center px-4 py-2 bg-cusGray">
+        <div className="flex-1 text-left">
+          <h3 className="text-gray-800 font-bold">🔥 실시간 인기 투표</h3>
+        </div>
+        <div className="flex gap-2">
+          <div className="w-3 h-3 rounded-full bg-cusRed-light"></div>
+          <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+          <div className="w-3 h-3 rounded-full bg-green-400"></div>
+        </div>
+      </div>
+      
+      <div className="p-4">
+        <div className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+          <div className="flex justify-between items-start mb-4">
+            <div className="text-left">
+              <Link 
+                to={`/main/vote-detail/${popularVote.voteId}`}
+                className="block"
+                onClick={(e) => {
+                  if (!localStorage.getItem('token')) {
+                    e.preventDefault();
+                    alert('로그인이 필요합니다.');
+                    navigate('/main/login');
+                  }
+                }}
+              >
+                <h2 className="text-xl font-bold mb-3 hover:text-blue-600 cursor-pointer line-clamp-1">
+                  {popularVote.title}
+                </h2>
+              </Link>
+              
+              <p className="text-gray-600 mb-2 line-clamp-2 text-sm">
+                {popularVote.content}
+              </p>
+            </div>
+
+            <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0 ml-2">
+              <span className="text-sm text-gray-600 whitespace-nowrap">
+                {popularVote.totalVoteCount.toLocaleString()}명 참여중
+              </span>
+            </div>
+          </div>
+
+          {popularVote.hasVoted ? (
+            // 투표 결과 보기
+            <div>
+              <div className="mb-2 flex justify-between">
+                <span className="text-red-500 font-medium">{popularVote.options[0].optionTitle}</span>
+                <span className="text-blue-500 font-medium">{popularVote.options[1].optionTitle}</span>
+              </div>
+              <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+                <div
+                  className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
+                  style={{ width: `${popularVote.options[0].votePercentage}%` }}
+                >
+                  {popularVote.options[0].votePercentage.toFixed(1)}%
+                </div>
+                <div
+                  className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
+                  style={{ width: `${popularVote.options[1].votePercentage}%` }}
+                >
+                  {popularVote.options[1].votePercentage.toFixed(1)}%
+                </div>
+              </div>
+            </div>
+          ) : (
+            // 투표 버튼
+            <div className="flex gap-4">
+              {popularVote.options.map((option) => (
+                <button
+                  key={option.optionId}
+                  onClick={() => handleVote(option.optionId)}
+                  className={`clay flex-1 p-4 ${
+                    option.optionId === popularVote.options[0].optionId
+                      ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                      : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                  } rounded-lg transition-colors`}
+                >
+                  {option.optionTitle}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
   const [voteList, setVoteList] = useState([]); // 투표 목록 상태 추가
@@ -296,8 +444,11 @@ const MainPage = () => {
         {/* 그라데이션 배경 */}
         <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
         
+        {/* PopularVote 컴포넌트 추가 */}
+        <PopularVote />
+        
         <div className="container mx-auto px-4">
-          <div className="container mx-auto p-14">
+          <div className="container mx-auto px-14 pt-44 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
@@ -308,7 +459,7 @@ const MainPage = () => {
                 duration: 2,
                 x: { duration: 1 },
               }}
-              className="flex flex-col mb-12 battle-section"
+              className="flex flex-col mb-16 battle-section"
             >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
@@ -316,7 +467,7 @@ const MainPage = () => {
                   to="/main/battle-list"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
-                  + More
+                  + 더보기
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -390,7 +541,7 @@ const MainPage = () => {
                 duration: 2,
                 x: { duration: 2 },
               }}
-              className="flex flex-col mb-12 vote-section"
+              className="flex flex-col mb-24 vote-section"
             >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
@@ -398,7 +549,7 @@ const MainPage = () => {
                   to="/main/vote"  // /vote -> /main/vote 으로 수정
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
-                  + More
+                  + 더보기
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -407,12 +558,14 @@ const MainPage = () => {
                     <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-4 hover:shadow-xl transition-shadow">
                       <div 
                         onClick={() => handleVoteDetailClick(vote.voteId)}
-                        className="cursor-pointer"
+                        className="cursor-pointer pt-2"
                       >
                         <h2 className="text-xl font-bold mb-2 hover:text-blue-600">
                           {vote.title}
                         </h2>
-                        <p className="text-gray-600 mb-2">{vote.content}</p>
+                        <p className="text-gray-600 mb-6">
+                          {vote.content}
+                        </p>
                       </div>
 
                       <div className="transition-all duration-300">
