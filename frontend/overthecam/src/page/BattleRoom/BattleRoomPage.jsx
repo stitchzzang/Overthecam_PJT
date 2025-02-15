@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { leaveRoom } from "../../service/BattleRoom/api";
 
-import {
-  useWebSocketContext,
-  WebSocketProvider,
-} from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
@@ -41,7 +38,7 @@ function BattleRoomPage() {
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
 
   // 웹소켓 관련
-  const { status, connectWS, disconnectWS } = useWebSocketContext();
+  const { status, error, connectWS, disconnectWS } = useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -163,18 +160,17 @@ function BattleRoomPage() {
 
   // ws 연결 에러
   useEffect(() => {
-    if (status === "DISCONNECTED" || status === "ERROR") {
-      // 연결이 끊어졌을 때 사용자에게 알림
-      failTost.current?.showAlert("연결이 끊어졌습니다. 다시 시도합니다.");
-
+    if (status === "DISCONNECTED") {
       // 잠시 후 재연결 시도
       const reconnectTimer = setTimeout(() => {
         connectWS(BASE_URL, token);
       }, 3000);
 
       return () => clearTimeout(reconnectTimer);
+    } else if (status === "ERROR") {
+      failTost.current?.showAlert(error);
     }
-  }, [status, connectWS]);
+  }, [status, connectWS, error]);
 
   async function initializeRoom() {
     try {

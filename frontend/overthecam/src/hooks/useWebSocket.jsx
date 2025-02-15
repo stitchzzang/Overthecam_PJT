@@ -2,7 +2,6 @@ import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { createContext, useContext } from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
-import { useBattleStore } from "../store/Battle/BattleStore";
 
 // WebSocket 상태를 나타내는 상수
 const WS_STATUS = {
@@ -11,8 +10,6 @@ const WS_STATUS = {
   DISCONNECTED: "DISCONNECTED",
   ERROR: "ERROR",
 };
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // 채널 구독 함수들을 별도의 객체로 분리
 const channelSubscriptions = {
@@ -61,10 +58,8 @@ const useWebSocket = (battleId) => {
 
       switch (type) {
         case "CHAT":
-          console.log("[WS] CHAT 메시지 처리 전 messageList:", messageList);
           setMessageList((prev) => {
             const newList = [...prev, data];
-            console.log("[WS] 업데이트된 messageList:", newList);
             return newList;
           });
           break;
@@ -74,6 +69,7 @@ const useWebSocket = (battleId) => {
       }
     } catch (error) {
       console.error("[WS] 응답 처리 중 에러:", error);
+      setError("응답이 없습니다.")
     }
   }, []);
 
@@ -182,7 +178,7 @@ const useWebSocket = (battleId) => {
         );
       } catch (error) {
         console.error("메시지 전송 실패:", error);
-        setError(error);
+        setError("메세지 전송에 실패했습니다.");
       }
     },
     [battleId, wsStatus]
