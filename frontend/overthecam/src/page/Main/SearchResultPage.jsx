@@ -77,16 +77,9 @@ const SearchResultPage = () => {
 
   const handleSearch = async (query) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` })
-      };
-
       // 배틀 검색
       const battleResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
-        params: { keyword: query },
-        headers
+        params: { keyword: query }
       });
 
       // 유저 검색
@@ -94,16 +87,12 @@ const SearchResultPage = () => {
         params: { 
           keyword: query,
           size: 100
-        },
-        headers
+        }
       });
-      
-      console.log('User Search Response:', userResponse.data);
 
-      // 투표 검색 추가
+      // 투표 검색
       const voteResponse = await publicAxios.get('/vote/list', {
-        params: { keyword: query },
-        headers
+        params: { keyword: query }
       });
 
       let battles = [];
@@ -118,23 +107,15 @@ const SearchResultPage = () => {
       }
 
       if (userResponse.data.success) {
-        // 현재 로그인한 사용자의 ID를 문자열로 가져옴
         const currentUserId = localStorage.getItem('userId');
-        
-        // 검색 결과에서 현재 사용자 제외
         users = userResponse.data.data.userInfo.filter(user => {
-          // currentUserId가 있을 때만 필터링
           if (currentUserId) {
             return user.userId !== parseInt(currentUserId);
           }
-          return true;  // 로그인하지 않은 경우 모든 결과 표시
+          return true;
         });
-        
-        console.log('Current User ID:', currentUserId);
-        console.log('Processed users:', users);
       }
 
-      // 투표 검색 결과 처리
       if (voteResponse.data?.content) {
         votes = voteResponse.data.content;
       }
@@ -144,13 +125,32 @@ const SearchResultPage = () => {
         votes,
         users
       });
+
     } catch (error) {
       console.error("검색 중 오류 발생:", error);
-      setSearchResults({
+      // 오류 발생 시에도 가능한 결과는 보여주기
+      const emptyResults = {
         battles: [],
         votes: [],
         users: []
-      });
+      };
+
+      try {
+        // 각 요청이 실패하더라도 다른 요청의 결과는 표시
+        if (error.response?.data?.data?.battleInfo) {
+          emptyResults.battles = error.response.data.data.battleInfo;
+        }
+        if (error.response?.data?.data?.userInfo) {
+          emptyResults.users = error.response.data.data.userInfo;
+        }
+        if (error.response?.data?.content) {
+          emptyResults.votes = error.response.data.content;
+        }
+      } catch (e) {
+        console.error("결과 처리 중 오류:", e);
+      }
+
+      setSearchResults(emptyResults);
     }
   };
 
