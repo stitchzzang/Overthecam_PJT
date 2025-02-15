@@ -56,6 +56,7 @@ const useWebSocket = (battleId) => {
   const [isStarted, setIsStarted] = useState(false);
   const [gameInfo, setGameInfo] = useState({});
   const [isTimeExtended, setIsTimeExtended] = useState(false);
+  const [gameResult, setGameResult] = useState({});
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
 
@@ -68,7 +69,7 @@ const useWebSocket = (battleId) => {
 
       switch (type) {
         case "ERROR":
-          setError(error) // 에러 메세지 .. 구조 분해 다시
+          setError(error); // 에러 메세지 .. 구조 분해 다시
           break;
         case "CHAT":
           if (success) {
@@ -124,15 +125,15 @@ const useWebSocket = (battleId) => {
         case "TIME_EXTENSION":
           if (success) {
             setIsTimeExtended(true);
-             const content = `${data.nickname}님이 5분 시간 추가하셨습니다.`;
-             const newMsg = {
-               nickname: "SYSTEM",
-               content,
-             };
-             setMessageList((prev) => {
-               const newList = [...prev, newMsg];
-               return newList;
-             });
+            const content = `${data.nickname}님이 5분 시간 추가하셨습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
           }
           break;
         default:
@@ -345,6 +346,21 @@ const useWebSocket = (battleId) => {
     }
   }, [battleId, wsStatus]);
 
+  const finishBattle = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_END",
+        })
+      );
+    } catch (error) {
+      console.error("종료 실패:", error);
+      setError("배틀 종료 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
   useEffect(() => {
     return () => {
       disconnectWS();
@@ -370,6 +386,8 @@ const useWebSocket = (battleId) => {
     resultBattler,
     timeExtention,
     isTimeExtended,
+    finishBattle,
+    gameResult
   };
 };
 
