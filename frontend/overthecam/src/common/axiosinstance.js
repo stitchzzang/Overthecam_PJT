@@ -24,15 +24,40 @@ authAxios.interceptors.request.use(
 
 authAxios.interceptors.response.use(
   (response) => {
-    console.log(response.data)
     return response.data;
   },
   async (error) => {
-    if (error.response && error.response.status === 401) {
-      // 토큰이 만료되었을 때 처리
-      localStorage.removeItem("token");
-      // 로그인 페이지로 리다이렉트
-      window.location.href = "/login";
+    const originalRequest = error.config;
+
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        console.log("토큰 재발급 시도 - 기존 리프레시 토큰:", refreshToken);
+        
+        const response = await publicAxios.post('/auth/refresh', {
+          refreshToken: refreshToken
+        });
+
+        if (response.success && response.data.accessToken) {
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+          console.log("토큰 재발급 성공!");
+          console.log("새로운 액세스 토큰:", accessToken);
+          console.log("새로운 리프레시 토큰:", newRefreshToken);
+          
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
+          
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return authAxios(originalRequest);
+        }
+      } catch (error) {
+        console.error("토큰 재발급 실패:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error.response.data);
   }
