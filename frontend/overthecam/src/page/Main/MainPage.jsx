@@ -42,7 +42,7 @@ const ParticipantsBadge = ({ current, max }) => {
 };
 
 // 새로운 PopularVote 컴포넌트 추가
-const PopularVote = () => {
+const PopularVote = ({ onVoteComplete }) => {
   const navigate = useNavigate();
   const [popularVote, setPopularVote] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,8 @@ const PopularVote = () => {
       }
 
       await authAxios.post(`/vote/${popularVote.voteId}/vote/${optionId}`);
-      await fetchPopularVote(); // 투표 후 데이터 새로고침
+      await fetchPopularVote();
+      onVoteComplete();
     } catch (err) {
       console.error('Vote error:', err);
       if (err.response?.status === 401) {
@@ -392,6 +393,11 @@ const MainPage = () => {
     navigate(`/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
   };
 
+  const handleVoteComplete = async () => {
+    // 투표 목록 새로고침
+    await fetchVotes();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 코치마크 컴포넌트 - 추후 구현 예정
@@ -445,7 +451,7 @@ const MainPage = () => {
         <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
         
         {/* PopularVote 컴포넌트 추가 */}
-        <PopularVote />
+        <PopularVote onVoteComplete={handleVoteComplete} />
         
         <div className="container mx-auto px-4">
           <div className="container mx-auto px-14 pt-44 pb-12">
