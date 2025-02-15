@@ -26,23 +26,6 @@ function BattleWaiting({
   };
   const { isVoteSubmitted } = useWebSocketContext();
 
-  useEffect(()=>{
-    // metadata로 내 role 보기
-    try {
-      const metadata = room.localParticipant.metadata
-        ? JSON.parse(room.localParticipant.metadata)
-        : {};
-      console.log("Role:", metadata.role);
-      if (metadata.role === "host") {
-        setHost(battleInfo.participantName);
-      }
-    } catch (metadataError) {
-      console.log("No metadata or invalid metadata:", metadataError);
-    }
-  }, [])
-
-  
-
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
     .fill(null)
@@ -52,7 +35,7 @@ function BattleWaiting({
         return {
           type: "local",
           track: localTrack,
-          participantName: `${participantName} (Me)`,
+          participantName: participantName,
         };
       }
 
@@ -91,7 +74,8 @@ function BattleWaiting({
                   <div className="px-6">
                     <div
                       className={`text-sm text-black rounded-t-lg ${
-                        slot && host === slot.participantName
+                        slot &&
+                        host === slot.participantName.replace(" (Me)", "")
                           ? "bg-cusPink"
                           : "bg-cusLightBlue"
                       }`}
@@ -131,12 +115,12 @@ function BattleWaiting({
           <div className="h-1/4 flex gap-2">
             <div className="w-3/4 h-full bg-cusGray clay p-3">
               {isVoteSubmitted ? (
-                <BattleVote
-                  isWaiting={true}
-                />
+                <BattleVote isWaiting={true} />
               ) : (
                 <div className="p-6 bg-white w-full h-full flex items-center justify-center">
-                  <p className="font-semibold text-gray-300">아직 등록된 투표가 없습니다.</p>
+                  <p className="font-semibold text-gray-300">
+                    아직 등록된 투표가 없습니다.
+                  </p>
                 </div>
               )}
             </div>
