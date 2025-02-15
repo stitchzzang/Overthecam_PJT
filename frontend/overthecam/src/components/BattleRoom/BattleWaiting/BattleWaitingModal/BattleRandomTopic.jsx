@@ -8,7 +8,12 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   const fetchRandomTopic = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/random`);
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/random`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       console.log('Random topic response:', response.data);
       if (response.data.success) {
         setTopic(response.data.data.title);
