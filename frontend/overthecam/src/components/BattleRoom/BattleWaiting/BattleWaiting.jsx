@@ -24,7 +24,15 @@ function BattleWaiting({
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
-  const { isVoteSubmitted } = useWebSocketContext();
+  const { isVoteSubmitted, readyList, readyForBattle, myReady } = useWebSocketContext();
+
+  useEffect(()=>{
+
+  }, [readyList])
+
+  const handleToggleReady = (e) => {
+    readyForBattle()
+  }
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -88,12 +96,15 @@ function BattleWaiting({
                     <div className="absolute inset-0">
                       <div className="w-full h-full">
                         {slot ? (
-                          <VideoComponent
-                            track={slot.track}
-                            participantIdentity={slot.participantName}
-                            local={slot.type === "local"}
-                            className="w-full h-full object-cover rounded-sm"
-                          />
+                          <div>
+                            {readyList.filter((p) => p.userId === slot)}
+                            <VideoComponent
+                              track={slot.track}
+                              participantIdentity={slot.participantName}
+                              local={slot.type === "local"}
+                              className="w-full h-full object-cover rounded-sm"
+                            />
+                          </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400 bg-cusGray rounded-sm border">
                             <div className="flex flex-col items-center space-y-2">
@@ -141,8 +152,11 @@ function BattleWaiting({
               </div>
             ) : (
               <div className="w-1/4 flex flex-col mx-1">
-                <div className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
-                  <p>배틀 준비하기</p>
+                <div
+                  onClick={handleToggleReady}
+                  className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                >
+                  {myReady.ready ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
                 </div>
               </div>
             )}

@@ -2,6 +2,7 @@ import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { createContext, useContext } from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
+import { useBattleStore } from "../store/Battle/BattleStore";
 
 // WebSocket 상태를 나타내는 상수
 const WS_STATUS = {
@@ -51,6 +52,9 @@ const useWebSocket = (battleId) => {
   const [vote, setVote] = useState({});
   const [error, setError] = useState(null);
   const [readyList, setReadyList] = useState([]);
+  const [myReady, setMyReady] = useState(false);
+
+  const battleInfo = useBattleStore(s=>s.battleInfo)
 
   const getResponse = useCallback((response) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
@@ -84,6 +88,10 @@ const useWebSocket = (battleId) => {
               prev.filter((p) => p.userId !== data.userId)
             );
           }
+          setMyReady(
+            readyList.filter((p) => p.nickname === battleInfo.participantName)
+          );
+          break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
           break;
@@ -267,6 +275,7 @@ const useWebSocket = (battleId) => {
     vote,
     readyForBattle,
     readyList,
+    myReady
   };
 };
 
