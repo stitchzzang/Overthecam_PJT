@@ -70,7 +70,7 @@ export const selectbattler = async (
 ) => {
   try {
     const response = await authAxios.post(
-      `/api/battle/betting/${battleId}/battler`,
+      `/battle/betting/${battleId}/battler`,
       {
         firstBattlerId,
         secondBattlerId,
