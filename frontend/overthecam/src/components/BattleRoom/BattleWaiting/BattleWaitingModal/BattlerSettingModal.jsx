@@ -19,7 +19,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
   const failToast = useRef();
   const sucessToast = useRef();
   const battleInfo = useBattleStore((state) => state.battleInfo);
-  const { vote } = useWebSocketContext();
+  const { vote, resultBattler } = useWebSocketContext();
   const [options, setOptions] = useState({
     option1: vote.option1,
     option2: vote.option2,
@@ -81,6 +81,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
       console.log(response.data);
       modalRef.current?.close();
       sucessToast.current?.showAlert("배틀러가 선정 되었습니다.");
+      setTimeout(resultBattler(), 1500);
     } catch (error) {
       console.error("배틀러 선정 중 에러:", error);
       failToast.current?.showAlert(

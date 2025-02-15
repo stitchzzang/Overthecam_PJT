@@ -65,10 +65,28 @@ const BattleChating = () => {
             <ul className="space-y-2 w-full">
               {messageList.map((msg, index) => (
                 <li key={index} className="flex flex-col items-start">
-                  <span className="text-sm text-gray-700">{msg.nickname}</span>
-                  <span className="text-sm text-gray-900 max-w-36 font-semibold">
-                    {msg.content}
-                  </span>
+                  {msg.nickname === "SYSTEM" ? (
+                    <>
+                      {" "}
+                      <span className="text-sm text-red-700">
+                        {msg.nickname}
+                      </span>
+                      <span className="text-sm text-red-900 max-w-36 font-semibold">
+                        {" "}
+                        {msg.content}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm text-gray-700">
+                        {msg.nickname}
+                      </span>
+                      <span className="text-sm text-gray-900 max-w-36 font-semibold">
+                        {" "}
+                        {msg.content}
+                      </span>
+                    </>
+                  )}
                 </li>
               ))}
               <div ref={messagesEndRef} />

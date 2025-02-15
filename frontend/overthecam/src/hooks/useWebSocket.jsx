@@ -53,7 +53,7 @@ const useWebSocket = (battleId) => {
   const [error, setError] = useState(null);
   const [readyList, setReadyList] = useState([]);
   const [myReady, setMyReady] = useState(false);
-  const [isStarted, setIsStarted ] = useState(false)
+  const [isStarted, setIsStarted] = useState(false);
   const [gameInfo, setGameInfo] = useState({});
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
@@ -97,6 +97,17 @@ const useWebSocket = (battleId) => {
         case "BATTLE_START":
           setGameInfo(data);
           setIsStarted(success);
+          break;
+        case "BATTLER_SELECT":
+          const content = `${data.firstBattler.nickname}님과 ${data.secondBattler.nickname}님이 배틀러로 선정되셨습니다.`;
+          const newMsg = {
+            nickname: "SYSTEM",
+            content,
+          }
+          setMessageList((prev) => {
+            const newList = [...prev, newMsg];
+            return newList;
+          });
           break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
@@ -284,7 +295,7 @@ const useWebSocket = (battleId) => {
         `/api/publish/battle/${battleId}`,
         {},
         JSON.stringify({
-          type: "BATTLE_START",
+          type: "BATTLER_SELECT",
         })
       );
     } catch (error) {
