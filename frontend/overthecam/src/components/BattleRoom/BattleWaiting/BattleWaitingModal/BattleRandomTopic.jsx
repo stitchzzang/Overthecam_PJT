@@ -8,12 +8,14 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   const fetchRandomTopic = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('/battle/random');
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/random`);
+      console.log('Random topic response:', response.data);
       if (response.data.success) {
         setTopic(response.data.data.title);
       }
     } catch (error) {
-      console.error('랜덤 주제 가져오기 실패:', error);
+      console.error('랜덤 주제 가져오기 실패:', error.response || error);
+      setTopic('주제를 가져오는데 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -29,7 +31,6 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <div className="w-full flex items-center gap-2 mb-4">
           <div className="flex-1 flex items-center justify-center">
             <div className="flex items-center text-lg w-full">
-              <span className="font-bold whitespace-pre">(</span>
               <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2">
                 <div className="slot-wrapper h-full flex items-center justify-center">
                   {isLoading ? (
@@ -41,7 +42,6 @@ const BattleRandomTopic = forwardRef((props, ref) => {
                   )}
                 </div>
               </div>
-              <span className="font-bold whitespace-pre">)</span>
               <span className="font-bold whitespace-pre ml-2">입니다!</span>
             </div>
           </div>
