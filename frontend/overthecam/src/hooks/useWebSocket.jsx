@@ -53,8 +53,10 @@ const useWebSocket = (battleId) => {
   const [error, setError] = useState(null);
   const [readyList, setReadyList] = useState([]);
   const [myReady, setMyReady] = useState(false);
+  const [isStarted, setIsStarted ] = useState(false)
+  const [gameInfo, setGameInfo] = useState({});
 
-  const battleInfo = useBattleStore(s=>s.battleInfo)
+  const battleInfo = useBattleStore((s) => s.battleInfo);
 
   const getResponse = useCallback((response) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
@@ -91,6 +93,10 @@ const useWebSocket = (battleId) => {
           setMyReady(
             readyList.filter((p) => p.nickname === battleInfo.participantName)
           );
+          break;
+        case "BATTLE_START":
+          setGameInfo(data);
+          setIsStarted(success);
           break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
@@ -257,6 +263,36 @@ const useWebSocket = (battleId) => {
     }
   }, [battleId, wsStatus]);
 
+  const startBattle = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_START",
+        })
+      );
+    } catch (error) {
+      console.error("시작 실패:", error);
+      setError("배틀 시작 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
+  const resultBattler = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_START",
+        })
+      );
+    } catch (error) {
+      console.error("알림 실패:", error);
+      setError("배틀러 알림 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
   useEffect(() => {
     return () => {
       disconnectWS();
@@ -275,7 +311,11 @@ const useWebSocket = (battleId) => {
     vote,
     readyForBattle,
     readyList,
-    myReady
+    myReady,
+    startBattle,
+    gameInfo,
+    isStarted,
+    resultBattler,
   };
 };
 

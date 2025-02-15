@@ -24,6 +24,17 @@ function BattleRoomPage() {
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
 
   const navigate = useNavigate();
+  // 웹소켓 관련
+  const {
+    status,
+    error,
+    connectWS,
+    disconnectWS,
+    vote,
+    startBattle,
+    readyForBattle,
+    isStarted
+  } = useWebSocketContext();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
@@ -34,12 +45,9 @@ function BattleRoomPage() {
   const [host, setHost] = useState(""); // 방장 이름 담는 로직
 
   // 방 게임 설정 관련
-  const [isWaiting, setIsWaiting] = useState(true);
+  // const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
 
-  // 웹소켓 관련
-  const { status, error, connectWS, disconnectWS, vote } =
-    useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -402,7 +410,9 @@ function BattleRoomPage() {
   };
 
   const handleBattleStart = (e) => {
-    setIsWaiting(false);
+    // setIsWaiting(false);
+    readyForBattle();
+    startBattle();
   };
 
   // 연결 상태에 따른 에러 처리
@@ -424,14 +434,14 @@ function BattleRoomPage() {
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
       <BattleHeader
-        isWaiting={isWaiting}
+        isWaiting={!isStarted}
         isMaster={isMaster}
         onshowLeaveConfirmModal={handleLeavRoom}
         onShowBattlerModal={battlerModalShow}
         onShowEndBattleModal={endBattleModalShow}
       />
       <div className="render-change flex-1 h-0">
-        {isWaiting ? (
+        {!isStarted ? (
           <div className="flex h-full">
             {/* h-full 유지 */}
             <div className="w-full h-full flex flex-col">
