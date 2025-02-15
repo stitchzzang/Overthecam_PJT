@@ -78,6 +78,12 @@ export default function NavBar() {
     };
   }, []);
 
+  // 기존 useEffect들 아래에 추가
+  useEffect(() => {
+    // location이 변경될 때마다 메뉴 닫기
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     // localStorage 데이터 삭제
     localStorage.removeItem("token");
@@ -139,7 +145,7 @@ export default function NavBar() {
               </button>
 
               {/* 메뉴 아이템들 */}
-              <div className="absolute left-0 top-[60px]">
+              <div className="absolute left-0 top-[60px]" ref={sidebarRef}>
                 {/* gooey 효과가 적용될 배경 버튼들 */}
                 <div className="absolute left-0 top-0" style={{ filter: 'url(#gooey)', zIndex: 10 }}>
                   {isLoggedIn && (
