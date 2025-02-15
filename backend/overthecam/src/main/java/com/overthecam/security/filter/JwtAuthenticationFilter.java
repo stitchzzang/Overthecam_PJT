@@ -10,6 +10,7 @@ import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.common.exception.GlobalException;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -42,24 +43,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+        HttpServletResponse response,
+        FilterChain filterChain) throws ServletException, IOException {
         try {
-            // 1. 토큰 추출 시도
+            // 1. 먼저 permitAll 경로인지 체크
+            if (isPermitAllEndpoint(request.getRequestURI())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 2. 이후 토큰 체크 (permitAll 아닌 경로만)
             String accessToken = resolveToken(request);
 
-            // 2. 토큰이 있는 경우 - 항상 검증 진행 (인증 불필요 URI여도 검증)
             if (accessToken != null) {
-                processToken(accessToken);
-            }
-            // 3. 토큰이 없는 경우
-            else {
-                // 인증 불필요 URI가 아닌데 토큰이 없으면 예외
-                if (!isPermitAllEndpoint(request.getRequestURI())) {
-                    throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
-                            "인증 토큰이 필요합니다");
+                try {
+                    if (tokenProvider.validateToken(accessToken)) {
+                        setAuthentication(accessToken);
+                    }
+                } catch (ExpiredJwtException e) {
+                    throw new GlobalException(AuthErrorCode.EXPIRED_ACCESS_TOKEN,
+                        "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요.");
                 }
-                // 인증 불필요 URI면 그냥 통과
+            } else {
+                throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
+                    "인증 토큰이 필요합니다");
             }
 
             filterChain.doFilter(request, response);
