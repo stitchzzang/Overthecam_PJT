@@ -55,6 +55,7 @@ const Login = () => {
           userId: parsedPayload.userId,
           email: parsedPayload.email,
           nickname: response.data.nickname,
+          profileImage: response.data.profileImage,
           token: accessToken,
           tokenType: grantType,
           expiresIn: accessTokenExpiresIn

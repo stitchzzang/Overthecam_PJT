@@ -2,11 +2,12 @@ package com.overthecam.battle.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
-import com.overthecam.battle.domain.*;
-import com.overthecam.battle.dto.BattleInfo;
-import com.overthecam.battle.dto.BattleRoomAllResponse;
-import com.overthecam.battle.dto.BattleRoomResponse;
-import com.overthecam.battle.dto.RandomVoteTopicResponse;
+import com.overthecam.battle.domain.BalanceGame;
+import com.overthecam.battle.domain.Battle;
+import com.overthecam.battle.domain.BattleParticipant;
+import com.overthecam.battle.domain.ParticipantRole;
+import com.overthecam.battle.domain.Status;
+import com.overthecam.battle.dto.*;
 import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BalanceGameRepository;
 import com.overthecam.battle.repository.BattleParticipantRepository;
@@ -30,7 +31,6 @@ public class BattleService {
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository battleParticipantRepository;
     private final BalanceGameRepository balanceGameRepository;
-    private final VoteRepository voteRepository;
 
     private final UserRepository userRepository;
     private final LiveKitTokenService liveKitService;
@@ -47,10 +47,10 @@ public class BattleService {
         createHostParticipant(battle, user);
 
         return BattleRoomResponse.builder()
-                .battleId(battle.getId())
-                .token(token)
-                .roomName(roomName)
-                .build();
+            .battleId(battle.getId())
+            .token(token)
+            .roomName(roomName)
+            .build();
     }
 
     /**
@@ -66,10 +66,10 @@ public class BattleService {
         updateBattleParticipants(battle);
 
         return BattleRoomResponse.builder()
-                .battleId(battleId)
-                .token(token)
-                .roomName(battle.getTitle())
-                .build();
+            .battleId(battleId)
+            .token(token)
+            .roomName(battle.getTitle())
+            .build();
     }
 
     /**
@@ -77,12 +77,12 @@ public class BattleService {
      */
     private Battle createInitialBattle(String roomName) {
         Battle battle = Battle.builder()
-                .title(roomName)
-                .roomUrl("roomurl:roomurl")
-                .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/thumbnails/thumbnail+1.png")
-                .totalUsers(1)
-                .status(Status.WAITING)
-                .build();
+            .title(roomName)
+            .roomUrl("roomurl:roomurl")
+            .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/thumbnails/thumbnail+1.png")
+            .totalUsers(1)
+            .status(Status.WAITING)
+            .build();
         return battleRepository.save(battle);
     }
 
@@ -91,10 +91,10 @@ public class BattleService {
      */
     private void createHostParticipant(Battle battle, User user) {
         BattleParticipant host = BattleParticipant.builder()
-                .battle(battle)
-                .user(user)
-                .role(ParticipantRole.HOST)
-                .build();
+            .battle(battle)
+            .user(user)
+            .role(ParticipantRole.HOST)
+            .build();
         battleParticipantRepository.save(host);
     }
 
@@ -103,10 +103,10 @@ public class BattleService {
      */
     private void createParticipant(Battle battle, User user) {
         BattleParticipant participant = BattleParticipant.builder()
-                .battle(battle)
-                .user(user)
-                .role(ParticipantRole.PARTICIPANT)
-                .build();
+            .battle(battle)
+            .user(user)
+            .role(ParticipantRole.PARTICIPANT)
+            .build();
         battleParticipantRepository.save(participant);
     }
 
@@ -139,26 +139,26 @@ public class BattleService {
                 updatedCount++;
 
                 log.info("배틀러 권한 추가 | userId: {}, 이전 역할: {}, 새로운 역할: {}",
-                        userId, participant.getRole(), newRole);
+                    userId, participant.getRole(), newRole);
             }
         }
 
         if (updatedCount != 2) {
             log.error("배틀러 선정 실패 | battleId: {}, battler1Id: {}, battler2Id: {}",
-                    battleId, battler1Id, battler2Id);
+                battleId, battler1Id, battler2Id);
             throw new GlobalException(BattleErrorCode.FAIL_BATTLER_SELECT,
-                    "배틀러 선정에 실패했습니다. 해당 사용자가 배틀방에 참여하고 있는지 확인해주세요.");
+                "배틀러 선정에 실패했습니다. 해당 사용자가 배틀방에 참여하고 있는지 확인해주세요.");
         }
     }
 
     private void validateBattlers(Long battler1Id, Long battler2Id) {
         if (battler1Id == null || battler2Id == null) {
             throw new GlobalException(BattleErrorCode.MISSING_REQUIRED_FIELD,
-                    "배틀러 정보가 누락되었습니다. 두 명의 배틀러 정보를 모두 입력해주세요.");
+                "배틀러 정보가 누락되었습니다. 두 명의 배틀러 정보를 모두 입력해주세요.");
         }
         if (battler1Id.equals(battler2Id)) {
             throw new GlobalException(BattleErrorCode.INVALID_BATTLER_SELECT,
-                    "동일한 사용자를 배틀러로 선택할 수 없습니다. 서로 다른 참가자를 선택해주세요.");
+                "동일한 사용자를 배틀러로 선택할 수 없습니다. 서로 다른 참가자를 선택해주세요.");
         }
     }
 
@@ -178,7 +178,6 @@ public class BattleService {
         log.info("Battle {} 남은 참가자 수: {}", battleId, remainingParticipants);
 
         if (remainingParticipants <= 0) {
-            voteRepository.deleteByBattleId(battleId);  // vote 먼저 삭제
             battleRepository.delete(battle);
             log.info("배틀룸 {} 인원이 0명이 되어 삭제되었습니다.", battleId);
             return;
@@ -207,30 +206,30 @@ public class BattleService {
     @Transactional
     public BattleRoomAllResponse getAllBattleRooms() {
         List<Battle> battles = battleRepository.findByStatusInOrderByCreatedAtDesc(
-                Arrays.asList(Status.WAITING, Status.PROGRESS)
+            Arrays.asList(Status.WAITING, Status.PROGRESS)
         );
 
         List<BattleInfo> battleInfos = battles.stream()
-                .map(battle -> {
-                    if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
-                        battle.updateStatus(Status.PROGRESS);
-                        battleRepository.save(battle);
-                        log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
-                    }
+            .map(battle -> {
+//                if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
+//                    battle.updateStatus(Status.PROGRESS);
+//                    battleRepository.save(battle);
+//                    log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
+//                }
 
-                    return BattleInfo.builder()
-                            .battleId(battle.getId())
-                            .thumbnailUrl(battle.getThumbnailUrl())
-                            .title(battle.getTitle())
-                            .status(battle.getStatus())
-                            .totalUsers(battle.getTotalUsers())
-                            .build();
-                })
-                .collect(Collectors.toList());
+                return BattleInfo.builder()
+                    .battleId(battle.getId())
+                    .thumbnailUrl(battle.getThumbnailUrl())
+                    .title(battle.getTitle())
+                    .status(battle.getStatus())
+                    .totalUsers(battle.getTotalUsers())
+                    .build();
+            })
+            .collect(Collectors.toList());
 
         return BattleRoomAllResponse.builder()
-                .battleInfo(battleInfos)
-                .build();
+            .battleInfo(battleInfos)
+            .build();
     }
 
     /**
@@ -239,27 +238,27 @@ public class BattleService {
     public RandomVoteTopicResponse createRandomVoteTopic() {
         // JPQL을 사용하여 랜덤 레코드 조회
         BalanceGame randomTopic = balanceGameRepository.findRandomBalanceGame()
-                .orElseThrow(() -> new GlobalException(BattleErrorCode.TOPIC_GENERATION_FAILED,
-                        "랜덤 주제 생성에 실패했습니다"));
+            .orElseThrow(() -> new GlobalException(BattleErrorCode.TOPIC_GENERATION_FAILED,
+                "랜덤 주제 생성에 실패했습니다"));
 
         // 주제 형식에 맞게 문자열 구성
         String formattedTopic = String.format("%s\n• %s\n• %s",
-                randomTopic.getQuestion(),
-                randomTopic.getOption1(),
-                randomTopic.getOption2());
+            randomTopic.getQuestion(),
+            randomTopic.getOption1(),
+            randomTopic.getOption2());
 
         return RandomVoteTopicResponse.builder()
-                .title(formattedTopic)
-                .build();
+            .title(formattedTopic)
+            .build();
     }
 
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     private Battle getBattleById(Long battleId) {
         return battleRepository.findById(battleId)
-                .orElseThrow(() -> new RuntimeException("Battle not found"));
+            .orElseThrow(() -> new RuntimeException("Battle not found"));
     }
 }

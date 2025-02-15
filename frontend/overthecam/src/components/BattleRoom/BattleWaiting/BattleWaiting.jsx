@@ -20,10 +20,6 @@ function BattleWaiting({
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
-  const onShowVoteCreate = (event) => {
-    voteCreateModal.current.showModal();
-  };
-  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
 
   // metadata로 내 role 보기
   try {
@@ -69,6 +65,12 @@ function BattleWaiting({
 
       return null;
     });
+
+  const onShowVoteCreate = (event) => {
+    voteCreateModal.current.showModal();
+  };
+
+  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
 
   return (
     <>
@@ -141,14 +143,14 @@ function BattleWaiting({
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
                 <div
-                  className="h-1/2 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onBattleStart}
                 >
                   <p>배틀 시작하기</p>
                 </div>
                 <div
+                  className="h-1/3 bg-cusYellow my-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onShowVoteCreate}
-                  className="h-1/2 bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
                 >
                   <p>투표 만들기</p>
                 </div>

@@ -29,22 +29,16 @@ authAxios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.data?.message === 'EXPIRED_ACCESS_TOKEN' && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        console.log("토큰 재발급 시도 - 기존 리프레시 토큰:", refreshToken);
         
-        const response = await publicAxios.post('/auth/refresh', {
-          refreshToken: refreshToken
-        });
+        const response = await publicAxios.post('/auth/refresh', { refreshToken });
 
-        if (response.success && response.data.accessToken) {
+        if (response.success) {
           const { accessToken, refreshToken: newRefreshToken } = response.data;
-          console.log("토큰 재발급 성공!");
-          console.log("새로운 액세스 토큰:", accessToken);
-          console.log("새로운 리프레시 토큰:", newRefreshToken);
           
           localStorage.setItem('token', accessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
@@ -53,13 +47,20 @@ authAxios.interceptors.response.use(
           return authAxios(originalRequest);
         }
       } catch (error) {
-        console.error("토큰 재발급 실패:", error);
+        if (error.response?.data?.message === 'EXPIRED_REFRESH_TOKEN') {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          window.location.href = "/main/login";
+          return Promise.reject(new Error('세션이 만료되었습니다. 다시 로그인해주세요.'));
+        }
+        
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
+        window.location.href = "/main/login";
+        return Promise.reject(error);
       }
     }
-    return Promise.reject(error.response.data);
+    return Promise.reject(error.response?.data || error);
   }
 );
 

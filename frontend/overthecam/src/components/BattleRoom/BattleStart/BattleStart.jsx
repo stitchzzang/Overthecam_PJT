@@ -1,5 +1,4 @@
 import BattleVote from "../common/BattleVote";
-import BattleTimer from "../BattleStart/BattleTimer";
 import BattleChating from "../common/BattleChating";
 import { useState } from "react";
 

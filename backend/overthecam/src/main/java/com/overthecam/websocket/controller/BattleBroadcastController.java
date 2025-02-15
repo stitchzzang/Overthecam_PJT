@@ -1,5 +1,6 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
 import com.overthecam.member.dto.UserScoreInfo;
@@ -48,20 +49,28 @@ public class BattleBroadcastController {
             SimpMessageHeaderAccessor headerAccessor) {
 
         UserPrincipal user = authenticateUser(headerAccessor);
+        log.debug("브로드캐스트 메시지 수신 - battleId: {}, type: {}, user: {}",
+            battleId, request.getType(), user.getEmail());
 
         try {
+            WebSocketResponseDto<?> response;
+
             switch (request.getType()) {
                 case CHAT:
                     ChatMessageRequest chatRequest = requestMapper.mapToChatMessageRequest(request.getData());
-                    return WebSocketResponseDto.ok(MessageType.CHAT,
-                            chatMessageService.sendMessage(chatRequest, user));
+                    response = WebSocketResponseDto.ok(MessageType.CHAT,
+                        chatMessageService.sendMessage(chatRequest, user));
+                    log.debug("채팅 메시지 처리 완료");
+                    return response;
 
                 case BATTLE_READY:
+                    battleStartService.updateBattleStatus(battleId, Status.PROGRESS);
                     BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
                     return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
                         battleReadyService.toggleReady(battleId, user.getUserId()));
 
                 case BATTLE_START:
+
                     return WebSocketResponseDto.ok(MessageType.BATTLE_START,
                         battleStartService.handleBattleStart(battleId));
 
@@ -90,10 +99,11 @@ public class BattleBroadcastController {
                                     .build());
 
                 default:
+                    log.warn("잘못된 메시지 타입 수신: {}", request.getType());
                     throw new WebSocketException(WebSocketErrorCode.INVALID_MESSAGE_FORMAT, "올바르지 않은 메시지 타입입니다.");
             }
         } catch (IllegalArgumentException e) {
-            log.error("Failed to convert request data", e);
+            log.error("메시지 변환 실패 - battleId: {}, type: {}", battleId, request.getType(), e);
             throw new WebSocketException(WebSocketErrorCode.INVALID_MESSAGE_FORMAT, "올바르지 않은 메시지 타입입니다.");
         }
     }
