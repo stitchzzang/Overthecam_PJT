@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Pagination from 'react-js-pagination';
 
 function MyPageBattle() {
@@ -14,6 +14,7 @@ function MyPageBattle() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBattleHistory = async () => {
@@ -106,8 +107,33 @@ function MyPageBattle() {
         {isLoading ? (
           <div className="text-center">로딩 중...</div>
         ) : battles.length === 0 ? (
-          <div className="text-center text-gray-500">
-            아직 참여한 배틀이 없습니다.
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="text-center text-gray-500 text-lg">
+              아직 참여한 배틀이 없습니다.
+            </div>
+            <div className="text-center text-cusBlue font-medium">
+              배틀에 참여해보세요!
+            </div>
+            <button
+              onClick={() => navigate('/main/create-battle-room')}
+              className="bg-cusBlue hover:bg-cusBlue-dark text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                strokeWidth={1.5} 
+                stroke="currentColor" 
+                className="w-5 h-5"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  d="M12 4.5v15m7.5-7.5h-15" 
+                />
+              </svg>
+              배틀방 만들기
+            </button>
           </div>
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
@@ -153,20 +179,20 @@ function MyPageBattle() {
       </div>
       
       {pageInfo.totalPages > 1 && (
-        <div className="flex justify-center mt-6">
-          <Pagination
-            activePage={currentPage}
-            itemsCountPerPage={pageInfo.pageSize}
-            totalItemsCount={pageInfo.totalElements}
-            pageRangeDisplayed={5}
-            prevPageText={"이전"}
-            nextPageText={"다음"}
-            onChange={handlePageChange}
-            innerClass="flex gap-2"
-            itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
-            activeClass="bg-cusBlack-light !text-white"
-            linkClass="block w-full h-full text-center"
-          />
+        <div className="flex justify-center gap-2 mt-6">
+          {Array.from({ length: pageInfo.totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-semibold ${
+                currentPage === page
+                  ? "bg-[#A5C5F4] text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
         </div>
       )}
     </div>
