@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // 스크롤바 숨기는 전역 스타일 추가
 const globalStyles = `
@@ -19,40 +19,114 @@ const globalStyles = `
   }
 `;
 
-const Section = ({ children, className, backgroundImage }) => (
-  <div 
-    className={`h-screen flex items-center justify-center snap-start ${className}`}
-    style={backgroundImage ? {
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${backgroundImage})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    } : {}}
-  >
-    <div className="max-w-6xl mx-auto px-4 flex items-center gap-8">{children}</div>
-  </div>
-);
+const Section = ({ children, className, backgroundImage }) => {
+  const [bgStyle, setBgStyle] = useState({
+    backgroundImage: backgroundImage ? 
+      `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${backgroundImage})` : 
+      'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7))',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    willChange: 'transform',
+    transform: 'translateZ(0)',
+  });
+
+  return (
+    <div 
+      className={`h-screen flex items-center justify-center snap-start ${className}`}
+      style={bgStyle}
+    >
+      <div className="max-w-6xl mx-auto px-4 flex items-center gap-8">{children}</div>
+    </div>
+  );
+};
 
 const FakeMainPage = () => {
   const navigate = useNavigate();
-
+  const scrollContainerRef = useRef(null);
+  
   useEffect(() => {
+    // 이미지 프리로딩
+    const preloadImages = async () => {
+      const images = [
+        '../images/Desktop_mockup.png',
+        '../images/Desktop_mockup2.png',
+        '../images/Desktop_mockup3.png'
+      ];
+
+      const preloadImage = (src) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(src);
+          img.src = src;
+          
+          // 브라우저 캐싱 활용
+          img.style.display = 'none';
+          document.body.appendChild(img);
+          setTimeout(() => document.body.removeChild(img), 0);
+        });
+      };
+
+      try {
+        await Promise.all(images.map(preloadImage));
+      } catch (error) {
+        console.error('Image preloading failed:', error);
+      }
+    };
+
+    preloadImages();
+
     // 스타일 태그 추가
     const styleSheet = document.createElement("style");
-    styleSheet.innerText = globalStyles;
+    styleSheet.innerText = globalStyles + `
+      .bg-image {
+        background-size: cover;
+        background-position: center;
+        transition: opacity 0.5s ease-in-out;
+      }
+    `;
     document.head.appendChild(styleSheet);
 
-    // 스크롤 동작을 부드럽게 만듭니다
-    document.documentElement.style.scrollBehavior = 'smooth';
-    
+    // 스크롤 최적화
+    const container = scrollContainerRef.current;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    container?.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       document.head.removeChild(styleSheet);
-      document.documentElement.style.scrollBehavior = 'auto';
+      container?.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
+  // 이미지 컴포넌트 최적화
+  const OptimizedImage = ({ src, alt, className, ...props }) => (
+    <motion.img
+      src={src}
+      alt={alt}
+      className={`${className} loading="eager" decoding="async"`}
+      style={{
+        willChange: 'transform, opacity',
+        transform: 'translateZ(0)'
+      }}
+      {...props}
+    />
+  );
+
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-gray-900 to-gray-800">
-      <div className="absolute inset-0 snap-y snap-mandatory overflow-y-scroll hide-scrollbar">
+      <div 
+        ref={scrollContainerRef}
+        className="absolute inset-0 snap-y snap-mandatory overflow-y-scroll hide-scrollbar"
+      >
         {/* 첫 번째 섹션 */}
         <Section>
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -70,7 +144,7 @@ const FakeMainPage = () => {
                 승패에 쿨하게 승복하실 분들<br />언제나 환영합니다!
               </p>
             </motion.div>
-            <motion.img
+            <OptimizedImage
               src="../images/Desktop_mockup.png"
               alt="논쟁 아이콘"
               className="w-96 h-96 object-contain md:w-2/3"
@@ -84,7 +158,7 @@ const FakeMainPage = () => {
         {/* 두 번째 섹션 */}
         <Section>
           <div className="flex flex-col md:flex-row items-center gap-8 -ml-8">
-            <motion.img
+            <OptimizedImage
               src="../images/Desktop_mockup2.png"
               alt="실시간 배틀"
               className="w-[32rem] h-[32rem] object-contain md:w-2/3"
