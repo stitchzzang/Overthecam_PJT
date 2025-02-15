@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 2. 토큰이 있는 경우 - 항상 검증 진행 (인증 불필요 URI여도 검증)
             if (accessToken != null) {
-                processToken(accessToken, request, response);
+                processToken(accessToken);
             }
             // 3. 토큰이 없는 경우
             else {
@@ -77,60 +77,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 1. 토큰 유효성 검증
      * 2. 만료된 경우 리프레시 토큰으로 갱신
      */
-    private void processToken(String accessToken, HttpServletRequest request, HttpServletResponse response) {
+    private void processToken(String accessToken) {
         if (accessToken != null) {
+            // 토큰이 만료되었으면 401 에러를 던집니다
             if (tokenProvider.isExpiredToken(accessToken)) {
-                processRefreshToken(request, response);
+                throw new GlobalException(AuthErrorCode.EXPIRED_ACCESS_TOKEN,
+                    "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요.");
             }
+
+            // 토큰이 유효하면 인증 정보를 설정합니다
             if (tokenProvider.validateToken(accessToken)) {
                 setAuthentication(accessToken);
             } else {
                 throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE,
-                        "토큰의 서명이 유효하지 않습니다");
+                    "토큰의 서명이 유효하지 않습니다");
             }
         }
     }
 
-    /**
-     * 리프레시 토큰 처리 로직
-     * 1. 쿠키에서 리프레시 토큰 추출
-     * 2. 리프레시 토큰 검증
-     * 3. 새로운 액세스 토큰 발급
-     */
-    private void processRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = extractRefreshTokenFromCookie(request);
-        if (refreshToken == null) {
-            throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
-                    "리프레시 토큰이 쿠키에 존재하지 않습니다");
-        }
-
-        if (!tokenProvider.validateToken(refreshToken)) {
-            throw new GlobalException(AuthErrorCode.EXPIRED_REFRESH_TOKEN,
-                    "리프레시 토큰이 만료되었습니다. 재로그인이 필요합니다");
-        }
-
-        String email = tokenProvider.getEmail(refreshToken);
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
-                        "인증 정보가 유효하지 않습니다"));
-
-        String newAccessToken = tokenProvider.recreateAccessToken(user);
-        response.setHeader("New-Access-Token", newAccessToken);
-        setAuthentication(newAccessToken);
-    }
-
-    // 쿠키에서 리프레시 토큰 추출
-    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (REFRESH_TOKEN_COOKIE.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
 
     // Spring Security Context에 인증 정보 설정
     private void setAuthentication(String token) {
