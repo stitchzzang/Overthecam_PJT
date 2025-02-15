@@ -63,15 +63,17 @@ const FakeMainPage = () => {
               viewport={{ once: true, margin: "-20%" }}
               className="text-center text-white md:w-1/2"
             >
-              <h1 className="text-7xl font-bold mb-6 line-clamp-2">논쟁은 예술이다</h1>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 whitespace-nowrap">
+                논쟁은 예술이다
+              </h1>
               <p className="text-2xl text-gray-300">
-                승패에 쿨하게 승복하실 분들 언제나 환영합니다!
+                승패에 쿨하게 승복하실 분들<br />언제나 환영합니다!
               </p>
             </motion.div>
             <motion.img
-              src="../images/Desktop_mockup.png" // 이미지 첨부
+              src="../images/Desktop_mockup.png"
               alt="논쟁 아이콘"
-              className="w-64 h-64 object-contain md:w-1/2"
+              className="w-96 h-96 object-contain md:w-2/3"
               initial={{ opacity: 0, x: 100 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.5 }}
@@ -80,17 +82,17 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 두 번째 섹션 */}
-        <Section backgroundImage="/images/debate2.jpg">
-          <div className="flex flex-col md:flex-row items-center gap-8">
+        <Section>
+          <div className="flex flex-col md:flex-row items-center gap-8 -ml-8">
             <motion.img
-              src="../images/Desktop_mockup.png" // 이미지 첨부
+              src="../images/Desktop_mockup2.png"
               alt="실시간 배틀"
-              className="w-64 h-64 object-contain md:w-1/2"
+              className="w-[32rem] h-[32rem] object-contain md:w-2/3"
               initial={{ opacity: 0, x: -100 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 1 }}
             />
-            <motion.div className="space-y-8 text-white md:w-1/2">
+            <motion.div className="space-y-8 text-white md:w-2/3 px-0">
               <motion.h2 
                 initial={{ x: 200 }}
                 whileInView={{ x: 0 }}
@@ -99,11 +101,11 @@ const FakeMainPage = () => {
                   duration: 1.5,
                   ease: "easeInOut"
                 }}
-                className="text-5xl font-bold text-cusRed-light"
+                className="text-5xl font-bold text-cusRed-light whitespace-normal leading-tight"
               >
                 실시간 논쟁 배틀,<br />지금 시작됩니다!
               </motion.h2>
-              <ul className="space-y-4 text-xl">
+              <ul className="space-y-4 text-xl whitespace-normal">
                 <motion.li
                   initial={{ x: -100, opacity: 0 }}
                   whileInView={{ x: 0, opacity: 1 }}
@@ -113,7 +115,7 @@ const FakeMainPage = () => {
                     ease: "easeInOut"
                   }}
                 >
-                  2명의 배틀러, 최대 4명의 관전자 참여 가능
+                  2명의 배틀러, 최대 4명의 관전자
                 </motion.li>
                 <motion.li
                   initial={{ x: -100, opacity: 0 }}
@@ -124,7 +126,7 @@ const FakeMainPage = () => {
                     ease: "easeInOut"
                   }}
                 >
-                  AI 기반 욕설 필터링으로 클린한 채팅 환경 조성
+                  AI 기반 욕설 필터링 클린한 채팅 환경
                 </motion.li>
               </ul>
             </motion.div>
@@ -191,7 +193,7 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 다섯 번째 섹션 - 스태거 효과 */}
-        <Section backgroundImage="../images/Desktop_mockup.png">
+        <Section backgroundImage="../images/Desktop_mockup3.png">
           {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ opacity: 0 }}
