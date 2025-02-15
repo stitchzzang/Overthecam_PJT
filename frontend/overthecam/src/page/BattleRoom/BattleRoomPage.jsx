@@ -38,7 +38,7 @@ function BattleRoomPage() {
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
 
   // 웹소켓 관련
-  const { status, error, connectWS, disconnectWS } = useWebSocketContext();
+  const { status, error, connectWS, disconnectWS, vote } = useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -393,7 +393,7 @@ function BattleRoomPage() {
   };
 
   const battlerModalShow = (e) => {
-    battlerSettingModal.current?.showModal();
+    battlerSettingModal.current?.showModal(vote.option1, vote.option2);
   };
 
   const endBattleModalShow = (e) => {
