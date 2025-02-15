@@ -53,15 +53,22 @@ const PopularVote = ({ onVoteComplete }) => {
       const response = await publicAxios.get('/vote/list', {
         params: {
           page: 0,
-          size: 1,
+          size: 10,  // 더 많은 데이터를 가져와서
           status: 'active',
-          sort: ['totalVoteCount,DESC', 'createdAt,DESC']  // 투표수 내림차순, 같으면 최신순
+          sort: 'createdAt,DESC'  // 일단 모든 active 투표를 가져온 다음
         },
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
 
-      if (response.data?.content?.[0]) {
-        setPopularVote(response.data.content[0]);
+      if (response.data?.content) {
+        // 투표수를 기준으로 정렬하고 가장 많은 것을 선택
+        const sortedVotes = response.data.content.sort((a, b) => 
+          b.totalVoteCount - a.totalVoteCount
+        );
+        
+        if (sortedVotes[0]) {
+          setPopularVote(sortedVotes[0]);  // 투표수가 가장 많은 투표를 선택
+        }
       }
     } catch (error) {
       console.error('인기 투표 조회 중 오류 발생:', error.response || error);
@@ -80,8 +87,7 @@ const PopularVote = ({ onVoteComplete }) => {
       }
 
       await authAxios.post(`/vote/${popularVote.voteId}/vote/${optionId}`);
-      await fetchPopularVote();
-      onVoteComplete();
+      await fetchPopularVote(); // 투표 후 데이터 새로고침
     } catch (err) {
       console.error('Vote error:', err);
       if (err.response?.status === 401) {
@@ -393,11 +399,6 @@ const MainPage = () => {
     navigate(`/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
   };
 
-  const handleVoteComplete = async () => {
-    // 투표 목록 새로고침
-    await fetchVotes();
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 코치마크 컴포넌트 - 추후 구현 예정
@@ -451,10 +452,10 @@ const MainPage = () => {
         <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
         
         {/* PopularVote 컴포넌트 추가 */}
-        <PopularVote onVoteComplete={handleVoteComplete} />
+        <PopularVote />
         
         <div className="container mx-auto px-4">
-          <div className="container mx-auto px-14 pt-44 pb-12">
+          <div className="container mx-auto px-14 pt-48 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
@@ -555,7 +556,7 @@ const MainPage = () => {
                   to="/main/vote"  // /vote -> /main/vote 으로 수정
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
-                  + 더보기
+                  + ejq
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
