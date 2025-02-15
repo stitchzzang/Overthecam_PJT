@@ -16,7 +16,7 @@ const SectionTitle = ({ title }) => (
 );
 
 const StatusBadge = ({ status, onClick }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold";
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold w-[100px] text-center whitespace-nowrap";
   return status === 0 ? (
     <span 
       onClick={onClick}
@@ -484,8 +484,8 @@ const MainPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 bg-white hover:scale-105 transition-transform min-h-[8rem]">
-                        <div className="flex h-full gap-4 flex-col sm:flex-row">
+                      <div className="clay p-4 bg-white hover:scale-105 transition-transform h-[160px]">
+                        <div className="flex h-full gap-4 flex-col sm:flex-row items-center">
                           {/* 썸네일 이미지 */}
                           <div className="w-full sm:w-24 h-24 flex-shrink-0">
                             <img 
@@ -505,25 +505,10 @@ const MainPage = () => {
                             {/* 상태와 참가자 정보 */}
                             <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              {battle.status === 0 ? (
-                                <div 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleBattleEnter(battle.battleId, battle.status);
-                                  }}
-                                  className="hover:scale-105 transition-transform cursor-pointer"
-                                >
-                                  <StatusBadge 
-                                    status={battle.status} 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleBattleEnter(battle.battleId, battle.status);
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <StatusBadge status={battle.status} />
-                              )}
+                              <StatusBadge status={battle.status} onClick={(e) => {
+                                e.stopPropagation();
+                                handleBattleEnter(battle.battleId, battle.status);
+                              }} />
                             </div>
                           </div>
                         </div>
@@ -532,7 +517,7 @@ const MainPage = () => {
                   ))
                 ) : (
                   [...Array(6)].map((_, index) => (
-                    <Card key={`battle-${index}`} />
+                    <Card key={`battle-${index}`} className="h-[160px]" />
                   ))
                 )}
               </div>
