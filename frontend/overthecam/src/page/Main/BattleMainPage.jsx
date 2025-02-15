@@ -1,17 +1,31 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Pagination from "react-js-pagination";
 import BattleListItem from "../../components/BattleRoom/BattleListItem";
 import { readRooms } from "../../service/BattleRoom/api";
 
 function BattleMainPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [battles, setBattles] = useState([]);
+
+  // 로그인 체크 추가
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/main/login');
+      return;
+    }
+  }, [navigate]);
 
   // 화면 렌더링 시 메인 페이지 read
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('token');
+        if (!token) return; // 토큰이 없으면 API 호출하지 않음
+
         const response = await readRooms();
         console.log("API 응답:", response.data.battleInfo);
         setBattles(
@@ -22,6 +36,10 @@ function BattleMainPage() {
         setIsLoading(false);
       } catch (error) {
         console.error("데이터 로딩 오류:", error);
+        if (error.response?.status === 401) {
+          alert('로그인이 필요한 서비스입니다.');
+          navigate('/main/login');
+        }
       }
     };
 
@@ -30,7 +48,7 @@ function BattleMainPage() {
     return () => {
       setBattles([]);
     };
-  }, []);
+  }, [navigate]);
 
   // 페이지네이션 용
   // 현재 페이지
