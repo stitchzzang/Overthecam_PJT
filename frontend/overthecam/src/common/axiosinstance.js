@@ -29,7 +29,8 @@ authAxios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    // 액세스 토큰 만료 확인
+    if (error.response?.data?.message === 'EXPIRED_ACCESS_TOKEN' && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -43,8 +44,6 @@ authAxios.interceptors.response.use(
         if (response.success && response.data.accessToken) {
           const { accessToken, refreshToken: newRefreshToken } = response.data;
           console.log("토큰 재발급 성공!");
-          console.log("새로운 액세스 토큰:", accessToken);
-          console.log("새로운 리프레시 토큰:", newRefreshToken);
           
           localStorage.setItem('token', accessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
@@ -53,6 +52,15 @@ authAxios.interceptors.response.use(
           return authAxios(originalRequest);
         }
       } catch (error) {
+        // 리프레시 토큰 만료 확인
+        if (error.response?.data?.message === 'EXPIRED_REFRESH_TOKEN') {
+          console.error("리프레시 토큰이 만료되었습니다.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          window.location.href = "/main/login";
+          return Promise.reject(new Error('세션이 만료되었습니다. 다시 로그인해주세요.'));
+        }
+        
         console.error("토큰 재발급 실패:", error);
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
