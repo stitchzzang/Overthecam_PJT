@@ -90,15 +90,14 @@ function BattleMainPage() {
             </p>
           </div>
         ) : (
-          <div className="p-6 m-6 justify-center">
+          <div className="p-4 sm:p-6 m-2 sm:m-6 justify-center">
             {battles.length === 0 ? (
               <p className="text-xl font-semibold text-cusBlue dark:text-white drop-shadow-lg">
                 현재 배틀 진행 중인 방이 없습니다.
               </p>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* 배틀 목록 컴포넌트 생성 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4">
                   {currentList.map((room) => (
                     <BattleListItem
                       key={room.id}
