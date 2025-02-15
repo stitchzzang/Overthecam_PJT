@@ -4,6 +4,14 @@ import { publicAxios } from "../../common/axiosinstance"
 import CursorMotionEffect from "../../components/Layout/CusorMotionDesign"
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
+// 프로필 이미지 배열 추가
+const defaultProfileImages = [
+  "https://d26tym50939cjl.cloudfront.net/profiles/profile_bear.jpg",
+  "https://d26tym50939cjl.cloudfront.net/profiles/profile_cat.jpg",
+  "https://d26tym50939cjl.cloudfront.net/profiles/profile_person.jpg",
+  "https://d26tym50939cjl.cloudfront.net/profiles/profile_rabbit.jpg"
+];
+
 const Signup = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -68,7 +76,8 @@ const Signup = () => {
         nickname: formData.nickname.trim(),
         gender: formData.gender === "male" ? 0 : 1,
         birth: formData.birth,
-        phoneNumber: formData.phoneNumber.trim()
+        phoneNumber: formData.phoneNumber.trim(),
+        profileImage: defaultProfileImages[Math.floor(Math.random() * defaultProfileImages.length)] // 랜덤 이미지 추가
       }
 
       const response = await publicAxios.post("/auth/signup", signupData)
