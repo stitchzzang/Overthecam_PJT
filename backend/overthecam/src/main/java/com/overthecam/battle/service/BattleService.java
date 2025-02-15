@@ -191,10 +191,10 @@ public class BattleService {
     private void updateBattleStatus(Battle battle, long participants) {
         battle.updateTotalUsers((int) participants);
 
-        if (participants < 6 && battle.getStatus() != Status.END) {
-            battle.updateStatus(Status.WAITING);
-            log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battle.getId());
-        }
+//        if (participants < 6 && battle.getStatus() != Status.END) {
+//            battle.updateStatus(Status.WAITING);
+//            log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battle.getId());
+//        }
 
         battleRepository.save(battle);
     }
@@ -210,11 +210,11 @@ public class BattleService {
 
         List<BattleInfo> battleInfos = battles.stream()
             .map(battle -> {
-                if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
-                    battle.updateStatus(Status.PROGRESS);
-                    battleRepository.save(battle);
-                    log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
-                }
+//                if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
+//                    battle.updateStatus(Status.PROGRESS);
+//                    battleRepository.save(battle);
+//                    log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
+//                }
 
                 return BattleInfo.builder()
                     .battleId(battle.getId())
