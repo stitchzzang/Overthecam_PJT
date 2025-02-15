@@ -55,6 +55,7 @@ const useWebSocket = (battleId) => {
   const [myReady, setMyReady] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [gameInfo, setGameInfo] = useState({});
+  const [isTimeExtended, setIsTimeExtended] = useState(false);
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
 
@@ -67,20 +68,24 @@ const useWebSocket = (battleId) => {
 
       switch (type) {
         case "CHAT":
-          setMessageList((prev) => {
-            const newList = [...prev, data];
-            return newList;
-          });
+          if (success) {
+            setMessageList((prev) => {
+              const newList = [...prev, data];
+              return newList;
+            });
+          }
           break;
         case "VOTE_CREATE":
-          setVote({
-            title: data.title,
-            content: data.content,
-            option1: data.options[0]?.optionTitle,
-            option2: data.options[1]?.optionTitle,
-            option1Id: data.options[0]?.optionId,
-            option2Id: data.options[1]?.optionId,
-          });
+          if (success) {
+            setVote({
+              title: data.title,
+              content: data.content,
+              option1: data.options[0]?.optionTitle,
+              option2: data.options[1]?.optionTitle,
+              option1Id: data.options[0]?.optionId,
+              option2Id: data.options[1]?.optionId,
+            });
+          }
           break;
         case "BATTLE_READY":
           if (data.ready) {
@@ -95,19 +100,28 @@ const useWebSocket = (battleId) => {
           );
           break;
         case "BATTLE_START":
-          setGameInfo(data);
-          setIsStarted(success);
+          if (success) {
+            setGameInfo(data);
+            setIsStarted(success);
+          }
           break;
         case "BATTLER_SELECT":
-          const content = `${data.firstBattler.nickname}님과 ${data.secondBattler.nickname}님이 배틀러로 선정되셨습니다.`;
-          const newMsg = {
-            nickname: "SYSTEM",
-            content,
+          if (success) {
+            const content = `${data.firstBattler.nickname}님과 ${data.secondBattler.nickname}님이 배틀러로 선정되셨습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
           }
-          setMessageList((prev) => {
-            const newList = [...prev, newMsg];
-            return newList;
-          });
+          break;
+        case "TIME_EXTENSION":
+          if (success) {
+            setIsTimeExtended(true);
+          }
           break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
@@ -304,6 +318,21 @@ const useWebSocket = (battleId) => {
     }
   }, [battleId, wsStatus]);
 
+  const timeExtention = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "TIME_EXTENSION",
+        })
+      );
+    } catch (error) {
+      console.error("시간 연장 실패:", error);
+      setError("시간 연장에 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
   useEffect(() => {
     return () => {
       disconnectWS();
@@ -327,6 +356,8 @@ const useWebSocket = (battleId) => {
     gameInfo,
     isStarted,
     resultBattler,
+    timeExtention,
+    isTimeExtended,
   };
 };
 
