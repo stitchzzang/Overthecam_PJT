@@ -46,15 +46,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
         try {
-            // 1. 먼저 permitAll 경로인지 체크
-            if (isPermitAllEndpoint(request.getRequestURI())) {
+            String accessToken = resolveToken(request);
+
+            // permitAll 경로이면서 토큰이 없는 경우 -> 그냥 통과
+            if (isPermitAllEndpoint(request.getRequestURI()) && accessToken == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 2. 이후 토큰 체크 (permitAll 아닌 경로만)
-            String accessToken = resolveToken(request);
-
+            // 토큰이 있는 경우 -> permitAll 경로여도 토큰 검증 진행
             if (accessToken != null) {
                 try {
                     if (tokenProvider.validateToken(accessToken)) {
@@ -64,7 +64,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     throw new GlobalException(AuthErrorCode.EXPIRED_ACCESS_TOKEN,
                         "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요.");
                 }
-            } else {
+            } else if (!isPermitAllEndpoint(request.getRequestURI())) {
+                // permitAll 아닌 경로인데 토큰이 없는 경우
                 throw new GlobalException(AuthErrorCode.TOKEN_NOT_FOUND,
                     "인증 토큰이 필요합니다");
             }
