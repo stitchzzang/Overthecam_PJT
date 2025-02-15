@@ -49,8 +49,8 @@ function BattleCreatingPage() {
         </div>
         <div className="flex flex-col w-1/2 items-center justify-center h-full py-8">
           <div className="flex flex-col items-center justify-center text-center space-y-2 mb-4">
-            <h1 className="text-3xl font-semibold">방 만들기</h1>
-            <p className="text-lg">방을 만들고 지금 바로 논쟁을 즐겨보세요!</p>
+            <h1 className="text-3xl font-semibold">배틀 생성</h1>
+            <p className="text-lg">배틀을 생성해 열띈 논쟁을 즐겨보세요!</p>
           </div>
           <BattleCreateForm onCreateRoom={createBattleRoomHandler} />
         </div>

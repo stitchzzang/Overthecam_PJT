@@ -39,8 +39,8 @@ export default function VoteCreatingPage() {
         </div>
         <div className="flex flex-col w-1/2 items-center justify-center h-full py-8">
           <div className="flex flex-col items-center justify-center text-center space-y-2 mb-4">
-            <h1 className="text-3xl font-semibold">투표 만들기</h1>
-            <p className="text-lg">투표를 만들고 지금 바로 의견을 나눠보세요!</p>
+            <h1 className="text-3xl font-semibold">투표 생성</h1>
+            <p className="text-lg">투표를 만들고 다양한 의견을 나눠보세요!</p>
           </div>
           <VoteCreatingForm 
             onCreateVote={createVoteHandler} 
