@@ -453,7 +453,10 @@ function BattleRoomPage() {
           </>
         )}
       </div>
-      <BattlerSettingModal ref={battlerSettingModal} />
+      <BattlerSettingModal
+        ref={battlerSettingModal}
+        participants={participants}
+      />
       <FailAlertModal ref={failTost} />
       <NoticeAlertModal ref={noticeToast} />
       <BattleLeaveConfirmModal
