@@ -35,7 +35,7 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
     <form onSubmit={handleSubmit} className="w-full max-w-md px-8">
       <div className="space-y-4">
         <div className="flex items-center">
-          <label className="text-xl font-bold w-24">투표 제목</label>
+          <label className="text-xl font-bold min-w-[100px] w-28">투표 제목</label>
           <input 
             type="text" 
             value={title} 
@@ -48,7 +48,7 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
         </div>
         
         <div className="flex items-center">
-          <label className="text-xl font-bold w-24">설명</label>
+          <label className="text-xl font-bold min-w-[100px] w-28">설명</label>
           <textarea 
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -60,7 +60,7 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
         </div>
         
         <div className="flex items-center">
-          <label className="text-xl font-bold w-24">선택지 1</label>
+          <label className="text-xl font-bold min-w-[100px] w-28">선택지 1</label>
           <input 
             type="text" 
             value={option1} 
@@ -73,7 +73,7 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
         </div>
         
         <div className="flex items-center">
-          <label className="text-xl font-bold w-24">선택지 2</label>
+          <label className="text-xl font-bold min-w-[100px] w-28">선택지 2</label>
           <input 
             type="text" 
             value={option2} 
@@ -89,7 +89,7 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
       <button 
         type="submit"
         disabled={disabled}
-        className="btn w-1/3 self-center bg-cusBlue text-cusLightBlue-lighter hover:bg-cusLightBlue hover:text-cusBlue px-10 py-3 mt-6"
+        className="btn min-w-[120px] w-1/3 self-center bg-cusBlue text-cusLightBlue-lighter hover:bg-cusLightBlue hover:text-cusBlue px-4 py-3 mt-6 whitespace-nowrap"
       >
         Create !
       </button>
