@@ -110,4 +110,22 @@ public class MyPageController {
 
         return CommonResponseDto.ok(combinedStats);
     }
+
+    @GetMapping("/profile")
+    public CommonResponseDto<UserUpdateResponseDto> getMyProfile(
+            Authentication authentication,
+            @RequestParam(value = "userId", required = false) Long targetUserId) {
+        Long userId = targetUserId != null ?
+                targetUserId :
+                securityUtils.getCurrentUserId(authentication);
+        return CommonResponseDto.ok(myPageService.getUserProfile(userId));
+    }
+
+    @PutMapping("/profile")
+    public CommonResponseDto<UserUpdateResponseDto> updateMyProfile(
+            Authentication authentication,
+            @RequestBody UserUpdateRequestDto request) {
+        Long userId = securityUtils.getCurrentUserId(authentication);
+        return CommonResponseDto.ok(myPageService.updateUserProfile(userId, request));
+    }
 }
