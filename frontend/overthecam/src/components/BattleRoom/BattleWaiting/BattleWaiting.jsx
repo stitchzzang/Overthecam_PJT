@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
+import { useWebSocketContext } from "../../../hooks/useWebSocket";
 
 function BattleWaiting({
   room,
@@ -23,7 +24,7 @@ function BattleWaiting({
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
-  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
+  const { isVoteSubmitted } = useWebSocketContext();
 
   // metadata로 내 role 보기
   try {
@@ -128,9 +129,6 @@ function BattleWaiting({
               {isVoteSubmitted ? (
                 <BattleVote
                   isWaiting={true}
-                  voteTitle={""}
-                  voteOption1={""}
-                  voteOption2={""}
                 />
               ) : (
                 <div className="p-6 bg-white w-full h-full flex items-center justify-center">

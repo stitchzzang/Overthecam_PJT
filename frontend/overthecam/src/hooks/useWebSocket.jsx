@@ -47,6 +47,8 @@ const useWebSocket = (battleId) => {
   const subscriptionsRef = useRef({});
   const [wsStatus, setWsStatus] = useState(WS_STATUS.DISCONNECTED);
   const [messageList, setMessageList] = useState([]);
+  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
+  const [vote, setVote] = useState({});
   const [error, setError] = useState(null);
 
   const getResponse = useCallback((response) => {
@@ -63,25 +65,31 @@ const useWebSocket = (battleId) => {
             return newList;
           });
           break;
+        case "VOTE_CREATE":
+          setVote({
+            title: data.title,
+            content: data.content,
+            option1: data.options[0]?.optionTitle,
+            option2: data.options[1]?.optionTitle
+          })
+          break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
           break;
       }
     } catch (error) {
       console.error("[WS] 응답 처리 중 에러:", error);
-      setError("응답이 없습니다.")
+      setError("응답이 없습니다.");
     }
   }, []);
 
   const connectWS = useCallback(
     (url, token) => {
-
-
+      console.log("연결 시도합니다.")
       if (!url || !token) {
         setError(new Error("URL과 토큰이 필요합니다"));
         return;
       }
-
 
       setWsStatus(WS_STATUS.CONNECTING);
       const wsUrl = `${url}/ws-connect`;
@@ -160,7 +168,7 @@ const useWebSocket = (battleId) => {
   const sendMessage = useCallback(
     (content) => {
       if (wsStatus !== WS_STATUS.CONNECTED) {
-        console.error("WebSocket is not connected");
+        console.error("웹소켓 연결이 되어있지 않습니다.");
         return;
       }
 
@@ -184,6 +192,37 @@ const useWebSocket = (battleId) => {
     [battleId, wsStatus]
   );
 
+  const createVote = useCallback(
+    (title, content, options) => {
+      try {
+        stompClientRef.current?.send(
+          `/api/publish/battle/${battleId}`,
+          {},
+          JSON.stringify({
+            type: "VOTE_CREATE",
+            data: {
+              title,
+              content,
+              battleId,
+              options
+            },
+          })
+        );
+        setVote({
+          title,
+          content,
+          battleId,
+          options
+        })
+        setIsVoteSubmitted(true)
+      } catch (error) {
+        console.error("투표 등록 실패:", error);
+        setError("투표 등록에 실패했습니다.");
+      }
+    },
+    [battleId, wsStatus]
+  );
+
   useEffect(() => {
     return () => {
       disconnectWS();
@@ -197,6 +236,9 @@ const useWebSocket = (battleId) => {
     disconnectWS,
     sendMessage,
     messageList,
+    createVote,
+    isVoteSubmitted,
+    vote
   };
 };
 
