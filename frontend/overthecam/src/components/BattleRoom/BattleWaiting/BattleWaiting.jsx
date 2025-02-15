@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
+import BattleRandomTopic from "./BattleWaitingModal/BattleRandomTopic";
 
 function BattleWaiting({
   room,
@@ -20,6 +21,7 @@ function BattleWaiting({
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
+  const randomTopicModal = useRef();
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
@@ -69,6 +71,10 @@ function BattleWaiting({
 
       return null;
     });
+
+  const onShowRandomTopic = () => {
+    randomTopicModal.current.showModal();
+  };
 
   return (
     <>
@@ -141,16 +147,22 @@ function BattleWaiting({
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
                 <div
-                  className="h-1/2 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onBattleStart}
                 >
                   <p>배틀 시작하기</p>
                 </div>
                 <div
+                  className="h-1/3 bg-cusYellow my-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onShowVoteCreate}
-                  className="h-1/2 bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
                 >
                   <p>투표 만들기</p>
+                </div>
+                <div
+                  className="h-1/3 bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
+                  onClick={onShowRandomTopic}
+                >
+                  <p>랜덤 주제 뽑기</p>
                 </div>
               </div>
             ) : (
@@ -171,6 +183,7 @@ function BattleWaiting({
         ref={battlerSettingModal}
         participants={participants}
       />
+      <BattleRandomTopic ref={randomTopicModal} />
     </>
   );
 }
