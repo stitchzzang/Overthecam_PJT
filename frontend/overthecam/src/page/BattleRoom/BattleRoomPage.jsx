@@ -221,20 +221,48 @@ function BattleRoomPage() {
       console.log(
         "New track subscribed:",
         publication.kind,
-        participant.identity
+        participant.identity,
+        participant.metadata
       );
       setRemoteTracks((prev) => [
         ...prev,
         {
           trackPublication: publication,
           participantIdentity: participant.identity,
+          participantMetadata: participant.metadata
         },
       ]);
     });
 
     // 방 연결 시 사용
-    room.on(RoomEvent.Connected, () => {
-      getDataFromAll(room);
+    room.on(RoomEvent.Connected, async () => {
+      // 잠시 기다려서 localParticipant가 설정될 시간 주기
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      const allParticipants = [];
+      // localParticipant 추가
+      if (room.localParticipant?.metadata) {
+        const localMeta = JSON.parse(room.localParticipant.metadata);
+        allParticipants.push({
+          userId: localMeta.userId,
+          nickname: localMeta.nickname,
+          role: localMeta.role,
+        });
+      }
+
+      if (room.remoteParticipants) {
+        room.remoteParticipants.forEach((participant, key) => {
+          allParticipants.push({
+            userId: JSON.parse(participant.metadata).userId,
+            nickname: JSON.parse(participant.metadata).nickname,
+            role: JSON.parse(participant.metadata).role,
+          });
+          if (JSON.parse(participant.metadata).role === "host") {
+            setHost(JSON.parse(participant.metadata).nickname);
+          }
+        });
+      }
+      setParticipants(allParticipants);
     });
 
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
@@ -243,8 +271,12 @@ function BattleRoomPage() {
           (track) => track.trackPublication.trackSid !== publication.trackSid
         )
       );
-      getDataFromAll(room);
     });
+
+    room.on(RoomEvent.ParticipantConnected, (participant) => {
+      console.log("participant connected:", participant.metadata)
+      setParticipants((prev) => [...prev, JSON.parse(participant.metadata)]);
+    })
 
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
       console.log("Participant disconnected:", participant.identity);
@@ -253,7 +285,11 @@ function BattleRoomPage() {
           (track) => track.participantIdentity !== participant.identity
         )
       );
-      getDataFromAll(room);
+      setParticipants((prev) =>
+        prev.filter(
+          (p) => p.userId !== participant.userId
+        )
+      );
     });
 
     try {
@@ -340,34 +376,6 @@ function BattleRoomPage() {
         console.error("Final disconnect attempt failed:", e);
       }
     }
-  }
-
-  function getDataFromAll(room) {
-    const participantList = [];
-
-    try {
-      const myMetadata = JSON.parse(room?.localParticipant?.metadata || "{}");
-      if (myMetadata.role === "host") {
-        setHost(room.localParticipant.identity);
-      }
-      participantList.push(room.localParticipant.identity);
-    } catch (error) {
-      console.log("Local participant metadata error:", error);
-    }
-
-    room?.participants?.forEach((participant) => {
-      try {
-        const participantMetaData = JSON.parse(participant.metadata || "{}");
-        if (participantMetaData.role === "host") {
-          setHost(participant.identity);
-          participantList.push(room.participant.identity);
-        }
-      } catch (error) {
-        console.log("Participant metadata error:", error);
-      }
-    });
-
-    setParticipants(participantList);
   }
 
   async function handleLeavRoom() {
