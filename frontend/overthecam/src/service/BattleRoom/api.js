@@ -61,7 +61,7 @@ export const leaveRoom = async (battleId) => {
   }
 }
 
-export const setbattler = async (battleId, battler1, battler2) => {
+export const selectbattler = async (battleId, battler1, battler2) => {
   try {
     const response = await authAxios.post(
       `/battle/room/${battleId}/start/${battler1}/${battler2}`,
@@ -76,4 +76,4 @@ export const setbattler = async (battleId, battler1, battler2) => {
     console.error("배틀러 선정 오류: ", errorStatus, errorCode, errorMessage);
     throw error.error;
   }
-}
+};

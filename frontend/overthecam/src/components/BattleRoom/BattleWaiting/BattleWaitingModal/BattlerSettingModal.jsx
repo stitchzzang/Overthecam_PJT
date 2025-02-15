@@ -1,5 +1,5 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { setbattler } from "../../../../service/BattleRoom/api";
+import { forwardRef, useImperativeHandle, useRef, useState, useEffect } from "react";
+import { selectbattler } from "../../../../service/BattleRoom/api";
 import { useBattleStore } from "../../../../store/Battle/BattleStore";
 import FailAlertModal from "../../../@common/FailAlertModal";
 import SuccessAlertModal from "../../../@common/SuccessAlertModal"
@@ -39,11 +39,19 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
         modalRef.current?.showModal();
         setOptions({ option1, option2 });
         setBattlers({ option1: null, option2: null });
+        setparticipantsList(participants)
+        console.log(participantsList)
       } catch (error) {
         console.error("모달 표시 중 에러:", error);
       }
     },
   }));
+
+  useEffect(() => {
+    if (participants && participants.length > 0) {
+      setparticipantsList(participants);
+    }
+  }, [participants]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,7 +66,11 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
       }
 
       // API 호출 로직...
-      const response = setBattlers(battleInfo.battleId, battlers.option1, battlers.option2)
+      const response = selectbattler(
+        battleInfo.battleId,
+        battlers.option1,
+        battlers.option2
+      );
       console.log(response.data)
       modalRef.current?.close();
       sucessToast.current?.showAlert("배틀러가 선정 되었습니다.")
@@ -122,7 +134,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
                           isDisabled ? "opacity-50" : ""
                         }`}
                       >
-                        {participant.participantName}
+                        {participant.nickname}
                         {isparticipantsListelected(participant.id) &&
                           battlers.option2 === participant.id && (
                             <span className="ml-2 text-sm text-blue-600">
@@ -174,7 +186,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
                           isDisabled ? "opacity-50" : ""
                         }`}
                       >
-                        {participant.participantName}
+                        {participant.nickname}
                         {isparticipantsListelected(participant.id) &&
                           battlers.option1 === participant.id && (
                             <span className="ml-2 text-sm text-blue-600">
