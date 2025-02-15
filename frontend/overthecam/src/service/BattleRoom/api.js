@@ -61,11 +61,22 @@ export const leaveRoom = async (battleId) => {
   }
 }
 
-export const selectbattler = async (battleId, battler1, battler2) => {
+export const selectbattler = async (
+  battleId,
+  firstBattlerId,
+  secondBattlerId,
+  firstOptionId,
+  secondOptionId
+) => {
   try {
     const response = await authAxios.post(
-      `/battle/room/${battleId}/start/${battler1}/${battler2}`,
-      {}
+      `/api/battle/betting/${battleId}/battler`,
+      {
+        firstBattlerId,
+        secondBattlerId,
+        firstOptionId,
+        secondOptionId,
+      }
     );
     console.log("배틀러 선정 성공, ", response.success);
     return response;
