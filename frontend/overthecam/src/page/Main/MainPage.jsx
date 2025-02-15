@@ -484,10 +484,10 @@ const MainPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 bg-white h-32 hover:scale-105 transition-transform">
-                        <div className="flex h-full gap-4">
+                      <div className="clay p-4 bg-white hover:scale-105 transition-transform min-h-[8rem]">
+                        <div className="flex h-full gap-4 flex-col sm:flex-row">
                           {/* 썸네일 이미지 */}
-                          <div className="w-24 h-24 flex-shrink-0">
+                          <div className="w-full sm:w-24 h-24 flex-shrink-0">
                             <img 
                               src={battle.thumbnailUrl} 
                               alt={battle.title}
@@ -496,14 +496,14 @@ const MainPage = () => {
                           </div>
                           
                           {/* 내용 */}
-                          <div className="flex flex-col justify-center flex-grow h-full">
+                          <div className="flex flex-col justify-between flex-grow">
                             {/* 제목 */}
-                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-3">
+                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2">
                               {battle.title}
                             </h3>
                             
                             {/* 상태와 참가자 정보 */}
-                            <div className="flex justify-center items-center gap-2">
+                            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
                               {battle.status === 0 ? (
                                 <div 
@@ -556,7 +556,7 @@ const MainPage = () => {
                   to="/main/vote"  // /vote -> /main/vote 으로 수정
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
-                  + ejq
+                  + 더보기
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

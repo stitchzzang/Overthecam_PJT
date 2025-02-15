@@ -53,8 +53,10 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
           </h3>
         </div>
         {/* 하단 버튼 영역 */}
-        <div className="flex justify-between items-center px-5 pb-5">
-          <p className="text-lg font-semibold text-cusBlue">{totalUsers}/6</p>
+        <div className="flex justify-end items-center gap-4 px-5 pb-5">
+          <span className="btn px-4 py-1.5 text-sm font-bold bg-cusGray-light text-cusBlack pointer-events-none">
+            {totalUsers} / 6
+          </span>
           {status === "WAITING" ? (
             <button
               className="btn bg-cusRed-light hover:bg-cusRed w-32 h-11"
