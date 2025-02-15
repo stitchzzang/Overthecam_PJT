@@ -50,6 +50,7 @@ const useWebSocket = (battleId) => {
   const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
   const [vote, setVote] = useState({});
   const [error, setError] = useState(null);
+  const [readyList, setReadyList] = useState([]);
 
   const getResponse = useCallback((response) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
@@ -70,9 +71,17 @@ const useWebSocket = (battleId) => {
             title: data.title,
             content: data.content,
             option1: data.options[0]?.optionTitle,
-            option2: data.options[1]?.optionTitle
-          })
+            option2: data.options[1]?.optionTitle,
+          });
           break;
+        case "BATTLE_READY":
+          if (data.ready) {
+            setReadyList((prev) => [...prev, data]);
+          } else {
+            setReadyList((prev) =>
+              prev.filter((p) => p.userId !== data.userId)
+            );
+          }
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
           break;
@@ -85,7 +94,7 @@ const useWebSocket = (battleId) => {
 
   const connectWS = useCallback(
     (url, token) => {
-      console.log("연결 시도합니다.")
+      console.log("연결 시도합니다.");
       if (!url || !token) {
         setError(new Error("URL과 토큰이 필요합니다"));
         return;
@@ -204,7 +213,7 @@ const useWebSocket = (battleId) => {
               title,
               content,
               battleId,
-              options
+              options,
             },
           })
         );
@@ -212,9 +221,9 @@ const useWebSocket = (battleId) => {
           title,
           content,
           battleId,
-          options
-        })
-        setIsVoteSubmitted(true)
+          options,
+        });
+        setIsVoteSubmitted(true);
       } catch (error) {
         console.error("투표 등록 실패:", error);
         setError("투표 등록에 실패했습니다.");
@@ -222,6 +231,21 @@ const useWebSocket = (battleId) => {
     },
     [battleId, wsStatus]
   );
+
+  const readyForBattle = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_READY",
+        })
+      );
+    } catch (error) {
+      console.error("준비 실패:", error);
+      setError("준비에 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
 
   useEffect(() => {
     return () => {
@@ -238,7 +262,9 @@ const useWebSocket = (battleId) => {
     messageList,
     createVote,
     isVoteSubmitted,
-    vote
+    vote,
+    readyForBattle,
+    readyList,
   };
 };
 
