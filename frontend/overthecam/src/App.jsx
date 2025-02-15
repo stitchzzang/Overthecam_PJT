@@ -29,6 +29,8 @@ import VotePage from "./page/Vote/VotePage.jsx";
 import OtherProfile from "./page/Mypage/OtherProfile";
 import SearchResultPage from "./page/Main/SearchResultPage.jsx";
 import BattleRoomLayout from "./components/Layout/BattleRoomLayOut.jsx";
+import { WebSocketProvider } from "./hooks/useWebSocket.jsx";
+import { useBattleStore } from "./store/Battle/BattleStore.jsx";
 
 function ProtectedLogin() {
   const isLoggedIn = !!localStorage.getItem("token");
@@ -58,6 +60,7 @@ function PrivateRoute({ children }) {
 }
 
 function App() {
+  const battleInfo = useBattleStore(s => s.battleInfo)
   return (
     <Router>
       <Routes>
@@ -70,12 +73,14 @@ function App() {
             path="/battle-room/:battleId"
             element={
               <PrivateRoute>
-                <BattleRoomPage />
+                <WebSocketProvider battleId={battleInfo.battleId}>
+                  <BattleRoomPage />
+                </WebSocketProvider>
               </PrivateRoute>
             }
           />
         </Route>
-        
+
         {/* 메인 레이아웃과 라우트들 */}
         <Route path="/main" element={<Layout />}>
           <Route index element={<MainPage />} />
