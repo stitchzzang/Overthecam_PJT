@@ -13,12 +13,18 @@ const FindAccount = () => {
   const [findPwForm, setFindPwForm] = useState({
     email: '',
     username: '',
-    phoneNumber: ''
+    phoneNumber1: '',  // 010
+    phoneNumber2: '',  // 1234
+    phoneNumber3: ''   // 5678
   });
 
   const [message, setMessage] = useState({ text: '', isError: false });
   const [isUserVerified, setIsUserVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleIdFormChange = (e) => {
     setFindIdForm({
@@ -57,14 +63,11 @@ const FindAccount = () => {
         birth: findIdForm.birth
       };
       
-      console.log("아이디 찾기 요청 데이터:", requestData);
-      
       const response = await publicAxios.post('/auth/find-email', requestData);
-      console.log("아이디 찾기 응답:", response);
 
-      if (response && response.data && response.data.code === 200) {
+      if (response.code === 200) {
         setMessage({
-          text: `찾은 이메일: ${response.data.data.email}`,
+          text: `회원님의 이메일은 ${response.data.email} 입니다.`,
           isError: false
         });
       }
@@ -79,10 +82,7 @@ const FindAccount = () => {
   const handleVerifyUser = async (e) => {
     e.preventDefault();
     try {
-      // 전화번호에 하이픈이 없는 경우에만 추가
-      const formattedPhoneNumber = findPwForm.phoneNumber.includes('-') 
-        ? findPwForm.phoneNumber 
-        : findPwForm.phoneNumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+      const formattedPhoneNumber = `${findPwForm.phoneNumber1}-${findPwForm.phoneNumber2}-${findPwForm.phoneNumber3}`;
 
       const requestData = {
         email: findPwForm.email.trim(),
@@ -90,12 +90,9 @@ const FindAccount = () => {
         phoneNumber: formattedPhoneNumber
       };
 
-      console.log("비밀번호 찾기 사용자 확인 요청 데이터:", requestData);
-      
       const response = await publicAxios.post('/auth/verify-password-reset', requestData);
-      console.log("비밀번호 찾기 사용자 확인 응답:", response);
 
-      if (response && response.data && response.data.code === 200) {
+      if (response.success) {
         setIsUserVerified(true);
         setMessage({
           text: '사용자 확인이 완료되었습니다. 새 비밀번호를 설정해주세요.',
@@ -104,7 +101,7 @@ const FindAccount = () => {
       }
     } catch (error) {
       setMessage({
-        text: error.message || '사용자 확인에 실패했습니다.',
+        text: error.error?.message || '사용자 확인에 실패했습니다.',
         isError: true
       });
     }
@@ -112,28 +109,34 @@ const FindAccount = () => {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
     try {
       const requestData = {
         email: findPwForm.email.trim(),
         newPassword: newPassword
       };
-
-      console.log("비밀번호 재설정 요청 데이터:", requestData);
       
       const response = await publicAxios.post('/auth/reset-password', requestData);
-      console.log("비밀번호 재설정 응답:", response);
 
-      if (response && response.data && response.data.code === 200) {
+      if (response.success) {
         setMessage({
-          text: '비밀번호가 성공적으로 재설정되었습니다.',
+          text: '비밀번호가 변경되었습니다!',
           isError: false
         });
-        // 로그인 페이지로 리다이렉트
-        window.location.replace('/login');
+        
+        // 2초 후 로그인 페이지로 이동
+        setTimeout(() => {
+          window.location.replace('/main/login');
+        }, 2000);
       }
     } catch (error) {
       setMessage({
-        text: error.message || '비밀번호 재설정에 실패했습니다.',
+        text: error.error?.message || '비밀번호 재설정에 실패했습니다.',
         isError: true
       });
     }
@@ -156,12 +159,6 @@ const FindAccount = () => {
       <div className="w-full lg:w-[45%] p-12">
         <div className="space-y-8">
           <h1 className="text-2xl font-bold text-gray-900">계정 찾기</h1>
-
-          {message.text && (
-            <div className={`p-4 rounded-xl ${message.isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-              {message.text}
-            </div>
-          )}
 
           {/* ID 찾기 폼 */}
           <div className="space-y-6">
@@ -257,7 +254,7 @@ const FindAccount = () => {
                 type="submit"
                 className="w-full px-3 py-2 bg-blue-400 text-white rounded-xl hover:bg-blue-500 transition-colors text-base"
               >
-                Find
+                아이디 찾기
               </button>
             </form>
           </div>
@@ -273,7 +270,6 @@ const FindAccount = () => {
                   <label className="text-base font-bold text-gray-900 w-24 text-right">이메일</label>
                   <input
                     type="email"
-                    name="email"
                     value={findPwForm.email}
                     onChange={(e) => setFindPwForm({...findPwForm, email: e.target.value})}
                     className="flex-1 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
@@ -282,10 +278,9 @@ const FindAccount = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <label className="text-base font-bold text-gray-900 w-24 text-right">아이디</label>
+                  <label className="text-base font-bold text-gray-900 w-24 text-right">이름</label>
                   <input
                     type="text"
-                    name="username"
                     value={findPwForm.username}
                     onChange={(e) => setFindPwForm({...findPwForm, username: e.target.value})}
                     className="flex-1 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
@@ -295,35 +290,138 @@ const FindAccount = () => {
 
                 <div className="flex items-center gap-4">
                   <label className="text-base font-bold text-gray-900 w-24 text-right">전화번호</label>
-                  <input
-                    type="text"
-                    name="phoneNumber"
-                    value={findPwForm.phoneNumber}
-                    onChange={(e) => setFindPwForm({...findPwForm, phoneNumber: e.target.value})}
-                    className="flex-1 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
-                    required
-                  />
+                  <div className="flex-1 flex gap-2">
+                    <input
+                      type="text"
+                      maxLength="3"
+                      value={findPwForm.phoneNumber1}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        if (value.length <= 3) {
+                          setFindPwForm({...findPwForm, phoneNumber1: value});
+                          if (value.length === 3) {
+                            document.querySelector('input[name="phoneNumber2"]').focus();
+                          }
+                        }
+                      }}
+                      className="w-24 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200 text-center"
+                      placeholder="010"
+                      required
+                    />
+                    <span className="text-gray-500">-</span>
+                    <input
+                      type="text"
+                      name="phoneNumber2"
+                      maxLength="4"
+                      value={findPwForm.phoneNumber2}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        if (value.length <= 4) {
+                          setFindPwForm({...findPwForm, phoneNumber2: value});
+                          if (value.length === 4) {
+                            document.querySelector('input[name="phoneNumber3"]').focus();
+                          }
+                        }
+                      }}
+                      className="w-24 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200 text-center"
+                      placeholder="1234"
+                      required
+                    />
+                    <span className="text-gray-500">-</span>
+                    <input
+                      type="text"
+                      name="phoneNumber3"
+                      maxLength="4"
+                      value={findPwForm.phoneNumber3}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        if (value.length <= 4) {
+                          setFindPwForm({...findPwForm, phoneNumber3: value});
+                        }
+                      }}
+                      className="w-24 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200 text-center"
+                      placeholder="5678"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   className="w-full px-3 py-2 bg-blue-400 text-white rounded-xl hover:bg-blue-500 transition-colors text-base"
                 >
-                  Verify
+                  비밀번호 찾기
                 </button>
               </form>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="flex items-center gap-4">
                   <label className="text-base font-bold text-gray-900 w-24 text-right">새 비밀번호</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
-                    required
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setPasswordError('');
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showNewPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
+                <div className="flex items-center gap-4">
+                  <label className="text-base font-bold text-gray-900 w-24 text-right">비밀번호 확인</label>
+                  <div className="flex-1 relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordError('');
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-200"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirmPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {passwordError && (
+                  <div className="text-red-500 text-sm text-center">
+                    {passwordError}
+                  </div>
+                )}
                 <button
                   type="submit"
                   className="w-full px-3 py-2 bg-blue-400 text-white rounded-xl hover:bg-blue-500 transition-colors text-base"
@@ -344,6 +442,23 @@ const FindAccount = () => {
           </div>
         </div>
       </div>
+
+      {/* 중앙 모달 메시지 */}
+      {message.text && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">
+            <div className={`text-center mb-4 ${message.isError ? 'text-red-600' : 'text-blue-600'}`}>
+              {message.text}
+            </div>
+            <button
+              onClick={() => setMessage({ text: '', isError: false })}
+              className="w-full px-4 py-2 bg-blue-400 text-white rounded-xl hover:bg-blue-500 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
