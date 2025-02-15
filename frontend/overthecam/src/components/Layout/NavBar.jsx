@@ -20,38 +20,55 @@ export default function NavBar() {
   const isLoggedIn = userStore.isLoggedIn;
   const userNickname = userStore.userNickname ? userStore.userNickname : null;
 
-  // 로그인 상태 체크 함수
-  const checkLoginStatus = () => {
-    const token = localStorage.getItem("token");
-    const userInfoStr = localStorage.getItem("userInfo");
-    
-    try {
-      if (token && userInfoStr) {
+  // localStorage 변경 감지를 위한 useEffect 수정
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem("token");
+      const userInfoStr = localStorage.getItem("userInfo");
+      
+      if (!token || !userInfoStr) {
+        // 토큰이나 유저정보가 없으면 로그아웃 상태로 변경
+        useUserStore.setState({ 
+          isLoggedIn: false, 
+          userNickname: null,
+          userId: null 
+        });
+        return;
+      }
+
+      try {
         const parsedUserInfo = JSON.parse(userInfoStr);
         if (parsedUserInfo && parsedUserInfo.nickname) {
-          // 디코딩 로직 제거
-          console.log("로그인 상태 체크:", {
-            token,
-            isLoggedIn,
-            nickname: parsedUserInfo.nickname,
+          useUserStore.setState({
+            isLoggedIn: true,
+            userNickname: parsedUserInfo.nickname,
+            userId: parsedUserInfo.userId
           });
         }
+      } catch (error) {
+        console.error("유저 정보 파싱 에러:", error);
+        // 파싱 에러 시에도 로그아웃 상태로
+        useUserStore.setState({ 
+          isLoggedIn: false, 
+          userNickname: null,
+          userId: null 
+        });
       }
-    } catch (error) {
-      console.error("유저 정보 파싱 에러:", error);
-    }
-  };
+    };
 
-  // 컴포넌트 마운트 및 location 변경 시 로그인 상태 체크
-  useEffect(() => {
+    // 컴포넌트 마운트 시 초기 체크
     checkLoginStatus();
-  }, [location.pathname]);
 
-  // localStorage 변경 이벤트 리스너
-  useEffect(() => {
+    // localStorage 변경 이벤트 리스너
     window.addEventListener('storage', checkLoginStatus);
+    
+    // 주기적으로 토큰 상태 체크 (선택적)
+    const interval = setInterval(checkLoginStatus, 1000);
+    
+    // cleanup
     return () => {
       window.removeEventListener('storage', checkLoginStatus);
+      clearInterval(interval);
     };
   }, []);
 

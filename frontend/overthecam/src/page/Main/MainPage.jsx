@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { motion } from "framer-motion"; // 메인 Framer motion 추가
+import { publicAxios, authAxios } from '../../common/axiosinstance';
 // import Joyride from 'react-joyride'; // 코치마크를 위한 import - 추후 구현 예정
 
 const Card = ({ children }) => (
@@ -42,8 +43,10 @@ const ParticipantsBadge = ({ current, max }) => {
 
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
-  const navigate = useNavigate();  // 네비게이션 추가
-  // const [runTour, setRunTour] = useState(true); // 코치마크 상태 - 추후 구현 예정
+  const [voteList, setVoteList] = useState([]); // 투표 목록 상태 추가
+  const navigate = useNavigate();
+  const userInfo = localStorage.getItem('userInfo');
+  const userId = userInfo ? JSON.parse(userInfo).userId : null;
 
   // 코치마크 단계 정의 - 추후 구현 예정
   /*
@@ -77,6 +80,7 @@ const MainPage = () => {
     }
     */
     fetchBattles();
+    fetchVotes();
   }, []);
 
   const fetchBattles = async () => {
@@ -109,6 +113,120 @@ const MainPage = () => {
       // 에러 발생시 빈 배열로 설정하여 UI가 깨지지 않도록 함
       setBattleList([]);
     }
+  };
+
+  // 투표 목록 가져오기
+  const fetchVotes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await publicAxios.get('/vote/list', { 
+        params: {
+          page: 0,
+          size: 2,
+          status: 'active'
+        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      
+      if (response.data?.content) {
+        setVoteList(response.data.content);
+      }
+    } catch (error) {
+      console.error("투표 목록 조회 중 오류 발생:", error);
+      setVoteList([]);
+    }
+  };
+
+  const handleVote = async (vote, optionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      // 즉시 UI 업데이트
+      setVoteList(prevList => 
+        prevList.map(v => {
+          if (v.voteId === vote.voteId) {
+            const updatedOptions = v.options.map(option => ({
+              ...option,
+              voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
+            }));
+            
+            const totalVotes = updatedOptions.reduce((sum, opt) => sum + opt.voteCount, 0);
+            
+            const optionsWithPercentage = updatedOptions.map(option => ({
+              ...option,
+              votePercentage: (option.voteCount / totalVotes) * 100
+            }));
+
+            return {
+              ...v,
+              hasVoted: true,
+              options: optionsWithPercentage
+            };
+          }
+          return v;
+        })
+      );
+
+      // UI 업데이트 후 서버 요청
+      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
+      
+    } catch (err) {
+      console.error('Vote error:', err);
+      if (err.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+      alert('투표 처리 중 오류가 발생했습니다.');
+      await fetchVotes();
+    }
+  };
+
+  const handleVoteDetailClick = (voteId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/main/login');
+      return;
+    }
+    navigate(`/main/vote-detail/${voteId}`);
+  };
+
+  const renderVoteResult = (vote) => {
+    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
+    
+    return (
+      <div className="mb-4">
+        {vote.options && vote.options.length >= 2 && (
+          <>
+            <div className="mb-2 flex justify-between">
+              <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+              <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
+            </div>
+            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+              <div
+                className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
+                style={{ width: `${totalVotes > 0 ? vote.options[0].votePercentage : 0}%` }}
+              >
+                {totalVotes > 0 ? vote.options[0].votePercentage.toFixed(1) : 0}%
+              </div>
+              <div
+                className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
+                style={{ width: `${totalVotes > 0 ? vote.options[1].votePercentage : 0}%` }}
+              >
+                {totalVotes > 0 ? vote.options[1].votePercentage.toFixed(1) : 0}%
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
   };
 
   // 배틀룸 입장 처리 함수 수정
@@ -284,9 +402,54 @@ const MainPage = () => {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[...Array(2)].map((_, index) => (
-                  <Card key={`vote-${index}`} />
-                ))}
+                {voteList.length > 0 ? (
+                  voteList.map((vote) => (
+                    <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-4 hover:shadow-xl transition-shadow">
+                      <div 
+                        onClick={() => handleVoteDetailClick(vote.voteId)}
+                        className="cursor-pointer"
+                      >
+                        <h2 className="text-xl font-bold mb-2 hover:text-blue-600">
+                          {vote.title}
+                        </h2>
+                        <p className="text-gray-600 mb-2">{vote.content}</p>
+                      </div>
+
+                      <div className="transition-all duration-300">
+                        {vote.hasVoted ? (
+                          renderVoteResult(vote)
+                        ) : (
+                          <div className="flex gap-4">
+                            {vote.options.map((option) => (
+                              <button
+                                key={option.optionId}
+                                onClick={() => handleVote(vote, option.optionId)}
+                                className={`clay flex-1 p-3 ${
+                                  option.optionId === vote.options[0].optionId
+                                    ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                                    : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                                } rounded-lg transition-colors`}
+                              >
+                                {option.optionTitle}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  [...Array(2)].map((_, index) => (
+                    <div key={`vote-skeleton-${index}`} className="bg-white rounded-lg shadow-md p-6 h-64 animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
+                      <div className="space-y-4">
+                        <div className="h-10 bg-gray-200 rounded-lg"></div>
+                        <div className="h-10 bg-gray-200 rounded-lg"></div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </motion.section>
           </div>
