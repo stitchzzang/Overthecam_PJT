@@ -79,6 +79,10 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal({participant
             배틀러 선정
           </h1>
 
+          {!participants && (
+            <p className="text-lg font-semibold mb-4">참가자가 없습니다.</p>
+          )}
+
           <div className="flex gap-6">
             {/* 선택지 1 */}
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
