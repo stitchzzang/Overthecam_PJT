@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { leaveRoom } from "../../service/BattleRoom/api";
 
+import {
+  useWebSocketContext,
+  WebSocketProvider,
+} from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
@@ -13,7 +17,6 @@ import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLe
 import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
-import useWebSocket from "../../hooks/useWebSocket";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -38,7 +41,7 @@ function BattleRoomPage() {
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
 
   // 웹소켓 관련
-  const { client, connectWS, disconnectWS, isWsConnected } = useWebSocket();
+  const { status, connectWS, disconnectWS } = useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -98,7 +101,6 @@ function BattleRoomPage() {
     // 오픈비두 설정 관련 초기화
     initializeRoom();
     // 웹소켓 설정 관련 초기화
-    console.log("야이 미친 토큰 줫잔아",  token)
     connectWS(BASE_URL, token);
 
     // cleanup 언마운트시 해제
@@ -158,6 +160,21 @@ function BattleRoomPage() {
       room.off("error", handleError);
     };
   }, [room]);
+
+  // ws 연결 에러
+  useEffect(() => {
+    if (status === "DISCONNECTED" || status === "ERROR") {
+      // 연결이 끊어졌을 때 사용자에게 알림
+      failTost.current?.showAlert("연결이 끊어졌습니다. 다시 시도합니다.");
+
+      // 잠시 후 재연결 시도
+      const reconnectTimer = setTimeout(() => {
+        connectWS(BASE_URL, token);
+      }, 3000);
+
+      return () => clearTimeout(reconnectTimer);
+    }
+  }, [status, connectWS]);
 
   async function initializeRoom() {
     try {
@@ -383,53 +400,63 @@ function BattleRoomPage() {
     setIsWaiting(false);
   };
 
+  // 연결 상태에 따른 에러 처리
+  if (status === "ERROR") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">
+          WebSocket 연결에 실패했습니다. 페이지를 새로고침 해주세요.
+        </p>
+      </div>
+    );
+  }
+
+  // battleInfo가 없는 경우 처리
+  if (!battleInfo?.battleId) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
-      {isConnected && isWsConnected ? (
-        <>
-          <BattleHeader
-            isWaiting={isWaiting}
-            isMaster={isMaster}
-            onshowLeaveConfirmModal={handleLeavRoom}
-            onShowBattlerModal={battlerModalShow}
-            onShowEndBattleModal={endBattleModalShow}
-          />
-          <div className="render-change flex-1 h-0">
-            {isWaiting ? (
-              <div className="flex h-full">
-                {/* h-full 유지 */}
-                <div className="w-full h-full flex flex-col">
-                  {/* flex flex-col 추가 */}
-                  <BattleWaiting
-                    room={room}
-                    localTrack={localTrack}
-                    remoteTracks={remoteTracks}
-                    participantName={battleInfo.participantName}
-                    isMaster={isMaster}
-                    host={host}
-                    participants={participants}
-                    onBattleStart={handleBattleStart}
-                  />
-                </div>
-              </div>
-            ) : (
-              <>
-                <BattleStart />
-              </>
-            )}
+      <BattleHeader
+        isWaiting={isWaiting}
+        isMaster={isMaster}
+        onshowLeaveConfirmModal={handleLeavRoom}
+        onShowBattlerModal={battlerModalShow}
+        onShowEndBattleModal={endBattleModalShow}
+      />
+      <div className="render-change flex-1 h-0">
+        {isWaiting ? (
+          <div className="flex h-full">
+            {/* h-full 유지 */}
+            <div className="w-full h-full flex flex-col">
+              {/* flex flex-col 추가 */}
+              <BattleWaiting
+                room={room}
+                localTrack={localTrack}
+                remoteTracks={remoteTracks}
+                participantName={battleInfo.participantName}
+                isMaster={isMaster}
+                host={host}
+                participants={participants}
+                onBattleStart={handleBattleStart}
+              />
+            </div>
           </div>
-          <BattlerSettingModal ref={battlerSettingModal} />
-          <FailAlertModal ref={failTost} />
-          <NoticeAlertModal ref={noticeToast} />
-          <BattleLeaveConfirmModal
-            ref={leaveConfirmModal}
-            onConfirm={handleConfirmLeave}
-          />
-          <BattleEndModal ref={endBattleModal} onFinish={handleEndBattle} />
-        </>
-      ) : (
-        <><p>배틀방 로딩중...</p></>
-      )}
+        ) : (
+          <>
+            <BattleStart />
+          </>
+        )}
+      </div>
+      <BattlerSettingModal ref={battlerSettingModal} />
+      <FailAlertModal ref={failTost} />
+      <NoticeAlertModal ref={noticeToast} />
+      <BattleLeaveConfirmModal
+        ref={leaveConfirmModal}
+        onConfirm={handleConfirmLeave}
+      />
+      <BattleEndModal ref={endBattleModal} onFinish={handleEndBattle} />
     </div>
   );
 }
