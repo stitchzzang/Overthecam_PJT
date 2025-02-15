@@ -15,6 +15,8 @@ public enum AuthErrorCode implements ErrorCode {
     BIRTH_INVALID(400, "생년월일은 과거 날짜여야 합니다"),
     PHONE_INVALID(400, "올바른 전화번호 형식은 010-0000-0000입니다"),
     DUPLICATE_EMAIL(409, "이미 등록된 이메일입니다"),
+    DUPLICATE_NICKNAME(409, "이미 등록된 닉네임입니다"),
+    DUPLICATE_PHONE_NUMBER(409, "이미 등록된 전화번호입니다"),
 
     // 로그인 에러
     USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다"),

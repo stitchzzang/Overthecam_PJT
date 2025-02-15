@@ -150,58 +150,89 @@ function MyPageVote({ userId, isOtherProfile }) {
 
   return (
     <div className="space-y-6">
-      {votes.map((vote) => (
-        <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <div className="flex items-center justify-center gap-2">
-                <h3 
-                  className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center"
-                  onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
-                >
-                  {vote.title}
-                </h3>
-                {vote.battleId && (
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    strokeWidth="1.5" 
-                    stroke="currentColor" 
-                    className="w-7 h-7 text-red-500"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" 
-                    />
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" 
-                    />
-                  </svg>
-                )}
-              </div>
-              <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
-                {vote.content}
-              </p>
-            </div>
-            {!isOtherProfile && String(vote.creatorUserId) === currentUserId && (
-              <button
-                onClick={() => handleDeleteVote(vote.voteId)}
-                className="text-cusRed hover:text-cusRed-dark transition-colors ml-4 font-semibold"
-              >
-                삭제
-              </button>
-            )}
+      {votes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center space-y-4 bg-white rounded-lg p-8">
+          <div className="text-center text-gray-500 text-lg">
+            아직 참여한 투표가 없습니다.
           </div>
-          
-          <div className="space-y-3 mt-4">
-            {renderVoteResult(vote)}
+          <div className="text-center text-cusBlue font-medium">
+            투표를 만들어보세요!
           </div>
+          <button
+            onClick={() => navigate('/main/create-vote')}
+            className="bg-cusBlue hover:bg-cusBlue-dark text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              strokeWidth={1.5} 
+              stroke="currentColor" 
+              className="w-5 h-5"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                d="M12 4.5v15m7.5-7.5h-15" 
+              />
+            </svg>
+            투표 만들기
+          </button>
         </div>
-      ))}
+      ) : (
+        votes.map((vote) => (
+          <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center justify-center gap-2">
+                  <h3 
+                    className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center"
+                    onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
+                  >
+                    {vote.title}
+                  </h3>
+                  {vote.battleId && (
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      strokeWidth="1.5" 
+                      stroke="currentColor" 
+                      className="w-7 h-7 text-red-500"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" 
+                      />
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" 
+                      />
+                    </svg>
+                  )}
+                </div>
+                <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
+                  {vote.content}
+                </p>
+              </div>
+              {!isOtherProfile && String(vote.creatorUserId) === currentUserId && (
+                <button
+                  onClick={() => handleDeleteVote(vote.voteId)}
+                  className="text-cusRed hover:text-cusRed-dark transition-colors ml-4 font-semibold"
+                >
+                  삭제
+                </button>
+              )}
+            </div>
+            
+            <div className="space-y-3 mt-4">
+              {renderVoteResult(vote)}
+            </div>
+          </div>
+        ))
+      )}
 
       {pageInfo.totalPages > 1 && (
         <div className="flex justify-center mt-6">

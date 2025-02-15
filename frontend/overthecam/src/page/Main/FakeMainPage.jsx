@@ -54,7 +54,7 @@ const FakeMainPage = () => {
     <div className="fixed inset-0 bg-gradient-to-b from-gray-900 to-gray-800">
       <div className="absolute inset-0 snap-y snap-mandatory overflow-y-scroll hide-scrollbar">
         {/* 첫 번째 섹션 */}
-        <Section backgroundImage="/images/debate1.jpg">
+        <Section>
           <div className="flex flex-col md:flex-row items-center gap-8">
             <motion.div
               initial={{ opacity: 0, scale: 0.1, rotate: -180 }}
@@ -63,13 +63,13 @@ const FakeMainPage = () => {
               viewport={{ once: true, margin: "-20%" }}
               className="text-center text-white md:w-1/2"
             >
-              <h1 className="text-7xl font-bold mb-6">논쟁은 예술이다</h1>
+              <h1 className="text-7xl font-bold mb-6 line-clamp-2">논쟁은 예술이다</h1>
               <p className="text-2xl text-gray-300">
                 승패에 쿨하게 승복하실 분들 언제나 환영합니다!
               </p>
             </motion.div>
             <motion.img
-              src="/images/debate-icon.png"
+              src="../images/Desktop_mockup.png" // 이미지 첨부
               alt="논쟁 아이콘"
               className="w-64 h-64 object-contain md:w-1/2"
               initial={{ opacity: 0, x: 100 }}
@@ -83,7 +83,7 @@ const FakeMainPage = () => {
         <Section backgroundImage="/images/debate2.jpg">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <motion.img
-              src="/images/battle-icon.png"
+              src="../images/Desktop_mockup.png" // 이미지 첨부
               alt="실시간 배틀"
               className="w-64 h-64 object-contain md:w-1/2"
               initial={{ opacity: 0, x: -100 }}
@@ -132,7 +132,8 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 세 번째 섹션 */}
-        <Section backgroundImage="/images/debate3.jpg">
+        <Section> 
+          {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -160,7 +161,8 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 네 번째 섹션 - 바운스 효과 */}
-        <Section backgroundImage="/images/debate4.jpg">
+        <Section> 
+          {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ y: 200, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
@@ -189,7 +191,8 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 다섯 번째 섹션 - 스태거 효과 */}
-        <Section backgroundImage="/images/debate5.jpg">
+        <Section backgroundImage="../images/Desktop_mockup.png">
+          {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -230,7 +233,7 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 여섯 번째 섹션 - 화려한 최종 효과 */}
-        <Section backgroundImage="/images/debate6.jpg">
+        <Section>
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
