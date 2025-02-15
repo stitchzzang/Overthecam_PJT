@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { leaveRoom } from "../../service/BattleRoom/api";
 
+import {
+  useWebSocketContext,
+  WebSocketProvider,
+} from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
@@ -15,6 +19,8 @@ import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+const token = localStorage.getItem("token");
 
 function BattleRoomPage() {
   const battleInfo = useBattleStore((state) => state.battleInfo);
@@ -33,6 +39,9 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
+
+  // 웹소켓 관련
+  const { status, connectWS, disconnectWS } = useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -89,7 +98,10 @@ function BattleRoomPage() {
       }
     });
 
+    // 오픈비두 설정 관련 초기화
     initializeRoom();
+    // 웹소켓 설정 관련 초기화
+    connectWS(BASE_URL, token);
 
     // cleanup 언마운트시 해제
     return () => {
@@ -97,6 +109,7 @@ function BattleRoomPage() {
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("keydown", handleKeyDown);
       if (room) {
+        disconnectWS();
         cleanup(room);
       }
     };
@@ -147,6 +160,21 @@ function BattleRoomPage() {
       room.off("error", handleError);
     };
   }, [room]);
+
+  // ws 연결 에러
+  useEffect(() => {
+    if (status === "DISCONNECTED" || status === "ERROR") {
+      // 연결이 끊어졌을 때 사용자에게 알림
+      failTost.current?.showAlert("연결이 끊어졌습니다. 다시 시도합니다.");
+
+      // 잠시 후 재연결 시도
+      const reconnectTimer = setTimeout(() => {
+        connectWS(BASE_URL, token);
+      }, 3000);
+
+      return () => clearTimeout(reconnectTimer);
+    }
+  }, [status, connectWS]);
 
   async function initializeRoom() {
     try {
@@ -371,6 +399,22 @@ function BattleRoomPage() {
   const handleBattleStart = (e) => {
     setIsWaiting(false);
   };
+
+  // 연결 상태에 따른 에러 처리
+  if (status === "ERROR") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">
+          WebSocket 연결에 실패했습니다. 페이지를 새로고침 해주세요.
+        </p>
+      </div>
+    );
+  }
+
+  // battleInfo가 없는 경우 처리
+  if (!battleInfo?.battleId) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
