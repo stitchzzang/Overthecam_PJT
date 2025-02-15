@@ -21,7 +21,9 @@ const Signup = () => {
     nickname: "",
     gender: "",
     birth: "",
-    phoneNumber: ""
+    phoneNumber1: "", // 010
+    phoneNumber2: "", // XXXX
+    phoneNumber3: ""  // XXXX
   })
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
@@ -30,42 +32,82 @@ const Signup = () => {
   const navigate = useNavigate()
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value })
+    const { id, value } = e.target;
+    
+    // 전화번호 입력 필드의 숫자만 허용
+    if (id.startsWith('phoneNumber')) {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      
+      // 각 부분별 최대 길이 제한
+      const maxLengths = {
+        phoneNumber1: 3,
+        phoneNumber2: 4,
+        phoneNumber3: 4
+      };
+      
+      if (numericValue.length <= maxLengths[id]) {
+        setFormData(prev => ({ ...prev, [id]: numericValue }));
+      }
+      
+      // 자동으로 다음 입력 필드로 포커스 이동
+      if (numericValue.length === maxLengths[id]) {
+        const nextField = {
+          phoneNumber1: 'phoneNumber2',
+          phoneNumber2: 'phoneNumber3'
+        }[id];
+        
+        if (nextField) {
+          document.getElementById(nextField)?.focus();
+        }
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [id]: value }));
+    }
+    
+    setMessage("");
+    setIsError(false);
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage("")
-    setIsError(false)
+    e.preventDefault();
+    setMessage("");
+    setIsError(false);
 
     // 이메일 형식 검증
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
-      setMessage("유효하지 않은 이메일 형식입니다")
-      setIsError(true)
-      return
+      setMessage("유효하지 않은 이메일 형식입니다");
+      setIsError(true);
+      return;
     }
 
     // 비밀번호 형식 검증
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
     if (!passwordRegex.test(formData.password)) {
-      setMessage("비밀번호는 8~20자리수여야 합니다. 영문 대소문자, 숫자, 특수문자를 1개 이상 포함해야 합니다")
-      setIsError(true)
-      return
+      setMessage("비밀번호는 8~20자리수여야 합니다. 영문 대소문자, 숫자, 특수문자를 1개 이상 포함해야 합니다");
+      setIsError(true);
+      return;
     }
 
     // 비밀번호 확인 검증
     if (formData.password !== formData.passwordConfirm) {
-      setMessage("비밀번호가 일치하지 않습니다")
-      setIsError(true)
-      return
+      setMessage("비밀번호가 일치하지 않습니다");
+      setIsError(true);
+      return;
     }
 
     // 닉네임 길이 검증
     if (formData.nickname.trim().length < 2 || formData.nickname.trim().length > 10) {
-      setMessage("닉네임은 2자 이상 10자 이하여야 합니다")
-      setIsError(true)
-      return
+      setMessage("닉네임은 2자 이상 10자 이하여야 합니다");
+      setIsError(true);
+      return;
+    }
+
+    // 전화번호 형식 검증
+    if (!formData.phoneNumber1 || !formData.phoneNumber2 || !formData.phoneNumber3) {
+      setMessage("전화번호를 모두 입력해주세요");
+      setIsError(true);
+      return;
     }
 
     try {
@@ -76,51 +118,36 @@ const Signup = () => {
         nickname: formData.nickname.trim(),
         gender: formData.gender === "male" ? 0 : 1,
         birth: formData.birth,
-        phoneNumber: formData.phoneNumber.trim(),
-        profileImage: defaultProfileImages[Math.floor(Math.random() * defaultProfileImages.length)] // 랜덤 이미지 추가
-      }
+        phoneNumber: `${formData.phoneNumber1}-${formData.phoneNumber2}-${formData.phoneNumber3}`,
+        profileImage: defaultProfileImages[Math.floor(Math.random() * defaultProfileImages.length)]
+      };
 
-      const response = await publicAxios.post("/auth/signup", signupData)
+      const response = await publicAxios.post("/auth/signup", signupData);
       
-      if (response.data) {
-        // 포인트와 서포트 스코어를 로컬 스토리지에 저장
-        localStorage.setItem("point", response.data.point || 0);
-        localStorage.setItem("supportScore", response.data.supportScore || 0);
-        
-        setMessage("회원가입이 완료되었습니다")
-        setIsError(false)
-        window.location.replace("/")
+      if (response.success) {
+        setMessage("회원가입이 완료되었습니다");
+        setIsError(false);
+        window.location.replace("/");
       }
     } catch (error) {
-      setIsError(true)
-      if (error.response) {
-        const errorCode = error.response.data.code
-        switch (errorCode) {
-          case 'EMAIL_INVALID':
-            setMessage("유효하지 않은 이메일 형식입니다")
-            break
-          case 'PASSWORD_VALIDATION_ERROR':
-            setMessage("비밀번호는 8~20자리수여야 합니다. 영문 대소문자, 숫자, 특수문자를 1개 이상 포함해야 합니다")
-            break
-          case 'NICKNAME_INVALID':
-            setMessage("닉네임은 2자 이상 10자 이하여야 합니다")
-            break
-          case 'DUPLICATE_EMAIL':
-            setMessage("이미 등록된 이메일입니다")
-            break
-          case 'USER_NOT_FOUND':
-            setMessage("사용자를 찾을 수 없습니다")
-            break
-          default:
-            setMessage("회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.")
-        }
-      } else if (error.request) {
-        setMessage("서버와의 통신에 실패했습니다")
-      } else {
-        setMessage("회원가입 중 오류가 발생했습니다")
+      setIsError(true);
+      const errorData = error.error || {};
+      
+      switch (errorData.code) {
+        case 'DUPLICATE_EMAIL':
+          setMessage("이미 등록된 이메일입니다");
+          break;
+        case 'DUPLICATE_NICKNAME':
+          setMessage("이미 등록된 닉네임입니다");
+          break;
+        case 'DUPLICATE_PHONE_NUMBER':
+          setMessage("이미 등록된 전화번호입니다");
+          break;
+        default:
+          setMessage("회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.");
       }
     }
-  }
+  };
 
   return (
     <div className="flex justify-center mt-16">
@@ -260,17 +287,46 @@ const Signup = () => {
               />
             </div>
 
-            <input
-              type="tel"
-              id="phoneNumber"
-              placeholder="전화번호"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className="w-full px-5 py-2.5 text-base border border-gray-200 rounded-xl
-                focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
-                placeholder:text-gray-400"
-              required
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                id="phoneNumber1"
+                placeholder="010"
+                value={formData.phoneNumber1}
+                onChange={handleChange}
+                className="w-1/4 px-5 py-2.5 text-base border border-gray-200 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
+                  placeholder:text-gray-400 text-center"
+                maxLength="3"
+                required
+              />
+              <span className="flex items-center">-</span>
+              <input
+                type="text"
+                id="phoneNumber2"
+                placeholder="XXXX"
+                value={formData.phoneNumber2}
+                onChange={handleChange}
+                className="w-1/3 px-5 py-2.5 text-base border border-gray-200 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
+                  placeholder:text-gray-400 text-center"
+                maxLength="4"
+                required
+              />
+              <span className="flex items-center">-</span>
+              <input
+                type="text"
+                id="phoneNumber3"
+                placeholder="XXXX"
+                value={formData.phoneNumber3}
+                onChange={handleChange}
+                className="w-1/3 px-5 py-2.5 text-base border border-gray-200 rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-cusLightBlue focus:border-transparent
+                  placeholder:text-gray-400 text-center"
+                maxLength="4"
+                required
+              />
+            </div>
 
             <button
               type="submit"
