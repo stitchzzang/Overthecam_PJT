@@ -4,7 +4,7 @@ import TimeBuyModal from "./BattleStartModal/BattleTimeBuyModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 
 function BattleTimer({ onTimerStoped }) {
-  const { isTimeExtended } = useWebSocketContext();
+  const { isTimeExtended, error } = useWebSocketContext();
   const MINUTES_IN_MS = 10 * 60 * 1000; // 10분 시간 주기
   const EXTENDED_IN_MS = 5 * 60 * 1000; // 5분 연장
   const ALERT_MINTS_IN_MS = 2 * 60 * 1000; // 2분 전부터 알람 주기

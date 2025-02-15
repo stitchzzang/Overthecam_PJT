@@ -63,10 +63,13 @@ const useWebSocket = (battleId) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
 
     try {
-      const { success, type, data } = response;
+      const { success, type, data, error } = response;
       console.log("[WS] 응답 분해:", { success, type, data });
 
       switch (type) {
+        case "ERROR":
+          setError(error) // 에러 메세지 .. 구조 분해 다시
+          break;
         case "CHAT":
           if (success) {
             setMessageList((prev) => {
@@ -121,6 +124,15 @@ const useWebSocket = (battleId) => {
         case "TIME_EXTENSION":
           if (success) {
             setIsTimeExtended(true);
+             const content = `${data.nickname}님이 5분 시간 추가하셨습니다.`;
+             const newMsg = {
+               nickname: "SYSTEM",
+               content,
+             };
+             setMessageList((prev) => {
+               const newList = [...prev, newMsg];
+               return newList;
+             });
           }
           break;
         default:

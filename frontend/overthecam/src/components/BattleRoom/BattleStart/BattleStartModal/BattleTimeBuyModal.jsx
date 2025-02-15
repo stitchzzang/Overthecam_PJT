@@ -7,7 +7,7 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
   _,
   ref
 ) {
-  const { timeExtention, isTimeExtended } = useWebSocketContext();
+  const { timeExtention, isTimeExtended, error } = useWebSocketContext();
   const successAlertRef = useRef();
   const failAlertRef = useRef();
 
@@ -20,6 +20,11 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
             ref.current.close();
           }
           successAlertRef.current?.showAlert("구매에 성공했습니다.");
+        } else {
+          if(ref.current) {
+            ref.current.close();
+          }
+          failAlertRef.current?.showAlert(error)
         }
     } catch (error) {
       // 현재 모달 닫기
