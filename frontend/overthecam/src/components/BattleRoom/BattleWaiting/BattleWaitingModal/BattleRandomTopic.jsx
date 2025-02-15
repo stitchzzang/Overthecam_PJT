@@ -21,21 +21,23 @@ const BattleRandomTopic = forwardRef((props, ref) => {
 
   return (
     <dialog ref={ref} className="modal">
-      <div className="modal-box flex flex-col items-center p-6 bg-white rounded-lg">
+      <div className="modal-box flex flex-col items-center p-6 bg-white rounded-lg max-w-3xl w-full">
         <div className="flex items-center gap-2 mb-8">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
         
         <div className="w-full flex items-center gap-2 mb-4">
           <div className="flex-1 flex items-center justify-center">
-            <div className="flex items-center text-lg">
+            <div className="flex items-center text-lg w-full">
               <span className="font-bold whitespace-pre">(</span>
-              <div className="slot-machine px-4 h-16 bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2">
-                <div className="slot-wrapper">
+              <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2">
+                <div className="slot-wrapper h-full flex items-center justify-center">
                   {isLoading ? (
                     <div className="animate-pulse">...</div>
                   ) : (
-                    <p className="text-lg font-bold whitespace-pre-line">{topic}</p>
+                    <p className="text-lg font-bold whitespace-pre-line text-center py-4">
+                      {topic || '주제를 생성해보세요!'}
+                    </p>
                   )}
                 </div>
               </div>
