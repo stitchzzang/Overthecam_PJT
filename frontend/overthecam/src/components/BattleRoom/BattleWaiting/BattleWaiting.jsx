@@ -5,8 +5,10 @@ import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
 import { useEffect, useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
+import PlayerReadyStatus from "./PlayerReadyStatus";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
+import useUserStore from "../../../store/User/UserStore";
 
 function BattleWaiting({
   room,
@@ -19,6 +21,7 @@ function BattleWaiting({
   onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
+  const userId = useUserStore((state) => state.userId);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
   const { isVoteSubmitted, readyList, readyForBattle, myReady } =
@@ -31,7 +34,7 @@ function BattleWaiting({
   useEffect(() => {}, [readyList]);
 
   const handleToggleReady = (e) => {
-    readyForBattle();
+    readyForBattle(userId, participantName, !myReady);
   };
 
   // 6개의 고정 슬롯 생성
@@ -76,9 +79,9 @@ function BattleWaiting({
           <div className="h-3/4 mb-4">
             <div className="grid grid-cols-3 gap-4 h-full">
               {slots.map((slot, index) => (
-                <div key={index} className="flex flex-col h-full">
+                <div key={index} className="flex flex-col min-h-0">
                   {/* Name header */}
-                  <div className="px-6">
+                  <div className="flex-none px-6">
                     <div
                       className={`text-sm text-black rounded-t-lg ${
                         slot &&
@@ -90,27 +93,31 @@ function BattleWaiting({
                       {slot ? slot.participantName : "대기중..."}
                     </div>
                   </div>
-                  {/* Video container with aspect ratio */}
-                  <div className="relative flex-1">
+                  {/* Video container with fixed aspect ratio */}
+                  <div className="flex-1 relative w-full">
                     <div className="absolute inset-0">
-                      <div className="w-full h-full">
+                      <div className="w-full h-full overflow-hidden">
                         {slot ? (
-                          <div>
-                            {readyList.filter((p) => p.userId === slot)}
-                            <VideoComponent
-                              track={slot.track}
-                              participantIdentity={slot.participantName}
-                              local={slot.type === "local"}
-                              className="w-full h-full object-cover rounded-sm"
-                            />
+                          <div className="relative">
+                            <div className="w-full h-full">
+                              <VideoComponent
+                                track={slot.track}
+                                participantIdentity={slot.participantName}
+                                local={slot.type === "local"}
+                                className="w-full h-full object-contain bg-black rounded-sm"
+                              />
+                              <PlayerReadyStatus
+                                isReady={readyList.some(
+                                  (p) => p.nickname === slot.participantName
+                                )}
+                              />
+                            </div>
                           </div>
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 bg-cusGray rounded-sm border">
-                            <div className="flex flex-col items-center space-y-2">
-                              <span className="text-sm text-gray-500">
-                                다른 참여자 대기 중
-                              </span>
-                            </div>
+                          <div className="w-full h-full flex items-center justify-center bg-cusGray rounded-sm border">
+                            <span className="text-sm text-gray-500">
+                              다른 참여자 대기 중
+                            </span>
                           </div>
                         )}
                       </div>
@@ -155,7 +162,7 @@ function BattleWaiting({
                   onClick={handleToggleReady}
                   className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                 >
-                  {myReady.ready ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
+                  {myReady ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
                 </div>
               </div>
             )}

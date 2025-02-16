@@ -32,7 +32,19 @@ public class BattleVoteService {
         });
     }
 
-    public VoteInfo getVoteInfo(Long battleId) {
+    // 초기 상태 조회용 - null 허용
+    public VoteInfo getCurrentVote(Long battleId) {
+        return voteRepository.findByBattleId(battleId)
+            .map(vote -> VoteInfo.builder()
+                .voteId(vote.getVoteId())
+                .title(vote.getTitle())
+                .options(convertToVoteOptions(vote))
+                .build())
+            .orElse(null);
+    }
+
+    // 배틀 진행 중 조회용 - 없으면 예외 발생
+    public VoteInfo getRequiredVoteInfo(Long battleId) {
         Vote vote = voteRepository.findByBattleId(battleId)
             .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_NOT_FOUND, "해당 배틀에 등록된 투표가 존재하지 않습니다."));
 

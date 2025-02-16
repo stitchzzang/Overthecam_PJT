@@ -59,9 +59,12 @@ public class BattleStartService {
         // 모든 참가자의 점수 정보를 초기화
         List<ParticipantInfo> participants = initializeAllParticipantsScore(battleId);
 
+        // 배틀 상태 진행중으로 변경
+        updateBattleStatus(battleId, Status.PROGRESS);
+
         return BattleData.builder()
             .battleId(battleId)
-            .voteInfo(battleVoteService.getVoteInfo(battleId))
+            .voteInfo(battleVoteService.getRequiredVoteInfo(battleId))
             .participants(participants)
             .build();
     }

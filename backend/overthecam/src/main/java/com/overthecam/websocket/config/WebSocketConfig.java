@@ -41,13 +41,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 "https://localhost:5173",
                 "http://127.0.0.1:5174",
                 "http://localhost:5174",
+                "https://127.0.0.1:5174",
+                "https://localhost:5174",
                 "http://127.0.0.1:5500",
                 "http://i12d204.p.ssafy.io",
                 "https://i12d204.p.ssafy.io",
                 "https://overthecam.site",
                 "http://overthecam.site"
             )
-            .withSockJS(); // SockJS 지원 추가
+            .withSockJS() // SockJS 지원 추가
+            .setStreamBytesLimit(512 * 1024)  // 스트리밍 시 한 번에 처리할 수 있는 최대 바이트 수
+            .setHttpMessageCacheSize(1000)    // HTTP 스트리밍 시 캐시할 수 있는 최대 메시지 수
+            .setDisconnectDelay(30 * 1000);   // 연결 종료 시 실제로 리소스를 해제하기까지 기다리는 시간
+
     }
 
     @Override

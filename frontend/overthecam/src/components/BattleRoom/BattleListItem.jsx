@@ -11,10 +11,10 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
   const gotoBattleRoom = async (battleId) => {
     console.log(battleId);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('로그인이 필요한 서비스입니다.');
-        navigate('/main/login');
+        alert("로그인이 필요한 서비스입니다.");
+        navigate("/main/login");
         return;
       }
 
@@ -26,7 +26,10 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
         userToken: response.data.token,
         isMaster: false,
       };
+      // setBattleInfo 후 Promise로 지연 처리
       setBattleInfo(newBattleInfo);
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms 지연
+
       navigate(`/battle-room/${battleId}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);

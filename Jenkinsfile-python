@@ -1,0 +1,111 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE_ANALYZER = 'ghkdtnql/overthecam-analyzer'
+    }
+
+    stages {
+        stage('Git Clone') {
+            steps {
+                script {
+                    try {
+                        echo '====== Git Clone 시작 ======'
+                        git branch: 'main',
+                            url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
+                            credentialsId: 'gitlab-user'
+                        echo '====== Git Clone 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== Git Clone 실패 ======'
+                        error "Git clone failed: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    try {
+                        echo '====== Docker Build 시작 ======'
+                        dir('python-analyzer') {
+                            writeFile file: '.dockerignore', text: '''
+                                __pycache__/
+                                *.pyc
+                                venv/
+                                .git/
+                                .env
+                                temp/
+                                *.pth
+                                checkpoints/
+                                *.bin
+                            '''
+                            
+                            withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                                sh """
+                                    docker images | grep ${DOCKER_IMAGE_ANALYZER} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_ANALYZER}:{} || true
+                                    docker build -t ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} .
+                                    echo '${DOCKERHUB_CREDENTIALS_PSW}' | docker login -u '${DOCKERHUB_CREDENTIALS_USR}' --password-stdin
+                                    docker push ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER}
+                                    docker logout
+                                """
+                            }
+                        }
+                        echo '====== Docker Build & Push 완료 ======'
+                    } catch (Exception e) {
+                        echo '====== Docker Build/Push 실패 ======'
+                        error "Docker build/push failed: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    try {
+                        echo '====== EC2 배포 시작 ======'
+                        sshagent(['ssh']) {
+                            sh '''
+                                ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
+                                echo '새 이미지 가져오는 중...' && \
+                                docker pull ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
+                                echo '기존 컨테이너 중지 중...' && \
+                                docker stop analyzer || true && \
+                                docker rm analyzer || true && \
+                                echo '새 컨테이너 시작 중...' && \
+                                docker run -d --name analyzer \
+                                    --gpus all \
+                                    -p 5001:5001 \
+                                    ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
+                                docker system prune -f && \
+                                echo '컨테이너 로그:' && \
+                                sleep 10 && \
+                                docker logs analyzer"
+                            '''
+                        }
+                        echo '====== EC2 배포 성공 ======'
+                    } catch (Exception e) {
+                        echo '====== EC2 배포 실패 ======'
+                        error "Deployment failed: ${e.message}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo '====== 파이프라인 종료 ======'
+            sh "docker logout || true"
+            cleanWs()
+        }
+        failure {
+            echo '====== 파이프라인 실패 ======'
+            sh "docker rmi ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} || true"
+        }
+        success {
+            echo '===== 파이프라인 성공 ====='
+        }
+    }
+}

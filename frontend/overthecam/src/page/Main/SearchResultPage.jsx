@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 import { publicAxios } from '../../common/axiosinstance';
+import { authAxios } from '../../common/axiosinstance';
 
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
@@ -45,6 +46,7 @@ const SearchResultPage = () => {
     votes: [],
     users: []
   });
+  const [votingStates, setVotingStates] = useState({});
 
   const handleProfileClick = (userId) => {
     const token = localStorage.getItem('token');
@@ -90,10 +92,11 @@ const SearchResultPage = () => {
         }
       });
 
-      // 투표 검색
-      const voteResponse = await publicAxios.get('/vote/list', {
-        params: { keyword: query }
-      });
+      // 투표 검색 - 로그인한 사용자의 경우 authAxios 사용
+      const token = localStorage.getItem('token');
+      const voteResponse = token 
+        ? await authAxios.get('/vote/list', { params: { keyword: query } })
+        : await publicAxios.get('/vote/list', { params: { keyword: query } });
 
       let battles = [];
       let users = [];
@@ -117,7 +120,26 @@ const SearchResultPage = () => {
       }
 
       if (voteResponse.data?.content) {
-        votes = voteResponse.data.content;
+        // 각 투표의 상세 정보를 가져와서 hasVoted 상태 확인
+        const votesWithStatus = await Promise.all(
+          voteResponse.data.content.map(async (vote) => {
+            if (token) {
+              try {
+                const detailResponse = await authAxios.get(`/vote/${vote.voteId}`);
+                return {
+                  ...vote,
+                  ...detailResponse.data,
+                  hasVoted: detailResponse.data.hasVoted
+                };
+              } catch (error) {
+                console.error(`투표 ${vote.voteId} 상세 정보 가져오기 실패:`, error);
+                return vote;
+              }
+            }
+            return vote;
+          })
+        );
+        votes = votesWithStatus;
       }
 
       setSearchResults({
@@ -152,6 +174,70 @@ const SearchResultPage = () => {
 
       setSearchResults(emptyResults);
     }
+  };
+
+  const handleVote = async (vote, optionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      const age = calculateAge(userInfo.birth);
+      const ageGroup = getAgeGroup(age);
+      const gender = userInfo.gender === 0 ? 'male' : 'female';
+
+      // 서버에 투표 요청
+      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`, {
+        age: ageGroup,
+        gender: gender
+      });
+
+      // 최신 데이터 가져오기
+      const response = await authAxios.get(`/vote/${vote.voteId}`);
+      if (response.data) {
+        const updatedVotes = searchResults.votes.map(v => 
+          v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
+        );
+        setSearchResults(prev => ({
+          ...prev,
+          votes: updatedVotes
+        }));
+      }
+
+    } catch (error) {
+      console.error('투표 처리 중 오류 발생:', error);
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+      } else {
+        console.log('투표 처리 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+  const getAgeGroup = (age) => {
+    if (age < 20) return '10';
+    if (age < 30) return '20';
+    if (age < 40) return '30';
+    if (age < 50) return '40';
+    return '50';
   };
 
   return (
@@ -250,56 +336,77 @@ const SearchResultPage = () => {
                       </div>
 
                       <div className="transition-all duration-300">
-                        {vote.hasVoted ? (
+                        {(vote.hasVoted || votingStates[vote.voteId]) ? (
                           <div className="mb-4">
-                            {vote.options && vote.options.length >= 2 && (
-                              <>
-                                <div className="mb-2 flex justify-between">
-                                  <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
-                                  <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
+                            <div className="flex justify-between mb-2">
+                              <div className="text-cusRed font-bold">
+                                A. {vote.options[0].optionTitle}
+                              </div>
+                              <div className="text-cusBlue font-bold">
+                                B. {vote.options[1].optionTitle}
+                              </div>
+                            </div>
+                            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+                              {vote.options[0].votePercentage > 0 && (
+                                <div
+                                  className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
+                                  style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
+                                >
+                                  {Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)
                                 </div>
-                                <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
-                                  <div
-                                    className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
-                                    style={{ width: `${vote.options[0].votePercentage}%` }}
-                                  >
-                                    {vote.options[0].votePercentage.toFixed(1)}%
-                                  </div>
-                                  <div
-                                    className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
-                                    style={{ width: `${vote.options[1].votePercentage}%` }}
-                                  >
-                                    {vote.options[1].votePercentage.toFixed(1)}%
-                                  </div>
+                              )}
+                              {vote.options[1].votePercentage > 0 && (
+                                <div
+                                  className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
+                                  style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
+                                >
+                                  {Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)
                                 </div>
-                              </>
-                            )}
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <div className="flex gap-4">
                             {vote.options.map((option) => (
                               <button
                                 key={option.optionId}
-                                onClick={() => {
-                                  const token = localStorage.getItem('token');
-                                  if (!token) {
-                                    alert('로그인이 필요합니다.');
-                                    navigate('/main/login');
-                                    return;
-                                  }
-                                  navigate(`/main/vote-detail/${vote.voteId}`);
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVote(vote, option.optionId);
                                 }}
                                 className={`clay flex-1 p-4 ${
                                   option.optionId === vote.options[0].optionId
-                                    ? 'bg-red-100 hover:bg-red-200 text-red-500'
-                                    : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                                } rounded-lg transition-colors`}
+                                    ? 'bg-red-100 hover:bg-red-200 text-cusRed'
+                                    : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                                } rounded-lg transition-colors text-lg font-bold`}
                               >
                                 {option.optionTitle}
                               </button>
                             ))}
                           </div>
                         )}
+                        {/* 투표 여부와 관계없이 항상 표시되는 정보 */}
+                        <div className="flex justify-between items-center text-sm text-gray-500 mt-2">
+                          <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                              </svg>
+                              {vote.creatorNickname}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                              </svg>
+                              댓글 {vote.commentCount}개
+                            </span>
+                          </div>
+                          <div className="bg-gray-100 px-3 py-1 rounded-full">
+                            <span className="text-sm text-gray-600 whitespace-nowrap">
+                              {vote.totalVoteCount.toLocaleString()}명 참여중
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))

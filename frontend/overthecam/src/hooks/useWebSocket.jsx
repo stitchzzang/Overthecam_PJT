@@ -90,7 +90,16 @@ const useWebSocket = (battleId) => {
               option1Id: data.options[0]?.optionId,
               option2Id: data.options[1]?.optionId,
             });
-            setIsVoteSubmitted(success)
+            setIsVoteSubmitted(success);
+            const content = `방장이 투표를 등록했습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
           }
           break;
         case "BATTLE_READY":
@@ -98,12 +107,12 @@ const useWebSocket = (battleId) => {
             setReadyList((prev) => [...prev, data]);
           } else {
             setReadyList((prev) =>
-              prev.filter((p) => p.userId !== data.userId)
+              prev.filter((p) => p.nickname !== data.nickname)
             );
           }
-          setMyReady(
-            readyList.filter((p) => p.nickname === battleInfo.participantName)
-          );
+          if (data.nickname===battleInfo.participantName) {
+            setMyReady(data.ready)
+          }
           break;
         case "BATTLE_START":
           if (success) {
@@ -113,7 +122,7 @@ const useWebSocket = (battleId) => {
           break;
         case "BATTLER_SELECT":
           if (success) {
-            setBattlers([data.firstBattler, data.secondBattler])
+            setBattlers([data.firstBattler, data.secondBattler]);
             const content = `${data.firstBattler.nickname}님과 ${data.secondBattler.nickname}님이 배틀러로 선정되셨습니다.`;
             const newMsg = {
               nickname: "SYSTEM",
@@ -150,69 +159,118 @@ const useWebSocket = (battleId) => {
   }, []);
 
   const connectWS = useCallback(
-    (url, token) => {
+    async (url, token) => {
       console.log("연결 시도합니다.");
       if (!url || !token) {
         setError(new Error("URL과 토큰이 필요합니다"));
         return;
       }
 
+      // 초기 지연
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setWsStatus(WS_STATUS.CONNECTING);
       const wsUrl = `${url}/ws-connect`;
 
-      try {
-        const stomp = Stomp.over(() => new SockJS(wsUrl));
-        stompClientRef.current = stomp;
+      const connectWithRetry = async (retryCount = 0, maxRetries = 3) => {
+        try {
+          const stomp = Stomp.over(() => new SockJS(wsUrl));
+          stompClientRef.current = stomp;
 
-        stomp.configure({
-          connectHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-          onConnect: async (frame) => {
-            console.log("Connected successfully:", frame);
-            setWsStatus(WS_STATUS.CONNECTED);
-            setError(null);
+          stomp.configure({
+            connectHeaders: {
+              Authorization: `Bearer ${token}`,
+            },
+            onConnect: async (frame) => {
+              console.log("Connected successfully:", frame);
+              setWsStatus(WS_STATUS.CONNECTED);
+              setError(null);
 
-            // 구독 설정을 비동기적으로 처리
-            try {
-              await new Promise((resolve) => setTimeout(resolve, 500));
-              subscriptionsRef.current.private =
-                channelSubscriptions.subscribePrivate(
-                  stomp,
-                  battleId,
-                  getResponse
+              // 구독 설정을 더 안정적으로 처리
+              try {
+                // 연결 후 잠시 대기
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                // 순차적 구독 처리
+                console.log("Private 채널 구독 시도...");
+                subscriptionsRef.current.private =
+                  await channelSubscriptions.subscribePrivate(
+                    stomp,
+                    battleId,
+                    getResponse
+                  );
+
+                // 구독 간 지연
+                await new Promise((resolve) => setTimeout(resolve, 800));
+
+                console.log("Public 채널 구독 시도...");
+                subscriptionsRef.current.public =
+                  await channelSubscriptions.subscribePublic(
+                    stomp,
+                    battleId,
+                    getResponse
+                  );
+
+                console.log("모든 구독 완료");
+              } catch (subscribeError) {
+                console.error("Subscription error:", subscribeError);
+                setError(subscribeError);
+                // 구독 실패 시 재연결 시도
+                if (retryCount < maxRetries) {
+                  console.log(
+                    `구독 실패, 재시도 ${retryCount + 1}/${maxRetries}`
+                  );
+                  await new Promise((resolve) => setTimeout(resolve, 2000));
+                  await connectWithRetry(retryCount + 1);
+                }
+              }
+            },
+            onStompError: (frame) => {
+              const errorMessage = frame.headers["message"];
+              console.error("Broker reported error:", errorMessage);
+              setError(new Error(errorMessage));
+              setWsStatus(WS_STATUS.ERROR);
+
+              // STOMP 에러 시 재연결 시도
+              if (retryCount < maxRetries) {
+                console.log(
+                  `STOMP 에러, 재시도 ${retryCount + 1}/${maxRetries}`
                 );
+                setTimeout(() => connectWithRetry(retryCount + 1), 2000);
+              }
+            },
+            onWebSocketError: async (error) => {
+              console.error("WebSocket 연결 오류:", error);
+              setError(error);
+              setWsStatus(WS_STATUS.ERROR);
 
-              await new Promise((resolve) => setTimeout(resolve, 500));
-              subscriptionsRef.current.public =
-                channelSubscriptions.subscribePublic(
-                  stomp,
-                  battleId,
-                  getResponse
+              // WebSocket 에러 시 재연결 시도
+              if (retryCount < maxRetries) {
+                console.log(
+                  `WebSocket 에러, 재시도 ${retryCount + 1}/${maxRetries}`
                 );
-            } catch (subscribeError) {
-              console.error("Subscription error:", subscribeError);
-              setError(subscribeError);
-            }
-          },
-          onStompError: (frame) => {
-            const errorMessage = frame.headers["message"];
-            console.error("Broker reported error:", errorMessage);
-            setError(new Error(errorMessage));
-            setWsStatus(WS_STATUS.ERROR);
-          },
-          onWebSocketError: (error) => {
-            console.error("WebSocket 연결 오류:", error);
-            setError(error);
-            setWsStatus(WS_STATUS.ERROR);
-          },
-        });
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                await connectWithRetry(retryCount + 1);
+              }
+            },
+          });
 
-        stomp.activate();
-      } catch (error) {
-        setError(error);
-        setWsStatus(WS_STATUS.ERROR);
-      }
+          stomp.activate();
+        } catch (error) {
+          console.error("연결 시도 중 오류:", error);
+          setError(error);
+          setWsStatus(WS_STATUS.ERROR);
+
+          if (retryCount < maxRetries) {
+            console.log(`일반 에러, 재시도 ${retryCount + 1}/${maxRetries}`);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await connectWithRetry(retryCount + 1);
+          }
+        }
+      };
+
+      // 초기 연결 시도 시작
+      await connectWithRetry();
     },
     [battleId, getResponse]
   );
@@ -289,13 +347,18 @@ const useWebSocket = (battleId) => {
     [battleId, wsStatus]
   );
 
-  const readyForBattle = useCallback(() => {
+  const readyForBattle = useCallback((userId, nickname, ready) => {
     try {
       stompClientRef.current?.send(
         `/api/publish/battle/${battleId}`,
         {},
         JSON.stringify({
           type: "BATTLE_READY",
+          data: {
+            userId,
+            nickname,
+            ready,
+          },
         })
       );
     } catch (error) {

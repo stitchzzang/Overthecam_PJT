@@ -3,7 +3,7 @@ package com.overthecam.websocket.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.vote.dto.VoteRequest;
-import com.overthecam.websocket.dto.BattleReadyStatus;
+import com.overthecam.websocket.dto.BattleReadyUser;
 import com.overthecam.websocket.dto.ChatMessageRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,8 +21,8 @@ public class WebSocketRequestMapper {
         return objectMapper.convertValue(data, ChatMessageRequest.class);
     }
 
-    public BattleReadyStatus mapToBattleReadyStatus(Object data){
-        return objectMapper.convertValue(data, BattleReadyStatus.class);
+    public BattleReadyUser mapToBattleReadyStatus(Object data){
+        return objectMapper.convertValue(data, BattleReadyUser.class);
     }
 
     public VoteRequest mapToVoteRequestDto(Object data){
