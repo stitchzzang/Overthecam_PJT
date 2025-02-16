@@ -16,6 +16,7 @@ public enum MessageType {
     BATTLE_END,
 
     // 개인 메시지
+    ROOM_STATUS,
     USER_SCORE, // 사용자 총 점수
 
     // 시스템 알림

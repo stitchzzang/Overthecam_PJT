@@ -13,6 +13,7 @@ import com.overthecam.battle.repository.BalanceGameRepository;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
+import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.repository.VoteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class BattleService {
 
     private final UserRepository userRepository;
     private final LiveKitTokenService liveKitService;
+    private final VoteRepository voteRepository;
 
 
     /**
@@ -42,8 +44,8 @@ public class BattleService {
     @Transactional
     public BattleRoomResponse createBattleRoom(Long userId, String roomName, String participantName) throws Exception {
         User user = getUserById(userId);
-        String token = liveKitService.createToken(user, participantName, roomName, ParticipantRole.HOST);
         Battle battle = createInitialBattle(roomName);
+        String token = liveKitService.createToken(battle.getId(), user, participantName, roomName, ParticipantRole.HOST);
         createHostParticipant(battle, user);
 
         return BattleRoomResponse.builder()
@@ -66,7 +68,7 @@ public class BattleService {
             throw new GlobalException(BattleErrorCode.BATTLE_ROOM_FULL, "배틀방 인원이 초과되었습니다. 최대 6명까지 참여 가능합니다");
         }
 
-        String token = liveKitService.createToken(user, participantName, battle.getTitle(), ParticipantRole.PARTICIPANT);
+        String token = liveKitService.createToken(battleId, user, participantName, battle.getTitle(), ParticipantRole.PARTICIPANT);
 
         createParticipant(battle, user);
         updateBattleStatus(battle, currentParticipants + 1);
@@ -178,6 +180,9 @@ public class BattleService {
         log.info("Battle {} 남은 참가자 수: {}", battleId, remainingParticipants);
 
         if (remainingParticipants <= 0) {
+            voteRepository.findByBattleId(battleId)
+                .ifPresent(Vote::setBattleToNull);
+
             battleRepository.delete(battle);
             log.info("배틀룸 {} 인원이 0명이 되어 삭제되었습니다.", battleId);
             return;
@@ -191,12 +196,6 @@ public class BattleService {
      */
     private void updateBattleStatus(Battle battle, long participants) {
         battle.updateTotalUsers((int) participants);
-
-//        if (participants < 6 && battle.getStatus() != Status.END) {
-//            battle.updateStatus(Status.WAITING);
-//            log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battle.getId());
-//        }
-
         battleRepository.save(battle);
     }
 
@@ -210,21 +209,13 @@ public class BattleService {
         );
 
         List<BattleInfo> battleInfos = battles.stream()
-            .map(battle -> {
-//                if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
-//                    battle.updateStatus(Status.PROGRESS);
-//                    battleRepository.save(battle);
-//                    log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
-//                }
-
-                return BattleInfo.builder()
-                    .battleId(battle.getId())
-                    .thumbnailUrl(battle.getThumbnailUrl())
-                    .title(battle.getTitle())
-                    .status(battle.getStatus())
-                    .totalUsers(battle.getTotalUsers())
-                    .build();
-            })
+            .map(battle -> BattleInfo.builder()
+                .battleId(battle.getId())
+                .thumbnailUrl(battle.getThumbnailUrl())
+                .title(battle.getTitle())
+                .status(battle.getStatus())
+                .totalUsers(battle.getTotalUsers())
+                .build())
             .collect(Collectors.toList());
 
         return BattleRoomAllResponse.builder()
