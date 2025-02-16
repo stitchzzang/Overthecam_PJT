@@ -9,23 +9,44 @@ const BattleRandomTopic = forwardRef((props, ref) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setTopic('로그인이 필요한 서비스입니다.');
+        return;
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/random`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
       if (response.data.success) {
         setTopic(response.data.data.title);
       } else {
-        // 서버에서 success: false를 반환한 경우
         setTopic(response.data.error?.message || '주제 생성에 실패했습니다. 다시 시도해주세요.');
       }
     } catch (error) {
       console.error('랜덤 주제 가져오기 실패:', error);
-      const errorMessage = error.response?.data?.error?.message || 
-                          '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-      setTopic(errorMessage);
+      
+      // 에러 상태 코드에 따른 구체적인 메시지
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            setTopic('인증이 만료되었습니다. 다시 로그인해주세요.');
+            break;
+          case 500:
+            setTopic('서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            break;
+          default:
+            setTopic(error.response.data?.error?.message || 
+                    '알 수 없는 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+      } else if (error.request) {
+        setTopic('서버와 통신할 수 없습니다. 인터넷 연결을 확인해주세요.');
+      } else {
+        setTopic('요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsLoading(false);
     }
