@@ -17,10 +17,10 @@ public class BattleReadyService {
     private final BattleReadyRedisRepository battleReadyRedisRepository;
 
     @Transactional
-    public BattleReadyStatus toggleReady(Long battleId, Long userId) {
+    public BattleReadyStatus toggleReady(Long battleId, Long userId, String nickname) {
         boolean currentReady = battleReadyRedisRepository.isUserReady(battleId, userId);
 
-        if (!currentReady) {
+        if (currentReady) {
             battleReadyRedisRepository.markUserReady(battleId, userId);
         } else {
             battleReadyRedisRepository.cancelUserReady(battleId, userId);
@@ -28,7 +28,8 @@ public class BattleReadyService {
 
         return BattleReadyStatus.builder()
             .userId(userId)
-            .ready(!currentReady)
+            .nickname(nickname)
+            .ready(currentReady)
             .build();
     }
 

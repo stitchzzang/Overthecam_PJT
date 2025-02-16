@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BattleReadyStatus {
     private Long userId;
+    private String nickname;
     private boolean ready;    // 현재 사용자의 준비 상태만 반환
 }
