@@ -30,6 +30,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
       );
 
       if (battler1Video) {
+        remoteTracks = remoteTracks.filter((t) => t !== battler1Video);
         return {
           type: "remote",
           track: battler1Video.trackPublication.videoTrack,
@@ -63,6 +64,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
       );
 
       if (battler2Video) {
+        remoteTracks = remoteTracks.filter((t) => t !== battler2Video);
         return {
           type: "remote",
           track: battler2Video.trackPublication.videoTrack,
@@ -73,6 +75,60 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
     }
     return null; // 해당하는 트랙이 없는 경우
   })();
+
+  const watcherSlots = Array(4)
+    .fill(null)
+    .map((_, index) => {
+      // 첫 번째 슬롯이고 현재 사용자가 배틀러가 아닌 경우 로컬 트랙 할당
+      if (
+        index === 0 &&
+        localTrack &&
+        !battlers.some((battler) => battler.nickname === participantName)
+      ) {
+        return {
+          type: "local",
+          track: localTrack,
+          participantName: participantName,
+        };
+      }
+
+      // 이미 할당된 시청자들의 participantIdentity 목록
+      const assignedWatchers = watcherSlots
+        .slice(0, index)
+        .filter(Boolean)
+        .map((slot) => slot.participantName);
+
+      // 아직 할당되지 않은 시청자 중에서 비디오 트랙 찾기
+      const watcherVideo = remoteTracks.find((track) => {
+        const isNotBattler = !battlers.some(
+          (battler) => battler.nickname === track.participantIdentity
+        );
+        const isNotAssigned = !assignedWatchers.includes(
+          track.participantIdentity
+        );
+        return (
+          track.trackPublication.kind === "video" &&
+          isNotBattler &&
+          isNotAssigned
+        );
+      });
+
+      if (watcherVideo) {
+        const watcherAudio = remoteTracks.find(
+          (track) =>
+            track.participantIdentity === watcherVideo.participantIdentity &&
+            track.trackPublication.kind === "audio"
+        );
+
+        return {
+          type: "remote",
+          track: watcherVideo.trackPublication.videoTrack,
+          audioTrack: watcherAudio?.trackPublication.audioTrack,
+          participantName: watcherVideo.participantIdentity,
+        };
+      }
+      return null;
+    });
 
   return (
     <div className="battle-start-container w-full">
@@ -125,10 +181,34 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
 
         {/* 시청자 섹션 */}
         <div className="watcher-section mx-5">
-          <div className="relative w-full aspect-[16/1] bg-gray-100 rounded-lg">
-            <div className="absolute inset-0 flex items-center justify-center">
-              시청자 자리
-            </div>
+          <div className="grid grid-cols-4 gap-4">
+            {watcherSlots.map((slot, index) => (
+              <div
+                key={index}
+                className="relative aspect-video bg-cusGray rounded-lg"
+              >
+                {slot ? (
+                  <div className="absolute inset-0">
+                    <VideoComponent
+                      track={slot.track}
+                      participantIdentity={slot.participantName}
+                      local={slot.type === "local"}
+                      className="w-full h-full object-cover rounded-sm"
+                    />
+                    {slot.audioTrack && (
+                      <AudioComponent
+                        track={slot.audioTrack}
+                        participantIdentity={slot.participantName}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-sm text-gray-500">빈 자리</span>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
