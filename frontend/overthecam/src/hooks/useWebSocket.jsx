@@ -62,6 +62,8 @@ const useWebSocket = (battleId) => {
   const [myRole, setMyRole] = useState(null);
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
+  const [myResult, setMyResult] = useState(null);
+  const [isDraw, setIsDraw] = useState(false);
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
   const userId = useUserStore((s) => s.userId);
@@ -155,7 +157,7 @@ const useWebSocket = (battleId) => {
               supportScore: me.supportScore,
               point: me.point,
             });
-            setMyRole(me.role)
+            setMyRole(me.role);
           }
           break;
         case "BATTLER_SELECT":
@@ -184,6 +186,16 @@ const useWebSocket = (battleId) => {
               const newList = [...prev, newMsg];
               return newList;
             });
+          }
+          break;
+        case "BATTLE_END":
+          if (success) {
+            setGameResult(data);
+             const me = data.userResults.filter((p) => {
+               p.userId === userId;
+             });
+             setMyResult(me);
+             setIsDraw(data.winningInfo.draw);
           }
           break;
         default:
@@ -498,7 +510,10 @@ const useWebSocket = (battleId) => {
     gameResult,
     myScores,
     setMyScores,
+    finishBattle,
     myRole,
+    myResult,
+    isDraw
   };
 };
 

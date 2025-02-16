@@ -4,7 +4,7 @@ import TimeBuyModal from "./BattleStartModal/BattleTimeBuyModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 
 function BattleTimer({ onTimerStoped }) {
-  const { isTimeExtended, error } = useWebSocketContext();
+  const { isTimeExtended, finishBattle, error } = useWebSocketContext();
   const MINUTES_IN_MS = 10 * 60 * 1000; // 10분 시간 주기
   const EXTENDED_IN_MS = 5 * 60 * 1000; // 5분 연장
   const ALERT_MINTS_IN_MS = 2 * 60 * 1000; // 2분 전부터 알람 주기
@@ -29,6 +29,7 @@ function BattleTimer({ onTimerStoped }) {
         // 시간이 다 되었을 때
         if (prevTime <= 0) {
           clearInterval(timer);
+          finishBattle();
           onTimerStoped("게임이 종료 되었습니다.");
           return 0;
         }
