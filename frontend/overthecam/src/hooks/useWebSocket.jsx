@@ -89,6 +89,7 @@ const useWebSocket = (battleId) => {
               option1Id: data.options[0]?.optionId,
               option2Id: data.options[1]?.optionId,
             });
+            setIsVoteSubmitted(success)
           }
           break;
         case "BATTLE_READY":
@@ -420,4 +421,5 @@ function useWebSocketContext() {
   return context;
 }
 
-export { WebSocketProvider, useWebSocketContext };
+export { useWebSocketContext };
+export default WebSocketProvider;
