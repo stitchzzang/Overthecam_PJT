@@ -175,7 +175,7 @@ function BattleWaiting({
           </div>
         </div>
         <div className="w-1/4 flex flex-col h-full mb-5">
-          <BattleChating />
+          <BattleChating height={"h-[550px]"} />
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />
