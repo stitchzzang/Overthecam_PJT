@@ -32,9 +32,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            log.debug("StompCommand.CONNECT 요청 수신");
+            log.debug("StompCommand.CONNECT 요청 수신 - destination: {}", accessor.getDestination());
             return handleConnect(message, accessor);
-        } else if (StompCommand.SEND.equals(accessor.getCommand())) {
+        }
+        else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+            log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
+        }
+        else if (StompCommand.SEND.equals(accessor.getCommand())) {
+            log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
             return handleSend(message);
         }
 

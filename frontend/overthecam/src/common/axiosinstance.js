@@ -24,17 +24,43 @@ authAxios.interceptors.request.use(
 
 authAxios.interceptors.response.use(
   (response) => {
-    console.log(response.data)
     return response.data;
   },
   async (error) => {
-    if (error.response && error.response.status === 401) {
-      // 토큰이 만료되었을 때 처리
-      localStorage.removeItem("token");
-      // 로그인 페이지로 리다이렉트
-      window.location.href = "/login";
+    const originalRequest = error.config;
+
+    if (error.response?.data?.message === 'EXPIRED_ACCESS_TOKEN' && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        
+        const response = await publicAxios.post('/auth/refresh', { refreshToken });
+
+        if (response.success) {
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+          
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
+          
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return authAxios(originalRequest);
+        }
+      } catch (error) {
+        if (error.response?.data?.message === 'EXPIRED_REFRESH_TOKEN') {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          window.location.href = "/main/login";
+          return Promise.reject(new Error('세션이 만료되었습니다. 다시 로그인해주세요.'));
+        }
+        
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/main/login";
+        return Promise.reject(error);
+      }
     }
-    return Promise.reject(error.response.data);
+    return Promise.reject(error.response?.data || error);
   }
 );
 

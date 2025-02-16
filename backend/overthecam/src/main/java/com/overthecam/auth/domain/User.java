@@ -88,4 +88,14 @@ public class User extends TimeStampEntity {
     public void setPoint(int point) {
         this.point = point;
     }
+
+    // 마이페이지 - 내 정보 수정
+    public void updateProfile(String nickname, String phoneNumber) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
+    }
 }

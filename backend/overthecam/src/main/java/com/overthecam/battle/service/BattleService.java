@@ -13,6 +13,7 @@ import com.overthecam.battle.repository.BalanceGameRepository;
 import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
+import com.overthecam.vote.repository.VoteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -210,11 +211,11 @@ public class BattleService {
 
         List<BattleInfo> battleInfos = battles.stream()
             .map(battle -> {
-                if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
-                    battle.updateStatus(Status.PROGRESS);
-                    battleRepository.save(battle);
-                    log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
-                }
+//                if (battle.getTotalUsers() >= 6 && battle.getStatus() != Status.END) {
+//                    battle.updateStatus(Status.PROGRESS);
+//                    battleRepository.save(battle);
+//                    log.info("배틀룸 {} 인원이 6명이 되어 상태가 PROGRESS로 변경되었습니다.", battle.getId());
+//                }
 
                 return BattleInfo.builder()
                     .battleId(battle.getId())

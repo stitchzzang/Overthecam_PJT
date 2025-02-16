@@ -53,4 +53,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     );
 
     Page<User> findByNicknameContainingIgnoreCase(String trim, Pageable pageable);
+
+    boolean existsByNickname(String nickname);
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    // 본인을 제외한 중복 검사 (마이페이지 수정 시 사용)
+    boolean existsByNicknameAndIdNot(String nickname, Long userId);
+    boolean existsByPhoneNumberAndIdNot(String phoneNumber, Long userId);
 }

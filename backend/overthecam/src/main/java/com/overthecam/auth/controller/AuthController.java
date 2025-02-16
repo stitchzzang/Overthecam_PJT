@@ -1,8 +1,12 @@
 package com.overthecam.auth.controller;
 
 import com.overthecam.auth.dto.*;
+import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.auth.service.AuthService;
 import com.overthecam.common.dto.CommonResponseDto;
+import com.overthecam.common.exception.GlobalException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +28,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public CommonResponseDto<TokenResponse> login(
-        @Valid @RequestBody LoginRequest request,
-        HttpServletResponse response) {
-        TokenResponse tokenResponse = authService.login(request, response);
+    public CommonResponseDto<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        TokenResponse tokenResponse = authService.login(request);
         return CommonResponseDto.ok(tokenResponse);
     }
 
     @PostMapping("/logout")
-    public CommonResponseDto<Void> logout(HttpServletResponse response) {
-        authService.logout(response);
+    public CommonResponseDto<Void> logout(HttpServletRequest request) {
+        authService.logout(request);
         return CommonResponseDto.ok();
     }
 
@@ -43,14 +45,19 @@ public class AuthController {
         return CommonResponseDto.ok(userResponse);
     }
 
+    @PostMapping("/refresh")
+    public CommonResponseDto<TokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        log.info("토큰 갱신 요청 수신");
+        return authService.refreshAccessToken(request);
+    }
+
     /**
      * 비밀번호 재설정을 위한 사용자 확인 (1단계)
      */
     @PostMapping("/verify-password-reset")
     public CommonResponseDto<Void> verifyPasswordReset(
             @Valid @RequestBody VerifyPasswordResetRequest request) {
-        authService.verifyPasswordReset(request);
-        return CommonResponseDto.ok();
+        return authService.verifyPasswordReset(request);
     }
 
     /**

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // 스크롤바 숨기는 전역 스타일 추가
 const globalStyles = `
@@ -19,105 +19,197 @@ const globalStyles = `
   }
 `;
 
-const Section = ({ children, className }) => (
-  <div className={`h-screen flex items-center justify-center snap-start ${className}`}>
-    <div className="max-w-4xl mx-auto px-4">{children}</div>
-  </div>
-);
+const Section = ({ children, className, backgroundImage }) => {
+  const [bgStyle, setBgStyle] = useState({
+    backgroundImage: backgroundImage ? 
+      `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${backgroundImage})` : 
+      'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7))',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    willChange: 'transform',
+    transform: 'translateZ(0)',
+  });
+
+  return (
+    <div 
+      className={`h-screen flex items-center justify-center snap-start ${className}`}
+      style={bgStyle}
+    >
+      <div className="max-w-6xl mx-auto px-4 flex items-center gap-8">{children}</div>
+    </div>
+  );
+};
 
 const FakeMainPage = () => {
   const navigate = useNavigate();
-
+  const scrollContainerRef = useRef(null);
+  
   useEffect(() => {
+    // 이미지 프리로딩
+    const preloadImages = async () => {
+      const images = [
+        '../images/Desktop_mockup.png',
+        '../images/Desktop_mockup2.png',
+        '../images/Desktop_mockup3.png'
+      ];
+
+      const preloadImage = (src) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(src);
+          img.src = src;
+          
+          // 브라우저 캐싱 활용
+          img.style.display = 'none';
+          document.body.appendChild(img);
+          setTimeout(() => document.body.removeChild(img), 0);
+        });
+      };
+
+      try {
+        await Promise.all(images.map(preloadImage));
+      } catch (error) {
+        console.error('Image preloading failed:', error);
+      }
+    };
+
+    preloadImages();
+
     // 스타일 태그 추가
     const styleSheet = document.createElement("style");
-    styleSheet.innerText = globalStyles;
+    styleSheet.innerText = globalStyles + `
+      .bg-image {
+        background-size: cover;
+        background-position: center;
+        transition: opacity 0.5s ease-in-out;
+      }
+    `;
     document.head.appendChild(styleSheet);
 
-    // 스크롤 동작을 부드럽게 만듭니다
-    document.documentElement.style.scrollBehavior = 'smooth';
-    
+    // 스크롤 최적화
+    const container = scrollContainerRef.current;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    container?.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       document.head.removeChild(styleSheet);
-      document.documentElement.style.scrollBehavior = 'auto';
+      container?.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
+  // 이미지 컴포넌트 최적화
+  const OptimizedImage = ({ src, alt, className, ...props }) => (
+    <motion.img
+      src={src}
+      alt={alt}
+      className={`${className} loading="eager" decoding="async"`}
+      style={{
+        willChange: 'transform, opacity',
+        transform: 'translateZ(0)'
+      }}
+      {...props}
+    />
+  );
+
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-gray-900 to-gray-800">
-      <div className="absolute inset-0 snap-y snap-mandatory overflow-y-scroll hide-scrollbar">
+      <div 
+        ref={scrollContainerRef}
+        className="absolute inset-0 snap-y snap-mandatory overflow-y-scroll hide-scrollbar"
+      >
         {/* 첫 번째 섹션 */}
         <Section>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.1, rotate: -180 }}
-            whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ 
-              duration: 1.8,
-              ease: "easeInOut"
-            }}
-            viewport={{ once: true, margin: "-20%" }}
-            className="text-center text-white"
-          >
-            <h1 className="text-7xl font-bold mb-6">논쟁은 예술이다</h1>
-            <p className="text-2xl text-gray-300">
-              승패에 쿨하게 승복하실 분들 언제나 환영합니다!
-            </p>
-          </motion.div>
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.1, rotate: -180 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1.8, ease: "easeInOut" }}
+              viewport={{ once: true, margin: "-20%" }}
+              className="text-center text-white md:w-1/2"
+            >
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 whitespace-nowrap">
+                논쟁은 예술이다
+              </h1>
+              <p className="text-2xl text-gray-300">
+                승패에 쿨하게 승복하실 분들<br />언제나 환영합니다!
+              </p>
+            </motion.div>
+            <OptimizedImage
+              src="../images/Desktop_mockup.png"
+              alt="논쟁 아이콘"
+              className="w-96 h-96 object-contain md:w-2/3"
+              initial={{ opacity: 0, x: 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.5 }}
+            />
+          </div>
         </Section>
 
         {/* 두 번째 섹션 */}
         <Section>
-          <motion.div
-            initial={{ x: -200, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
-            transition={{ 
-              duration: 1.5,
-              ease: "easeInOut"
-            }}
-            viewport={{ once: true, margin: "-20%" }}
-            className="space-y-8 text-white"
-          >
-            <motion.h2 
-              initial={{ x: 200 }}
-              whileInView={{ x: 0 }}
-              transition={{ 
-                delay: 0.3,
-                duration: 1.5,
-                ease: "easeInOut"
-              }}
-              className="text-5xl font-bold text-cusRed-light"
-            >
-              실시간 논쟁 배틀,<br />지금 시작됩니다!
-            </motion.h2>
-            <ul className="space-y-4 text-xl">
-              <motion.li
-                initial={{ x: -100, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
+          <div className="flex flex-col md:flex-row items-center gap-8 -ml-8">
+            <OptimizedImage
+              src="../images/Desktop_mockup2.png"
+              alt="실시간 배틀"
+              className="w-[32rem] h-[32rem] object-contain md:w-2/3"
+              initial={{ opacity: 0, x: -100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1 }}
+            />
+            <motion.div className="space-y-8 text-white md:w-2/3 px-0">
+              <motion.h2 
+                initial={{ x: 200 }}
+                whileInView={{ x: 0 }}
                 transition={{ 
-                  delay: 0.6,
-                  duration: 1,
+                  delay: 0.3,
+                  duration: 1.5,
                   ease: "easeInOut"
                 }}
+                className="text-5xl font-bold text-cusRed-light whitespace-normal leading-tight"
               >
-                2명의 배틀러, 최대 4명의 관전자 참여 가능
-              </motion.li>
-              <motion.li
-                initial={{ x: -100, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ 
-                  delay: 0.8,
-                  duration: 1,
-                  ease: "easeInOut"
-                }}
-              >
-                AI 기반 욕설 필터링으로 클린한 채팅 환경 조성
-              </motion.li>
-            </ul>
-          </motion.div>
+                실시간 논쟁 배틀,<br />지금 시작됩니다!
+              </motion.h2>
+              <ul className="space-y-4 text-xl whitespace-normal">
+                <motion.li
+                  initial={{ x: -100, opacity: 0 }}
+                  whileInView={{ x: 0, opacity: 1 }}
+                  transition={{ 
+                    delay: 0.6,
+                    duration: 1,
+                    ease: "easeInOut"
+                  }}
+                >
+                  2명의 배틀러, 최대 4명의 관전자
+                </motion.li>
+                <motion.li
+                  initial={{ x: -100, opacity: 0 }}
+                  whileInView={{ x: 0, opacity: 1 }}
+                  transition={{ 
+                    delay: 0.8,
+                    duration: 1,
+                    ease: "easeInOut"
+                  }}
+                >
+                  AI 기반 욕설 필터링 클린한 채팅 환경
+                </motion.li>
+              </ul>
+            </motion.div>
+          </div>
         </Section>
 
         {/* 세 번째 섹션 */}
-        <Section>
+        <Section> 
+          {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -145,7 +237,8 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 네 번째 섹션 - 바운스 효과 */}
-        <Section>
+        <Section> 
+          {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ y: 200, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
@@ -174,7 +267,8 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 다섯 번째 섹션 - 스태거 효과 */}
-        <Section>
+        <Section backgroundImage="../images/Desktop_mockup3.png">
+          {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}

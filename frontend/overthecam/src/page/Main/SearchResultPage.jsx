@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
+import { publicAxios } from '../../common/axiosinstance';
 
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
@@ -76,14 +77,9 @@ const SearchResultPage = () => {
 
   const handleSearch = async (query) => {
     try {
-      const headers = {
-        'Content-Type': 'application/json'
-      };
-
       // 배틀 검색
       const battleResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
-        params: { keyword: query },
-        headers
+        params: { keyword: query }
       });
 
       // 유저 검색
@@ -91,14 +87,17 @@ const SearchResultPage = () => {
         params: { 
           keyword: query,
           size: 100
-        },
-        headers
+        }
       });
-      
-      console.log('User Search Response:', userResponse.data);
+
+      // 투표 검색
+      const voteResponse = await publicAxios.get('/vote/list', {
+        params: { keyword: query }
+      });
 
       let battles = [];
       let users = [];
+      let votes = [];
 
       if (battleResponse.data.success) {
         battles = battleResponse.data.data.battleInfo.map(battle => ({
@@ -108,46 +107,60 @@ const SearchResultPage = () => {
       }
 
       if (userResponse.data.success) {
-        // 현재 로그인한 사용자의 ID를 문자열로 가져옴
         const currentUserId = localStorage.getItem('userId');
-        
-        // 검색 결과에서 현재 사용자 제외
         users = userResponse.data.data.userInfo.filter(user => {
-          // currentUserId가 있을 때만 필터링
           if (currentUserId) {
             return user.userId !== parseInt(currentUserId);
           }
-          return true;  // 로그인하지 않은 경우 모든 결과 표시
+          return true;
         });
-        
-        console.log('Current User ID:', currentUserId);
-        console.log('Processed users:', users);
+      }
+
+      if (voteResponse.data?.content) {
+        votes = voteResponse.data.content;
       }
 
       setSearchResults({
         battles,
-        votes: [],
+        votes,
         users
       });
+
     } catch (error) {
       console.error("검색 중 오류 발생:", error);
-      setSearchResults({
+      // 오류 발생 시에도 가능한 결과는 보여주기
+      const emptyResults = {
         battles: [],
         votes: [],
         users: []
-      });
+      };
+
+      try {
+        // 각 요청이 실패하더라도 다른 요청의 결과는 표시
+        if (error.response?.data?.data?.battleInfo) {
+          emptyResults.battles = error.response.data.data.battleInfo;
+        }
+        if (error.response?.data?.data?.userInfo) {
+          emptyResults.users = error.response.data.data.userInfo;
+        }
+        if (error.response?.data?.content) {
+          emptyResults.votes = error.response.data.content;
+        }
+      } catch (e) {
+        console.error("결과 처리 중 오류:", e);
+      }
+
+      setSearchResults(emptyResults);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="relative">
-        {/* 그라데이션 배경 */}
-        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
+        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-40" />
         
         <div className="container mx-auto px-4">
-          {/* 검색바 위치 조정 - 살짝 더 위로 */}
-          <div className="relative -mt-12">
+          <div className="relative -mt-8">
             <div className="font-extrabold text-lg">
               <SearchBar 
                 onSearch={handleSearch} 
@@ -157,17 +170,11 @@ const SearchResultPage = () => {
           </div>
 
           {/* 내부 컨테이너 여백 */}
-          <div className="container mx-auto p-14">
+          <div className="container mx-auto p-10">
             {/* Battle Section */}
             <section className="flex flex-col mb-12">
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
-                <Link
-                  to="/main/battle-list"
-                  className="text-cusBlue text-xl font-medium justify-end mr-5"
-                >
-                  + More
-                </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.battles.length > 0 ? (
@@ -219,27 +226,85 @@ const SearchResultPage = () => {
             <section className="flex flex-col mb-12">
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
-                <Link
-                  to="/main/vote"
-                  className="text-cusBlue text-xl font-medium justify-end mr-5"
-                >
-                  + More
-                </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {searchResults.votes.length > 0 ? (
                   searchResults.votes.map((vote) => (
-                    <div key={`vote-${vote.id}`} className="p-4 bg-white rounded-lg shadow h-32">
-                      <Link 
-                        to={`/main/vote-detail/${vote.voteId}`}
-                        className="hover:scale-105 transition-transform"
+                    <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                      <div 
+                        onClick={() => {
+                          const token = localStorage.getItem('token');
+                          if (!token) {
+                            alert('로그인이 필요합니다.');
+                            navigate('/main/login');
+                            return;
+                          }
+                          navigate(`/main/vote-detail/${vote.voteId}`);
+                        }}
+                        className="cursor-pointer"
                       >
-                        {vote.title}
-                      </Link>
+                        <h2 className="text-xl font-bold mb-2 hover:text-blue-600">
+                          {vote.title}
+                        </h2>
+                        <p className="text-gray-600 mb-2">{vote.content}</p>
+                      </div>
+
+                      <div className="transition-all duration-300">
+                        {vote.hasVoted ? (
+                          <div className="mb-4">
+                            {vote.options && vote.options.length >= 2 && (
+                              <>
+                                <div className="mb-2 flex justify-between">
+                                  <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
+                                  <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
+                                </div>
+                                <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+                                  <div
+                                    className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
+                                    style={{ width: `${vote.options[0].votePercentage}%` }}
+                                  >
+                                    {vote.options[0].votePercentage.toFixed(1)}%
+                                  </div>
+                                  <div
+                                    className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
+                                    style={{ width: `${vote.options[1].votePercentage}%` }}
+                                  >
+                                    {vote.options[1].votePercentage.toFixed(1)}%
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex gap-4">
+                            {vote.options.map((option) => (
+                              <button
+                                key={option.optionId}
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  if (!token) {
+                                    alert('로그인이 필요합니다.');
+                                    navigate('/main/login');
+                                    return;
+                                  }
+                                  navigate(`/main/vote-detail/${vote.voteId}`);
+                                }}
+                                className={`clay flex-1 p-4 ${
+                                  option.optionId === vote.options[0].optionId
+                                    ? 'bg-red-100 hover:bg-red-200 text-red-500'
+                                    : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
+                                } rounded-lg transition-colors`}
+                              >
+                                {option.optionTitle}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-3 text-center py-4">
+                  <div className="col-span-2 text-center py-4">
                     <p className="text-gray-500">Vote 검색 결과가 없습니다</p>
                   </div>
                 )}

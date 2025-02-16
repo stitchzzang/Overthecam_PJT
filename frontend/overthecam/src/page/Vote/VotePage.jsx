@@ -28,9 +28,10 @@ const VotePage = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
+      // 전체 데이터를 한번에 가져오기
       const params = {
-        page: pages[voteStatus] - 1,
-        size: 10,
+        page: 0,
+        size: 1000, // 충분히 큰 수
         status: voteStatus === 'all' ? undefined : voteStatus
       };
       
@@ -40,17 +41,20 @@ const VotePage = () => {
       });
       
       if (response.data?.content) {
-        // 내 투표만 보기가 활성화된 경우 필터링
+        // 1. 먼저 필터링
         const filteredContent = showMyVotes && userId
           ? response.data.content.filter(vote => Number(vote.creatorUserId) === Number(userId))
           : response.data.content;
 
-        setCurrentList(filteredContent);
+        // 2. 페이지네이션 계산
+        const startIndex = (pages[voteStatus] - 1) * 10;
+        const endIndex = startIndex + 10;
+        const paginatedContent = filteredContent.slice(startIndex, endIndex);
+        
+        setCurrentList(paginatedContent);
         setTotalPages(prev => ({
           ...prev,
-          [voteStatus]: showMyVotes 
-            ? Math.ceil(filteredContent.length / 10)  // 필터링된 결과의 페이지 수 계산
-            : response.data.pageInfo.totalPages
+          [voteStatus]: Math.ceil(filteredContent.length / 10)
         }));
       }
     } catch (err) {
@@ -73,8 +77,12 @@ const VotePage = () => {
   };
 
   const handleStatusChange = (newStatus) => {
+    // 페이지를 1로 리셋
+    setPages(prev => ({
+      ...prev,
+      [newStatus]: 1
+    }));
     setVoteStatus(newStatus);
-    fetchVotes();
   };
 
   const handleVote = async (vote, optionId) => {
@@ -127,54 +135,12 @@ const VotePage = () => {
     }
   };
 
-  const handleMyVotesToggle = async () => {
-    try {
-      const newShowMyVotes = !showMyVotes;
-      setShowMyVotes(newShowMyVotes);
-      
-      // 페이지 초기화
-      setPages(prev => ({
-        ...prev,
-        [voteStatus]: 1
-      }));
-
-      // 로딩 상태 설정
-      setLoading(true);
-      
-      // 데이터 다시 불러오기
-      const params = {
-        page: 0,  // 첫 페이지부터 시작
-        size: 10,
-        status: voteStatus === 'all' ? undefined : voteStatus
-      };
-      
-      const token = localStorage.getItem('token');
-      const response = await publicAxios.get('/vote/list', { 
-        params,
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-
-      if (response.data?.content) {
-        const filteredContent = newShowMyVotes && userId
-          ? response.data.content.filter(vote => Number(vote.creatorUserId) === Number(userId))
-          : response.data.content;
-
-        setCurrentList(filteredContent);
-        setTotalPages(prev => ({
-          ...prev,
-          [voteStatus]: newShowMyVotes 
-            ? Math.ceil(filteredContent.length / 10)
-            : response.data.pageInfo.totalPages
-        }));
-      }
-    } catch (error) {
-      console.error('Toggle error:', error);
-      alert('데이터를 불러오는 중 오류가 발생했습니다.');
-      // 에러 발생 시 토글 상태 원복
-      setShowMyVotes(!newShowMyVotes);
-    } finally {
-      setLoading(false);
-    }
+  const handleMyVotesToggle = () => {
+    setShowMyVotes(!showMyVotes);
+    setPages(prev => ({
+      ...prev,
+      [voteStatus]: 1
+    }));
   };
 
   const renderVoteResult = (vote) => {

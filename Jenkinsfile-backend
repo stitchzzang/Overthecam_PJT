@@ -108,7 +108,8 @@ pipeline {
                                         --name spring-redis \
                                         --network redis-network \
                                         -p 6379:6379 \
-                                        redis:7.4.1-alpine redis-server --requirepass ${SPRING_REDIS_PASSWORD} && \
+                                        redis:7.4.1-alpine \
+                                        /bin/sh -c 'redis-server --requirepass "${SPRING_REDIS_PASSWORD}"'
 
                                     echo '새 이미지 가져오는 중...' && \
                                     docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \

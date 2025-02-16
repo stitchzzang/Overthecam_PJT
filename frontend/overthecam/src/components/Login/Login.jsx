@@ -39,15 +39,14 @@ const Login = () => {
       email: formData.id,
       password: formData.password,
     };
-    console.log("로그인 시도 (상세):", JSON.stringify(loginData, null, 2));
 
     try {
       const response = await publicAxios.post("/auth/login", loginData);
-      console.log("서버 응답 (상세):", JSON.stringify(response.data, null, 2));
-
+      
       if (response.data.accessToken) {
-        const token = response.data.accessToken;
-        const base64Url = token.split('.')[1];
+        const { accessToken, refreshToken, grantType, accessTokenExpiresIn } = response.data;
+        
+        const base64Url = accessToken.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = decodeURIComponent(escape(window.atob(base64)));
         const parsedPayload = JSON.parse(payload);
@@ -56,10 +55,16 @@ const Login = () => {
           userId: parsedPayload.userId,
           email: parsedPayload.email,
           nickname: response.data.nickname,
-          token: token
+          profileImage: response.data.profileImage,
+          token: accessToken,
+          tokenType: grantType,
+          expiresIn: accessTokenExpiresIn
         };
 
-        localStorage.setItem("token", token);
+        localStorage.setItem("token", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("tokenType", grantType);
+        localStorage.setItem("tokenExpiresIn", accessTokenExpiresIn);
         localStorage.setItem("userInfo", JSON.stringify(userInfo));
         localStorage.setItem("isLoggedIn", "true");
 
@@ -67,7 +72,6 @@ const Login = () => {
           localStorage.setItem("rememberMe", "true");
         }
 
-        console.log("저장된 사용자 정보:", userInfo);
         setUser({
           userId: userInfo.userId,
           isLoggedIn: true,
@@ -79,14 +83,8 @@ const Login = () => {
         navigate(from);
       }
     } catch (err) {
-      console.error(
-        "로그인 에러 (상세):",
-        JSON.stringify(err.response?.data, null, 2)
-      );
-      setError(
-        err.response?.message ||
-          "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."
-      );
+      console.error("로그인 에러 (상세):", JSON.stringify(err.response?.data, null, 2));
+      setError(err.response?.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
     }
   };
 

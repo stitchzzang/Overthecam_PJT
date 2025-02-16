@@ -16,7 +16,7 @@ const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUse
 
   const handleUserClick = (userId) => {
     onClose();
-    navigate(`/profile/${userId}`);
+    navigate(`/main/profile/${userId}`);
   };
 
   const handleBackgroundClick = (e) => {
@@ -166,6 +166,39 @@ const resizeImage = (file, maxWidth) => {
   });
 };
 
+// 전화번호 포맷팅 함수
+const formatPhoneNumber = (value) => {
+  if (!value) return "";
+  const numbers = value.replace(/[^\d]/g, "");
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+};
+
+// 닉네임 중복 체크 함수 수정
+const checkNicknameDuplicate = async (nickname) => {
+  try {
+    const response = await authAxios.get(`/member/check-nickname/${nickname}`);
+    console.log("닉네임 중복 체크 응답:", response);
+    return !response.data; // true면 중복, false면 사용 가능
+  } catch (error) {
+    console.error("닉네임 중복 체크 실패:", error);
+    return false;
+  }
+};
+
+// 전화번호 중복 체크 함수 수정
+const checkPhoneNumberDuplicate = async (phoneNumber) => {
+  try {
+    const response = await authAxios.get(`/member/check-phone/${phoneNumber}`);
+    console.log("전화번호 중복 체크 응답:", response);
+    return !response.data; // true면 중복, false면 사용 가능
+  } catch (error) {
+    console.error("전화번호 중복 체크 실패:", error);
+    return false;
+  }
+};
+
 function MyPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'vote');
@@ -201,48 +234,64 @@ function MyPage() {
   const [modalType, setModalType] = useState(null);
   const [modalUsers, setModalUsers] = useState([]);
   const [currentUserFollowing, setCurrentUserFollowing] = useState([]);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [phoneNumbers, setPhoneNumbers] = useState({
+    first: "",
+    middle: "",
+    last: ""
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        
-        // API를 통해 마이페이지 정보 가져오기
-        const response = await authAxios.get("/mypage/stats");
-        const myPageData = response;
+        // 프로필 정보 가져오기
+        const profileResponse = await authAxios.get("/mypage/profile");
+        const profileData = profileResponse.data;
+
+        // 통계 정보 가져오기
+        const statsResponse = await authAxios.get("/mypage/stats");
+        const statsData = statsResponse.data;
         
         setUserData({
-          id: userInfo.userId || "",
-          email: userInfo.email || "",
-          username: userInfo.username || "",
-          nickname: myPageData.data.profileInfo?.nickname || "",
-          gender: userInfo.gender || "",
-          birth: userInfo.birth || "",
-          phoneNumber: userInfo.phoneNumber || "",
+          email: profileData.email,
+          username: profileData.username,  // 여기서 username 설정
+          nickname: profileData.nickname,
+          phoneNumber: profileData.phoneNumber,
+          gender: profileData.gender,
+          birth: profileData.birth,
           profileInfo: {
-            profileImage: myPageData.data.profileInfo?.profileImage
+            profileImage: statsData.profileInfo?.profileImage
           },
           stats: {
-            cheerPoints: myPageData.data.scoreInfo?.supportScore || 0,
-            points: myPageData.data.scoreInfo?.point || 0,
-            followers: myPageData.data.followStats?.followerCount || 0,
-            following: myPageData.data.followStats?.followingCount || 0,
+            cheerPoints: statsData.scoreInfo?.supportScore || 0,
+            points: statsData.scoreInfo?.point || 0,
+            followers: statsData.followStats?.followerCount || 0,
+            following: statsData.followStats?.followingCount || 0,
           },
           battleStats: {
-            totalGames: myPageData.data.battleStats?.totalGames || 0,
-            win: myPageData.data.battleStats?.win || 0,
-            draw: myPageData.data.battleStats?.draw || 0,
-            loss: myPageData.data.battleStats?.loss || 0,
-            winRate: myPageData.data.battleStats?.winRate || 0
+            totalGames: statsData.battleStats?.totalGames || 0,
+            win: statsData.battleStats?.win || 0,
+            draw: statsData.battleStats?.draw || 0,
+            loss: statsData.battleStats?.loss || 0,
+            winRate: statsData.battleStats?.winRate || 0
           }
         });
 
         setEditedData({
           password: "",
-          username: userInfo.username || "",
-          nickname: myPageData.data.profileInfo?.nickname || "",
-          phoneNumber: userInfo.phoneNumber || ""
+          nickname: profileData.nickname,
+          phoneNumber: profileData.phoneNumber
         });
+
+        if (editedData.phoneNumber) {
+          const [first, middle, last] = editedData.phoneNumber.split('-');
+          setPhoneNumbers({
+            first: first || "",
+            middle: middle || "",
+            last: last || ""
+          });
+        }
 
       } catch (error) {
         console.error("Failed to load user data:", error);
@@ -253,27 +302,110 @@ function MyPage() {
     fetchUserData();
   }, []);
 
+  // 입력 핸들러 수정
   const handleChange = (e) => {
-    setEditedData({ ...editedData, [e.target.name]: e.target.value })
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      await authAxios.put("/members/me", editedData)
-      setUserData({ ...userData, ...editedData })
-      setIsEditing(false)
-      setToast({ show: true, message: 'User data updated successfully', type: 'success' })
-    } catch (error) {
-      console.error("Failed to update user data:", error)
-      setToast({ show: true, message: 'Failed to update user data', type: 'error' })
+    const { name, value } = e.target;
+    if (name === 'phoneNumber') {
+      setEditedData(prev => ({
+        ...prev,
+        [name]: formatPhoneNumber(value)
+      }));
+    } else {
+      setEditedData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
-  }
+  };
 
-  const handleCancel = () => {
-    setEditedData({ ...userData })
-    setIsEditing(false)
-  }
+  // 제출 핸들러 수정
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // 비밀번호 유효성 검사 추가
+    if (isChangingPassword) {
+      if (!editedData.password) {
+        setToast({ 
+          show: true, 
+          message: '비밀번호가 빈칸입니다.', 
+          type: 'error' 
+        });
+        return;
+      }
+
+      // 비밀번호 형식 검증
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+      if (!passwordRegex.test(editedData.password)) {
+        setToast({ 
+          show: true, 
+          message: '비밀번호는 8~20자리수여야 합니다. 영문 대소문자, 숫자, 특수문자를 1개 이상 포함해야 합니다.', 
+          type: 'error' 
+        });
+        return;
+      }
+
+      // 비밀번호 확인 검사
+      if (editedData.password !== passwordConfirm) {
+        setToast({ 
+          show: true, 
+          message: '비밀번호가 일치하지 않습니다.', 
+          type: 'error' 
+        });
+        return;
+      }
+    }
+
+    if (!editedData.nickname.trim()) {
+      setToast({ 
+        show: true, 
+        message: '닉네임이 빈칸입니다.', 
+        type: 'error' 
+      });
+      return;
+    }
+
+    if (!editedData.phoneNumber) {
+      setToast({ 
+        show: true, 
+        message: '전화번호가 빈칸입니다.', 
+        type: 'error' 
+      });
+      return;
+    }
+
+    try {
+      const updateData = {
+        password: isChangingPassword ? editedData.password : "",
+        nickname: editedData.nickname,
+        phoneNumber: editedData.phoneNumber
+      };
+
+      const response = await authAxios.put("/mypage/profile", updateData);
+      
+      setUserData(prev => ({
+        ...prev,
+        ...response.data
+      }));
+      
+      setIsEditing(false);
+      setToast({ 
+        show: true, 
+        message: '프로필이 성공적으로 수정되었습니다.', 
+        type: 'success' 
+      });
+      setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
+
+    } catch (error) {
+      console.log('에러:', error);
+      
+      setToast({ 
+        show: true, 
+        message: '전화번호가 중복되었습니다.',
+        type: 'error' 
+      });
+      setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
+    }
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -372,20 +504,17 @@ function MyPage() {
   const totalGames = userData?.battleStats?.totalGames || 0;
   const winRate = userData?.battleStats?.winRate || 0;
 
-  // Toast 컴포넌트 정의
-  const Toast = () => {
-    if (!toast.show) return null;
-
-    return (
-      <div 
-        className={`fixed bottom-4 right-4 px-6 py-3 rounded-md shadow-lg ${
-          toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white`}
-        style={{ zIndex: 1000 }}
-      >
-        {toast.message}
-      </div>
-    );
+  // 토스트 메시지 자동 제거 함수
+  const showToast = (message, type) => {
+    setToast({ 
+      show: true, 
+      message, 
+      type 
+    });
+    
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: null });
+    }, 1000);
   };
 
   // 모달 열기
@@ -437,6 +566,122 @@ function MyPage() {
       console.error("팔로우/언팔로우 실패:", error);
     }
   };
+
+  // 전화번호 입력 핸들러
+  const handlePhoneChange = (part, value) => {
+    // 숫자만 입력 가능
+    const numbers = value.replace(/[^\d]/g, "");
+    
+    setPhoneNumbers(prev => ({
+      ...prev,
+      [part]: numbers
+    }));
+
+    // 전체 전화번호 업데이트
+    const updatedPhoneNumbers = {
+      ...phoneNumbers,
+      [part]: numbers
+    };
+
+    setEditedData(prev => ({
+      ...prev,
+      phoneNumber: `${updatedPhoneNumbers.first}-${updatedPhoneNumbers.middle}-${updatedPhoneNumbers.last}`
+    }));
+
+    // 자동 포커스 이동
+    if (part === 'first' && numbers.length === 3) {
+      document.getElementById('phone-middle').focus();
+    } else if (part === 'middle' && numbers.length === 4) {
+      document.getElementById('phone-last').focus();
+    }
+  };
+
+  // 전화번호 입력 필드 UI
+  const renderPhoneFields = () => (
+    <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+      <label className="text-sm font-medium">전화번호</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={phoneNumbers.first}
+          onChange={(e) => handlePhoneChange('first', e.target.value)}
+          className="w-20 px-4 py-2 bg-white border border-gray-200 rounded-md text-center"
+          placeholder="010"
+          maxLength="3"
+        />
+        <span className="text-gray-500">-</span>
+        <input
+          id="phone-middle"
+          type="text"
+          value={phoneNumbers.middle}
+          onChange={(e) => handlePhoneChange('middle', e.target.value)}
+          className="w-24 px-4 py-2 bg-white border border-gray-200 rounded-md text-center"
+          placeholder="0000"
+          maxLength="4"
+        />
+        <span className="text-gray-500">-</span>
+        <input
+          id="phone-last"
+          type="text"
+          value={phoneNumbers.last}
+          onChange={(e) => handlePhoneChange('last', e.target.value)}
+          className="w-24 px-4 py-2 bg-white border border-gray-200 rounded-md text-center"
+          placeholder="0000"
+          maxLength="4"
+        />
+      </div>
+    </div>
+  );
+
+  // 비밀번호 필드 UI 렌더링 함수
+  const renderPasswordFields = () => (
+    <>
+      <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+        <label className="text-sm font-medium">비밀번호</label>
+        <div className="flex gap-2">
+          {isChangingPassword ? (
+            <input
+              type="password"
+              name="password"
+              value={editedData.password}
+              onChange={handleChange}
+              className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-md"
+              placeholder="새 비밀번호를 입력하세요"
+            />
+          ) : (
+            <div className="flex gap-2 w-full">
+              <input
+                type="password"
+                value="********"
+                className="flex-1 px-4 py-2 bg-gray-100 border border-gray-200 rounded-md"
+                readOnly
+              />
+              <button
+                type="button"
+                onClick={() => setIsChangingPassword(true)}
+                className="px-4 py-2 bg-cusBlue text-white rounded-md hover:bg-cusBlue-dark transition-colors text-sm"
+              >
+                비밀번호 변경
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isChangingPassword && (
+        <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+          <label className="text-sm font-medium">비밀번호 확인</label>
+          <input
+            type="password"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
+            placeholder="비밀번호를 다시 입력하세요"
+          />
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -572,7 +817,7 @@ function MyPage() {
 
                 {/* Battle Record */}
                 <div className="bg-gray-50 p-4 rounded-lg clay">
-                  <h3 className="text-lg font-semibold mb-4">전적 보기</h3>
+                  <h3 className="text-lg font-semibold mb-4">배틀 전적 보기</h3>
                   <div className="flex justify-center gap-8">
                     <div className="text-center">
                       <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2 clay">
@@ -641,45 +886,39 @@ function MyPage() {
           <div className="p-6">
             {activeTab === 'profile' && (
               <div className="bg-[#EEF6FF] rounded-lg p-8 clay">
-                <h2 className="text-2xl font-bold mb-8 text-center">내 정보 수정</h2>
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-2xl font-bold text-center">내 정보 수정</h2>
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="px-6 py-2 bg-cusBlue text-white rounded-lg hover:bg-cusBlue-dark transition-colors"
+                    >
+                      수정하기
+                    </button>
+                  )}
+                </div>
                 <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
                   <div className="grid grid-cols-[120px,1fr] items-center gap-4">
-                    <label className="text-sm font-medium">아이디</label>
+                    <label className="text-sm font-medium">이메일</label>
                     <input
                       type="text"
-                      name="id"
-                      value={editedData.id}
-                      className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
+                      value={userData.email}
+                      className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md"
                       readOnly
                     />
                   </div>
 
-                  <div className="grid grid-cols-[120px,1fr] items-center gap-4">
-                    <label className="text-sm font-medium">비밀번호</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="password"
-                        name="password"
-                        value={editedData.password}
-                        className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-md"
-                        readOnly
-                      />
-                      <button type="button" className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">
-                        비밀번호 변경
-                      </button>
-                    </div>
-                  </div>
+                  {/* 비밀번호 필드 */}
+                  {renderPasswordFields()}
 
                   <div className="grid grid-cols-[120px,1fr] items-center gap-4">
                     <label className="text-sm font-medium">이름</label>
                     <input
                       type="text"
-                      name="name"
-                      value={editedData.name}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
-                      readOnly={!isEditing}
-                      placeholder="정해기"
+                      value={userData.username}
+                      className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md"
+                      readOnly
                     />
                   </div>
 
@@ -691,123 +930,36 @@ function MyPage() {
                       value={editedData.nickname}
                       onChange={handleChange}
                       className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
-                      readOnly={!isEditing}
-                      placeholder="우끼끼정해기"
+                      placeholder="새 닉네임을 입력하세요"
                     />
                   </div>
 
-                  <div className="grid grid-cols-[120px,1fr] items-center gap-4">
-                    <label className="text-sm font-medium">성별</label>
-                    <div className="flex gap-8">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="gender"
-                          value="male"
-                          checked={editedData.gender === "male"}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                          className="w-4 h-4 text-blue-500"
-                        />
-                        <span>남성</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="gender"
-                          value="female"
-                          checked={editedData.gender === "female"}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                          className="w-4 h-4 text-blue-500"
-                        />
-                        <span>여성</span>
-                      </label>
-                    </div>
-                  </div>
+                  {/* 전화번호 필드 */}
+                  {renderPhoneFields()}
 
-                  <div className="grid grid-cols-[120px,1fr] items-center gap-4">
-                    <label className="text-sm font-medium">생년월일</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <select
-                        name="birthYear"
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-md"
-                        disabled={!isEditing}
-                        value={editedData.birthYear || "1999"}
-                        onChange={handleChange}
+                  {/* 저장/취소 버튼은 isEditing이 true일 때만 표시 */}
+                  {isEditing && (
+                    <div className="flex justify-center gap-4 mt-8">
+                      <button
+                        type="submit"
+                        className="px-6 py-2 bg-cusBlue text-white rounded-lg hover:bg-cusBlue-dark transition-colors"
                       >
-                        {Array.from({ length: 100 }, (_, i) => (
-                          <option key={i} value={2024 - i}>
-                            {2024 - i}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        name="birthMonth"
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-md"
-                        disabled={!isEditing}
-                        value={editedData.birthMonth || "10"}
-                        onChange={handleChange}
-                      >
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <option key={i} value={i + 1}>
-                            {i + 1}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        name="birthDay"
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-md"
-                        disabled={!isEditing}
-                        value={editedData.birthDay || "12"}
-                        onChange={handleChange}
-                      >
-                        {Array.from({ length: 31 }, (_, i) => (
-                          <option key={i} value={i + 1}>
-                            {i + 1}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-[120px,1fr] items-center gap-4">
-                    <label className="text-sm font-medium">이메일</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={editedData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
-                      readOnly={!isEditing}
-                      placeholder="haegively@naver.com"
-                    />
-                  </div>
-
-                  <div className="flex justify-center gap-4 pt-8">
-                    {isEditing ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleCancel}
-                          className="px-12 py-2.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                        >
-                          취소
-                        </button>
-                        <button type="submit" className="px-12 py-2.5 bg-[#A5C5F4] text-white rounded-md hover:bg-blue-400">
-                          수정
-                        </button>
-                      </>
-                    ) : (
+                        저장하기
+                      </button>
                       <button
                         type="button"
-                        onClick={() => setIsEditing(true)}
-                        className="px-12 py-2.5 bg-[#A5C5F4] text-white rounded-md hover:bg-blue-400"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setIsChangingPassword(false);
+                          setPasswordConfirm("");
+                          setEditedData({...userData});
+                        }}
+                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                       >
-                        수정하기
+                        취소
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </form>
               </div>
             )}
@@ -829,7 +981,16 @@ function MyPage() {
       />
 
       {/* Toast 컴포넌트 렌더링 */}
-      <Toast />
+      {toast.show && (
+        <div 
+          className={`fixed bottom-4 right-4 px-6 py-3 rounded-md shadow-lg ${
+            toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          } text-white`}
+          style={{ zIndex: 1000 }}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   )
 }

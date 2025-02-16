@@ -35,7 +35,7 @@ function BattleCreateForm({ onCreateRoom }) {
       />
       <button
         type="submit"
-        className="btn w-1/3 self-center bg-cusBlue text-cusLightBlue-lighter hover:bg-cusLightBlue hover:text-cusBlue px-10 py-3 mt-12"
+        className="btn min-w-[120px] w-1/3 self-center bg-cusBlue text-cusLightBlue-lighter hover:bg-cusLightBlue hover:text-cusBlue px-4 py-3 mt-12 whitespace-nowrap"
       >
         Create !
       </button>

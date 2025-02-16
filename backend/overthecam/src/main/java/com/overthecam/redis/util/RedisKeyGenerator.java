@@ -11,6 +11,12 @@ public class RedisKeyGenerator {
     private static final String USER_LOCK = "lock:user:";         // 유저 락
     private static final String USER_SCORE = "battle:%d:user:%d"; // 유저 점수
 
+    // Token 관련 키 prefix
+    private static final String REFRESH_TOKEN = "auth:refresh:";    // Refresh Token
+    private static final String ACCESS_TOKEN_BLACKLIST = "auth:blacklist:";  // Access Token 블랙리스트
+    private static final String USER_TOKEN = "auth:user:%d:token"; // 사용자별 토큰 정보
+
+
     /**
      * 배틀 준비된 사용자 ID를 저장하는 키
      * Format: battle:readyUser:{battleId}
@@ -49,5 +55,38 @@ public class RedisKeyGenerator {
      */
     public static String getScorePattern(Long battleId) {
         return String.format("battle:%d:user:*", battleId);
+    }
+
+    /**
+     * Refresh Token을 저장하는 키
+     * Format: auth:refresh:{userId}
+     */
+    public static String getRefreshTokenKey(Long userId) {
+        return REFRESH_TOKEN + userId;
+    }
+
+    /**
+     * Access Token 블랙리스트 키
+     * Format: auth:blacklist:{tokenValue}
+     */
+    public static String getBlacklistKey(String token) {
+        return ACCESS_TOKEN_BLACKLIST + token;
+    }
+
+    /**
+     * 사용자의 토큰 정보를 저장하는 키 (선택적)
+     * Format: auth:user:{userId}:token
+     * 여러 디바이스 로그인 관리나 토큰 이력 관리시 사용
+     */
+    public static String getUserTokenKey(Long userId) {
+        return String.format(USER_TOKEN, userId);
+    }
+
+    /**
+     * 특정 사용자의 모든 토큰 관련 키를 조회하는 패턴
+     * Format: auth:user:{userId}:*
+     */
+    public static String getUserTokenPattern(Long userId) {
+        return String.format("auth:user:%d:*", userId);
     }
 }
