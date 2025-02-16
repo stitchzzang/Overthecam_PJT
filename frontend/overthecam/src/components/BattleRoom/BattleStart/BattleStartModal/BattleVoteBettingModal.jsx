@@ -1,9 +1,11 @@
 import { forwardRef, useRef, useState } from "react";
 import SuccessAlertModal from "../../../@common/SuccessAlertModal";
 import FailAlertModal from "../../../@common/FailAlertModal";
+import { betSupportScore } from "../../../../service/BattleRoom/api";
+import { useWebSocketContext } from "../../../../hooks/useWebSocket";
 
 const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
-  _,
+  { battleId, optionId },
   ref
 ) {
   const successAlertRef = useRef();
@@ -11,36 +13,66 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
 
   const [inputScore, setInputScore] = useState(null);
   const [isWrongInput, setIsWrongInput] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { setMyScores } = useWebSocketContext();
 
   const onBet = async () => {
+    if (!inputScore || isWrongInput) {
+      failAlertRef.current?.showAlert("올바른 배팅 점수를 입력해주세요.");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      // 베팅 api
-      //   const response = await postPurchase();
-      //   if (response.data) {
-      //     if (ref.current) {
-      //       ref.current.close();
-      //     }
-      //     successAlertRef.current?.showAlert("구매에 성공했습니다.");
-      //   }
+      console.log(inputScore)
+      const response = await betSupportScore(battleId, optionId, inputScore);
+      if (response.success && response.data) {
+      // 성공적인 응답일 때만 점수 업데이트
+      setMyScores({
+        supportScore: response.data.supportScore,
+        point: response.data.point,
+      });
+    }
+
+      // 현재 모달 닫기
+      if (ref.current) {
+        ref.current.close();
+      }
+
+      // 성공 알림 표시
+      if (successAlertRef.current?.showAlert) {
+        successAlertRef.current.showAlert("배팅이 완료되었습니다!");
+      }
     } catch (error) {
       // 현재 모달 닫기
       if (ref.current) {
         ref.current.close();
       }
 
-      // 에러 타입에 따른 메시지 설정
+      // 에러 메시지 설정
       let errorMessage = "배팅에 실패했습니다.";
+
       if (error.code === "ERR_NETWORK") {
         errorMessage =
           "서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.";
+      } else if (error.code === "INSUFFICIENT_SCORE") {
+        errorMessage = error.message || "보유 점수가 부족합니다.";
+      } else if (error.code === "INVALID_SCORE") {
+        errorMessage = "올바르지 않은 배팅 점수입니다.";
+      } else if (error.message) {
+        // 서버에서 전달한 에러 메시지가 있다면 사용
+        errorMessage = error.message;
       }
 
-      // 실패 알림 표시 시도
-      if (failAlertRef.current && failAlertRef.current.showAlert) {
+      // 실패 알림 표시
+      if (failAlertRef.current?.showAlert) {
         failAlertRef.current.showAlert(errorMessage);
       } else {
         console.error("failAlertRef.current나 showAlert 메서드가 없습니다.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,6 +139,7 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
                 min={0}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cusRed/50 focus:border-cusRed"
+                disabled={isLoading}
               />
             </div>
 
@@ -116,15 +149,17 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
                 type="button"
                 onClick={closeModal}
                 className="btn px-4 py-2 w-24 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300 font-semibold"
+                disabled={isLoading}
               >
                 취소
               </button>
               <button
                 type="button"
-                onClick={() => onBet()}
-                className="btn px-4 py-2 w-32 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
+                onClick={onBet}
+                className="btn px-4 py-2 w-32 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={isLoading || isWrongInput || !inputScore}
               >
-                배팅 확정
+                {isLoading ? "처리중..." : "배팅 확정"}
               </button>
             </div>
           </div>

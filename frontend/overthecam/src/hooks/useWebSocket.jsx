@@ -3,6 +3,7 @@ import { Stomp } from "@stomp/stompjs";
 import { createContext, useContext } from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useBattleStore } from "../store/Battle/BattleStore";
+import useUserStore from "../store/User/UserStore";
 
 // WebSocket 상태를 나타내는 상수
 const WS_STATUS = {
@@ -56,11 +57,13 @@ const useWebSocket = (battleId) => {
   const [isStarted, setIsStarted] = useState(false);
   const [battlers, setBattlers] = useState([]);
   const [gameInfo, setGameInfo] = useState({});
-  const [participants ,setParticipants] = useState([])
+  const [participants, setParticipants] = useState([]);
+  const [myScores, setMyScores] = useState({});
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
+  const userId = useUserStore((s) => s.userId);
 
   const getResponse = useCallback((response) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
@@ -144,6 +147,13 @@ const useWebSocket = (battleId) => {
             });
             setIsVoteSubmitted(true);
             setIsStarted(success);
+            const me = data.participants.filter((p) => {
+              p.userId === userId;
+            });
+            setMyScores({
+              supportScore: me.supportScore,
+              point: me.point,
+            });
           }
           break;
         case "BATTLER_SELECT":
@@ -484,6 +494,8 @@ const useWebSocket = (battleId) => {
     isTimeExtended,
     finishBattle,
     gameResult,
+    myScores,
+    setMyScores
   };
 };
 

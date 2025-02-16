@@ -1,17 +1,21 @@
 import { useState, useRef } from "react";
-import BattleVoteBettingModal from "../BattleStart/BattleStartModal/BatlleVoteBettingModal";
+import BattleVoteBettingModal from "../BattleStart/BattleStartModal/BattleVoteBettingModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
+import { useBattleStore } from "../../../store/Battle/BattleStore";
 
 function BattleVote({ isWaiting }) {
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [isVoted, setIsVoted] = useState(false);
+  const [selectedOptionId, setSelectedOptionId] = useState(null);
   const bettingModal = useRef();
   const { vote } = useWebSocketContext();
+  const battleInfo = useBattleStore(s=>s.battleInfo)
 
-  const handleVote = (option) => {
+  const handleVote = (optionId) => {
+    console.log(optionId)
+    setSelectedOptionId(optionId);
     bettingModal.current?.showModal();
     // 여기에 투표 API 호출 등의 로직 추가
     // 성공하면 재투표 막기
-    // setSelectedOption(option);
   };
   // 배틀방 안에서 띄울 투표 시스템
   return (
@@ -31,17 +35,17 @@ function BattleVote({ isWaiting }) {
       ) : (
         <div className="flex justify-between mx-10 gap-6">
           <button
-            onClick={() => handleVote("option1")}
-            disabled={selectedOption !== null}
+            onClick={() => handleVote(vote.option1Id)}
+            disabled={isVoted}
             className={
-              "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300"
+              "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300 disabled:cusor-none-all"
             }
           >
             {vote.option1}
           </button>
           <button
-            onClick={() => handleVote("option2")}
-            disabled={selectedOption !== null}
+            onClick={() => handleVote(vote.option2Id)}
+            disabled={isVoted}
             className={
               "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300"
             }
@@ -50,7 +54,11 @@ function BattleVote({ isWaiting }) {
           </button>
         </div>
       )}
-      <BattleVoteBettingModal ref={bettingModal} />
+      <BattleVoteBettingModal
+        ref={bettingModal}
+        battleId={battleInfo.battleId}
+        optionId={selectedOptionId}
+      />
     </div>
   );
 }
