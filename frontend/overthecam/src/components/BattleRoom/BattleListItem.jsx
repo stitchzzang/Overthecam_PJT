@@ -19,18 +19,22 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
       }
 
       const response = await joinRoom(battleId, userNickname);
-      const newBattleInfo = {
-        battleId: response.data.battleId,
-        participantName: userNickname,
-        roomName: response.data.roomName,
-        userToken: response.data.token,
-        isMaster: false,
-      };
-      // setBattleInfo 후 Promise로 지연 처리
-      setBattleInfo(newBattleInfo);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms 지연
+       await new Promise((resolve) => {
+         const newBattleInfo = {
+           battleId: response.data.battleId,
+           participantName: userNickname,
+           roomName: response.data.roomName,
+           userToken: response.data.token,
+           isMaster: false,
+         };
 
-      navigate(`/battle-room/${battleId}`);
+         setBattleInfo(newBattleInfo);
+         // 다음 렌더링 사이클에서 resolve 호출
+         requestAnimationFrame(resolve);
+       });
+
+       // 3. 페이지 이동
+       navigate(`/battle-room/${battleId}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);
       navigate('/main/battle-list');
