@@ -169,7 +169,7 @@ const PopularVote = ({ onVoteUpdate }) => {
                     className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
                     style={{ width: `${popularVote.options[0].votePercentage >= 100 ? 100 : popularVote.options[0].votePercentage}%` }}
                   >
-                    {Math.round(popularVote.options[0].votePercentage)}%
+                    {Math.round(popularVote.options[0].votePercentage)}% ({popularVote.options[0].voteCount}명)
                   </div>
                 )}
                 {popularVote.options[1].votePercentage > 0 && (
@@ -177,7 +177,7 @@ const PopularVote = ({ onVoteUpdate }) => {
                     className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
                     style={{ width: `${popularVote.options[1].votePercentage >= 100 ? 100 : popularVote.options[1].votePercentage}%` }}
                   >
-                    {Math.round(popularVote.options[1].votePercentage)}%
+                    {Math.round(popularVote.options[1].votePercentage)}% ({popularVote.options[1].voteCount}명)
                   </div>
                 )}
               </div>
@@ -192,7 +192,7 @@ const PopularVote = ({ onVoteUpdate }) => {
                     option.optionId === popularVote.options[0].optionId
                       ? 'bg-red-100 hover:bg-red-200 text-cusRed'
                       : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                  } rounded-lg transition-colors`}
+                  } rounded-lg transition-colors text-lg font-bold`}
                 >
                   {option.optionTitle}
                 </button>
@@ -396,7 +396,7 @@ const MainPage = () => {
                   className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
                   style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
                 >
-                  {Math.round(vote.options[0].votePercentage)}%
+                  {Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)
                 </div>
               )}
               {vote.options[1].votePercentage > 0 && (
@@ -404,7 +404,7 @@ const MainPage = () => {
                   className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
                   style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
                 >
-                  {Math.round(vote.options[1].votePercentage)}%
+                  {Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)
                 </div>
               )}
             </div>
@@ -488,7 +488,7 @@ const MainPage = () => {
         />
         
         <div className="container mx-auto px-4">
-          <div className="container mx-auto px-14 pt-48 pb-12">
+          <div className="container mx-auto px-14 pt-44 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
@@ -502,7 +502,7 @@ const MainPage = () => {
               className="flex flex-col mb-16 battle-section"
             >
               <div className="flex justify-between items-center">
-                <SectionTitle title="Battle" />
+                <SectionTitle title="배틀" />
                 <Link
                   to="/main/battle-list"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
@@ -517,10 +517,10 @@ const MainPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 bg-white hover:scale-105 transition-transform h-[160px]">
-                        <div className="flex h-full gap-4 flex-col sm:flex-row items-center">
+                      <div className="clay p-4 pr-8 bg-white hover:scale-105 transition-transform h-[160px]">
+                        <div className="flex h-full gap-6 flex-col sm:flex-row items-center">
                           {/* 썸네일 이미지 */}
-                          <div className="w-full sm:w-24 h-24 flex-shrink-0">
+                          <div className="w-full sm:w-24 h-24 flex-shrink-0 ml-4">
                             <img 
                               src={battle.thumbnailUrl} 
                               alt={battle.title}
@@ -529,14 +529,14 @@ const MainPage = () => {
                           </div>
                           
                           {/* 내용 */}
-                          <div className="flex flex-col justify-between flex-grow">
+                          <div className="flex flex-col justify-between flex-grow w-full pl-2">
                             {/* 제목 */}
-                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2">
+                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 text-center sm:text-left">
                               {battle.title}
                             </h3>
                             
                             {/* 상태와 참가자 정보 */}
-                            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+                            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 w-full">
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
                               <StatusBadge status={battle.status} onClick={(e) => {
                                 e.stopPropagation();
@@ -569,7 +569,7 @@ const MainPage = () => {
               className="flex flex-col mb-24 vote-section"
             >
               <div className="flex justify-between items-center">
-                <SectionTitle title="Vote" />
+                <SectionTitle title="투표" />
                 <Link
                   to="/main/vote"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
@@ -609,7 +609,7 @@ const MainPage = () => {
                                   option.optionId === vote.options[0].optionId
                                     ? 'bg-red-100 hover:bg-red-200 text-red-500'
                                     : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                                } rounded-lg transition-colors`}
+                                } rounded-lg transition-colors text-lg font-bold`}
                               >
                                 {option.optionTitle}
                               </button>

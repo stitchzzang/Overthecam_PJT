@@ -352,7 +352,7 @@ const SearchResultPage = () => {
                                   className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
                                   style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
                                 >
-                                  {Math.round(vote.options[0].votePercentage)}%
+                                  {Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)
                                 </div>
                               )}
                               {vote.options[1].votePercentage > 0 && (
@@ -360,7 +360,7 @@ const SearchResultPage = () => {
                                   className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
                                   style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
                                 >
-                                  {Math.round(vote.options[1].votePercentage)}%
+                                  {Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)
                                 </div>
                               )}
                             </div>
@@ -378,7 +378,7 @@ const SearchResultPage = () => {
                                   option.optionId === vote.options[0].optionId
                                     ? 'bg-red-100 hover:bg-red-200 text-cusRed'
                                     : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                                } rounded-lg transition-colors`}
+                                } rounded-lg transition-colors text-lg font-bold`}
                               >
                                 {option.optionTitle}
                               </button>
