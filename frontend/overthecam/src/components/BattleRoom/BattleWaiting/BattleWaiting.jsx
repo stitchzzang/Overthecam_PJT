@@ -18,6 +18,7 @@ function BattleWaiting({
   isMaster,
   host,
   participants,
+  onShowBattlerModal,
   onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
@@ -36,6 +37,10 @@ function BattleWaiting({
   const handleToggleReady = (e) => {
     readyForBattle(userId, participantName, !myReady);
   };
+
+  const handleStart = (e) => {
+    onShowBattlerModal();
+  }
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -145,7 +150,7 @@ function BattleWaiting({
               <div className="w-1/4 flex flex-col mx-1">
                 <div
                   className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
-                  onClick={onBattleStart}
+                  onClick={handleStart}
                 >
                   <p>배틀 시작하기</p>
                 </div>

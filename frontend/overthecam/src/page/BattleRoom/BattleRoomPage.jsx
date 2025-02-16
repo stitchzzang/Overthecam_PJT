@@ -441,7 +441,6 @@ function BattleRoomPage() {
         isWaiting={!isStarted}
         isMaster={isMaster}
         onshowLeaveConfirmModal={handleLeavRoom}
-        onShowBattlerModal={battlerModalShow}
         onShowEndBattleModal={endBattleModalShow}
       />
       <div className="render-change flex-1 h-0">
@@ -458,6 +457,7 @@ function BattleRoomPage() {
                 isMaster={isMaster}
                 host={host}
                 participants={participants}
+                onShowBattlerModal={battlerModalShow}
                 onBattleStart={handleBattleStart}
               />
             </div>
@@ -475,6 +475,7 @@ function BattleRoomPage() {
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
+        myNickname={battleInfo.participantName}
       />
       <FailAlertModal ref={failTost} />
       <NoticeAlertModal ref={noticeToast} />

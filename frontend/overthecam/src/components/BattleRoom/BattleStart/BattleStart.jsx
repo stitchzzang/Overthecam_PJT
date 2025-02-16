@@ -1,6 +1,5 @@
 import BattleVote from "../common/BattleVote";
 import BattleChating from "../common/BattleChating";
-import { useState } from "react";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
