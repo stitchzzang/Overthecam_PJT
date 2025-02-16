@@ -1,5 +1,7 @@
 package com.overthecam.websocket.service;
 
+import com.overthecam.badwordfilter.service.BadWordFilterService;
+import com.overthecam.badwordfilter.service.BadWordTrieService;
 import com.overthecam.battle.domain.Battle;
 import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.repository.BattleRepository;
@@ -17,6 +19,9 @@ public class ChatMessageService {
 
     private final BattleRepository battleRepository;
 
+    private final BadWordFilterService badWordFilterService;
+    private final BadWordTrieService badWordTrieService;
+
     public ChatMessageResponse sendSystemMessage(String content){
         return ChatMessageResponse.builder()
             .nickname("System")
@@ -25,12 +30,13 @@ public class ChatMessageService {
             .build();
     }
 
-    public ChatMessageResponse sendMessage(ChatMessageRequest message,
-                                               UserPrincipal user) {
+    public ChatMessageResponse sendMessage(ChatMessageRequest message, UserPrincipal user) {
+
+        String content = badWordFilterService.filterForEdit(message.getContent(), badWordTrieService.getTrie());
 
         return ChatMessageResponse.builder()
-                .nickname(user.getNickname())  // UserPrincipal에서 직접 가져오기
-                .content(message.getContent())
+                .nickname(user.getNickname())
+                .content(content)
                 .timestamp(LocalDateTime.now())
                 .build();
     }
