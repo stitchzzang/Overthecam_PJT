@@ -11,7 +11,6 @@ import { useWebSocketContext } from "../../../hooks/useWebSocket";
 import useUserStore from "../../../store/User/UserStore";
 
 function BattleWaiting({
-  room,
   localTrack,
   remoteTracks,
   participantName,
@@ -19,7 +18,6 @@ function BattleWaiting({
   host,
   participants,
   onShowBattlerModal,
-  onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const userId = useUserStore((state) => state.userId);
@@ -148,12 +146,15 @@ function BattleWaiting({
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
-                <div
-                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                <button
+                  disabled={
+                    remoteTracks.length !== readyList.length || !isVoteSubmitted
+                  }
+                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg disabled:bg-cusGray disabled:cursor-not-allowed"
                   onClick={handleStart}
                 >
                   <p>배틀 시작하기</p>
-                </div>
+                </button>
                 <div
                   className="h-1/3 bg-cusYellow my-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onShowVoteCreate}
