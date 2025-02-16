@@ -14,13 +14,18 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log('Random topic response:', response.data);
+      
       if (response.data.success) {
-        setTopic(response.data.title);
+        setTopic(response.data.data.title);
+      } else {
+        // 서버에서 success: false를 반환한 경우
+        setTopic(response.data.error?.message || '주제 생성에 실패했습니다. 다시 시도해주세요.');
       }
     } catch (error) {
-      console.error('랜덤 주제 가져오기 실패:', error.response || error);
-      setTopic('주제를 가져오는데 실패했습니다.');
+      console.error('랜덤 주제 가져오기 실패:', error);
+      const errorMessage = error.response?.data?.error?.message || 
+                          '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      setTopic(errorMessage);
     } finally {
       setIsLoading(false);
     }
