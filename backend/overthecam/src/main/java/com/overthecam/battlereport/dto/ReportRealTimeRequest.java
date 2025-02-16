@@ -6,6 +6,6 @@ import lombok.Data;
 @Builder
 @Data
 public class ReportRealTimeRequest {
-    String userId;
-    String text;
+    private String userId;
+    private String text;
 }

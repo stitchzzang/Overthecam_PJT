@@ -26,7 +26,6 @@ public enum SecurityPath {
     // 검색 관련 경로
     SEARCH("/api/search/**");
 
-
     private final String path;
 
     SecurityPath(String path) {
