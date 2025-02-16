@@ -78,7 +78,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
         vote.option1Id,
         vote.option2Id
       );
-      console.log(response.data);
+      console.log(response);
       modalRef.current?.close();
       sucessToast.current?.showAlert("배틀러가 선정 되었습니다.");
       setTimeout(resultBattler(), 1500);

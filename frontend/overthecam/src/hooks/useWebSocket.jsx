@@ -54,6 +54,7 @@ const useWebSocket = (battleId) => {
   const [readyList, setReadyList] = useState([]);
   const [myReady, setMyReady] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
+  const [battlers, setBattlers] = useState([]);
   const [gameInfo, setGameInfo] = useState({});
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
@@ -112,6 +113,7 @@ const useWebSocket = (battleId) => {
           break;
         case "BATTLER_SELECT":
           if (success) {
+            setBattlers([data.firstBattler, data.secondBattler])
             const content = `${data.firstBattler.nickname}님과 ${data.secondBattler.nickname}님이 배틀러로 선정되셨습니다.`;
             const newMsg = {
               nickname: "SYSTEM",
@@ -382,13 +384,14 @@ const useWebSocket = (battleId) => {
     readyList,
     myReady,
     startBattle,
+    battlers,
     gameInfo,
     isStarted,
     resultBattler,
     timeExtention,
     isTimeExtended,
     finishBattle,
-    gameResult
+    gameResult,
   };
 };
 
