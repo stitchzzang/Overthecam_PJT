@@ -63,27 +63,25 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
         
-        <div className="w-full flex items-center gap-4 mb-6">
-          <div className="flex-1">
-            <div className="slot-machine h-32 bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden">
-              <div className={`slot-wrapper h-full flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
-                {isLoading ? (
-                  <div className="animate-pulse">
-                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
-                  </div>
-                ) : (
-                  <div className="slot-content py-4 px-6">
-                    <p className="text-xl font-bold text-center">
-                      {topic || '주제를 생성해보세요!'}
-                    </p>
-                  </div>
-                )}
-              </div>
+        <div className="w-full clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow mb-6">
+          <div className="slot-machine h-32 bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden">
+            <div className={`slot-wrapper h-full flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
+              {isLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <div className="slot-content py-4 px-6">
+                  <p className="text-xl font-bold text-center whitespace-pre-line">
+                    {topic ? topic.replace('A.', '\nA.').replace('B.', '\nB.') : '주제를 생성해보세요!'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           
           <button 
-            className="w-16 h-16 bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+            className="w-16 h-16 bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 mt-4 mx-auto"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
@@ -101,7 +99,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <p className="text-lg mb-6">즐거운 배틀 되세요 :)</p>
 
         <form method="dialog" className="modal-backdrop">
-          <button className="btn px-6 py-2 bg-cusBlue text-white rounded-lg hover:bg-cusBlue-dark transition-colors clay">
+          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
             닫기
           </button>
         </form>
