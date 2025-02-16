@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BadWordRepository extends JpaRepository<BadWord, Long> {
+    boolean existsByWord(String word);
 
 }
