@@ -75,7 +75,6 @@ pipeline {
                                 docker rm analyzer || true && \
                                 echo '새 컨테이너 시작 중...' && \
                                 docker run -d --name analyzer \
-                                    --gpus all \
                                     -p 5001:5001 \
                                     ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
                                 docker system prune -f && \
