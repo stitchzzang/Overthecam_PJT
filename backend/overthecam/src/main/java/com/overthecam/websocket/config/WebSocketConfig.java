@@ -41,6 +41,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 "https://localhost:5173",
                 "http://127.0.0.1:5174",
                 "http://localhost:5174",
+                "https://127.0.0.1:5174",
+                "https://localhost:5174",
                 "http://127.0.0.1:5500",
                 "http://i12d204.p.ssafy.io",
                 "https://i12d204.p.ssafy.io",
