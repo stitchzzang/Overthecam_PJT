@@ -74,75 +74,32 @@ function MyPageVote({ userId, isOtherProfile }) {
     }
   };
 
-  const renderVoteResult = (vote) => {
-    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
+  const renderVoteResult = (voteOptions) => {
+    if (!voteOptions || voteOptions.length === 0) {
+      return null;  // 옵션이 없을 경우 처리
+    }
+
+    // 총 투표수 계산 (초기값 0 추가)
+    const totalVotes = voteOptions.reduce((sum, option) => sum + option.voteCount, 0);
     
-    const mySelectedOption = vote.options.find(option => option.selected);
-    const winningOption = vote.options.reduce((prev, current) => 
-      (current.voteCount > prev.voteCount) ? current : 
-      (current.voteCount === prev.voteCount) ? current : prev
-    );
-    
-    const selectedFirst = mySelectedOption?.optionId === vote.options[0].optionId;
-    const selectedSecond = mySelectedOption?.optionId === vote.options[1].optionId;
-    const didIWin = mySelectedOption?.optionId === winningOption.optionId;
-
-    const getFirstBarColor = () => {
-      if (selectedFirst) {
-        return 'bg-cusRed';  
-      }
-      return 'bg-cusGray';  
-    };
-
-    const getSecondBarColor = () => {
-      if (selectedSecond) {
-        return 'bg-cusBlue'; 
-      }
-      return 'bg-cusGray'; 
-    };
-
-    const firstPercentage = totalVotes > 0 ? Math.round(vote.options[0].votePercentage * 10) / 10 : 0;
-    const secondPercentage = totalVotes > 0 ? Math.round(vote.options[1].votePercentage * 10) / 10 : 0;
-
-    return (
-      <div className="mb-4">
-        {vote.options && vote.options.length >= 2 && (
-          <>
-            <div className="mb-2 flex justify-between">
-              <span className={`font-medium ${selectedFirst ? 'text-cusRed' : 'text-cusBlack-light'}`}>
-                {vote.options[0].optionTitle}
-              </span>
-            </div>
-            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
-              <div
-                className={`h-full clay ${getFirstBarColor()} flex items-center justify-start pl-2 text-white`}
-                style={{ width: `${firstPercentage}%` }}
-              >
-                {firstPercentage}%
-              </div>
-            </div>
-
-            <div className="mt-4 mb-2 flex justify-between">
-              <span className={`font-medium ${selectedSecond ? 'text-cusBlue' : 'text-cusBlack-light'}`}>
-                {vote.options[1].optionTitle}
-              </span>
-            </div>
-            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
-              <div
-                className={`h-full clay ${getSecondBarColor()} flex items-center justify-start pl-2 text-white`}
-                style={{ width: `${secondPercentage}%` }}
-              >
-                {secondPercentage}%
-              </div>
-            </div>
-
-            <div className="text-right text-sm text-gray-600 mt-2">
-              총 투표수: {totalVotes}
-            </div>
-          </>
-        )}
-      </div>
-    );
+    return voteOptions.map((option, index) => {
+      const percentage = totalVotes === 0 ? 0 : ((option.voteCount / totalVotes) * 100).toFixed(1);
+      
+      return (
+        <div key={index} className="mb-4">
+          <div className="flex justify-between mb-1">
+            <span>{option.optionTitle}</span>
+            <span>{option.voteCount}표 ({percentage}%)</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
+        </div>
+      );
+    });
   };
 
   if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
@@ -228,7 +185,7 @@ function MyPageVote({ userId, isOtherProfile }) {
             </div>
             
             <div className="space-y-3 mt-4">
-              {renderVoteResult(vote)}
+              {renderVoteResult(vote.options)}
             </div>
           </div>
         ))

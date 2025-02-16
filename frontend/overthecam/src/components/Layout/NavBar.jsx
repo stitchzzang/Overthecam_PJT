@@ -26,6 +26,9 @@ export default function NavBar() {
       const token = localStorage.getItem("token");
       const userInfoStr = localStorage.getItem("userInfo");
       
+      console.log('NavBar - 토큰 체크:', !!token);
+      console.log('NavBar - 유저정보 체크:', !!userInfoStr);
+      
       if (!token || !userInfoStr) {
         // 토큰이나 유저정보가 없으면 로그아웃 상태로 변경
         useUserStore.setState({ 
@@ -37,6 +40,27 @@ export default function NavBar() {
       }
 
       try {
+        // 토큰 유효성 검사 추가
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        
+        // 토큰이 만료되었는지 확인
+        if (payload.exp < Math.floor(Date.now() / 1000)) {
+          console.log('NavBar - 토큰 만료됨');
+          // 토큰 만료시 로그아웃 처리
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("userInfo");
+          localStorage.removeItem("userId");
+          useUserStore.setState({ 
+            isLoggedIn: false, 
+            userNickname: null,
+            userId: null 
+          });
+          return;
+        }
+
         const parsedUserInfo = JSON.parse(userInfoStr);
         if (parsedUserInfo && parsedUserInfo.nickname) {
           useUserStore.setState({
@@ -46,8 +70,12 @@ export default function NavBar() {
           });
         }
       } catch (error) {
-        console.error("유저 정보 파싱 에러:", error);
+        console.error("NavBar - 유저 정보 파싱 에러:", error);
         // 파싱 에러 시에도 로그아웃 상태로
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userInfo");
+        localStorage.removeItem("userId");
         useUserStore.setState({ 
           isLoggedIn: false, 
           userNickname: null,
@@ -62,8 +90,8 @@ export default function NavBar() {
     // localStorage 변경 이벤트 리스너
     window.addEventListener('storage', checkLoginStatus);
     
-    // 주기적으로 토큰 상태 체크 (선택적)
-    const interval = setInterval(checkLoginStatus, 1000);
+    // 주기적으로 토큰 상태 체크 (1초마다)
+    const interval = setInterval(checkLoginStatus, 60000);
     
     // cleanup
     return () => {
