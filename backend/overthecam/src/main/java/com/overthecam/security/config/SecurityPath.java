@@ -27,7 +27,7 @@ public enum SecurityPath {
     SEARCH("/api/search/**"),
 
     // 욕설 필터링 관련 경로
-    BADWORD_FILTER("/api/filter/**");
+    BADWORD_FILTER("/api/bad-word/**");
 
 
     private final String path;
