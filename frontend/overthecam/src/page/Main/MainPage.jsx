@@ -502,7 +502,7 @@ const MainPage = () => {
               className="flex flex-col mb-16 battle-section"
             >
               <div className="flex justify-between items-center">
-                <SectionTitle title="배틀" />
+                <SectionTitle title="Battle" />
                 <Link
                   to="/main/battle-list"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
@@ -569,7 +569,7 @@ const MainPage = () => {
               className="flex flex-col mb-24 vote-section"
             >
               <div className="flex justify-between items-center">
-                <SectionTitle title="투표" />
+                <SectionTitle title="Vote" />
                 <Link
                   to="/main/vote"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
