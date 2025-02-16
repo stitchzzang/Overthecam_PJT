@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FilterResponse {
     private boolean containsBadWord;
-    private String filteredText;
     private String originalText;
+    private String filteredText;
 
 }

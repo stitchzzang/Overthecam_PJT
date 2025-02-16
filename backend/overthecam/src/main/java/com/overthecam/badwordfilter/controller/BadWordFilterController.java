@@ -33,17 +33,12 @@ public class BadWordFilterController {
             badWordTrieService.getTrie()
         );
 
-        // 원본 텍스트 복원
-        String originalText = filterService.reconstruct(
-            filterResult,
-            filterResult.getFilteredText()
-        );
 
         return CommonResponseDto.ok(
             FilterResponse.builder()
                 .containsBadWord(filterResult.isContainsBanword())
+                .originalText(request.getText())
                 .filteredText(filterResult.getFilteredText())
-                .originalText(originalText)
                 .build()
         );
     }
