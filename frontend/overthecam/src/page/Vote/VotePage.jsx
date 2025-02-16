@@ -150,22 +150,26 @@ const VotePage = () => {
       <div className="mb-4">
         {vote.options && vote.options.length >= 2 && (
           <>
-            <div className="mb-2 flex justify-between">
-              <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
-              <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
+            <div className="flex justify-between mb-2">
+              <div className="text-red-500 font-bold text-lg">
+                A. {vote.options[0].optionTitle}
+              </div>
+              <div className="text-blue-500 font-bold text-lg">
+                B. {vote.options[1].optionTitle}
+              </div>
             </div>
-            <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
+            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
+                className="absolute left-0 top-0 h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold text-lg"
                 style={{ width: `${totalVotes > 0 ? vote.options[0].votePercentage : 0}%` }}
               >
-                {totalVotes > 0 ? vote.options[0].votePercentage.toFixed(1) : 0}%
+                {totalVotes > 0 ? Math.round(vote.options[0].votePercentage) : 0}%
               </div>
               <div
-                className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
+                className="absolute right-0 top-0 h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold text-lg"
                 style={{ width: `${totalVotes > 0 ? vote.options[1].votePercentage : 0}%` }}
               >
-                {totalVotes > 0 ? vote.options[1].votePercentage.toFixed(1) : 0}%
+                {totalVotes > 0 ? Math.round(vote.options[1].votePercentage) : 0}%
               </div>
             </div>
             <div className="text-right text-sm text-gray-600 mt-2">
