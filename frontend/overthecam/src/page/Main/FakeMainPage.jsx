@@ -261,7 +261,7 @@ const FakeMainPage = () => {
               className="space-y-2 text-lg"
             >
               <p>다양한 아이템으로 몰입감을 높이세요!</p>
-              <p>상점에서 가면, 프레임, 효과음 등 구매 가능</p>
+              <p>상점에서 가면, 프레임, 효과음 구매 가능</p>
             </motion.div>
           </motion.div>
         </Section>
@@ -308,7 +308,7 @@ const FakeMainPage = () => {
           </motion.div>
         </Section>
 
-        {/* 여섯 번째 섹션 - 화려한 최종 효과 */}
+        {/* 여섯 번째 섹션 */}
         <Section>
           <motion.div
             initial={{ opacity: 0 }}
