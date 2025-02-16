@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useBattleStore } from "../../store/Battle/BattleStore";
-import { leaveRoom } from "../../service/BattleRoom/api";
 
 import { useWebSocketContext } from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
@@ -26,7 +25,7 @@ function BattleRoomPage() {
 
   const navigate = useNavigate();
   // user 데이터
-  const userId = useUserStore(s=>s.userId)
+  const userId = useUserStore((s) => s.userId);
   // 웹소켓 관련
   const {
     status,
@@ -150,10 +149,14 @@ function BattleRoomPage() {
           break;
         case "disconnected":
           failTost.current?.showAlert("연결이 끊어졌습니다.");
+          cleanup();
+          disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
           break;
         default:
           failTost.current?.showAlert("오류가 발생했습니다.");
+          cleanup();
+          disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
       }
     };
@@ -252,26 +255,31 @@ function BattleRoomPage() {
 
     // 방 연결 시 사용
     room.on(RoomEvent.Connected, async () => {
-      // 잠시 기다려서 localParticipant가 설정될 시간 주기
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      try {
+        // localParticipant가 설정될 때까지 기다림
+        while (!room.localParticipant?.metadata) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
 
-      const allParticipants = [];
-      // localParticipant 추가
-      if (room.localParticipant?.metadata) {
-        const localMeta = JSON.parse(room.localParticipant.metadata);
-        allParticipants.push(localMeta);
+        const allParticipants = [];
+        if (room.localParticipant?.metadata) {
+          const localMeta = JSON.parse(room.localParticipant.metadata);
+          allParticipants.push(localMeta);
+        }
+        if (room.remoteParticipants) {
+          room.remoteParticipants.forEach((participant, key) => {
+            const remoteMeta = JSON.parse(participant.metadata);
+            allParticipants.push(remoteMeta);
+            if (JSON.parse(participant.metadata).role === "host") {
+              setHost(JSON.parse(participant.metadata).nickname);
+            }
+          });
+        }
+        setParticipants(allParticipants);
+      } catch (error) {
+        console.error("Room connection error:", error);
+        failTost.current?.showAlert("연결 중 오류가 발생했습니다.");
       }
-
-      if (room.remoteParticipants) {
-        room.remoteParticipants.forEach((participant, key) => {
-          const remoteMeta = JSON.parse(participant.metadata);
-          allParticipants.push(remoteMeta);
-          if (JSON.parse(participant.metadata).role === "host") {
-            setHost(JSON.parse(participant.metadata).nickname);
-          }
-        });
-      }
-      setParticipants(allParticipants);
     });
 
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
@@ -327,6 +335,7 @@ function BattleRoomPage() {
     } catch (error) {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
+      cleanup();
       setTimeout(() => navigate("/main/battle-list"), 1500);
     }
 
@@ -365,18 +374,11 @@ function BattleRoomPage() {
 
       // room 연결 종료
       await room?.disconnect();
+      disconnectWS();
       setRoom(undefined);
       setLocalTrack(undefined);
       setRemoteTracks([]);
       clearBattleInfo();
-
-      try {
-        console.log(battleInfo.battleId);
-        const response = await leaveRoom(battleInfo.battleId);
-        console.log("방 나가기 처리가 되었음:", response.data.message);
-      } catch (error) {
-        console.error("배틀방 나가기 에러:", error);
-      }
 
       console.log("Cleanup completed successfully");
     } catch (error) {
