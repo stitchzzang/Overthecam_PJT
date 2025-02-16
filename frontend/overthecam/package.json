@@ -30,6 +30,7 @@
     "remixicon": "^4.6.0",
     "sockjs": "^0.3.24",
     "sockjs-client": "^1.6.1",
+    "sweetalert2": "^11.17.1",
     "tailwind-scrollbar-hide": "^2.0.0",
     "ws": "^8.18.0",
     "zustand": "^5.0.3"
