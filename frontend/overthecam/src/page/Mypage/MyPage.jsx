@@ -326,6 +326,16 @@ function MyPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // 닉네임 길이 체크
+    if (editedData.nickname.length < 2 || editedData.nickname.length > 8) {
+      setToast({ 
+        show: true, 
+        message: '닉네임은 2~8자 사이로 입력해주세요.', 
+        type: 'error' 
+      });
+      return;
+    }
+
     // 비밀번호 유효성 검사 추가
     if (isChangingPassword) {
       if (!editedData.password) {
@@ -422,7 +432,6 @@ function MyPage() {
         message: errorMessage,
         type: 'error' 
       });
-      setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
     }
   };
 
@@ -978,6 +987,7 @@ function MyPage() {
                       }`}
                       readOnly={!isEditing}
                       placeholder="새 닉네임을 입력하세요"
+                      maxLength={8}
                     />
                   </div>
 
