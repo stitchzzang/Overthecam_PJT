@@ -10,13 +10,11 @@ function BattleHeader({
   isWaiting,
   isMaster,
   onshowLeaveConfirmModal,
-  onShowBattlerModal,
   onShowEndBattleModal,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const noticeToast = useRef();
   const randomTopicModal = useRef();
-  const { isVoteSubmitted } = useWebSocketContext();
 
   const handleTimerStoped = (message) => {
     noticeToast.current?.showAlert(message);
@@ -62,15 +60,6 @@ function BattleHeader({
             >
               랜덤 주제 생성기
             </button>
-            {isMaster && (
-              <button
-                onClick={onShowBattlerModal}
-                disabled={!isVoteSubmitted}
-                className={`battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12 disabled:cursor-not-allowed disabled:bg-cusGray disabled:pointer-events-none`}
-              >
-                배틀러 선정하기
-              </button>
-            )}
           </div>
         ) : (
           <div className="flex gap-3">
