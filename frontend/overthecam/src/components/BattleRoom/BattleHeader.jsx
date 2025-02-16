@@ -13,6 +13,7 @@ function BattleHeader({
   onShowEndBattleModal,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
+  const { myScores, setMyScores } = useWebSocketContext();
   const noticeToast = useRef();
   const randomTopicModal = useRef();
 
@@ -68,9 +69,13 @@ function BattleHeader({
             </div>
             <div className="my-points flex bg-gray-300 rounded-xl items-center h-12 clay gap-2 px-2 font-semibold">
               <span>내 포인트</span>
-              <div className="points bg-white rounded-lg px-1">100</div>
+              <div className="points bg-white rounded-lg px-1">
+                {myScores.point}
+              </div>
               <span>내 응원 점수</span>
-              <div className="cheer-score bg-white rounded-lg px-1">1000</div>
+              <div className="cheer-score bg-white rounded-lg px-1">
+                {myScores.supportScore}
+              </div>
             </div>
           </div>
         )}
