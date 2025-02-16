@@ -24,15 +24,14 @@ function BattleWaiting({
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
-  const { isVoteSubmitted, readyList, readyForBattle, myReady } = useWebSocketContext();
+  const { isVoteSubmitted, readyList, readyForBattle, myReady } =
+    useWebSocketContext();
 
-  useEffect(()=>{
-
-  }, [readyList])
+  useEffect(() => {}, [readyList]);
 
   const handleToggleReady = (e) => {
-    readyForBattle()
-  }
+    readyForBattle();
+  };
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)

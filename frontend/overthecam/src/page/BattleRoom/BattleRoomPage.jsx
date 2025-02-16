@@ -33,7 +33,7 @@ function BattleRoomPage() {
     vote,
     startBattle,
     readyForBattle,
-    isStarted
+    isStarted,
   } = useWebSocketContext();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
@@ -47,7 +47,6 @@ function BattleRoomPage() {
   // 방 게임 설정 관련
   // const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
-
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -460,7 +459,11 @@ function BattleRoomPage() {
           </div>
         ) : (
           <>
-            <BattleStart />
+            <BattleStart
+              localTrack={localTrack}
+              remoteTracks={remoteTracks}
+              participantName={battleInfo.participantName}
+            />
           </>
         )}
       </div>
