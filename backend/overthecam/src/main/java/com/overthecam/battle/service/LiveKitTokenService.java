@@ -31,16 +31,16 @@ public class LiveKitTokenService {
      * @param role 참가자 역할
      * @return 생성된 JWT 토큰
      */
-    public String createToken(User user, String participantName, String roomName, ParticipantRole role) {
+    public String createToken(Long battleId, User user, String participantName, String roomName, ParticipantRole role) {
         AccessToken token = new AccessToken(livekitApiKey, livekitApiSecret);
         token.setName(participantName);
         token.setIdentity(participantName);
 
         // 역할에 따른 메타데이터 설정
         if (ParticipantRole.isHost(role)) {
-            token.setMetadata(createMetadata(user, "host"));
+            token.setMetadata(createMetadata(battleId, user, "host"));
         } else {
-            token.setMetadata(createMetadata(user, "participant"));
+            token.setMetadata(createMetadata(battleId, user, "participant"));
         }
 
         token.addGrants(new RoomJoin(true), new RoomName(roomName));
@@ -53,12 +53,13 @@ public class LiveKitTokenService {
      * @param role 사용자 역할
      * @return JSON 형태의 메타데이터 문자열
      */
-    private String createMetadata(User user, String role) {
+    private String createMetadata(Long battleId, User user, String role) {
         JSONObject metadata = new JSONObject();
         metadata.put("userId", user.getId());
         metadata.put("nickname", user.getNickname());
         metadata.put("profileImage", user.getProfileImage());
         metadata.put("role", role);
+        metadata.put("battleId", battleId);
         return metadata.toString();
     }
 

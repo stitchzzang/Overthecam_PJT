@@ -53,4 +53,8 @@ public class Vote extends TimeStampEntity {
     public void setInactive() {
         this.isActive = false;
     }
+
+    public void setBattleToNull(){
+        this.battle = null;
+    }
 }
