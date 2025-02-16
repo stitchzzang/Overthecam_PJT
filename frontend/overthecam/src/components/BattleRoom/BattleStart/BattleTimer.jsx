@@ -12,6 +12,7 @@ function BattleTimer({ onTimerStoped }) {
 
   const [timeLeft, setTimeLeft] = useState(MINUTES_IN_MS);
   const [isTwoMiNLeft, setIsTwoMinLeft] = useState(false);
+  const [boughtTimeOnce, setBoughtTimeOnce] = useState(false);
   const timeBuyModal = useRef();
 
   // 시간 포맷팅
@@ -47,6 +48,7 @@ function BattleTimer({ onTimerStoped }) {
   useEffect(() => {
     if (isTimeExtended && !isTwoMiNLeft) {
       setTimeLeft((prevTime) => prevTime + EXTENDED_IN_MS);
+      setBoughtTimeOnce(true);
     }
   }, [isTimeExtended, isTwoMiNLeft]);
 
@@ -62,13 +64,15 @@ function BattleTimer({ onTimerStoped }) {
           {minutes}:{second}
         </p>
       </div>
-      {!isTwoMiNLeft && (
+      {!isTwoMiNLeft && !boughtTimeOnce ? (
         <div
           onClick={() => timeBuyModal.current?.showModal()}
           className="rounded-sm hover:border hover:border-gray-800"
         >
           <PlusCircleIcon className="w-5 h-5 text-gray-600" />
         </div>
+      ) : (
+        <></>
       )}
       <TimeBuyModal ref={timeBuyModal} />
     </div>
