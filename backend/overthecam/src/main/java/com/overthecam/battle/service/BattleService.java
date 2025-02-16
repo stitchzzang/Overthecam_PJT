@@ -60,10 +60,16 @@ public class BattleService {
     public BattleRoomResponse joinBattleRoom(Long battleId, Long userId, String participantName) throws Exception {
         User user = getUserById(userId);
         Battle battle = getBattleById(battleId);
+
+        long currentParticipants = battleParticipantRepository.countByBattleId(battleId);
+        if(currentParticipants >= 6){
+            throw new GlobalException(BattleErrorCode.BATTLE_ROOM_FULL, "배틀방 인원이 초과되었습니다. 최대 6명까지 참여 가능합니다");
+        }
+
         String token = liveKitService.createToken(user, participantName, battle.getTitle(), ParticipantRole.PARTICIPANT);
 
         createParticipant(battle, user);
-        updateBattleParticipants(battle);
+        updateBattleStatus(battle, currentParticipants + 1);
 
         return BattleRoomResponse.builder()
             .battleId(battleId)
@@ -108,14 +114,6 @@ public class BattleService {
             .role(ParticipantRole.PARTICIPANT)
             .build();
         battleParticipantRepository.save(participant);
-    }
-
-    /**
-     * 배틀방 참가자 수 업데이트
-     */
-    private void updateBattleParticipants(Battle battle) {
-        battle.updateTotalUsers(battle.getTotalUsers() + 1);
-        battleRepository.save(battle);
     }
 
     /**
@@ -172,8 +170,10 @@ public class BattleService {
 
         log.info("Battle {} 현재 참가자 수 조회: {}", battleId, currentParticipants);
 
+        // 배틀 참여자에서 삭제
         battleParticipantRepository.deleteByBattleIdAndUserId(battleId, userId);
 
+        // 배틀방 참여자 인원수 조회
         long remainingParticipants = battleParticipantRepository.countByBattleId(battleId);
         log.info("Battle {} 남은 참가자 수: {}", battleId, remainingParticipants);
 
@@ -192,10 +192,10 @@ public class BattleService {
     private void updateBattleStatus(Battle battle, long participants) {
         battle.updateTotalUsers((int) participants);
 
-        if (participants < 6 && battle.getStatus() != Status.END) {
-            battle.updateStatus(Status.WAITING);
-            log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battle.getId());
-        }
+//        if (participants < 6 && battle.getStatus() != Status.END) {
+//            battle.updateStatus(Status.WAITING);
+//            log.info("배틀룸 {} 인원이 6명 미만이 되어 상태가 WAITING으로 변경되었습니다.", battle.getId());
+//        }
 
         battleRepository.save(battle);
     }

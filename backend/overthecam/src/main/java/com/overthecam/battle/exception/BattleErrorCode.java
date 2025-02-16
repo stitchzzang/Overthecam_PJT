@@ -11,6 +11,8 @@ public enum BattleErrorCode implements ErrorCode {
     BATTLE_NOT_FOUND(404, "배틀이 존재하지 않습니다"),
     BATTLE_ALREADY_STARTED(400, "이미 시작된 배틀입니다"),
     INVALID_PARTICIPANT_COUNT(400, "참가자 수가 올바르지 않습니다"),
+    BATTLE_ROOM_FULL(400, "배틀방 인원이 초과되었습니다. 최대 6명까지 참여 가능합니다"),
+
 
     // Battle 제목/주제 관련 에러
     TOPIC_GENERATION_FAILED(500, "랜덤 주제 생성에 실패했습니다"),
