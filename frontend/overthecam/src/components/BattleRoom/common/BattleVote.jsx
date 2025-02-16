@@ -8,9 +8,9 @@ function BattleVote({ isWaiting }) {
   const { vote } = useWebSocketContext();
 
   const handleVote = (option) => {
-    bettingModal.current?.showModal();  
+    bettingModal.current?.showModal();
     // 여기에 투표 API 호출 등의 로직 추가
-    // 성공하면 재투표 막기 
+    // 성공하면 재투표 막기
     // setSelectedOption(option);
   };
   // 배틀방 안에서 띄울 투표 시스템

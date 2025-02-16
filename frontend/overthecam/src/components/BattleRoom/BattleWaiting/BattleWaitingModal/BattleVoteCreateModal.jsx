@@ -14,7 +14,7 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
     title: "",
     content: "",
     option1: "",
-    option2:""
+    option2: "",
   });
 
   const handleChange = (e) => {
@@ -48,11 +48,9 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
         throw new Error("필수 항목을 모두 입력해주세요.");
       }
 
-    const options = [
-      formData.option1, formData.option2
-    ]
+      const options = [formData.option1, formData.option2];
 
-     createVote(formData.title, formData.content, options)
+      createVote(formData.title, formData.content, options);
 
       // 성공 시 모달 닫기
       modalRef.current?.close();

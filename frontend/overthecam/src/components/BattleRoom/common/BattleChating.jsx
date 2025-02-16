@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 const BattleChating = () => {
   const [inputMessage, setInputMessage] = useState("");
   const { status, sendMessage, messageList } = useWebSocketContext();
-  const [connectStatus, setConnectStatus] = useState("DISCONNECTED")
+  const [connectStatus, setConnectStatus] = useState("DISCONNECTED");
 
   const handleSubmit = (event) => {
     event.preventDefault();
