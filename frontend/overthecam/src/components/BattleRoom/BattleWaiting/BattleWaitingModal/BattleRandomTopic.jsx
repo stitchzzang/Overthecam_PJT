@@ -91,7 +91,13 @@ const BattleRandomTopic = forwardRef((props, ref) => {
                 ) : (
                   <div className="slot-content py-4 px-6 w-full">
                     <p className="text-xl font-bold text-center whitespace-pre-line">
-                      {topic ? topic.replace('A.', '\nA.').replace('B.', '\nB.') : '주제를 생성해보세요!'}
+                      {topic ? (
+                        <>
+                          {topic.split('A.')[0]}
+                          <span className="text-cusRed">A. {topic.split('A.')[1].split('B.')[0]}</span>
+                          <span className="text-cusBlue">B. {topic.split('B.')[1]}</span>
+                        </>
+                      ) : '주제를 생성해보세요!'}
                     </p>
                   </div>
                 )}
