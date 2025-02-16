@@ -38,6 +38,7 @@ public class BattleVoteService {
             .map(vote -> VoteInfo.builder()
                 .voteId(vote.getVoteId())
                 .title(vote.getTitle())
+                .content(vote.getContent())
                 .options(convertToVoteOptions(vote))
                 .build())
             .orElse(null);
@@ -51,6 +52,7 @@ public class BattleVoteService {
         return VoteInfo.builder()
             .voteId(vote.getVoteId())
             .title(vote.getTitle())
+            .content(vote.getContent())
             .options(convertToVoteOptions(vote))
             .build();
     }
