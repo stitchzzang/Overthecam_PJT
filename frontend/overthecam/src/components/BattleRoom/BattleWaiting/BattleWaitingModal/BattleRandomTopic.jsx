@@ -4,9 +4,11 @@ import axios from 'axios';
 const BattleRandomTopic = forwardRef((props, ref) => {
   const [topic, setTopic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   const fetchRandomTopic = async () => {
     setIsLoading(true);
+    setIsSpinning(true);
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -49,12 +51,14 @@ const BattleRandomTopic = forwardRef((props, ref) => {
       }
     } finally {
       setIsLoading(false);
+      // 애니메이션이 끝나고 나서 spinning 상태를 false로 변경
+      setTimeout(() => setIsSpinning(false), 2000);
     }
   };
 
   return (
     <dialog ref={ref} className="modal">
-      <div className="modal-box flex flex-col items-center p-6 bg-white rounded-lg max-w-3xl w-full">
+      <div className="modal-box flex flex-col items-center p-6 bg-white rounded-lg max-w-3xl w-full clay">
         <div className="flex items-center gap-2 mb-8">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
@@ -62,8 +66,8 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <div className="w-full flex items-center gap-2 mb-4">
           <div className="flex-1 flex items-center justify-center">
             <div className="flex items-center text-lg w-full">
-              <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2">
-                <div className="slot-wrapper h-full flex items-center justify-center">
+              <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2 clay">
+                <div className={`slot-wrapper h-full flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
                   {isLoading ? (
                     <div className="animate-pulse">...</div>
                   ) : (
@@ -77,7 +81,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
             </div>
           </div>
           <button 
-            className="h-16 aspect-square bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all"
+            className="h-16 aspect-square bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all clay"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
@@ -85,7 +89,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
               xmlns="http://www.w3.org/2000/svg" 
               viewBox="0 0 24 24" 
               fill="currentColor"
-              className={`w-8 h-8 ${isLoading ? 'animate-spin' : ''}`}
+              className="w-8 h-8"
             >
               <path d="M16 16V12L21 17L16 22V18H4V16H16ZM8 2V5.999L20 6V8H8V12L3 7L8 2Z" />
             </svg>
@@ -99,6 +103,14 @@ const BattleRandomTopic = forwardRef((props, ref) => {
       </form>
 
       <style jsx>{`
+        .clay {
+          background: rgba(255, 255, 255, 0.7);
+          border-radius: 10px;
+          box-shadow: 
+            8px 8px 16px rgba(0, 0, 0, 0.1),
+            -8px -8px 16px rgba(255, 255, 255, 0.8);
+        }
+        
         .slot-machine {
           overflow: hidden;
           position: relative;
@@ -114,12 +126,34 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         }
         
         @keyframes spin {
-          0% { transform: translateY(0); }
-          20% { transform: translateY(-100%); }
-          40% { transform: translateY(-200%); }
-          60% { transform: translateY(-300%); }
-          80% { transform: translateY(-400%); }
-          100% { transform: translateY(0); }
+          0% { 
+            transform: translateY(0);
+            opacity: 1;
+          }
+          20% { 
+            transform: translateY(-500%);
+            opacity: 0;
+          }
+          40% { 
+            transform: translateY(-1000%);
+            opacity: 0;
+          }
+          60% { 
+            transform: translateY(-1500%);
+            opacity: 0;
+          }
+          80% { 
+            transform: translateY(-2000%);
+            opacity: 0;
+          }
+          90% {
+            transform: translateY(50%);
+            opacity: 0;
+          }
+          100% { 
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
       `}</style>
     </dialog>

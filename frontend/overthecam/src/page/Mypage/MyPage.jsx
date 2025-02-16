@@ -7,6 +7,7 @@ import MyPageReport from './MyPageReport'
 import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
 import { useLocation, useNavigate } from 'react-router-dom';
+import useUserStore from '../../store/User/UserStore';
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
@@ -242,6 +243,9 @@ function MyPage() {
     last: ""
   });
 
+  // Zustand store에서 setUserNickname 가져오기
+  const setUserNickname = useUserStore((state) => state.setUserNickname);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -386,6 +390,16 @@ function MyPage() {
         ...prev,
         ...response.data
       }));
+
+      // Zustand store 닉네임 업데이트
+      setUserNickname(editedData.nickname);
+      
+      // localStorage 업데이트
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      localStorage.setItem('userInfo', JSON.stringify({
+        ...userInfo,
+        nickname: editedData.nickname
+      }));
       
       setIsEditing(false);
       setToast({ 
@@ -396,11 +410,16 @@ function MyPage() {
       setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
 
     } catch (error) {
-      console.log('에러:', error);
+      console.error('프로필 수정 에러:', error);
+      
+      // 서버에서 전달된 에러 메시지 사용
+      const errorMessage = error.response?.data?.error?.message || 
+                          error.response?.data?.message || 
+                          '프로필 수정에 실패했습니다.';
       
       setToast({ 
         show: true, 
-        message: '전화번호가 중복되었습니다.',
+        message: errorMessage,
         type: 'error' 
       });
       setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
