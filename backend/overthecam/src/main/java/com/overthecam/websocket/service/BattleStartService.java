@@ -36,7 +36,6 @@ public class BattleStartService {
     private final BattleVoteService battleVoteService;
     private final UserScoreRedisService userScoreRedisService;
     private final UserScoreService userScoreService;
-    private final BattleStartService battleStartService;
 
     private final BattleRepository battleRepository;
     private final BattleParticipantRepository participantRepository;
@@ -61,7 +60,7 @@ public class BattleStartService {
         List<ParticipantInfo> participants = initializeAllParticipantsScore(battleId);
 
         // 배틀 상태 진행중으로 변경
-        battleStartService.updateBattleStatus(battleId, Status.PROGRESS);
+        updateBattleStatus(battleId, Status.PROGRESS);
 
         return BattleData.builder()
             .battleId(battleId)
