@@ -347,13 +347,18 @@ const useWebSocket = (battleId) => {
     [battleId, wsStatus]
   );
 
-  const readyForBattle = useCallback(() => {
+  const readyForBattle = useCallback((userId, nickname, ready) => {
     try {
       stompClientRef.current?.send(
         `/api/publish/battle/${battleId}`,
         {},
         JSON.stringify({
           type: "BATTLE_READY",
+          data: {
+            userId,
+            nickname,
+            ready,
+          },
         })
       );
     } catch (error) {
