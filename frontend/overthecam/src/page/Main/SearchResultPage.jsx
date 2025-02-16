@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 import { publicAxios } from '../../common/axiosinstance';
+import { authAxios } from '../../common/axiosinstance';
 
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
@@ -45,6 +46,7 @@ const SearchResultPage = () => {
     votes: [],
     users: []
   });
+  const [votingStates, setVotingStates] = useState({});
 
   const handleProfileClick = (userId) => {
     const token = localStorage.getItem('token');
@@ -90,10 +92,11 @@ const SearchResultPage = () => {
         }
       });
 
-      // 투표 검색
-      const voteResponse = await publicAxios.get('/vote/list', {
-        params: { keyword: query }
-      });
+      // 투표 검색 - 로그인한 사용자의 경우 authAxios 사용
+      const token = localStorage.getItem('token');
+      const voteResponse = token 
+        ? await authAxios.get('/vote/list', { params: { keyword: query } })
+        : await publicAxios.get('/vote/list', { params: { keyword: query } });
 
       let battles = [];
       let users = [];
@@ -117,7 +120,26 @@ const SearchResultPage = () => {
       }
 
       if (voteResponse.data?.content) {
-        votes = voteResponse.data.content;
+        // 각 투표의 상세 정보를 가져와서 hasVoted 상태 확인
+        const votesWithStatus = await Promise.all(
+          voteResponse.data.content.map(async (vote) => {
+            if (token) {
+              try {
+                const detailResponse = await authAxios.get(`/vote/${vote.voteId}`);
+                return {
+                  ...vote,
+                  ...detailResponse.data,
+                  hasVoted: detailResponse.data.hasVoted
+                };
+              } catch (error) {
+                console.error(`투표 ${vote.voteId} 상세 정보 가져오기 실패:`, error);
+                return vote;
+              }
+            }
+            return vote;
+          })
+        );
+        votes = votesWithStatus;
       }
 
       setSearchResults({
@@ -152,6 +174,70 @@ const SearchResultPage = () => {
 
       setSearchResults(emptyResults);
     }
+  };
+
+  const handleVote = async (vote, optionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      const age = calculateAge(userInfo.birth);
+      const ageGroup = getAgeGroup(age);
+      const gender = userInfo.gender === 0 ? 'male' : 'female';
+
+      // 서버에 투표 요청
+      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`, {
+        age: ageGroup,
+        gender: gender
+      });
+
+      // 최신 데이터 가져오기
+      const response = await authAxios.get(`/vote/${vote.voteId}`);
+      if (response.data) {
+        const updatedVotes = searchResults.votes.map(v => 
+          v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
+        );
+        setSearchResults(prev => ({
+          ...prev,
+          votes: updatedVotes
+        }));
+      }
+
+    } catch (error) {
+      console.error('투표 처리 중 오류 발생:', error);
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+      } else {
+        console.log('투표 처리 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+  const getAgeGroup = (age) => {
+    if (age < 20) return '10';
+    if (age < 30) return '20';
+    if (age < 40) return '30';
+    if (age < 50) return '40';
+    return '50';
   };
 
   return (
@@ -250,44 +336,39 @@ const SearchResultPage = () => {
                       </div>
 
                       <div className="transition-all duration-300">
-                        {vote.hasVoted ? (
+                        {(vote.hasVoted || votingStates[vote.voteId]) ? (
                           <div className="mb-4">
-                            {vote.options && vote.options.length >= 2 && (
-                              <>
-                                <div className="mb-2 flex justify-between">
-                                  <span className="text-red-500 font-medium">{vote.options[0].optionTitle}</span>
-                                  <span className="text-blue-500 font-medium">{vote.options[1].optionTitle}</span>
-                                </div>
-                                <div className="relative h-12 clay bg-gray-200 rounded-lg overflow-hidden">
-                                  <div
-                                    className="absolute left-0 top-0 h-full clay bg-red-500 flex items-center justify-start pl-2 text-white"
-                                    style={{ width: `${vote.options[0].votePercentage}%` }}
-                                  >
-                                    {vote.options[0].votePercentage.toFixed(1)}%
-                                  </div>
-                                  <div
-                                    className="absolute right-0 top-0 h-full clay bg-blue-500 flex items-center justify-end pr-2 text-white"
-                                    style={{ width: `${vote.options[1].votePercentage}%` }}
-                                  >
-                                    {vote.options[1].votePercentage.toFixed(1)}%
-                                  </div>
-                                </div>
-                              </>
-                            )}
+                            <div className="flex justify-between mb-2">
+                              <div className="text-red-500 font-bold">
+                                A. {vote.options[0].optionTitle}
+                              </div>
+                              <div className="text-blue-500 font-bold">
+                                B. {vote.options[1].optionTitle}
+                              </div>
+                            </div>
+                            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="absolute left-0 top-0 h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold"
+                                style={{ width: `${vote.options[0].votePercentage}%` }}
+                              >
+                                {Math.round(vote.options[0].votePercentage)}%
+                              </div>
+                              <div
+                                className="absolute right-0 top-0 h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold"
+                                style={{ width: `${vote.options[1].votePercentage}%` }}
+                              >
+                                {Math.round(vote.options[1].votePercentage)}%
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex gap-4">
                             {vote.options.map((option) => (
                               <button
                                 key={option.optionId}
-                                onClick={() => {
-                                  const token = localStorage.getItem('token');
-                                  if (!token) {
-                                    alert('로그인이 필요합니다.');
-                                    navigate('/main/login');
-                                    return;
-                                  }
-                                  navigate(`/main/vote-detail/${vote.voteId}`);
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVote(vote, option.optionId);
                                 }}
                                 className={`clay flex-1 p-4 ${
                                   option.optionId === vote.options[0].optionId
