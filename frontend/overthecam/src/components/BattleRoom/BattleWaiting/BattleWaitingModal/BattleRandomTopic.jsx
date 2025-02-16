@@ -8,7 +8,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   const fetchRandomTopic = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/random`, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -16,7 +16,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
       });
       console.log('Random topic response:', response.data);
       if (response.data.success) {
-        setTopic(response.data.data.title);
+        setTopic(response.data.title);
       }
     } catch (error) {
       console.error('랜덤 주제 가져오기 실패:', error.response || error);
