@@ -66,7 +66,7 @@ public class BattleBroadcastController {
                 case BATTLE_READY:
                     BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
                     return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
-                        battleReadyService.toggleReady(battleId, user.getUserId(),
+                        battleReadyService.toggleReady(battleId, battleReadyStatus.isReady(), user.getUserId(),
                             user.getNickname()));
 
                 case BATTLE_START:
