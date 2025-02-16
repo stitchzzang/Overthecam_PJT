@@ -5,11 +5,13 @@ import com.overthecam.badwordfilter.domain.BadWord;
 import com.overthecam.badwordfilter.repository.BadWordRepository;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.ahocorasick.trie.Trie;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,9 +22,31 @@ public class BadWordTrieService {
     @Getter
     private Trie trie;
 
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+
     @PostConstruct
     public void init() {
         buildTrie();
+    }
+
+    @Transactional
+    public void refreshTrie() {
+        lock.writeLock().lock();
+        try {
+            buildTrie();
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public Trie getTrie() {
+        lock.readLock().lock();
+        try {
+            return this.trie;
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     public void buildTrie() {

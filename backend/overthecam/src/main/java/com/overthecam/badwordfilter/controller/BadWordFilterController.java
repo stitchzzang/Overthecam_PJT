@@ -27,10 +27,6 @@ public class BadWordFilterController {
 
     @PostMapping("/filter")
     public CommonResponseDto<FilterResponse> filtering(@RequestBody BadWordRequest request) {
-        // Trie가 없으면 먼저 구축
-        if (badWordTrieService.getTrie() == null) {
-            badWordTrieService.buildTrie();
-        }
 
         // 필터링 수행
         FilterResult filterResult = filterService.filter(
