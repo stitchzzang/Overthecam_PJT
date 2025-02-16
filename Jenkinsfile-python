@@ -105,7 +105,7 @@ pipeline {
             sh "docker rmi ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} || true"
         }
         success {
-            echo '====== 파이프라인 성공 ======'
+            echo '===== 파이프라인 성공 ====='
         }
     }
 }
