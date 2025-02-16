@@ -34,6 +34,7 @@ function BattleRoomPage() {
     disconnectWS,
     vote,
     startBattle,
+    gameInfo,
     readyForBattle,
     isStarted,
   } = useWebSocketContext();
@@ -418,6 +419,13 @@ function BattleRoomPage() {
     readyForBattle(userId, battleInfo.participantName, true);
     startBattle();
   };
+
+  useEffect(() => {
+    if (isStarted) {
+      // isStarted가 true일 때만 실행
+      noticeToast.current?.showAlert("배틀이 시작 되었습니다.");
+    }
+  }, [isStarted]);
 
   // 연결 상태에 따른 에러 처리
   if (status === "ERROR") {
