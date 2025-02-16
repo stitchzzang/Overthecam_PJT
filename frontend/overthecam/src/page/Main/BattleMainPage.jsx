@@ -110,7 +110,7 @@ function BattleMainPage() {
                   ))}
                 </div>
                 {/* 페이지네이션 */}
-                <div className="flex justify-center pb-10">
+                <div className="flex justify-center pb-10 mt-8">
                   <Pagination
                     activePage={page}
                     itemsCountPerPage={itemsPerPage}
