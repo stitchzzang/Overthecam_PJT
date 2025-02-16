@@ -3,6 +3,7 @@ package com.overthecam.badwordfilter.service;
 
 import com.overthecam.badwordfilter.domain.BadWord;
 import com.overthecam.badwordfilter.repository.BadWordRepository;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -18,6 +19,11 @@ public class BadWordTrieService {
 
     @Getter
     private Trie trie;
+
+    @PostConstruct
+    public void init() {
+        buildTrie();
+    }
 
     public void buildTrie() {
         List<BadWord> badWordList = badWordRepository.findAll();
