@@ -34,8 +34,8 @@ class DebateAnalyzer:
     def initialize_model(self):
         """BERT 모델 초기화"""
         try:
-            model_path = Path(__file__).parent.parent / 'models' / 'saved' / 'emotion_model'
-            
+            model_path = Path('/python-analyzer/models/saved/emotion_model')
+
             if not model_path.exists():
                 raise ValueError(f"Model path not found: {model_path}")
                 
