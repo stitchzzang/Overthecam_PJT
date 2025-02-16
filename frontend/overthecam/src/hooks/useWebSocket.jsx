@@ -91,6 +91,15 @@ const useWebSocket = (battleId) => {
               option2Id: data.options[1]?.optionId,
             });
             setIsVoteSubmitted(success);
+            const content = `방장이 투표를 등록했습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
           }
           break;
         case "BATTLE_READY":
