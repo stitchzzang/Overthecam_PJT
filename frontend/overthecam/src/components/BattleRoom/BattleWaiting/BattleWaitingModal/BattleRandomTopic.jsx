@@ -58,30 +58,32 @@ const BattleRandomTopic = forwardRef((props, ref) => {
 
   return (
     <dialog ref={ref} className="modal">
-      <div className="modal-box flex flex-col items-center p-6 bg-white rounded-lg max-w-3xl w-full clay">
+      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-lg max-w-3xl w-full clay">
         <div className="flex items-center gap-2 mb-8">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
         
-        <div className="w-full flex items-center gap-2 mb-4">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="flex items-center text-lg w-full">
-              <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2">
-                <div className={`slot-wrapper h-full flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
-                  {isLoading ? (
-                    <div className="animate-pulse">...</div>
-                  ) : (
-                    <p className="text-lg font-bold whitespace-pre-line text-center py-4">
+        <div className="w-full flex items-center gap-4 mb-6">
+          <div className="flex-1">
+            <div className="slot-machine h-32 bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden">
+              <div className={`slot-wrapper h-full flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
+                {isLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                  </div>
+                ) : (
+                  <div className="slot-content py-4 px-6">
+                    <p className="text-xl font-bold text-center">
                       {topic || '주제를 생성해보세요!'}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-              <span className="font-bold whitespace-pre ml-2">입니다!</span>
             </div>
           </div>
+          
           <button 
-            className="h-16 aspect-square bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all hover:scale-105"
+            className="w-16 h-16 bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
@@ -96,35 +98,43 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           </button>
         </div>
         
-        <p className="text-lg">즐거운 배틀 되세요 :)</p>
+        <p className="text-lg mb-6">즐거운 배틀 되세요 :)</p>
 
-        <form method="dialog" className="modal-backdrop mt-4">
-          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
+        <form method="dialog" className="modal-backdrop">
+          <button className="btn px-6 py-2 bg-cusBlue text-white rounded-lg hover:bg-cusBlue-dark transition-colors clay">
             닫기
           </button>
         </form>
 
         <style jsx>{`
           .clay {
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.95);
             box-shadow: 
               8px 8px 16px rgba(0, 0, 0, 0.1),
-              -8px -8px 16px rgba(255, 255, 255, 0.8);
+              -8px -8px 16px rgba(255, 255, 255, 0.8),
+              inset 2px 2px 4px rgba(255, 255, 255, 0.8),
+              inset -2px -2px 4px rgba(0, 0, 0, 0.05);
           }
           
           .slot-machine {
-            overflow: hidden;
             position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
           }
           
           .slot-wrapper {
             position: relative;
-            transition: all 0.5s ease-out;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
           }
           
           .slot-wrapper.spinning {
-            animation: spin 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            animation: spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          }
+          
+          .slot-content {
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
           }
           
           @keyframes spin {
@@ -132,27 +142,19 @@ const BattleRandomTopic = forwardRef((props, ref) => {
               transform: translateY(0);
               opacity: 1;
             }
-            15% {
-              transform: translateY(-300%);
+            20% {
+              transform: translateY(-100%);
               opacity: 0;
             }
-            30% {
-              transform: translateY(-600%);
-              opacity: 0;
-            }
-            45% {
-              transform: translateY(-900%);
+            40% {
+              transform: translateY(-200%);
               opacity: 0;
             }
             60% {
-              transform: translateY(-1200%);
+              transform: translateY(-300%);
               opacity: 0;
             }
-            75% {
-              transform: translateY(-1500%);
-              opacity: 0;
-            }
-            85% {
+            80% {
               transform: translateY(50%);
               opacity: 0;
             }
