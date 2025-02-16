@@ -56,19 +56,8 @@ const BattleRandomTopic = forwardRef((props, ref) => {
     }
   };
 
-  // 외부 클릭 시 모달 닫기 핸들러 수정
-  const handleClickOutside = (e) => {
-    if (e.target.className.includes('modal')) {
-      ref.current.close();
-    }
-  };
-
   return (
-    <dialog 
-      ref={ref} 
-      className="modal"
-      onClick={handleClickOutside}
-    >
+    <dialog ref={ref} className="modal">
       <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay">
         <div className="flex items-center gap-2 mb-8 mt-2">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
