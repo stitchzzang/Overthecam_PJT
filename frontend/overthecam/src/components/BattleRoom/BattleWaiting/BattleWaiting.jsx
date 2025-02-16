@@ -21,11 +21,12 @@ function BattleWaiting({
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
+  const { isVoteSubmitted, readyList, readyForBattle, myReady } =
+    useWebSocketContext();
+
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
-  const { isVoteSubmitted, readyList, readyForBattle, myReady } =
-    useWebSocketContext();
 
   useEffect(() => {}, [readyList]);
 
@@ -64,13 +65,6 @@ function BattleWaiting({
 
       return null;
     });
-
-  const onShowVoteCreate = (event) => {
-    voteCreateModal.current.showModal();
-  };
-
-  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
-
   return (
     <>
       <div
