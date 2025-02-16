@@ -260,7 +260,11 @@ export default function NavBar() {
             </div>
 
             <Link to={"/main"}>
-              <img src="/images/Logo.png" alt="Logo" className="h-16 w-auto" />
+              <img 
+                src="/src/public/assets/Logo.png" 
+                alt="Logo" 
+                className="h-16 w-auto" 
+              />
             </Link>
 
             {/* Mobile Profile Button */}
@@ -274,7 +278,7 @@ export default function NavBar() {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <img 
-                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/images/default-profile.png"}
+                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/src/public/assets/default-profile.png"}
                           alt="Profile" 
                           className="w-full h-full object-cover"
                         />
@@ -380,7 +384,7 @@ export default function NavBar() {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <img 
-                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/images/default-profile.png"}
+                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/src/public/assets/default-profile.png"}
                           alt="Profile" 
                           className="w-full h-full object-cover"
                         />
