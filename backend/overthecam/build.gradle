@@ -70,6 +70,10 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // ahocorasick
+    implementation 'org.ahocorasick:ahocorasick:0.6.3'
+
+
 
     implementation 'org.json:json:20231013'
 }
