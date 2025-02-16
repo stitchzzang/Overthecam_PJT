@@ -7,7 +7,7 @@ import com.overthecam.badwordfilter.dto.FilterResponse;
 import com.overthecam.badwordfilter.dto.FilterResult;
 import com.overthecam.badwordfilter.repository.BadWordRepository;
 import com.overthecam.badwordfilter.service.BadWordTrieService;
-import com.overthecam.badwordfilter.service.FilterService;
+import com.overthecam.badwordfilter.service.BadWordFilterService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.common.exception.GlobalException;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BadWordFilterController {
 
-    private final FilterService filterService;
+    private final BadWordFilterService badWordFilterService;
     private final BadWordTrieService badWordTrieService;
     private final BadWordRepository badWordRepository;
 
@@ -29,7 +29,7 @@ public class BadWordFilterController {
     public CommonResponseDto<FilterResponse> filtering(@RequestBody BadWordRequest request) {
 
         // 필터링 수행
-        FilterResult filterResult = filterService.filter(
+        FilterResult filterResult = badWordFilterService.filterWithDetails(
             request.getText(),
             badWordTrieService.getTrie()
         );
@@ -59,7 +59,7 @@ public class BadWordFilterController {
         badWordRepository.save(badWord);
 
         // Trie 갱신
-        //badWordTrieService.refreshTrie();
+        badWordTrieService.refreshTrie();
 
         return CommonResponseDto.ok();
     }

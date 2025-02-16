@@ -15,7 +15,22 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class FilterService {
+public class BadWordFilterService {
+
+    /**
+     * 댓글 및 채팅 수정용 - 필터링된 텍스트만 반환
+     */
+    public String filterForEdit(String text, Trie trie) {
+        FilterResult result = filter(text, trie);
+        return result.getFilteredText();
+    }
+
+    /**
+     * 일반 검사용 - 전체 필터링 결과 반환
+     */
+    public FilterResult filterWithDetails(String text, Trie trie) {
+        return filter(text, trie);
+    }
 
     public FilterResult filter(String text, Trie trie) {
         List<FilteredChar> filteredChars = new ArrayList<>();
@@ -85,15 +100,5 @@ public class FilterService {
             .filteredText(maskedText)
             .filteredChars(filteredChars)
             .build();
-    }
-
-    public String reconstruct(FilterResult result, String filteredText) {
-        if (result == null || filteredText == null) {
-            return filteredText;
-        }
-
-        // 필터링된 텍스트가 이미 마스킹과 특수문자를 포함하고 있으므로,
-        // 추가적인 재구성이 필요하지 않음
-        return filteredText;
     }
 }
