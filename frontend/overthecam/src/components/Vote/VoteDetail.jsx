@@ -204,27 +204,34 @@ const VoteDetail = ({ voteData, onDelete }) => {
           <>
             {/* 투표 옵션 제목 */}
             <div className="flex justify-between mb-2">
-              <div className="text-red-500 font-bold text-lg">
+              <div className="text-cusRed font-bold text-lg">
                 A. {currentVoteData.options[0].optionTitle}
               </div>
-              <div className="text-blue-500 font-bold text-lg">
+              <div className="text-cusBlue font-bold text-lg">
                 B. {currentVoteData.options[1].optionTitle}
               </div>
             </div>
             {/* 투표 결과 그래프 */}
-            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden mb-8">
-              <div
-                className="absolute left-0 top-0 h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold text-lg"
-                style={{ width: `${totalVotes > 0 ? currentVoteData.options[0].votePercentage : 0}%` }}
-              >
-                {totalVotes > 0 ? Math.round(currentVoteData.options[0].votePercentage) : 0}%
-              </div>
-              <div
-                className="absolute right-0 top-0 h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold text-lg"
-                style={{ width: `${totalVotes > 0 ? currentVoteData.options[1].votePercentage : 0}%` }}
-              >
-                {totalVotes > 0 ? Math.round(currentVoteData.options[1].votePercentage) : 0}%
-              </div>
+            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+              {currentVoteData.options[0].votePercentage > 0 && (
+                <div
+                  className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold text-lg"
+                  style={{ width: `${currentVoteData.options[0].votePercentage >= 100 ? 100 : currentVoteData.options[0].votePercentage}%` }}
+                >
+                  {Math.round(currentVoteData.options[0].votePercentage)}%
+                </div>
+              )}
+              {currentVoteData.options[1].votePercentage > 0 && (
+                <div
+                  className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold text-lg"
+                  style={{ width: `${currentVoteData.options[1].votePercentage >= 100 ? 100 : currentVoteData.options[1].votePercentage}%` }}
+                >
+                  {Math.round(currentVoteData.options[1].votePercentage)}%
+                </div>
+              )}
+            </div>
+            <div className="text-right text-sm text-gray-600 mt-2 mb-8">
+              {totalVotes.toLocaleString()}명 참여중
             </div>
 
             {/* 통계 섹션 */}
