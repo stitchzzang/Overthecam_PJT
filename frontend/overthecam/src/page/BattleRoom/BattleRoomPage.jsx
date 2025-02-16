@@ -427,7 +427,7 @@ function BattleRoomPage() {
 
   // battleInfo가 없는 경우 처리
   if (!battleInfo?.battleId) {
-    return <div>Loading...</div>;
+    return <div>배틀방 id 가 없습니다.</div>;
   }
 
   return (

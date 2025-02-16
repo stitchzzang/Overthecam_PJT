@@ -100,7 +100,7 @@ function BattleMainPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4">
                   {currentList.map((room) => (
                     <BattleListItem
-                      key={room.id}
+                      key={room.battleId}
                       title={room.title}
                       totalUsers={room.totalUsers}
                       thumbnail={room.thumbnailUrl}

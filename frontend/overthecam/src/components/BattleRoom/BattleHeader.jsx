@@ -4,6 +4,7 @@ import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import BattleTimer from "./BattleStart/BattleTimer";
 import NoticeAlertModal from "../@common/NoticeAlertModal";
 import BattleRandomTopic from "./BattleWaiting/BattleWaitingModal/BattleRandomTopic";
+import { useWebSocketContext } from "../../hooks/useWebSocket";
 
 function BattleHeader({
   isWaiting,
@@ -15,6 +16,7 @@ function BattleHeader({
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const noticeToast = useRef();
   const randomTopicModal = useRef();
+  const { isVoteSubmitted } = useWebSocketContext();
 
   const handleTimerStoped = (message) => {
     noticeToast.current?.showAlert(message);
@@ -54,7 +56,7 @@ function BattleHeader({
         {/* 오른쪽 영역 */}
         {isWaiting ? (
           <div className="flex gap-3">
-            <button 
+            <button
               className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12"
               onClick={onShowRandomTopic}
             >
@@ -63,7 +65,8 @@ function BattleHeader({
             {isMaster && (
               <button
                 onClick={onShowBattlerModal}
-                className="battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12"
+                disabled={!isVoteSubmitted}
+                className={`battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12 disabled:cursor-not-allowed disabled:bg-cusGray disabled:pointer-events-none`}
               >
                 배틀러 선정하기
               </button>
