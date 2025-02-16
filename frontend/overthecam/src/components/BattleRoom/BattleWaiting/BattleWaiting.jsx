@@ -8,6 +8,7 @@ import BattleVote from "../common/BattleVote";
 import PlayerReadyStatus from "./PlayerReadyStatus";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
+import useUserStore from "../../../store/User/UserStore";
 
 function BattleWaiting({
   room,
@@ -20,6 +21,7 @@ function BattleWaiting({
   onBattleStart,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
+  const userId = useUserStore((state) => state.userId);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
   const { isVoteSubmitted, readyList, readyForBattle, myReady } =
@@ -32,7 +34,7 @@ function BattleWaiting({
   useEffect(() => {}, [readyList]);
 
   const handleToggleReady = (e) => {
-    readyForBattle();
+    readyForBattle(userId, participantName, !myReady);
   };
 
   // 6개의 고정 슬롯 생성

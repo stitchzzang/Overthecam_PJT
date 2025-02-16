@@ -14,6 +14,7 @@ import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLe
 import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
+import useUserStore from "../../store/User/UserStore";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -24,6 +25,8 @@ function BattleRoomPage() {
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
 
   const navigate = useNavigate();
+  // user 데이터
+  const userId = useUserStore(s=>s.userId)
   // 웹소켓 관련
   const {
     status,
@@ -410,7 +413,7 @@ function BattleRoomPage() {
 
   const handleBattleStart = (e) => {
     // setIsWaiting(false);
-    readyForBattle();
+    readyForBattle(userId, battleInfo.participantName, true);
     startBattle();
   };
 
