@@ -1,6 +1,5 @@
 package com.overthecam.websocket.controller;
 
-import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
 import com.overthecam.member.dto.UserScoreInfo;
@@ -41,6 +40,7 @@ public class BattleBroadcastController {
 
     private static final int TIME_EXTENSION_COST = 300;
 
+
     @MessageMapping("/battle/{battleId}")
     @SendTo("/api/subscribe/battle/{battleId}")
     public WebSocketResponseDto<?> handleBroadcast(
@@ -64,9 +64,9 @@ public class BattleBroadcastController {
                     return response;
 
                 case BATTLE_READY:
-                    BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
+                    BattleReadyUser battleReadyUser = requestMapper.mapToBattleReadyStatus(request.getData());
                     return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
-                        battleReadyService.toggleReady(battleId, battleReadyStatus.isReady(), user.getUserId(),
+                        battleReadyService.toggleReady(battleId, battleReadyUser.isReady(), user.getUserId(),
                             user.getNickname()));
 
                 case BATTLE_START:

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
 import { useParams, useNavigate } from "react-router-dom";
 import Pagination from 'react-js-pagination';
+import VoteDetailModal from './Modal/VoteList';
+import Swal from 'sweetalert2';
 
 function MyPageVote({ userId, isOtherProfile }) {
   const [votes, setVotes] = useState([]);
@@ -18,6 +20,9 @@ function MyPageVote({ userId, isOtherProfile }) {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const currentUserId = userInfo.userId;
   const navigate = useNavigate();
+  const [selectedVote, setSelectedVote] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   useEffect(() => {
     const fetchVotes = async () => {
@@ -64,42 +69,98 @@ function MyPageVote({ userId, isOtherProfile }) {
 
   const handleDeleteVote = async (voteId) => {
     try {
-      await authAxios.delete(`/votes/${voteId}`);
-      // 삭제 후 목록 새로고침
-      const newVotes = votes.filter(vote => vote.voteId !== voteId);
-      setVotes(newVotes);
+      const result = await Swal.fire({
+        title: '투표를 삭제하시겠습니까?',
+        text: "삭제된 투표는 복구할 수 없습니다.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: '삭제',
+        cancelButtonText: '취소'
+      });
+
+      if (result.isConfirmed) {
+        const response = await authAxios.delete(`/vote/${voteId}`);
+        
+        // response.data.success가 true이므로 성공 처리를 해야 합니다
+        // 성공 알림
+        await Swal.fire({
+          title: '삭제되었습니다!',
+          icon: 'success',
+          confirmButtonColor: '#3085d6'
+        });
+        
+        // 목록 업데이트
+        setVotes(prevVotes => prevVotes.filter(vote => vote.voteId !== voteId));
+      }
     } catch (error) {
-      console.error('Failed to delete vote:', error);
-      alert('투표 삭제에 실패했습니다.');
+      console.error('삭제 실패:', error);
+      await Swal.fire({
+        title: '삭제 실패',
+        text: '투표 삭제에 실패했습니다.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6'
+      });
     }
   };
 
   const renderVoteResult = (voteOptions) => {
     if (!voteOptions || voteOptions.length === 0) {
-      return null;  // 옵션이 없을 경우 처리
+      return null;
     }
 
-    // 총 투표수 계산 (초기값 0 추가)
     const totalVotes = voteOptions.reduce((sum, option) => sum + option.voteCount, 0);
     
     return voteOptions.map((option, index) => {
       const percentage = totalVotes === 0 ? 0 : ((option.voteCount / totalVotes) * 100).toFixed(1);
+      const isFirstOption = index === 0;
       
       return (
         <div key={index} className="mb-4">
-          <div className="flex justify-between mb-1">
-            <span>{option.optionTitle}</span>
-            <span>{option.voteCount}표 ({percentage}%)</span>
+          <div className="flex justify-between mb-2">
+            <span className={`font-bold text-lg ${isFirstOption ? 'text-red-400' : 'text-blue-400'}`}>
+              {option.optionTitle}
+            </span>
+            <span className={`font-bold ${isFirstOption ? 'text-red-400' : 'text-blue-400'}`}>
+              {option.voteCount}표 ({percentage}%)
+            </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="w-full bg-gray-100 rounded-full h-4 relative overflow-hidden">
             <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${percentage}%` }}
-            ></div>
+              className={`${isFirstOption ? 'bg-red-400' : 'bg-blue-400'} h-4 rounded-full transition-all duration-300`}
+              style={{ 
+                width: `${percentage}%`,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {percentage > 0 && (
+                <div className="absolute top-0 right-0 h-full w-2 bg-white opacity-30 rounded-full"></div>
+              )}
+            </div>
           </div>
         </div>
       );
     });
+  };
+
+  // 투표 상세 정보 조회
+  const handleVoteClick = async (voteId) => {
+    try {
+      console.log('투표 클릭됨:', voteId); // 클릭 확인용 로그
+      setIsDetailLoading(true);
+      const response = await authAxios.get(`/mypage/vote/${voteId}/detail`);
+      console.log('API 응답:', response); // API 응답 확인용 로그
+      
+      if (response.success) {
+        setSelectedVote(response.data);
+        setShowDetailModal(true);
+      }
+    } catch (error) {
+      console.error('투표 상세 정보 로딩 실패:', error);
+    } finally {
+      setIsDetailLoading(false);
+    }
   };
 
   if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
@@ -137,51 +198,44 @@ function MyPageVote({ userId, isOtherProfile }) {
           </button>
         </div>
       ) : (
-        votes.map((vote) => (
+        // battleId가 없는 투표만 렌더링
+        votes.filter(vote => !vote.battleId).map((vote) => (
           <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center justify-center gap-2">
-                  <h3 
-                    className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center"
-                    onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
-                  >
-                    {vote.title}
-                  </h3>
-                  {vote.battleId && (
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      strokeWidth="1.5" 
-                      stroke="currentColor" 
-                      className="w-7 h-7 text-red-500"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" 
-                      />
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" 
-                      />
-                    </svg>
-                  )}
-                </div>
-                <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
-                  {vote.content}
-                </p>
-              </div>
-              {!isOtherProfile && String(vote.creatorUserId) === currentUserId && (
+            <div className="relative">
+              {vote.creatorUserId === currentUserId && (
                 <button
                   onClick={() => handleDeleteVote(vote.voteId)}
-                  className="text-cusRed hover:text-cusRed-dark transition-colors ml-4 font-semibold"
+                  className="absolute right-0 top-0 text-red-500 hover:text-red-700 transition-colors font-semibold flex items-center gap-1"
                 >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth={1.5} 
+                    stroke="currentColor" 
+                    className="w-5 h-5"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" 
+                    />
+                  </svg>
                   삭제
                 </button>
               )}
+
+              <div className="text-center px-12">
+                <h3 
+                  className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight mb-2"
+                  onClick={() => handleVoteClick(vote.voteId)}
+                >
+                  {vote.title}
+                </h3>
+                <p className="text-lg text-gray-600 leading-relaxed font-medium">
+                  {vote.content}
+                </p>
+              </div>
             </div>
             
             <div className="space-y-3 mt-4">
@@ -207,6 +261,18 @@ function MyPageVote({ userId, isOtherProfile }) {
             linkClass="block w-full h-full text-center"
           />
         </div>
+      )}
+
+      {/* 투표 상세 모달 */}
+      {showDetailModal && selectedVote && (
+        <VoteDetailModal
+          voteData={selectedVote}
+          isLoading={isDetailLoading}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedVote(null);
+          }}
+        />
       )}
     </div>
   );

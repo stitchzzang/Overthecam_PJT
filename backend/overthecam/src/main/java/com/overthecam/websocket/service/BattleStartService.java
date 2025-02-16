@@ -64,7 +64,7 @@ public class BattleStartService {
 
         return BattleData.builder()
             .battleId(battleId)
-            .voteInfo(battleVoteService.getVoteInfo(battleId))
+            .voteInfo(battleVoteService.getRequiredVoteInfo(battleId))
             .participants(participants)
             .build();
     }

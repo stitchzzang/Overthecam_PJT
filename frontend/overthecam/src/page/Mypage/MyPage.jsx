@@ -7,6 +7,7 @@ import MyPageReport from './MyPageReport'
 import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
 import { useLocation, useNavigate } from 'react-router-dom';
+import useUserStore from '../../store/User/UserStore';
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
@@ -242,6 +243,9 @@ function MyPage() {
     last: ""
   });
 
+  // Zustand store에서 setUserNickname 가져오기
+  const setUserNickname = useUserStore((state) => state.setUserNickname);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -322,6 +326,16 @@ function MyPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // 닉네임 길이 체크
+    if (editedData.nickname.length < 2 || editedData.nickname.length > 8) {
+      setToast({ 
+        show: true, 
+        message: '닉네임은 2~8자 사이로 입력해주세요.', 
+        type: 'error' 
+      });
+      return;
+    }
+
     // 비밀번호 유효성 검사 추가
     if (isChangingPassword) {
       if (!editedData.password) {
@@ -386,6 +400,16 @@ function MyPage() {
         ...prev,
         ...response.data
       }));
+
+      // Zustand store 닉네임 업데이트
+      setUserNickname(editedData.nickname);
+      
+      // localStorage 업데이트
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      localStorage.setItem('userInfo', JSON.stringify({
+        ...userInfo,
+        nickname: editedData.nickname
+      }));
       
       setIsEditing(false);
       setToast({ 
@@ -396,14 +420,18 @@ function MyPage() {
       setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
 
     } catch (error) {
-      console.log('에러:', error);
+      console.error('프로필 수정 에러:', error);
+      
+      // 서버에서 전달된 에러 메시지 사용
+      const errorMessage = error.response?.data?.error?.message || 
+                          error.response?.data?.message || 
+                          '프로필 수정에 실패했습니다.';
       
       setToast({ 
         show: true, 
-        message: '전화번호가 중복되었습니다.',
+        message: errorMessage,
         type: 'error' 
       });
-      setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
     }
   };
 
@@ -649,55 +677,63 @@ function MyPage() {
     </div>
   );
 
-  // 비밀번호 필드 UI 렌더링 함수
-  const renderPasswordFields = () => (
-    <>
+  // 비밀번호 필드 렌더링 함수
+  const renderPasswordFields = () => {
+    return (
       <div className="grid grid-cols-[120px,1fr] items-center gap-4">
         <label className="text-sm font-medium">비밀번호</label>
-        <div className="flex gap-2">
-          {isChangingPassword ? (
-            <input
-              type="password"
-              name="password"
-              value={editedData.password}
-              onChange={handleChange}
-              className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-md"
-              placeholder="새 비밀번호를 입력하세요"
-            />
-          ) : (
-            <div className="flex gap-2 w-full">
-              <input
-                type="password"
-                value="********"
-                className="flex-1 px-4 py-2 bg-gray-100 border border-gray-200 rounded-md"
-                readOnly
-              />
-              <button
-                type="button"
-                onClick={() => setIsChangingPassword(true)}
-                className="px-4 py-2 bg-cusBlue text-white rounded-md hover:bg-cusBlue-dark transition-colors text-sm"
-              >
-                비밀번호 변경
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {isChangingPassword && (
-        <div className="grid grid-cols-[120px,1fr] items-center gap-4">
-          <label className="text-sm font-medium">비밀번호 확인</label>
+        <div className="flex gap-2 items-center">
           <input
             type="password"
-            value={passwordConfirm}
-            onChange={(e) => setPasswordConfirm(e.target.value)}
-            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
-            placeholder="비밀번호를 다시 입력하세요"
+            value="********"
+            className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md"
+            readOnly
           />
+          {/* 수정 모드일 때만 비밀번호 변경 버튼 표시 */}
+          {isEditing && (
+            <button
+              type="button"
+              onClick={() => setIsChangingPassword(true)}
+              className="px-4 py-2 bg-cusBlue text-white rounded-lg hover:bg-cusBlue-dark transition-colors text-sm whitespace-nowrap"
+            >
+              비밀번호 변경
+            </button>
+          )}
         </div>
-      )}
-    </>
-  );
+
+        {/* 비밀번호 변경 모드일 때 추가 입력 필드들 */}
+        {isChangingPassword && (
+          <>
+            <div className="col-span-2 mt-4">
+              <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+                <label className="text-sm font-medium">새 비밀번호</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={editedData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-md bg-white"
+                  placeholder="새 비밀번호를 입력하세요"
+                />
+              </div>
+            </div>
+            <div className="col-span-2">
+              <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+                <label className="text-sm font-medium">비밀번호 확인</label>
+                <input
+                  type="password"
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-md bg-white"
+                  placeholder="비밀번호를 다시 입력하세요"
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -722,7 +758,7 @@ function MyPage() {
             <div className="w-full md:w-auto flex flex-col items-center gap-4">
               <div className="w-48 h-48 relative rounded-lg overflow-hidden bg-white shadow-md">
                 <img 
-                  src={userData.profileInfo?.profileImage || "/default-profile.png"}
+                  src={userData.profileInfo?.profileImage || "/assets/default-profile.png"}
                   alt="Profile" 
                   className="w-full h-full object-cover" 
                 />
@@ -905,6 +941,7 @@ function MyPage() {
                 <div className="flex justify-between items-center mb-8">
                   <h2 className="text-2xl font-bold text-center">내 정보 수정</h2>
                   {!isEditing && (
+                    
                     <button
                       type="button"
                       onClick={() => setIsEditing(true)}
@@ -943,15 +980,34 @@ function MyPage() {
                     <input
                       type="text"
                       name="nickname"
-                      value={editedData.nickname}
+                      value={isEditing ? editedData.nickname : userData.nickname}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 bg-white border border-gray-200 rounded-md"
+                      className={`w-full px-4 py-2 border border-gray-200 rounded-md ${
+                        isEditing ? 'bg-white' : 'bg-gray-100'
+                      }`}
+                      readOnly={!isEditing}
                       placeholder="새 닉네임을 입력하세요"
+                      maxLength={8}
                     />
                   </div>
 
                   {/* 전화번호 필드 */}
-                  {renderPhoneFields()}
+                  <div className="grid grid-cols-[120px,1fr] items-center gap-4">
+                    <label className="text-sm font-medium">전화번호</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        name="phoneNumber"
+                        value={isEditing ? editedData.phoneNumber : userData.phoneNumber}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-2 border border-gray-200 rounded-md ${
+                          isEditing ? 'bg-white' : 'bg-gray-100'
+                        }`}
+                        readOnly={!isEditing}
+                        placeholder="전화번호를 입력하세요"
+                      />
+                    </div>
+                  </div>
 
                   {/* 저장/취소 버튼은 isEditing이 true일 때만 표시 */}
                   {isEditing && (

@@ -10,6 +10,7 @@ import com.overthecam.security.util.SecurityUtils;
 import livekit.LivekitWebhook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -138,6 +139,17 @@ public class BattleController {
         @RequestBody String body) {
         try {
             LivekitWebhook.WebhookEvent event = liveKitTokenService.handleWebhookEvent(authHeader, body);
+
+            // participant_left 이벤트 처리
+            if (event.getEvent().equals("participant_left")) {
+                JSONObject metadata = new JSONObject(event.getParticipant().getMetadata());
+                Long userId = metadata.getLong("userId");
+                Long battleId = metadata.getLong("battleId");
+
+                battleService.handleUserLeave(battleId, userId);
+                log.info("참가자 퇴장 이벤트 처리 완료 - battleId: {}, userId: {}", battleId, userId);
+            }
+
             return ResponseEntity.ok(CommonResponseDto.ok(Map.of(
                 "message", "웹훅 이벤트가 성공적으로 처리되었습니다",
                 "event", event.toString()
@@ -171,6 +183,7 @@ public class BattleController {
     @GetMapping("/random")
     public CommonResponseDto<RandomVoteTopicResponse> createRandomVoteTopic() {
         RandomVoteTopicResponse response = battleService.createRandomVoteTopic();
+        log.info("랜덤 주제 생성 완료");
         return CommonResponseDto.ok(response);
     }
 }

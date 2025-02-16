@@ -2,6 +2,8 @@ package com.overthecam.vote.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.badwordfilter.service.BadWordFilterService;
+import com.overthecam.badwordfilter.service.BadWordTrieService;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.vote.exception.VoteErrorCode;
@@ -21,6 +23,9 @@ public class VoteCommentService {
     private final VoteRepository voteRepository;
     private final UserRepository userRepository;
 
+    private final BadWordFilterService badWordFilterService;
+    private final BadWordTrieService badWordTrieService;
+
     /**
      * 투표 댓글 작성
      * - 투표 및 사용자 존재 검증
@@ -29,6 +34,7 @@ public class VoteCommentService {
     public VoteComment createComment(Long voteId, String content, Long userId) {
         Vote vote = findVoteById(voteId);
         User user = findUserById(userId);
+        content = badWordFilterService.filterForEdit(content, badWordTrieService.getTrie());
 
         com.overthecam.vote.domain.VoteComment comment = com.overthecam.vote.domain.VoteComment.builder()
                 .vote(vote)
