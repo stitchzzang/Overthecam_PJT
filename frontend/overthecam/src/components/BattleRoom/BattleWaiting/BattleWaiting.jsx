@@ -5,6 +5,7 @@ import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
 import { useEffect, useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
+import PlayerReadyStatus from "./PlayerReadyStatus";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 
@@ -95,13 +96,20 @@ function BattleWaiting({
                     <div className="absolute inset-0">
                       <div className="w-full h-full overflow-hidden">
                         {slot ? (
-                          <div className="w-full h-full">
-                            <VideoComponent
-                              track={slot.track}
-                              participantIdentity={slot.participantName}
-                              local={slot.type === "local"}
-                              className="w-full h-full object-contain bg-black rounded-sm"
-                            />
+                          <div className="relative">
+                            <div className="w-full h-full">
+                              <VideoComponent
+                                track={slot.track}
+                                participantIdentity={slot.participantName}
+                                local={slot.type === "local"}
+                                className="w-full h-full object-contain bg-black rounded-sm"
+                              />
+                              <PlayerReadyStatus
+                                isReady={readyList.some(
+                                  (p) => p.nickname === slot.participantName
+                                )}
+                              />
+                            </div>
                           </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-cusGray rounded-sm border">
@@ -152,7 +160,7 @@ function BattleWaiting({
                   onClick={handleToggleReady}
                   className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                 >
-                  {myReady.ready ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
+                  {myReady ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
                 </div>
               </div>
             )}
