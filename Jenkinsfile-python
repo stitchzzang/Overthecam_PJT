@@ -29,14 +29,16 @@ pipeline {
                     try {
                         echo '====== Docker Build 시작 ======'
                         dir('python-analyzer') {
-                            // Dockerfile 생성
-                            writeFile file: 'Dockerfile', text: '''
-                                FROM python:3.9
-                                WORKDIR /app
-                                COPY . .
-                                RUN pip install -r requirements.txt
-                                EXPOSE 5001
-                                CMD ["python", "api/app.py"]
+                            writeFile file: '.dockerignore', text: '''
+                                __pycache__/
+                                *.pyc
+                                venv/
+                                .git/
+                                .env
+                                temp/
+                                *.pth
+                                checkpoints/
+                                *.bin
                             '''
                             
                             withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
@@ -73,6 +75,7 @@ pipeline {
                                 docker rm analyzer || true && \
                                 echo '새 컨테이너 시작 중...' && \
                                 docker run -d --name analyzer \
+                                    --gpus all \
                                     -p 5001:5001 \
                                     ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
                                 docker system prune -f && \
