@@ -72,6 +72,22 @@ const useWebSocket = (battleId) => {
         case "ERROR":
           setError(error); // 에러 메세지 .. 구조 분해 다시
           break;
+        case ("ROOM_STATUS"):
+          if (data.readyUsers) {
+            setReadyList((prev) => [...prev, data.readyUsers]);
+          }
+          if (data.voteInfo) {
+            setVote({
+              title: data.voteInfo.title,
+              content: data.voteInfo.content,
+              option1: data.voteInfo.options[0]?.optionTitle,
+              option2: data.voteInfo.options[1]?.optionTitle,
+              option1Id: data.voteInfo.options[0]?.optionId,
+              option2Id: data.voteInfo.options[1]?.optionId,
+            });
+            setIsVoteSubmitted(true);
+          }
+          break;
         case "CHAT":
           if (success) {
             setMessageList((prev) => {
