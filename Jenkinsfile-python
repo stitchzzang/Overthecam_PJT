@@ -4,8 +4,9 @@ pipeline {
     environment {
         DOCKER_IMAGE_ANALYZER = 'ghkdtnql/overthecam-analyzer'
     }
-    
-stage('Git Clone') {
+
+    stages {
+        stage('Git Clone') {
     steps {
         script {
             try {
@@ -25,6 +26,8 @@ stage('Git Clone') {
         }
     }
 }
+
+
 
 
         stage('Docker Build & Push') {
