@@ -56,15 +56,9 @@ const BattleRandomTopic = forwardRef((props, ref) => {
     }
   };
 
-  // 외부 클릭 시 모달 닫기 핸들러 추가
+  // 외부 클릭 시 모달 닫기 핸들러 수정
   const handleClickOutside = (e) => {
-    const dialogDimension = e.target.getBoundingClientRect();
-    if (
-      e.clientX < dialogDimension.left ||
-      e.clientX > dialogDimension.right ||
-      e.clientY < dialogDimension.top ||
-      e.clientY > dialogDimension.bottom
-    ) {
+    if (e.target.className.includes('modal')) {
       ref.current.close();
     }
   };
@@ -72,7 +66,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   return (
     <dialog 
       ref={ref} 
-      className="modal rounded-[30px] overflow-hidden"
+      className="modal"
       onClick={handleClickOutside}
     >
       <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay">
@@ -124,7 +118,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <p className="text-lg mb-6">즐거운 배틀 되세요 :)</p>
 
         <form method="dialog" className="modal-backdrop">
-          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue transition-colors duration-300 clay">
+          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
             닫기
           </button>
         </form>
@@ -132,6 +126,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <style jsx>{`
           .modal {
             border: none;
+            background: rgba(0, 0, 0, 0.5);
           }
           
           .clay {
@@ -195,10 +190,12 @@ const BattleRandomTopic = forwardRef((props, ref) => {
             font-weight: 500;
             border: none;
             cursor: pointer;
+            transition: all 0.3s ease;
           }
 
           .btn:hover {
             transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }
         `}</style>
       </div>
