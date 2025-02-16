@@ -261,7 +261,7 @@ export default function NavBar() {
 
             <Link to={"/main"}>
               <img 
-                src="/src/public/assets/Logo.png" 
+                src="/assets/Logo.png" 
                 alt="Logo" 
                 className="h-16 w-auto" 
               />
@@ -278,7 +278,7 @@ export default function NavBar() {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <img 
-                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/src/public/assets/default-profile.png"}
+                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
                           alt="Profile" 
                           className="w-full h-full object-cover"
                         />
@@ -384,7 +384,7 @@ export default function NavBar() {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <img 
-                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/src/public/assets/default-profile.png"}
+                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
                           alt="Profile" 
                           className="w-full h-full object-cover"
                         />

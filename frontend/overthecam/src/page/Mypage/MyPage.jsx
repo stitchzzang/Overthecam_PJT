@@ -749,7 +749,7 @@ function MyPage() {
             <div className="w-full md:w-auto flex flex-col items-center gap-4">
               <div className="w-48 h-48 relative rounded-lg overflow-hidden bg-white shadow-md">
                 <img 
-                  src={userData.profileInfo?.profileImage || "/default-profile.png"}
+                  src={userData.profileInfo?.profileImage || "/assets/default-profile.png"}
                   alt="Profile" 
                   className="w-full h-full object-cover" 
                 />

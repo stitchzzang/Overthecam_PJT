@@ -48,9 +48,9 @@ const FakeMainPage = () => {
     // 이미지 프리로딩
     const preloadImages = async () => {
       const images = [
-        '/src/public/assets/Desktop_mockup.webp',
-        '/src/public/assets/Desktop_mockup2.webp',
-        '/src/public/assets/Desktop_mockup3.webp'
+        '/assets/Desktop_mockup.png',
+        '/assets/Desktop_mockup2.png',
+        '/assets/Desktop_mockup3.png'
       ];
 
       const preloadImage = (src) => {
@@ -145,7 +145,7 @@ const FakeMainPage = () => {
               </p>
             </motion.div>
             <OptimizedImage
-              src="/src/public/assets/Desktop_mockup.webp"
+              src="/assets/Desktop_mockup.png"
               alt="논쟁 아이콘"
               className="w-96 h-96 object-contain md:w-2/3"
               initial={{ opacity: 0, x: 100 }}
@@ -159,7 +159,7 @@ const FakeMainPage = () => {
         <Section>
           <div className="flex flex-col md:flex-row items-center gap-8 -ml-8">
             <OptimizedImage
-              src="/src/public/assets/Desktop_mockup2.webp"
+              src="/assets/Desktop_mockup2.png"
               alt="실시간 배틀"
               className="w-[32rem] h-[32rem] object-contain md:w-2/3"
               initial={{ opacity: 0, x: -100 }}
@@ -267,7 +267,7 @@ const FakeMainPage = () => {
         </Section>
 
         {/* 다섯 번째 섹션 - 스태거 효과 */}
-        <Section backgroundImage="/src/public/assets/Desktop_mockup3.webp">
+        <Section backgroundImage="/assets/Desktop_mockup3.png">
           {/* 배경 이미지 첨부 */}
           <motion.div
             initial={{ opacity: 0 }}
