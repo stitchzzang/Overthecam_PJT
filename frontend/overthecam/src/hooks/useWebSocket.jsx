@@ -59,6 +59,7 @@ const useWebSocket = (battleId) => {
   const [gameInfo, setGameInfo] = useState({});
   const [participants, setParticipants] = useState([]);
   const [myScores, setMyScores] = useState({});
+  const [myRole, setMyRole] = useState(null);
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
 
@@ -154,6 +155,7 @@ const useWebSocket = (battleId) => {
               supportScore: me.supportScore,
               point: me.point,
             });
+            setMyRole(me.role)
           }
           break;
         case "BATTLER_SELECT":
@@ -495,7 +497,8 @@ const useWebSocket = (battleId) => {
     finishBattle,
     gameResult,
     myScores,
-    setMyScores
+    setMyScores,
+    myRole,
   };
 };
 
