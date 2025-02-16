@@ -5,62 +5,79 @@ import com.overthecam.badwordfilter.dto.FilterResult;
 import com.overthecam.badwordfilter.dto.FilteredChar;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.ahocorasick.trie.Emit;
 import org.ahocorasick.trie.Trie;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class FilterService {
 
     public FilterResult filter(String text, Trie trie) {
         List<FilteredChar> filteredChars = new ArrayList<>();
         String currentText = text;
 
-        // 우회 문자 필터링
-        for (FilterPolicy policy : FilterPolicy.values()) {
-            Pattern pattern = Pattern.compile(policy.regex);
-            Matcher matcher = pattern.matcher(currentText);
+        // 1단계: 특수문자, 중복 문자 등 필터링
+        Map<Integer, Integer> positionMap = new HashMap<>();  // 원본 위치 -> 필터링 후 위치 매핑
+        Map<Integer, Integer> reverseMap = new HashMap<>();   // 필터링 후 위치 -> 원본 위치 매핑
+        StringBuilder cleanText = new StringBuilder();
 
-            while (matcher.find()) {
-                String match = matcher.group();
-                int position = matcher.start();
+        for (int i = 0, cleanIndex = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            boolean shouldKeep = true;
 
-                for (char c : match.toCharArray()) {
-                    filteredChars.add(new FilteredChar(c, position, policy.type));
+            // 특수문자, 공백 등 필터링
+            for (FilterPolicy policy : FilterPolicy.values()) {
+                if (String.valueOf(c).matches(policy.regex)) {
+                    filteredChars.add(new FilteredChar(c, i, policy.type));
+                    shouldKeep = false;
+                    break;
                 }
             }
 
-            currentText = matcher.replaceAll("");
+            if (shouldKeep) {
+                positionMap.put(i, cleanIndex);
+                reverseMap.put(cleanIndex, i);
+                cleanText.append(c);
+                cleanIndex++;
+            }
         }
 
-        // 비속어 검사 및 마스킹 처리
+        // 2단계: 비속어 감지 및 마스킹
         boolean containsBanWord = false;
-        String maskedText = currentText;
+        String maskedText = text;  // 원본 텍스트로 시작
 
-        // Trie에서 매칭되는 모든 비속어 찾기
-        Collection<Emit> emits = trie.parseText(currentText);
-
+        Collection<Emit> emits = trie.parseText(cleanText.toString());
         if (!emits.isEmpty()) {
             containsBanWord = true;
+            StringBuilder maskedBuilder = new StringBuilder(text);
 
-            // 비속어를 *로 마스킹 처리
-            StringBuilder builder = new StringBuilder(currentText);
-            // end 위치가 변경되지 않도록 뒤에서부터 처리
-            List<Emit> sortedEmits = new ArrayList<>(emits);
-            sortedEmits.sort((e1, e2) -> Integer.compare(e2.getStart(), e1.getStart()));
+            // 감지된 비속어 위치를 원본 텍스트 위치로 변환하여 마스킹
+            for (Emit emit : emits) {
+                int originalStart = reverseMap.get(emit.getStart());
+                int originalEnd = reverseMap.get(emit.getEnd());
 
-            for (Emit emit : sortedEmits) {
-                int start = emit.getStart();
-                int end = emit.getEnd() + 1;
-                String stars = "*".repeat(end - start);
-                builder.replace(start, end, stars);
+                // 원본 텍스트에서 해당 범위의 실제 문자 수 계산
+                int realLength = 0;
+                for (int i = originalStart; i <= originalEnd; i++) {
+                    if (!String.valueOf(text.charAt(i)).matches("[\\s\\p{Punct}]")) {
+                        realLength++;
+                    }
+                }
+
+                // 마스킹 처리
+                for (int i = originalStart; i <= originalEnd; i++) {
+                    char currentChar = text.charAt(i);
+                    if (!String.valueOf(currentChar).matches("[\\s\\p{Punct}]")) {
+                        maskedBuilder.setCharAt(i, '♡');
+                    }
+                }
             }
-            maskedText = builder.toString();
+            maskedText = maskedBuilder.toString();
         }
 
         return FilterResult.builder()
@@ -71,33 +88,12 @@ public class FilterService {
     }
 
     public String reconstruct(FilterResult result, String filteredText) {
-        if (result == null || filteredText == null || result.getFilteredChars() == null) {
+        if (result == null || filteredText == null) {
             return filteredText;
         }
 
-        StringBuilder reconstructed = new StringBuilder(filteredText);
-        List<FilteredChar> sortedChars = new ArrayList<>(result.getFilteredChars());
-
-        // position을 기준으로 오름차순 정렬
-        sortedChars.sort((a, b) -> Integer.compare(a.getPosition(), b.getPosition()));
-
-        // 현재까지 삽입된 문자 수를 추적
-        int offset = 0;
-
-        for (FilteredChar filteredChar : sortedChars) {
-            int position = filteredChar.getPosition() + offset;
-
-            // position이 현재 문자열 길이보다 크면 맨 뒤에 추가
-            if (position > reconstructed.length()) {
-                reconstructed.append(filteredChar.getCharacter());
-            } else {
-                reconstructed.insert(position, filteredChar.getCharacter());
-            }
-
-            // offset 증가
-            offset++;
-        }
-
-        return reconstructed.toString();
+        // 필터링된 텍스트가 이미 마스킹과 특수문자를 포함하고 있으므로,
+        // 추가적인 재구성이 필요하지 않음
+        return filteredText;
     }
 }
