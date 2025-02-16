@@ -66,7 +66,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <div className="w-full flex items-center gap-2 mb-4">
           <div className="flex-1 flex items-center justify-center">
             <div className="flex items-center text-lg w-full">
-              <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2 clay">
+              <div className="slot-machine flex-1 px-8 min-h-[100px] bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg mx-2">
                 <div className={`slot-wrapper h-full flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
                   {isLoading ? (
                     <div className="animate-pulse">...</div>
@@ -81,7 +81,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
             </div>
           </div>
           <button 
-            className="h-16 aspect-square bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all clay"
+            className="h-16 aspect-square bg-cusYellow hover:bg-yellow-400 rounded-lg flex items-center justify-center transition-all hover:scale-105"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
@@ -97,65 +97,72 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         </div>
         
         <p className="text-lg">즐거운 배틀 되세요 :)</p>
-      </div>
-      <form method="dialog" className="modal-backdrop">
-        <button>close</button>
-      </form>
 
-      <style jsx>{`
-        .clay {
-          background: rgba(255, 255, 255, 0.7);
-          border-radius: 10px;
-          box-shadow: 
-            8px 8px 16px rgba(0, 0, 0, 0.1),
-            -8px -8px 16px rgba(255, 255, 255, 0.8);
-        }
-        
-        .slot-machine {
-          overflow: hidden;
-          position: relative;
-        }
-        
-        .slot-wrapper {
-          position: relative;
-          transition: all 0.5s ease-out;
-        }
-        
-        .slot-wrapper.spinning {
-          animation: spin 2s ease-out;
-        }
-        
-        @keyframes spin {
-          0% { 
-            transform: translateY(0);
-            opacity: 1;
+        <form method="dialog" className="modal-backdrop mt-4">
+          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
+            닫기
+          </button>
+        </form>
+
+        <style jsx>{`
+          .clay {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            box-shadow: 
+              8px 8px 16px rgba(0, 0, 0, 0.1),
+              -8px -8px 16px rgba(255, 255, 255, 0.8);
           }
-          20% { 
-            transform: translateY(-500%);
-            opacity: 0;
+          
+          .slot-machine {
+            overflow: hidden;
+            position: relative;
           }
-          40% { 
-            transform: translateY(-1000%);
-            opacity: 0;
+          
+          .slot-wrapper {
+            position: relative;
+            transition: all 0.5s ease-out;
           }
-          60% { 
-            transform: translateY(-1500%);
-            opacity: 0;
+          
+          .slot-wrapper.spinning {
+            animation: spin 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
           }
-          80% { 
-            transform: translateY(-2000%);
-            opacity: 0;
+          
+          @keyframes spin {
+            0% { 
+              transform: translateY(0);
+              opacity: 1;
+            }
+            15% {
+              transform: translateY(-300%);
+              opacity: 0;
+            }
+            30% {
+              transform: translateY(-600%);
+              opacity: 0;
+            }
+            45% {
+              transform: translateY(-900%);
+              opacity: 0;
+            }
+            60% {
+              transform: translateY(-1200%);
+              opacity: 0;
+            }
+            75% {
+              transform: translateY(-1500%);
+              opacity: 0;
+            }
+            85% {
+              transform: translateY(50%);
+              opacity: 0;
+            }
+            100% { 
+              transform: translateY(0);
+              opacity: 1;
+            }
           }
-          90% {
-            transform: translateY(50%);
-            opacity: 0;
-          }
-          100% { 
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
+        `}</style>
+      </div>
     </dialog>
   );
 });
