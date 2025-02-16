@@ -42,32 +42,48 @@ const ParticipantsBadge = ({ current, max }) => {
 };
 
 // 새로운 PopularVote 컴포넌트 추가
-const PopularVote = ({ onVoteComplete }) => {
+const PopularVote = ({ onVoteUpdate }) => {
   const navigate = useNavigate();
   const [popularVote, setPopularVote] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [popularVoteKey, setPopularVoteKey] = useState(0); // PopularVote 컴포넌트 리렌더링을 위한 key
 
   const fetchPopularVote = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await publicAxios.get('/vote/list', {
+      
+      // 먼저 전체 페이지 수를 알아내기 위한 요청
+      const initialResponse = await publicAxios.get('/vote/list', {
         params: {
           page: 0,
-          size: 10,  // 더 많은 데이터를 가져와서
-          status: 'active',
-          sort: 'createdAt,DESC'  // 일단 모든 active 투표를 가져온 다음
+          size: 1,
+          status: 'active'
         },
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
 
-      if (response.data?.content) {
-        // 투표수를 기준으로 정렬하고 가장 많은 것을 선택
-        const sortedVotes = response.data.content.sort((a, b) => 
+      if (!initialResponse.data?.pageInfo?.totalPages) {
+        return;
+      }
+
+      // 모든 active 투표를 가져오기 위한 요청
+      const allVotesResponse = await publicAxios.get('/vote/list', {
+        params: {
+          page: 0,
+          size: initialResponse.data.pageInfo.totalElements, // 전체 투표 개수만큼 size 설정
+          status: 'active'
+        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      if (allVotesResponse.data?.content) {
+        // 투표수로 정렬하여 가장 많은 투표를 선택
+        const sortedVotes = allVotesResponse.data.content.sort((a, b) => 
           b.totalVoteCount - a.totalVoteCount
         );
         
         if (sortedVotes[0]) {
-          setPopularVote(sortedVotes[0]);  // 투표수가 가장 많은 투표를 선택
+          setPopularVote(sortedVotes[0]);
         }
       }
     } catch (error) {
@@ -79,23 +95,10 @@ const PopularVote = ({ onVoteComplete }) => {
 
   const handleVote = async (optionId) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('로그인이 필요합니다.');
-        navigate('/main/login');
-        return;
-      }
-
-      await authAxios.post(`/vote/${popularVote.voteId}/vote/${optionId}`);
-      await fetchPopularVote(); // 투표 후 데이터 새로고침
+      if (!popularVote) return;
+      await onVoteUpdate(popularVote.voteId, optionId);
     } catch (err) {
-      console.error('Vote error:', err);
-      if (err.response?.status === 401) {
-        alert('로그인이 필요합니다.');
-        navigate('/main/login');
-        return;
-      }
-      alert('투표 처리 중 오류가 발생했습니다.');
+      console.error('Popular vote error:', err);
     }
   };
 
@@ -198,7 +201,8 @@ const PopularVote = ({ onVoteComplete }) => {
 
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
-  const [voteList, setVoteList] = useState([]); // 투표 목록 상태 추가
+  const [voteList, setVoteList] = useState([]);
+  const [popularVoteKey, setPopularVoteKey] = useState(0); // PopularVote 컴포넌트 리렌더링을 위한 key
   const navigate = useNavigate();
   const userInfo = localStorage.getItem('userInfo');
   const userId = userInfo ? JSON.parse(userInfo).userId : null;
@@ -293,7 +297,8 @@ const MainPage = () => {
     }
   };
 
-  const handleVote = async (vote, optionId) => {
+  // 투표 처리 함수를 상위 컴포넌트로 이동
+  const handleVoteUpdate = async (voteId, optionId) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -302,10 +307,10 @@ const MainPage = () => {
         return;
       }
 
-      // 즉시 UI 업데이트
+      // UI 즉시 업데이트 (일반 투표 목록)
       setVoteList(prevList => 
         prevList.map(v => {
-          if (v.voteId === vote.voteId) {
+          if (v.voteId === voteId) {
             const updatedOptions = v.options.map(option => ({
               ...option,
               voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
@@ -328,9 +333,15 @@ const MainPage = () => {
         })
       );
 
-      // UI 업데이트 후 서버 요청
-      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
+      // 서버에 투표 요청
+      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
       
+      // PopularVote 컴포넌트 리렌더링
+      setPopularVoteKey(prev => prev + 1);
+      
+      // 투표 목록 새로고침
+      await fetchVotes();
+
     } catch (err) {
       console.error('Vote error:', err);
       if (err.response?.status === 401) {
@@ -338,8 +349,13 @@ const MainPage = () => {
         navigate('/main/login');
         return;
       }
-      alert('투표 처리 중 오류가 발생했습니다.');
-      await fetchVotes();
+      if (err.response?.data?.error?.code === 'DUPLICATE_VOTE') {
+        // 이미 투표한 경우 UI 업데이트만 수행
+        await fetchVotes();
+        setPopularVoteKey(prev => prev + 1);
+      } else {
+        alert('투표 처리 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -451,8 +467,11 @@ const MainPage = () => {
         {/* 그라데이션 배경 */}
         <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
         
-        {/* PopularVote 컴포넌트 추가 */}
-        <PopularVote />
+        {/* PopularVote 컴포넌트에 key와 handleVoteUpdate 전달 */}
+        <PopularVote 
+          key={popularVoteKey} 
+          onVoteUpdate={handleVoteUpdate}
+        />
         
         <div className="container mx-auto px-4">
           <div className="container mx-auto px-14 pt-48 pb-12">
@@ -568,7 +587,10 @@ const MainPage = () => {
                             {vote.options.map((option) => (
                               <button
                                 key={option.optionId}
-                                onClick={() => handleVote(vote, option.optionId)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVoteUpdate(vote.voteId, option.optionId);
+                                }}
                                 className={`clay flex-1 p-3 ${
                                   option.optionId === vote.options[0].optionId
                                     ? 'bg-red-100 hover:bg-red-200 text-red-500'
