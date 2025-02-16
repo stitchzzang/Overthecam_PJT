@@ -270,70 +270,32 @@ export default function NavBar() {
             {/* Mobile Profile Button */}
             <div className="xl:hidden relative ml-6 mt-1" ref={mobileDropdownRef}>
               {isLoggedIn && userNickname ? (
-                <>
-                  <div className="flex items-center gap-2 bg-cusGray text-gray-700 rounded-full px-4 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
-                    <Link
-                      to="/main/mypage"
-                      className="flex items-center gap-4"
-                    >
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                        <img 
-                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span className="whitespace-nowrap">
-                        <span className="font-bold">{userNickname}</span> 님,
-                        <br />
-                        안녕하세요!
-                      </span>
-                    </Link>
-                    <button
-                      onClick={() => setIsMobileProfileDropdownOpen(!isMobileProfileDropdownOpen)}
-                      className="ml-1"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  {isMobileProfileDropdownOpen && (
-                    <div className="absolute right-[50%] translate-x-[50%] mt-2 w-44 bg-white rounded-md shadow-lg py-1 z-[100]">
-                      <Link
-                        to="/main/mypagereport"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        논쟁 분석 리포트
-                      </Link>
-                      <Link
-                        to="/main/mypagebattle"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        배틀 관리
-                      </Link>
-                      <Link
-                        to="/main/mypagevote"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        투표 관리
-                      </Link>
-                      <Link
-                        to="/main/mypage/edit"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        회원 정보 수정
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full px-3 py-2 text-sm font-bold text-cusRed hover:bg-gray-100 rounded text-center cursor-pointer"
-                      >
-                        로그아웃
-                      </button>
+                <div className="flex items-center gap-4">
+                  <Link
+                    to="/main/mypage"
+                    className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-3 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105"
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden -ml-1">
+                      <img 
+                        src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  )}
-                </>
+                    <span className="whitespace-nowrap">
+                      <span className="font-bold">{userNickname}</span> 님,
+                      <br />
+                      안녕하세요!
+                    </span>
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  >
+                    로그아웃
+                  </button>
+                </div>
               ) : (
                 <div className="flex gap-3">
                   <Link
@@ -354,7 +316,7 @@ export default function NavBar() {
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className="hidden xl:block max-w-[550px] flex-1 -ml-24">
+          <div className="hidden xl:block max-w-[550px] flex-1 -ml-2">
             <SearchBar />
           </div>
 
@@ -376,69 +338,32 @@ export default function NavBar() {
                     <span>투표 생성</span>
                   </Link>
                 </div>
-                <div className="relative" ref={dropdownRef}>
-                  <div className="flex items-center gap-2 bg-cusGray text-gray-700 rounded-full px-4 py-2 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
-                    <Link
-                      to="/main/mypage"
-                      className="flex items-center gap-4"
-                    >
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                        <img 
-                          src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span className="whitespace-nowrap">
-                        <span className="font-bold">{userNickname}</span> 님,
-                        <br />
-                        안녕하세요!
-                      </span>
-                    </Link>
-                    <button
-                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                      className="ml-1"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  {isProfileDropdownOpen && (
-                    <div className="absolute right-[50%] translate-x-[50%] mt-2 w-44 bg-white rounded-md shadow-lg py-1 z-[100]">
-                      <Link
-                        to="/main/mypagereport"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        논쟁 분석 리포트
-                      </Link>
-                      <Link
-                        to="/main/mypagebattle"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        배틀 관리
-                      </Link>
-                      <Link
-                        to="/main/mypagevote"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        투표 관리
-                      </Link>
-                      <Link
-                        to="/main/mypage/edit"
-                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded text-center"
-                      >
-                        회원 정보 수정
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full px-3 py-2 text-sm font-bold text-cusRed hover:bg-gray-100 rounded text-center"
-                      >
-                        로그아웃
-                      </button>
+
+                <div className="flex items-center gap-4">
+                  <Link
+                    to="/main/mypage"
+                    className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-3 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105"
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden -ml-1">
+                      <img 
+                        src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  )}
+                    <span className="whitespace-nowrap">
+                      <span className="font-bold">{userNickname}</span> 님,
+                      <br />
+                      안녕하세요!
+                    </span>
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  >
+                    로그아웃
+                  </button>
                 </div>
               </>
             ) : (
