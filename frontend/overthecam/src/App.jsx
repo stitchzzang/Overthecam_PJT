@@ -29,7 +29,7 @@ import VotePage from "./page/Vote/VotePage.jsx";
 import OtherProfile from "./page/Mypage/OtherProfile";
 import SearchResultPage from "./page/Main/SearchResultPage.jsx";
 import BattleRoomLayout from "./components/Layout/BattleRoomLayOut.jsx";
-import { WebSocketProvider } from "./hooks/useWebSocket.jsx";
+import WebSocketProvider from "./hooks/useWebSocket.jsx";
 import { useBattleStore } from "./store/Battle/BattleStore.jsx";
 
 function ProtectedLogin() {

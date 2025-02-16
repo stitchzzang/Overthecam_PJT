@@ -1,25 +1,31 @@
 import { forwardRef, useRef } from "react"
 import SuccessAlertModal from "../../../@common/SuccessAlertModal";
 import FailAlertModal from "../../../@common/FailAlertModal";
+import { useWebSocketContext } from "../../../../hooks/useWebSocket";
 
 const TimeBuyModal = forwardRef(function TimeBuyModal(
   _,
   ref
 ) {
+  const { timeExtention, isTimeExtended, error } = useWebSocketContext();
   const successAlertRef = useRef();
   const failAlertRef = useRef();
 
   const onPurchase = async () => {
     try {
-        // 시간 구매 
-    //   const response = await postPurchase();
-
-    //   if (response.data) {
-    //     if (ref.current) {
-    //       ref.current.close();
-    //     }
-    //     successAlertRef.current?.showAlert("구매에 성공했습니다.");
-    //   }
+      // 시간 구매
+        timeExtention();
+        if (isTimeExtended) {
+          if (ref.current) {
+            ref.current.close();
+          }
+          successAlertRef.current?.showAlert("구매에 성공했습니다.");
+        } else {
+          if(ref.current) {
+            ref.current.close();
+          }
+          failAlertRef.current?.showAlert(error)
+        }
     } catch (error) {
       // 현재 모달 닫기
       if (ref.current) {

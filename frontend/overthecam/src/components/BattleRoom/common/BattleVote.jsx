@@ -1,14 +1,16 @@
 import { useState, useRef } from "react";
 import BattleVoteBettingModal from "../BattleStart/BattleStartModal/BatlleVoteBettingModal";
+import { useWebSocketContext } from "../../../hooks/useWebSocket";
 
-function BattleVote({ isWaiting, voteTitle, voteDetail, voteOption1, voteOption2 }) {
+function BattleVote({ isWaiting }) {
   const [selectedOption, setSelectedOption] = useState(null);
   const bettingModal = useRef();
+  const { vote } = useWebSocketContext();
 
   const handleVote = (option) => {
-    bettingModal.current?.showModal();  
+    bettingModal.current?.showModal();
     // 여기에 투표 API 호출 등의 로직 추가
-    // 성공하면 재투표 막기 
+    // 성공하면 재투표 막기
     // setSelectedOption(option);
   };
   // 배틀방 안에서 띄울 투표 시스템
@@ -16,11 +18,11 @@ function BattleVote({ isWaiting, voteTitle, voteDetail, voteOption1, voteOption2
     <div className="p-6 bg-white w-full h-full">
       {/* 투표 제목 */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-800">{voteTitle}</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{vote.title}</h1>
       </div>
 
       <div className="my-3 text-center">
-        <h4>{voteDetail}</h4>
+        <h4>{vote.content}</h4>
       </div>
 
       {/* 투표 버튼 */}
@@ -35,7 +37,7 @@ function BattleVote({ isWaiting, voteTitle, voteDetail, voteOption1, voteOption2
               "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300"
             }
           >
-            {voteOption1}
+            {vote.option1}
           </button>
           <button
             onClick={() => handleVote("option2")}
@@ -44,11 +46,11 @@ function BattleVote({ isWaiting, voteTitle, voteDetail, voteOption1, voteOption2
               "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300"
             }
           >
-            {voteOption2}
+            {vote.option2}
           </button>
         </div>
       )}
-      <BattleVoteBettingModal ref={bettingModal}/>
+      <BattleVoteBettingModal ref={bettingModal} />
     </div>
   );
 }

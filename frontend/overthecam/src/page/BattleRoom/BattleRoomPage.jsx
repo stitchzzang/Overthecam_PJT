@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { leaveRoom } from "../../service/BattleRoom/api";
 
-import {
-  useWebSocketContext,
-  WebSocketProvider,
-} from "../../hooks/useWebSocket";
+import { useWebSocketContext } from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
@@ -27,6 +24,17 @@ function BattleRoomPage() {
   const clearBattleInfo = useBattleStore((state) => state.clearBattleInfo);
 
   const navigate = useNavigate();
+  // 웹소켓 관련
+  const {
+    status,
+    error,
+    connectWS,
+    disconnectWS,
+    vote,
+    startBattle,
+    readyForBattle,
+    isStarted,
+  } = useWebSocketContext();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
@@ -37,11 +45,8 @@ function BattleRoomPage() {
   const [host, setHost] = useState(""); // 방장 이름 담는 로직
 
   // 방 게임 설정 관련
-  const [isWaiting, setIsWaiting] = useState(true);
+  // const [isWaiting, setIsWaiting] = useState(true);
   const [isMaster, setIsMaster] = useState(battleInfo.isMaster);
-
-  // 웹소켓 관련
-  const { status, connectWS, disconnectWS } = useWebSocketContext();
 
   // 모달 처리
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
@@ -77,6 +82,11 @@ function BattleRoomPage() {
     // 현재 페이지에 머무르기 위해 history 상태 추가
     window.history.pushState(null, "", window.location.pathname);
   };
+
+  // participants가 업데이트될 때마다 실행됨
+  useEffect(() => {
+    console.log("업데이트된 참가자 목록:", participants);
+  }, [participants]);
 
   // 방 입장 및 세션 참가 - 마운트 시 한 번만 실행하면 됨
   useEffect(() => {
@@ -163,18 +173,17 @@ function BattleRoomPage() {
 
   // ws 연결 에러
   useEffect(() => {
-    if (status === "DISCONNECTED" || status === "ERROR") {
-      // 연결이 끊어졌을 때 사용자에게 알림
-      failTost.current?.showAlert("연결이 끊어졌습니다. 다시 시도합니다.");
-
+    if (status === "DISCONNECTED") {
       // 잠시 후 재연결 시도
       const reconnectTimer = setTimeout(() => {
         connectWS(BASE_URL, token);
       }, 3000);
 
       return () => clearTimeout(reconnectTimer);
+    } else if (status === "ERROR") {
+      failTost.current?.showAlert(error);
     }
-  }, [status, connectWS]);
+  }, [status, connectWS, error]);
 
   async function initializeRoom() {
     try {
@@ -225,20 +234,41 @@ function BattleRoomPage() {
       console.log(
         "New track subscribed:",
         publication.kind,
-        participant.identity
+        participant.identity,
+        participant.metadata
       );
       setRemoteTracks((prev) => [
         ...prev,
         {
           trackPublication: publication,
           participantIdentity: participant.identity,
+          participantMetadata: participant.metadata,
         },
       ]);
     });
 
     // 방 연결 시 사용
-    room.on(RoomEvent.Connected, () => {
-      getDataFromAll(room);
+    room.on(RoomEvent.Connected, async () => {
+      // 잠시 기다려서 localParticipant가 설정될 시간 주기
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const allParticipants = [];
+      // localParticipant 추가
+      if (room.localParticipant?.metadata) {
+        const localMeta = JSON.parse(room.localParticipant.metadata);
+        allParticipants.push(localMeta);
+      }
+
+      if (room.remoteParticipants) {
+        room.remoteParticipants.forEach((participant, key) => {
+          const remoteMeta = JSON.parse(participant.metadata);
+          allParticipants.push(remoteMeta);
+          if (JSON.parse(participant.metadata).role === "host") {
+            setHost(JSON.parse(participant.metadata).nickname);
+          }
+        });
+      }
+      setParticipants(allParticipants);
     });
 
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
@@ -247,7 +277,12 @@ function BattleRoomPage() {
           (track) => track.trackPublication.trackSid !== publication.trackSid
         )
       );
-      getDataFromAll(room);
+    });
+
+    room.on(RoomEvent.ParticipantConnected, (participant) => {
+      console.log("participant connected:", participant.metadata);
+      setParticipants((prev) => [...prev, JSON.parse(participant.metadata)]);
+      console.log(participants);
     });
 
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
@@ -257,7 +292,12 @@ function BattleRoomPage() {
           (track) => track.participantIdentity !== participant.identity
         )
       );
-      getDataFromAll(room);
+      setParticipants((prev) => {
+        const filteredParticipants = prev.filter(
+          (p) => p.nickname !== participant.identity
+        );
+        return filteredParticipants;
+      });
     });
 
     try {
@@ -346,34 +386,6 @@ function BattleRoomPage() {
     }
   }
 
-  function getDataFromAll(room) {
-    const participantList = [];
-
-    try {
-      const myMetadata = JSON.parse(room?.localParticipant?.metadata || "{}");
-      if (myMetadata.role === "host") {
-        setHost(room.localParticipant.identity);
-      }
-      participantList.push(room.localParticipant.identity);
-    } catch (error) {
-      console.log("Local participant metadata error:", error);
-    }
-
-    room?.participants?.forEach((participant) => {
-      try {
-        const participantMetaData = JSON.parse(participant.metadata || "{}");
-        if (participantMetaData.role === "host") {
-          setHost(participant.identity);
-          participantList.push(room.participant.identity);
-        }
-      } catch (error) {
-        console.log("Participant metadata error:", error);
-      }
-    });
-
-    setParticipants(participantList);
-  }
-
   async function handleLeavRoom() {
     leaveConfirmModal.current?.showModal();
   }
@@ -389,7 +401,7 @@ function BattleRoomPage() {
   };
 
   const battlerModalShow = (e) => {
-    battlerSettingModal.current?.showModal();
+    battlerSettingModal.current?.showModal(vote.option1, vote.option2);
   };
 
   const endBattleModalShow = (e) => {
@@ -397,7 +409,9 @@ function BattleRoomPage() {
   };
 
   const handleBattleStart = (e) => {
-    setIsWaiting(false);
+    // setIsWaiting(false);
+    readyForBattle();
+    startBattle();
   };
 
   // 연결 상태에 따른 에러 처리
@@ -419,14 +433,14 @@ function BattleRoomPage() {
   return (
     <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
       <BattleHeader
-        isWaiting={isWaiting}
+        isWaiting={!isStarted}
         isMaster={isMaster}
         onshowLeaveConfirmModal={handleLeavRoom}
         onShowBattlerModal={battlerModalShow}
         onShowEndBattleModal={endBattleModalShow}
       />
       <div className="render-change flex-1 h-0">
-        {isWaiting ? (
+        {!isStarted ? (
           <div className="flex h-full">
             {/* h-full 유지 */}
             <div className="w-full h-full flex flex-col">
@@ -445,11 +459,18 @@ function BattleRoomPage() {
           </div>
         ) : (
           <>
-            <BattleStart />
+            <BattleStart
+              localTrack={localTrack}
+              remoteTracks={remoteTracks}
+              participantName={battleInfo.participantName}
+            />
           </>
         )}
       </div>
-      <BattlerSettingModal ref={battlerSettingModal} />
+      <BattlerSettingModal
+        ref={battlerSettingModal}
+        participants={participants}
+      />
       <FailAlertModal ref={failTost} />
       <NoticeAlertModal ref={noticeToast} />
       <BattleLeaveConfirmModal

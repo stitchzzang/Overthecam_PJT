@@ -12,8 +12,6 @@ const WS_STATUS = {
   ERROR: "ERROR",
 };
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
 // 채널 구독 함수들을 별도의 객체로 분리
 const channelSubscriptions = {
   subscribePrivate: (client, battleId, onResponse) => {
@@ -50,23 +48,96 @@ const useWebSocket = (battleId) => {
   const subscriptionsRef = useRef({});
   const [wsStatus, setWsStatus] = useState(WS_STATUS.DISCONNECTED);
   const [messageList, setMessageList] = useState([]);
+  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
+  const [vote, setVote] = useState({});
   const [error, setError] = useState(null);
+  const [readyList, setReadyList] = useState([]);
+  const [myReady, setMyReady] = useState(false);
+  const [isStarted, setIsStarted] = useState(false);
+  const [battlers, setBattlers] = useState([]);
+  const [gameInfo, setGameInfo] = useState({});
+  const [isTimeExtended, setIsTimeExtended] = useState(false);
+  const [gameResult, setGameResult] = useState({});
+
+  const battleInfo = useBattleStore((s) => s.battleInfo);
 
   const getResponse = useCallback((response) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
 
     try {
-      const { success, type, data } = response;
+      const { success, type, data, error } = response;
       console.log("[WS] 응답 분해:", { success, type, data });
 
       switch (type) {
+        case "ERROR":
+          setError(error); // 에러 메세지 .. 구조 분해 다시
+          break;
         case "CHAT":
-          console.log("[WS] CHAT 메시지 처리 전 messageList:", messageList);
-          setMessageList((prev) => {
-            const newList = [...prev, data];
-            console.log("[WS] 업데이트된 messageList:", newList);
-            return newList;
-          });
+          if (success) {
+            setMessageList((prev) => {
+              const newList = [...prev, data];
+              return newList;
+            });
+          }
+          break;
+        case "VOTE_CREATE":
+          if (success) {
+            setVote({
+              title: data.title,
+              content: data.content,
+              option1: data.options[0]?.optionTitle,
+              option2: data.options[1]?.optionTitle,
+              option1Id: data.options[0]?.optionId,
+              option2Id: data.options[1]?.optionId,
+            });
+            setIsVoteSubmitted(success)
+          }
+          break;
+        case "BATTLE_READY":
+          if (data.ready) {
+            setReadyList((prev) => [...prev, data]);
+          } else {
+            setReadyList((prev) =>
+              prev.filter((p) => p.userId !== data.userId)
+            );
+          }
+          setMyReady(
+            readyList.filter((p) => p.nickname === battleInfo.participantName)
+          );
+          break;
+        case "BATTLE_START":
+          if (success) {
+            setGameInfo(data);
+            setIsStarted(success);
+          }
+          break;
+        case "BATTLER_SELECT":
+          if (success) {
+            setBattlers([data.firstBattler, data.secondBattler])
+            const content = `${data.firstBattler.nickname}님과 ${data.secondBattler.nickname}님이 배틀러로 선정되셨습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
+          }
+          break;
+        case "TIME_EXTENSION":
+          if (success) {
+            setIsTimeExtended(true);
+            const content = `${data.nickname}님이 5분 시간 추가하셨습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
+          }
           break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
@@ -74,18 +145,17 @@ const useWebSocket = (battleId) => {
       }
     } catch (error) {
       console.error("[WS] 응답 처리 중 에러:", error);
+      setError("응답이 없습니다.");
     }
   }, []);
 
   const connectWS = useCallback(
     (url, token) => {
-
-
+      console.log("연결 시도합니다.");
       if (!url || !token) {
         setError(new Error("URL과 토큰이 필요합니다"));
         return;
       }
-
 
       setWsStatus(WS_STATUS.CONNECTING);
       const wsUrl = `${url}/ws-connect`;
@@ -164,7 +234,7 @@ const useWebSocket = (battleId) => {
   const sendMessage = useCallback(
     (content) => {
       if (wsStatus !== WS_STATUS.CONNECTED) {
-        console.error("WebSocket is not connected");
+        console.error("웹소켓 연결이 되어있지 않습니다.");
         return;
       }
 
@@ -182,11 +252,117 @@ const useWebSocket = (battleId) => {
         );
       } catch (error) {
         console.error("메시지 전송 실패:", error);
-        setError(error);
+        setError("메세지 전송에 실패했습니다.");
       }
     },
     [battleId, wsStatus]
   );
+
+  const createVote = useCallback(
+    (title, content, options) => {
+      try {
+        stompClientRef.current?.send(
+          `/api/publish/battle/${battleId}`,
+          {},
+          JSON.stringify({
+            type: "VOTE_CREATE",
+            data: {
+              title,
+              content,
+              battleId,
+              options,
+            },
+          })
+        );
+        setVote({
+          title,
+          content,
+          battleId,
+          options,
+        });
+        setIsVoteSubmitted(true);
+      } catch (error) {
+        console.error("투표 등록 실패:", error);
+        setError("투표 등록에 실패했습니다.");
+      }
+    },
+    [battleId, wsStatus]
+  );
+
+  const readyForBattle = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_READY",
+        })
+      );
+    } catch (error) {
+      console.error("준비 실패:", error);
+      setError("준비에 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
+  const startBattle = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_START",
+        })
+      );
+    } catch (error) {
+      console.error("시작 실패:", error);
+      setError("배틀 시작 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
+  const resultBattler = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLER_SELECT",
+        })
+      );
+    } catch (error) {
+      console.error("알림 실패:", error);
+      setError("배틀러 알림 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
+  const timeExtention = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "TIME_EXTENSION",
+        })
+      );
+    } catch (error) {
+      console.error("시간 연장 실패:", error);
+      setError("시간 연장에 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
+
+  const finishBattle = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "BATTLE_END",
+        })
+      );
+    } catch (error) {
+      console.error("종료 실패:", error);
+      setError("배틀 종료 실패했습니다.");
+    }
+  }, [battleId, wsStatus]);
 
   useEffect(() => {
     return () => {
@@ -201,6 +377,21 @@ const useWebSocket = (battleId) => {
     disconnectWS,
     sendMessage,
     messageList,
+    createVote,
+    isVoteSubmitted,
+    vote,
+    readyForBattle,
+    readyList,
+    myReady,
+    startBattle,
+    battlers,
+    gameInfo,
+    isStarted,
+    resultBattler,
+    timeExtention,
+    isTimeExtended,
+    finishBattle,
+    gameResult,
   };
 };
 
@@ -233,4 +424,5 @@ function useWebSocketContext() {
   return context;
 }
 
-export { WebSocketProvider, useWebSocketContext };
+export { useWebSocketContext };
+export default WebSocketProvider;
