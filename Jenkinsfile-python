@@ -7,28 +7,25 @@ pipeline {
 
     stages {
         stage('Git Clone') {
-    steps {
-        script {
-            try {
-                echo '====== Git Clone 시작 ======'
-                git branch: 'main',
-                    url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
-                    credentialsId: 'gitlab-user'
-                echo '====== Git Clone 성공 ======'
+            steps {
+                script {
+                    try {
+                        echo '====== Git Clone 시작 ======'
+                        git branch: 'main',
+                            url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
+                            credentialsId: 'gitlab-user'
+                        echo '====== Git Clone 성공 ======'
 
-                // 📌 Git Clone 후 파일 목록 확인
-                sh "ls -l /var/jenkins_home/workspace/python/"
+                        // 📌 Git Clone 후 파일 목록 확인
+                        sh "ls -l /var/jenkins_home/workspace/python/python-analyzer/models/saved/emotion_model"
 
-            } catch (Exception e) {
-                echo '====== Git Clone 실패 ======'
-                error "Git clone failed: ${e.message}"
+                    } catch (Exception e) {
+                        echo '====== Git Clone 실패 ======'
+                        error "Git clone failed: ${e.message}"
+                    }
+                }
             }
         }
-    }
-}
-
-
-
 
         stage('Docker Build & Push') {
             steps {
@@ -45,7 +42,6 @@ pipeline {
                                 temp/
                                 *.pth
                                 checkpoints/
-                                *.bin
                             '''
                             
                             withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
@@ -82,6 +78,7 @@ pipeline {
                                 docker rm analyzer || true && \
                                 echo '새 컨테이너 시작 중...' && \
                                 docker run -d --name analyzer \
+                                    -v /var/jenkins_home/workspace/python/python-analyzer/models/saved/emotion_model:/python-analyzer/models/saved/emotion_model \
                                     -p 5001:5001 \
                                     ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
                                 docker system prune -f && \
