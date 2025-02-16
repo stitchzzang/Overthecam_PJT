@@ -56,10 +56,27 @@ const BattleRandomTopic = forwardRef((props, ref) => {
     }
   };
 
+  // 외부 클릭 시 모달 닫기 핸들러 추가
+  const handleClickOutside = (e) => {
+    const dialogDimension = e.target.getBoundingClientRect();
+    if (
+      e.clientX < dialogDimension.left ||
+      e.clientX > dialogDimension.right ||
+      e.clientY < dialogDimension.top ||
+      e.clientY > dialogDimension.bottom
+    ) {
+      ref.current.close();
+    }
+  };
+
   return (
-    <dialog ref={ref} className="modal rounded-[30px] overflow-hidden">
+    <dialog 
+      ref={ref} 
+      className="modal rounded-[30px] overflow-hidden"
+      onClick={handleClickOutside}
+    >
       <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay">
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-8 mt-2">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
         
@@ -83,7 +100,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           </div>
           
           <button 
-            className="w-16 h-16 bg-[#FFF7D4] hover:bg-[#FFE898] rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 clay"
+            className="w-16 h-16 bg-cusYellowLight hover:bg-cusYellow rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 clay"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
@@ -101,7 +118,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <p className="text-lg mb-6">즐거운 배틀 되세요 :)</p>
 
         <form method="dialog" className="modal-backdrop">
-          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
+          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue transition-colors duration-300 clay">
             닫기
           </button>
         </form>
@@ -166,6 +183,16 @@ const BattleRandomTopic = forwardRef((props, ref) => {
               transform: translateY(0);
               opacity: 1;
             }
+          }
+
+          .btn {
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+          }
+
+          .btn:hover {
+            transform: translateY(-1px);
           }
         `}</style>
       </div>
