@@ -192,9 +192,9 @@ const VoteDetail = ({ voteData, onDelete }) => {
                 onClick={() => handleVote(option.optionId)}
                 className={`clay flex-1 p-4 ${
                   option.optionId === currentVoteData.options[0].optionId
-                    ? 'bg-red-100 hover:bg-red-200 text-red-500'
-                    : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                } rounded-lg transition-colors`}
+                    ? 'bg-red-100 hover:bg-red-200 text-cusRed'
+                    : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                } rounded-lg transition-colors text-lg font-bold`}
               >
                 {option.optionTitle}
               </button>
@@ -218,7 +218,7 @@ const VoteDetail = ({ voteData, onDelete }) => {
                   className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold text-lg"
                   style={{ width: `${currentVoteData.options[0].votePercentage >= 100 ? 100 : currentVoteData.options[0].votePercentage}%` }}
                 >
-                  {Math.round(currentVoteData.options[0].votePercentage)}%
+                  {Math.round(currentVoteData.options[0].votePercentage)}% ({currentVoteData.options[0].voteCount}명)
                 </div>
               )}
               {currentVoteData.options[1].votePercentage > 0 && (
@@ -226,13 +226,12 @@ const VoteDetail = ({ voteData, onDelete }) => {
                   className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold text-lg"
                   style={{ width: `${currentVoteData.options[1].votePercentage >= 100 ? 100 : currentVoteData.options[1].votePercentage}%` }}
                 >
-                  {Math.round(currentVoteData.options[1].votePercentage)}%
+                  {Math.round(currentVoteData.options[1].votePercentage)}% ({currentVoteData.options[1].voteCount}명)
                 </div>
               )}
             </div>
-            <div className="text-right text-sm text-gray-600 mt-2 mb-8">
-              {totalVotes.toLocaleString()}명 참여중
-            </div>
+            {/* "명 참여중" 텍스트를 제거하고 여백만 유지 */}
+            <div className="mb-8"></div>
 
             {/* 통계 섹션 */}
             {totalVotes > 0 && (
@@ -243,41 +242,49 @@ const VoteDetail = ({ voteData, onDelete }) => {
                   <div className="space-y-3">
                     {/* 남성 통계 */}
                     <div className="flex items-center justify-center gap-4">
-                      <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                      <div className="w-[32%] h-8 clay bg-gray-200 rounded-full relative">
                         <div
                           className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                          style={{ width: `${currentVoteData.options[0].genderDistribution['남성'] || 0}%` }}
+                          style={{ 
+                            width: `${(currentVoteData.options[0].genderDistribution['남성'] * currentVoteData.options[0].votePercentage / 100) || 0}%` 
+                          }}
                         >
-                          {Math.round(currentVoteData.options[0].genderDistribution['남성'] || 0)}%
+                          {Math.round((currentVoteData.options[0].genderDistribution['남성'] * currentVoteData.options[0].votePercentage / 100) || 0)}%
                         </div>
                       </div>
-                      <span className="w-16 text-center font-bold">남성</span>
-                      <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                      <span className="w-16 text-center font-bold text-sm">남성</span>
+                      <div className="w-[32%] h-8 clay bg-gray-200 rounded-full relative">
                         <div
                           className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                          style={{ width: `${currentVoteData.options[1].genderDistribution['남성'] || 0}%` }}
+                          style={{ 
+                            width: `${(currentVoteData.options[1].genderDistribution['남성'] * currentVoteData.options[1].votePercentage / 100) || 0}%` 
+                          }}
                         >
-                          {Math.round(currentVoteData.options[1].genderDistribution['남성'] || 0)}%
+                          {Math.round((currentVoteData.options[1].genderDistribution['남성'] * currentVoteData.options[1].votePercentage / 100) || 0)}%
                         </div>
                       </div>
                     </div>
                     {/* 여성 통계 */}
                     <div className="flex items-center justify-center gap-4">
-                      <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                      <div className="w-[32%] h-8 clay bg-gray-200 rounded-full relative">
                         <div
                           className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                          style={{ width: `${currentVoteData.options[0].genderDistribution['여성'] || 0}%` }}
+                          style={{ 
+                            width: `${(currentVoteData.options[0].genderDistribution['여성'] * currentVoteData.options[0].votePercentage / 100) || 0}%` 
+                          }}
                         >
-                          {Math.round(currentVoteData.options[0].genderDistribution['여성'] || 0)}%
+                          {Math.round((currentVoteData.options[0].genderDistribution['여성'] * currentVoteData.options[0].votePercentage / 100) || 0)}%
                         </div>
                       </div>
-                      <span className="w-16 text-center font-bold">여성</span>
-                      <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                      <span className="w-16 text-center font-bold text-sm">여성</span>
+                      <div className="w-[32%] h-8 clay bg-gray-200 rounded-full relative">
                         <div
                           className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                          style={{ width: `${currentVoteData.options[1].genderDistribution['여성'] || 0}%` }}
+                          style={{ 
+                            width: `${(currentVoteData.options[1].genderDistribution['여성'] * currentVoteData.options[1].votePercentage / 100) || 0}%` 
+                          }}
                         >
-                          {Math.round(currentVoteData.options[1].genderDistribution['여성'] || 0)}%
+                          {Math.round((currentVoteData.options[1].genderDistribution['여성'] * currentVoteData.options[1].votePercentage / 100) || 0)}%
                         </div>
                       </div>
                     </div>
@@ -285,26 +292,30 @@ const VoteDetail = ({ voteData, onDelete }) => {
                 </div>
 
                 {/* 연령별 통계 */}
-                <div className="mb-8">
+                <div className="mb-16">
                   <h3 className="text-xl font-bold text-center mb-4">연령별 통계</h3>
                   <div className="space-y-3">
                     {['10대', '20대', '30대', '40대', '50대 이상'].map((age) => (
                       <div key={age} className="flex items-center justify-center gap-4">
-                        <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                        <div className="w-[32%] h-8 clay bg-gray-200 rounded-full relative">
                           <div
                             className="absolute right-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-end pr-2 text-white text-sm"
-                            style={{ width: `${currentVoteData.options[0].ageDistribution[age] || 0}%` }}
+                            style={{ 
+                              width: `${(currentVoteData.options[0].ageDistribution[age] * currentVoteData.options[0].votePercentage / 100) || 0}%` 
+                            }}
                           >
-                            {Math.round(currentVoteData.options[0].ageDistribution[age] || 0)}%
+                            {Math.round((currentVoteData.options[0].ageDistribution[age] * currentVoteData.options[0].votePercentage / 100) || 0)}%
                           </div>
                         </div>
-                        <span className="w-16 text-center font-bold">{age}</span>
-                        <div className="w-[38%] h-8 clay bg-gray-200 rounded-full relative">
+                        <span className="w-16 text-center font-bold text-sm">{age}</span>
+                        <div className="w-[32%] h-8 clay bg-gray-200 rounded-full relative">
                           <div
                             className="absolute left-0 top-0 h-full clay bg-gray-400 rounded-full flex items-center justify-start pl-2 text-white text-sm"
-                            style={{ width: `${currentVoteData.options[1].ageDistribution[age] || 0}%` }}
+                            style={{ 
+                              width: `${(currentVoteData.options[1].ageDistribution[age] * currentVoteData.options[1].votePercentage / 100) || 0}%` 
+                            }}
                           >
-                            {Math.round(currentVoteData.options[1].ageDistribution[age] || 0)}%
+                            {Math.round((currentVoteData.options[1].ageDistribution[age] * currentVoteData.options[1].votePercentage / 100) || 0)}%
                           </div>
                         </div>
                       </div>
