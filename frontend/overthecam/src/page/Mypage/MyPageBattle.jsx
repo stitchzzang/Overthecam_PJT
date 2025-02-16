@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
 import { useParams, useNavigate } from "react-router-dom";
 import Pagination from 'react-js-pagination';
+import BattleList from './Modal/BattleList';
 
 function MyPageBattle() {
   const [battles, setBattles] = useState([]);
@@ -15,6 +16,8 @@ function MyPageBattle() {
   const [error, setError] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBattle, setSelectedBattle] = useState(null);
 
   useEffect(() => {
     const fetchBattleHistory = async () => {
@@ -22,37 +25,27 @@ function MyPageBattle() {
         setIsLoading(true);
         setError(null);
         
-        const url = id 
-          ? `/mypage/battle/history?userId=${id}&page=${currentPage - 1}` 
-          : `/mypage/battle/history?page=${currentPage - 1}`;
+        const response = await authAxios.get(`/mypage/battle/history?page=${currentPage - 1}`);
+        console.log('전체 응답:', response);
+        console.log('응답 데이터:', response.data);
+        console.log('배틀 목록:', response.data.content);
         
-        console.log('Requesting URL:', url);
-        const response = await authAxios.get(url);
-        console.log('Full response:', response);
-        console.log('Response data:', response.data);
-        console.log('Content:', response.data.content);
-        
-        // 응답 데이터 구조 확인
-        if (response.data && response.data.content) {
-          console.log('Setting battles with:', response.data.content);
+        if (response && response.success) {
+          console.log('setBattles 호출 전:', response.data.content);
           setBattles(response.data.content);
+          console.log('setBattles 호출 후');
           
           if (response.data.pageInfo) {
+            console.log('페이지 정보:', response.data.pageInfo);
             setPageInfo({
-              currentPage: response.data.pageInfo.currentPage,
               totalPages: response.data.pageInfo.totalPages,
               totalElements: response.data.pageInfo.totalElements,
               pageSize: response.data.pageInfo.pageSize
             });
           }
-          setError(null);
-        } else {
-          console.log('No content in response');
-          setBattles([]);
-          setError('데이터를 불러오는데 실패했습니다.');
         }
       } catch (err) {
-        console.error('Error details:', err);
+        console.error('Error fetching battles:', err);
         setError('배틀 기록을 불러오는데 실패했습니다.');
         setBattles([]);
       } finally {
@@ -61,7 +54,7 @@ function MyPageBattle() {
     };
 
     fetchBattleHistory();
-  }, [id, currentPage]);
+  }, [currentPage]);
 
   // 디버깅을 위한 추가 useEffect
   useEffect(() => {
@@ -72,7 +65,7 @@ function MyPageBattle() {
 
   // battles 상태가 변경될 때마다 로그
   useEffect(() => {
-    console.log('Current battles state:', battles);
+    console.log('battles state가 변경됨:', battles);
   }, [battles]);
 
   // 승패 결과 텍스트 및 스타일 결정 함수
@@ -98,6 +91,11 @@ function MyPageBattle() {
   // 페이지 변경 핸들러
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
+  };
+
+  const handleTitleClick = (battle) => {
+    setIsModalOpen(true);
+    setSelectedBattle(battle.battleId);
   };
 
   return (
@@ -158,7 +156,12 @@ function MyPageBattle() {
                           {new Date(battle.createdAt).toLocaleString()}
                         </td>
                         <td className="py-4 px-4 text-gray-800 text-center">
-                          {battle.title}
+                          <button 
+                            onClick={() => handleTitleClick(battle)}
+                            className="hover:text-blue-500 cursor-pointer"
+                          >
+                            {battle.title}
+                          </button>
                         </td>
                         <td className="py-4 px-4 text-gray-800 text-center">
                           {battle.optionTitle}
@@ -195,6 +198,12 @@ function MyPageBattle() {
           ))}
         </div>
       )}
+
+      <BattleList 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        battleId={selectedBattle}
+      />
     </div>
   );
 }
