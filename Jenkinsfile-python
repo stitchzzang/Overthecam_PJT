@@ -4,24 +4,28 @@ pipeline {
     environment {
         DOCKER_IMAGE_ANALYZER = 'ghkdtnql/overthecam-analyzer'
     }
+    
+stage('Git Clone') {
+    steps {
+        script {
+            try {
+                echo '====== Git Clone 시작 ======'
+                git branch: 'main',
+                    url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
+                    credentialsId: 'gitlab-user'
+                echo '====== Git Clone 성공 ======'
 
-    stages {
-        stage('Git Clone') {
-            steps {
-                script {
-                    try {
-                        echo '====== Git Clone 시작 ======'
-                        git branch: 'main',
-                            url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
-                            credentialsId: 'gitlab-user'
-                        echo '====== Git Clone 성공 ======'
-                    } catch (Exception e) {
-                        echo '====== Git Clone 실패 ======'
-                        error "Git clone failed: ${e.message}"
-                    }
-                }
+                // 📌 Git Clone 후 파일 목록 확인
+                sh "ls -l /var/jenkins_home/workspace/python/"
+
+            } catch (Exception e) {
+                echo '====== Git Clone 실패 ======'
+                error "Git clone failed: ${e.message}"
             }
         }
+    }
+}
+
 
         stage('Docker Build & Push') {
             steps {
