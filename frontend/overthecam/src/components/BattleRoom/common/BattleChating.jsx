@@ -1,10 +1,11 @@
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const BattleChating = () => {
   const [inputMessage, setInputMessage] = useState("");
   const { status, sendMessage, messageList } = useWebSocketContext();
+  const [connectStatus, setConnectStatus] = useState("DISCONNECTED");
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -18,8 +19,23 @@ const BattleChating = () => {
     setInputMessage("");
   };
 
+  // 최신 메세지 스크롤 바닥 고정 =
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messageList]);
+
+  useEffect(() => {
+    setConnectStatus(status);
+  }, [status]);
+
   return (
-    <div className="w-full max-w-md h-full bg-cusGray rounded-lg clay flex flex-col p-1">
+    <div className="w-full max-w-md h-[550px] bg-cusGray rounded-lg clay flex flex-col p-1">
       {/* 채팅 헤더 */}
       <div className="flex justify-between items-center px-4 py-2">
         <h2 className="text-lg font-semibold text-cusBlack-light">
@@ -27,33 +43,53 @@ const BattleChating = () => {
         </h2>
         <span
           className={`text-sm ${
-            status === "CONNECTED" ? "text-green-500" : "text-red-500"
+            connectStatus === "CONNECTED" ? "text-green-500" : "text-red-500"
           }`}
         >
-          {status === "CONNECTED" ? "연결됨" : "연결 중..."}
+          {connectStatus === "CONNECTED" ? "연결됨" : "연결 중..."}
         </span>
       </div>
 
       {/* 채팅 메시지 영역 */}
-      <div className="flex-1 mx-2 bg-white rounded-md overflow-hidden flex flex-col mb-2">
+      <div className="mx-2 bg-white rounded-md h-[550px] overflow-hidden flex flex-col mb-2">
         <div
-          className="flex-1 p-4 overflow-y-auto [&::-webkit-scrollbar]:w-2 
-                    [&::-webkit-scrollbar-track]:bg-gray-800 
-                    [&::-webkit-scrollbar-thumb]:bg-gray-500 
-                    [&::-webkit-scrollbar-thumb]:rounded-full"
+          className="flex-1 p-4 overflow-y-auto h-96 
+          [&::-webkit-scrollbar]:w-2
+          [&::-webkit-scrollbar-track]:bg-white
+          [&::-webkit-scrollbar-track]:rounded-md
+          [&::-webkit-scrollbar-thumb]:bg-gray-500 
+          [&::-webkit-scrollbar-thumb]:rounded-md
+          [&::-webkit-scrollbar-thumb:hover]:bg-gray-400"
         >
           {messageList.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-2 w-full">
               {messageList.map((msg, index) => (
-                <li key={index} className="flex space-x-2 items-start">
-                  <div className="flex-1">
-                    <div className="text-sm text-gray-400">{msg.nickname}</div>
-                    <div className="mt-1 p-2 bg-gray-700 rounded-lg text-white">
-                      {msg.content}
-                    </div>
-                  </div>
+                <li key={index} className="flex flex-col items-start">
+                  {msg.nickname === "SYSTEM" ? (
+                    <>
+                      {" "}
+                      <span className="text-sm text-red-700">
+                        {msg.nickname}
+                      </span>
+                      <span className="text-sm text-red-900 max-w-36 font-semibold">
+                        {" "}
+                        {msg.content}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm text-gray-700">
+                        {msg.nickname}
+                      </span>
+                      <span className="text-sm text-gray-900 max-w-36 font-semibold">
+                        {" "}
+                        {msg.content}
+                      </span>
+                    </>
+                  )}
                 </li>
               ))}
+              <div ref={messagesEndRef} />
             </ul>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">

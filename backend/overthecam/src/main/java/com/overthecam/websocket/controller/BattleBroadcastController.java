@@ -1,5 +1,6 @@
 package com.overthecam.websocket.controller;
 
+import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.service.BattleBettingService;
 import com.overthecam.battle.service.BattleResultService;
 import com.overthecam.member.dto.UserScoreInfo;
@@ -63,11 +64,13 @@ public class BattleBroadcastController {
                     return response;
 
                 case BATTLE_READY:
+                    battleStartService.updateBattleStatus(battleId, Status.PROGRESS);
                     BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
                     return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
                         battleReadyService.toggleReady(battleId, user.getUserId()));
 
                 case BATTLE_START:
+
                     return WebSocketResponseDto.ok(MessageType.BATTLE_START,
                         battleStartService.handleBattleStart(battleId));
 

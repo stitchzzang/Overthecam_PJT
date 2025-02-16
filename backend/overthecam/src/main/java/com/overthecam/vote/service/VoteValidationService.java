@@ -4,7 +4,6 @@ import com.overthecam.auth.domain.User;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.auth.repository.UserRepository;
 import com.overthecam.battle.domain.Battle;
-import com.overthecam.battle.domain.Status;
 import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
@@ -103,7 +102,7 @@ public class VoteValidationService {
      */
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
-            .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
     }
 
     /**
@@ -111,7 +110,7 @@ public class VoteValidationService {
      */
     public Vote findVoteById(Long voteId) {
         return voteRepository.findById(voteId)
-            .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_NOT_FOUND, "투표를 찾을 수 없습니다"));
     }
 
     /**
@@ -119,16 +118,16 @@ public class VoteValidationService {
      */
     public VoteOption findVoteOptionById(Long optionId) {
         return voteOptionRepository.findById(optionId)
-            .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(VoteErrorCode.VOTE_OPTION_NOT_FOUND, "투표 옵션을 찾을 수 없습니다"));
     }
 
     public void validateBattle(Long battleId) {
         Battle battle = battleRepository.findById(battleId)
                 .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다"));
 
-        if (battle.getStatus() != Status.PROGRESS) {
-            throw new GlobalException(BattleErrorCode.INVALID_BATTLE_STATUS, "현재 투표 가능한 상태가 아닙니다");
-        }
+//        if (battle.getStatus() != Status.PROGRESS) {
+//            throw new GlobalException(BattleErrorCode.INVALID_BATTLE_STATUS, "현재 투표 가능한 상태가 아닙니다");
+//        }
     }
 
 

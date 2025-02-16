@@ -2,10 +2,11 @@ import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
 import { useBattleStore } from "../../../store/Battle/BattleStore";
 import BattleVoteCreate from "./BattleWaitingModal/BattleVoteCreateModal";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BattleChating from "../common/BattleChating";
 import BattleVote from "../common/BattleVote";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
+import { useWebSocketContext } from "../../../hooks/useWebSocket";
 
 function BattleWaiting({
   room,
@@ -20,23 +21,18 @@ function BattleWaiting({
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const voteCreateModal = useRef();
   const battlerSettingModal = useRef();
+  const { isVoteSubmitted, readyList, readyForBattle, myReady } =
+    useWebSocketContext();
+
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
-  const [isVoteSubmitted, setIsVoteSubmitted] = useState(false);
 
-  // metadata로 내 role 보기
-  try {
-    const metadata = room.localParticipant.metadata
-      ? JSON.parse(room.localParticipant.metadata)
-      : {};
-    console.log("Role:", metadata.role);
-    if (metadata.role === "host") {
-      setHost(battleInfo.participantName);
-    }
-  } catch (metadataError) {
-    console.log("No metadata or invalid metadata:", metadataError);
-  }
+  useEffect(() => {}, [readyList]);
+
+  const handleToggleReady = (e) => {
+    readyForBattle();
+  };
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -47,7 +43,7 @@ function BattleWaiting({
         return {
           type: "local",
           track: localTrack,
-          participantName: `${participantName} (Me)`,
+          participantName: participantName,
         };
       }
 
@@ -69,7 +65,6 @@ function BattleWaiting({
 
       return null;
     });
-
   return (
     <>
       <div
@@ -86,7 +81,8 @@ function BattleWaiting({
                   <div className="px-6">
                     <div
                       className={`text-sm text-black rounded-t-lg ${
-                        slot && host === slot.participantName
+                        slot &&
+                        host === slot.participantName.replace(" (Me)", "")
                           ? "bg-cusPink"
                           : "bg-cusLightBlue"
                       }`}
@@ -99,12 +95,15 @@ function BattleWaiting({
                     <div className="absolute inset-0">
                       <div className="w-full h-full">
                         {slot ? (
-                          <VideoComponent
-                            track={slot.track}
-                            participantIdentity={slot.participantName}
-                            local={slot.type === "local"}
-                            className="w-full h-full object-cover rounded-sm"
-                          />
+                          <div>
+                            {readyList.filter((p) => p.userId === slot)}
+                            <VideoComponent
+                              track={slot.track}
+                              participantIdentity={slot.participantName}
+                              local={slot.type === "local"}
+                              className="w-full h-full object-cover rounded-sm"
+                            />
+                          </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400 bg-cusGray rounded-sm border">
                             <div className="flex flex-col items-center space-y-2">
@@ -126,37 +125,37 @@ function BattleWaiting({
           <div className="h-1/4 flex gap-2">
             <div className="w-3/4 h-full bg-cusGray clay p-3">
               {isVoteSubmitted ? (
-                <BattleVote
-                  isWaiting={true}
-                  voteTitle={""}
-                  voteOption1={""}
-                  voteOption2={""}
-                />
+                <BattleVote isWaiting={true} />
               ) : (
                 <div className="p-6 bg-white w-full h-full flex items-center justify-center">
-                  <p className="font-semibold text-gray-300">아직 등록된 투표가 없습니다.</p>
+                  <p className="font-semibold text-gray-300">
+                    아직 등록된 투표가 없습니다.
+                  </p>
                 </div>
               )}
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
                 <div
-                  className="h-1/2 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onBattleStart}
                 >
                   <p>배틀 시작하기</p>
                 </div>
                 <div
+                  className="h-1/3 bg-cusYellow my-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onShowVoteCreate}
-                  className="h-1/2 bg-cusYellow mt-1 btn flex items-center justify-center !rounded-lg"
                 >
                   <p>투표 만들기</p>
                 </div>
               </div>
             ) : (
               <div className="w-1/4 flex flex-col mx-1">
-                <div className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg">
-                  <p>배틀 준비하기</p>
+                <div
+                  onClick={handleToggleReady}
+                  className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
+                >
+                  {myReady.ready ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
                 </div>
               </div>
             )}

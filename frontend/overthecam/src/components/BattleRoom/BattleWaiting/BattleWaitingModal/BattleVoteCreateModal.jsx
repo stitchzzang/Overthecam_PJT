@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import FailAlertModal from "../../../@common/FailAlertModal";
 import { useBattleStore } from "../../../../store/Battle/BattleStore";
+import { useWebSocketContext } from "../../../../hooks/useWebSocket";
 
 const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
   _,
@@ -8,7 +9,7 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
 ) {
   const modalRef = useRef();
   const failToast = useRef();
-  const battleInfo = useBattleStore((state)=>state.battleInfo)
+  const { createVote } = useWebSocketContext();
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -25,18 +26,9 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
   };
 
   useImperativeHandle(ref, () => ({
-    showModal: (title, content, options) => {
+    showModal: () => {
       try {
         modalRef.current?.showModal();
-        // 초기 데이터가 있다면 설정
-        if (title || content || options) {
-          setFormData({
-            title: title || "",
-            content: content || "",
-            option1: options?.[0] || "",
-            option2: options?.[1] || "",
-          });
-        }
       } catch (error) {
         console.error("모달 표시 중 에러:", error);
       }
@@ -56,23 +48,9 @@ const BattleVoteCreateModal = forwardRef(function BattleVoteCreateModal(
         throw new Error("필수 항목을 모두 입력해주세요.");
       }
 
-    //   API 호출
-      const response = await fetch("/api/votes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          content: formData.content,
-          battleId: battleInfo.battleId,
-          options: [formData.option1, formData.option2],
-        }),
-      });
+      const options = [formData.option1, formData.option2];
 
-      if (!response.ok) {
-        throw new Error("투표 생성 중 오류가 발생했습니다.");
-      }
+      createVote(formData.title, formData.content, options);
 
       // 성공 시 모달 닫기
       modalRef.current?.close();

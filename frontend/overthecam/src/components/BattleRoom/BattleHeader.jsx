@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import BattleTimer from "./BattleStart/BattleTimer";
-import NoticeAlertModal from "../@common/NoticeAlertModal"
+import NoticeAlertModal from "../@common/NoticeAlertModal";
+import BattleRandomTopic from "./BattleWaiting/BattleWaitingModal/BattleRandomTopic";
 
 function BattleHeader({
   isWaiting,
@@ -13,9 +14,14 @@ function BattleHeader({
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const noticeToast = useRef();
+  const randomTopicModal = useRef();
 
   const handleTimerStoped = (message) => {
     noticeToast.current?.showAlert(message);
+  };
+
+  const onShowRandomTopic = () => {
+    randomTopicModal.current?.showModal();
   };
 
   return (
@@ -40,15 +46,18 @@ function BattleHeader({
           ) : null}
         </div>
 
-        {/* 중앙 영역 - mx-auto로 중앙 정렬 */}
+        {/* 중앙 영역 */}
         <div className="room-header-name mx-auto text-2xl font-semibold max-w-[40%]">
           <h2 className="truncate">{battleInfo.roomName}</h2>
         </div>
 
-        {/* 오른쪽 영역 - flex gap-3으로 간격 조절 */}
+        {/* 오른쪽 영역 */}
         {isWaiting ? (
           <div className="flex gap-3">
-            <button className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12">
+            <button 
+              className="random-subject btn bg-cusPink !rounded-xl flex items-center h-12"
+              onClick={onShowRandomTopic}
+            >
               랜덤 주제 생성기
             </button>
             {isMaster && (
@@ -62,7 +71,6 @@ function BattleHeader({
           </div>
         ) : (
           <div className="flex gap-3">
-            {/* gap-3으로 타이머와 포인트 사이 간격 조절 */}
             <div className="battle-timer flex bg-cusYellow rounded-xl items-center h-12 clay">
               <BattleTimer onTimerStoped={handleTimerStoped} />
             </div>
@@ -76,6 +84,7 @@ function BattleHeader({
         )}
       </div>
       <NoticeAlertModal ref={noticeToast} />
+      <BattleRandomTopic ref={randomTopicModal} />
     </>
   );
 }

@@ -521,13 +521,11 @@ function MyPage() {
   const handleOpenModal = async (type) => {
     try {
       const response = await authAxios.get(`/member/${type}`);
-      console.log(`${type} 목록:`, response);
-      
       if (response.success) {
         setModalUsers(response.data || []);
         setModalType(type);
         
-        // 현재 로그인한 사용자의 팔로잉 목록 가져오기
+        // 현재 사용자의 팔로잉 목록도 함께 가져오기
         const followingResponse = await authAxios.get('/member/following');
         if (followingResponse.success) {
           setCurrentUserFollowing(followingResponse.data?.map(user => user.userId) || []);
@@ -551,17 +549,35 @@ function MyPage() {
         // 언팔로우
         const response = await authAxios.delete(`/member/follow/${targetId}`);
         if (response.success) {
+          // 즉시 UI 업데이트
           setCurrentUserFollowing(prev => prev.filter(id => id !== targetId));
+          setModalUsers(prev => prev.map(user => 
+            user.userId === targetId 
+              ? { ...user, isFollowing: false }
+              : user
+          ));
+          // 팔로워/팔로잉 수 업데이트
+          if (modalType === 'following') {
+            setCounts(prev => ({
+              ...prev,
+              following: prev.following - 1
+            }));
+          }
         }
       } else {
         // 팔로우
         const response = await authAxios.post(`/member/follow/${targetId}`);
         if (response.success) {
+          // 즉시 UI 업데이트
           setCurrentUserFollowing(prev => [...prev, targetId]);
+          setModalUsers(prev => prev.map(user => 
+            user.userId === targetId 
+              ? { ...user, isFollowing: true }
+              : user
+          ));
         }
+
       }
-      // 데이터 새로고침
-      await fetchUserData();
     } catch (error) {
       console.error("팔로우/언팔로우 실패:", error);
     }

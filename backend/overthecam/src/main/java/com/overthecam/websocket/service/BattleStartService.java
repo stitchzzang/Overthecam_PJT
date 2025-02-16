@@ -42,12 +42,12 @@ public class BattleStartService {
     private final BattleVoteRedisRepository battleVoteRedisRepository;
 
     @Transactional
-    public Battle updateBattleStatus(Long battleId, Status status) {
+    public void updateBattleStatus(Long battleId, Status status) {
         Battle battle = battleRepository.findById(battleId)
                 .orElseThrow(() -> new WebSocketException(WebSocketErrorCode.BATTLE_NOT_FOUND, "배틀을 찾을 수 없습니다."));
         battle.updateStatus(status);
         log.info("Battle status updated - battleId: {}, status: {}", battleId, status);
-        return battleRepository.save(battle);
+        battleRepository.save(battle);
     }
 
     @Transactional
