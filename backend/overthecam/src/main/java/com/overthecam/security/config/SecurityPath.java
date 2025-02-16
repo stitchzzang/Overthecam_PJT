@@ -24,7 +24,10 @@ public enum SecurityPath {
     BATTLE_VIEW_LIST("/api/battle/room/all"),
 
     // 검색 관련 경로
-    SEARCH("/api/search/**");
+    SEARCH("/api/search/**"),
+
+    // 욕설 필터링 관련 경로
+    BADWORD_FILTER("/api/bad-word/**");
 
 
     private final String path;
