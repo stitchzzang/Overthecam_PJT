@@ -201,24 +201,11 @@ function MyPageVote({ userId, isOtherProfile }) {
         // battleId가 없는 투표만 렌더링
         votes.filter(vote => !vote.battleId).map((vote) => (
           <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center justify-center gap-2">
-                  <h3 
-                    className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center"
-                    onClick={() => handleVoteClick(vote.voteId)}
-                  >
-                    {vote.title}
-                  </h3>
-                </div>
-                <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
-                  {vote.content}
-                </p>
-              </div>
+            <div className="relative">
               {vote.creatorUserId === currentUserId && (
                 <button
                   onClick={() => handleDeleteVote(vote.voteId)}
-                  className="text-red-500 hover:text-red-700 transition-colors ml-4 font-semibold flex items-center gap-1"
+                  className="absolute right-0 top-0 text-red-500 hover:text-red-700 transition-colors font-semibold flex items-center gap-1"
                 >
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -237,6 +224,18 @@ function MyPageVote({ userId, isOtherProfile }) {
                   삭제
                 </button>
               )}
+
+              <div className="text-center px-12">
+                <h3 
+                  className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight mb-2"
+                  onClick={() => handleVoteClick(vote.voteId)}
+                >
+                  {vote.title}
+                </h3>
+                <p className="text-lg text-gray-600 leading-relaxed font-medium">
+                  {vote.content}
+                </p>
+              </div>
             </div>
             
             <div className="space-y-3 mt-4">
