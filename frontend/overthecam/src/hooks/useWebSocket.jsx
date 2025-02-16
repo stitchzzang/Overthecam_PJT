@@ -56,6 +56,7 @@ const useWebSocket = (battleId) => {
   const [isStarted, setIsStarted] = useState(false);
   const [battlers, setBattlers] = useState([]);
   const [gameInfo, setGameInfo] = useState({});
+  const [participants ,setParticipants] = useState([])
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
 
@@ -72,7 +73,7 @@ const useWebSocket = (battleId) => {
         case "ERROR":
           setError(error); // 에러 메세지 .. 구조 분해 다시
           break;
-        case ("ROOM_STATUS"):
+        case "ROOM_STATUS":
           if (data.readyUsers) {
             setReadyList((prev) => [...prev, data.readyUsers]);
           }
@@ -126,13 +127,22 @@ const useWebSocket = (battleId) => {
               prev.filter((p) => p.nickname !== data.nickname)
             );
           }
-          if (data.nickname===battleInfo.participantName) {
-            setMyReady(data.ready)
+          if (data.nickname === battleInfo.participantName) {
+            setMyReady(data.ready);
           }
           break;
         case "BATTLE_START":
           if (success) {
             setGameInfo(data);
+            setVote({
+              title: data.voteInfo.title,
+              content: data.voteInfo.content,
+              option1: data.voteInfo.options[0]?.optionTitle,
+              option2: data.voteInfo.options[1]?.optionTitle,
+              option1Id: data.voteInfo.options[0]?.optionId,
+              option2Id: data.voteInfo.options[1]?.optionId,
+            });
+            setIsVoteSubmitted(true);
             setIsStarted(success);
           }
           break;
@@ -363,25 +373,28 @@ const useWebSocket = (battleId) => {
     [battleId, wsStatus]
   );
 
-  const readyForBattle = useCallback((userId, nickname, ready) => {
-    try {
-      stompClientRef.current?.send(
-        `/api/publish/battle/${battleId}`,
-        {},
-        JSON.stringify({
-          type: "BATTLE_READY",
-          data: {
-            userId,
-            nickname,
-            ready,
-          },
-        })
-      );
-    } catch (error) {
-      console.error("준비 실패:", error);
-      setError("준비에 실패했습니다.");
-    }
-  }, [battleId, wsStatus]);
+  const readyForBattle = useCallback(
+    (userId, nickname, ready) => {
+      try {
+        stompClientRef.current?.send(
+          `/api/publish/battle/${battleId}`,
+          {},
+          JSON.stringify({
+            type: "BATTLE_READY",
+            data: {
+              userId,
+              nickname,
+              ready,
+            },
+          })
+        );
+      } catch (error) {
+        console.error("준비 실패:", error);
+        setError("준비에 실패했습니다.");
+      }
+    },
+    [battleId, wsStatus]
+  );
 
   const startBattle = useCallback(() => {
     try {
