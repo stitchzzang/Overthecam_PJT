@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { authAxios } from "../../common/axiosinstance";
 import { useParams, useNavigate } from "react-router-dom";
 import Pagination from 'react-js-pagination';
+import VoteDetailModal from './Modal/VoteList';
 
 function MyPageVote({ userId, isOtherProfile }) {
   const [votes, setVotes] = useState([]);
@@ -18,6 +19,9 @@ function MyPageVote({ userId, isOtherProfile }) {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const currentUserId = userInfo.userId;
   const navigate = useNavigate();
+  const [selectedVote, setSelectedVote] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   useEffect(() => {
     const fetchVotes = async () => {
@@ -102,6 +106,25 @@ function MyPageVote({ userId, isOtherProfile }) {
     });
   };
 
+  // 투표 상세 정보 조회
+  const handleVoteClick = async (voteId) => {
+    try {
+      console.log('투표 클릭됨:', voteId); // 클릭 확인용 로그
+      setIsDetailLoading(true);
+      const response = await authAxios.get(`/mypage/vote/${voteId}/detail`);
+      console.log('API 응답:', response); // API 응답 확인용 로그
+      
+      if (response.success) {
+        setSelectedVote(response.data);
+        setShowDetailModal(true);
+      }
+    } catch (error) {
+      console.error('투표 상세 정보 로딩 실패:', error);
+    } finally {
+      setIsDetailLoading(false);
+    }
+  };
+
   if (isLoading) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center">로딩 중...</div></div>;
   if (error) return <div className="bg-[#EEF6FF] rounded-lg p-8"><div className="text-center text-red-500">{error}</div></div>;
 
@@ -137,38 +160,18 @@ function MyPageVote({ userId, isOtherProfile }) {
           </button>
         </div>
       ) : (
-        votes.map((vote) => (
+        // battleId가 없는 투표만 렌더링
+        votes.filter(vote => !vote.battleId).map((vote) => (
           <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center justify-center gap-2">
                   <h3 
                     className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center"
-                    onClick={() => navigate(`/main/vote-detail/${vote.voteId}`)}
+                    onClick={() => handleVoteClick(vote.voteId)}
                   >
                     {vote.title}
                   </h3>
-                  {vote.battleId && (
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      strokeWidth="1.5" 
-                      stroke="currentColor" 
-                      className="w-7 h-7 text-red-500"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" 
-                      />
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" 
-                      />
-                    </svg>
-                  )}
                 </div>
                 <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
                   {vote.content}
@@ -207,6 +210,18 @@ function MyPageVote({ userId, isOtherProfile }) {
             linkClass="block w-full h-full text-center"
           />
         </div>
+      )}
+
+      {/* 투표 상세 모달 */}
+      {showDetailModal && selectedVote && (
+        <VoteDetailModal
+          voteData={selectedVote}
+          isLoading={isDetailLoading}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedVote(null);
+          }}
+        />
       )}
     </div>
   );
