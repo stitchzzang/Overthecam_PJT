@@ -64,13 +64,11 @@ public class BattleBroadcastController {
                     return response;
 
                 case BATTLE_READY:
-                    battleStartService.updateBattleStatus(battleId, Status.PROGRESS);
                     BattleReadyStatus battleReadyStatus = requestMapper.mapToBattleReadyStatus(request.getData());
                     return WebSocketResponseDto.ok(MessageType.BATTLE_READY,
                         battleReadyService.toggleReady(battleId, user.getUserId()));
 
                 case BATTLE_START:
-
                     return WebSocketResponseDto.ok(MessageType.BATTLE_START,
                         battleStartService.handleBattleStart(battleId));
 
