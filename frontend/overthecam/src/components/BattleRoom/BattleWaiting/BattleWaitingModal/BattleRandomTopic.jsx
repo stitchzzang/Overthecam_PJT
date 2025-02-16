@@ -57,8 +57,8 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   };
 
   return (
-    <dialog ref={ref} className="modal">
-      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[500px] clay">
+    <dialog ref={ref} className="modal rounded-[30px] overflow-hidden">
+      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay">
         <div className="flex items-center gap-2 mb-8">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
@@ -83,23 +83,34 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           </div>
           
           <button 
-            className="w-16 h-16 bg-[#FFF7D4] hover:bg-[#FFE898] rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 clay-button"
+            className="w-16 h-16 bg-[#FFF7D4] hover:bg-[#FFE898] rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 clay"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
-            <span className="text-lg font-bold">배틀<br/>준비</span>
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+              className="w-8 h-8"
+            >
+              <path d="M16 16V12L21 17L16 22V18H4V16H16ZM8 2V5.999L20 6V8H8V12L3 7L8 2Z" />
+            </svg>
           </button>
         </div>
         
         <p className="text-lg mb-6">즐거운 배틀 되세요 :)</p>
 
         <form method="dialog" className="modal-backdrop">
-          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
+          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
             닫기
           </button>
         </form>
 
         <style jsx>{`
+          .modal {
+            border: none;
+          }
+          
           .clay {
             background: rgba(255, 255, 255, 0.95);
             box-shadow: 
@@ -107,12 +118,6 @@ const BattleRandomTopic = forwardRef((props, ref) => {
               -8px -8px 16px rgba(255, 255, 255, 0.8),
               inset 2px 2px 4px rgba(255, 255, 255, 0.8),
               inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-          }
-          
-          .clay-button {
-            box-shadow: 
-              4px 4px 8px rgba(0, 0, 0, 0.1),
-              -4px -4px 8px rgba(255, 255, 255, 0.8);
           }
           
           .slot-machine {
