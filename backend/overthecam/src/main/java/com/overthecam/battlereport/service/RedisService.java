@@ -27,6 +27,8 @@ public class RedisService {
      * @param analysisResult Flask 분석 결과
      */
     public void saveAnalysisResultToRedis(Integer userId, String analysisResult) {
+        // JSON을 Map으로 변환하여 저장
+        // 로깅과 오류 처리가 상세함
         try {
             log.info("===== Redis Save Operation Start =====");
             log.info("1. Received userId: {}", userId);
@@ -155,24 +157,21 @@ public class RedisService {
      */
     public Map<String, Object> getRecentAnalysisResult(Integer userId) {
         try {
+
             // 패턴 매칭으로 가장 최근 키 찾기
             Set<String> keys = redisTemplate.keys("debate:analysis:" + userId + ":*");
 
             if (keys == null || keys.isEmpty()) {
                 log.warn("사용자 {}의 분석 결과 키를 찾을 수 없습니다.", userId);
-                return null;
+                return Collections.emptyMap();
             }
 
             // 가장 최근 키 선택 (문자열 기준 정렬 후 마지막 항목)
             String latestKey = keys.stream()
                     .sorted(Comparator.reverseOrder())
                     .findFirst()
-                    .orElse(null);
+                    .orElseThrow(() -> new RuntimeException("최근 키를 선택할 수 없습니다."));
 
-            if (latestKey == null) {
-                log.warn("최근 키를 선택할 수 없습니다.");
-                return null;
-            }
 
             Object storedData = redisTemplate.opsForValue().get(latestKey);
 

@@ -28,8 +28,9 @@ public class OpenAiService {
     private final ObjectMapper objectMapper;
 
     private String buildReportPrompt(List<Map<String, Object>> analysisResults, Integer userId) {
+
         StringBuilder prompt = new StringBuilder();
-        prompt.append("당신은 MZ세대를 위한 개인화된 토론 분석 리포트를 작성하는 분석가입니다. ");
+        prompt.append("당신은 밸런스게임부터 진지한 토론까지 다양한 논쟁을 판정해주기 위한 개인화된 토론 분석 리포트를 작성하는 분석가입니다. ");
         prompt.append("각 토론자의 고유한 스타일과 감정 패턴을 파악하여 맞춤형 리포트를 작성해주세요. ");
         prompt.append("모든 감정(기쁨, 슬픔, 분노, 불안, 중립)의 수치를 정확하게 계산하여 포함해주세요.\n\n");
 
@@ -38,22 +39,46 @@ public class OpenAiService {
         List<String> utterances = new ArrayList<>();
         final int[] sentenceCount = {0};
 
-        for (Map<String, Object> result : analysisResults) {
-            Map<String, Object> analysis = (Map<String, Object>) result.get("analysis");
-            List<Map<String, Object>> analysisDetails =
-                    (List<Map<String, Object>>) analysis.get("analysis_results");
 
-            for (Map<String, Object> detail : analysisDetails) {
-                utterances.add((String) detail.get("text"));
-                Map<String, Object> scores = (Map<String, Object>) detail.get("scores");
+        // 직접 analysisResults 처리
+        for (Map<String, Object> detail : analysisResults) {
+            String text = (String) detail.get("text");
+            if (text != null) {
+                utterances.add(text);
+            }
 
+            @SuppressWarnings("unchecked")
+            Map<String, Object> scores = (Map<String, Object>) detail.get("scores");
+            if (scores != null) {
                 scores.forEach((emotion, score) -> {
-                    totalEmotions.merge(emotion,
-                            Double.parseDouble(score.toString()), Double::sum);
+                    // @class 키는 건너뛰기
+                    if (!"@class".equals(emotion) && score instanceof Number) {
+                        totalEmotions.merge(emotion,
+                                ((Number) score).doubleValue(),
+                                Double::sum);
+                    }
                 });
                 sentenceCount[0]++;
             }
         }
+
+//        for (Map<String, Object> result : analysisResults) {
+//            Map<String, Object> analysis = (Map<String, Object>) result.get("analysis");
+//            List<Map<String, Object>> analysisDetails =
+//                    (List<Map<String, Object>>) analysis.get("analysis_results");
+//
+//            for (Map<String, Object> detail : analysisDetails) {
+//                utterances.add((String) detail.get("text"));
+//                Map<String, Object> scores = (Map<String, Object>) detail.get("scores");
+//
+//                scores.forEach((emotion, score) -> {
+//                    totalEmotions.merge(emotion,
+//                            Double.parseDouble(score.toString()), Double::sum);
+//                });
+//                sentenceCount[0]++;
+//            }
+//        }
+
 
         // 평균 감정 점수 계산
         Map<String, String> emotionPercentages = new HashMap<>();
@@ -70,13 +95,12 @@ public class OpenAiService {
         emotionPercentages.forEach((emotion, percentage) ->
                 prompt.append("- ").append(emotion).append(": ").append(percentage).append("\n"));
 
-        // JSON 템플릿을 StringBuilder로 구성
-        prompt.append("\n다음 JSON 형식으로 응답해주세요:\n");
+        prompt.append("\n다음 JSON 형식으로 응답해 주시기 바랍니다:\n");
         prompt.append("{\n");
         prompt.append("  \"report\": {\n");
         prompt.append("    \"userId\": ").append(userId).append(",\n");
-        prompt.append("    \"title\": \"토론 분석 리포트 제목 (이모지 포함)\",\n");
-        prompt.append("    \"summary\": \"개인화된 토론 내용 요약 (이모지와 친근한 MZ 말투 사용)\",\n");
+        prompt.append("    \"title\": \"토론 분석 리포트 제목 (이모지를 포함해 주세요)\",\n");
+        prompt.append("    \"summary\": \"개인화된 토론 내용 요약 (이모지와 정중한 말투를 사용해 주세요)\",\n");
         prompt.append("    \"emotion_analysis\": {\n");
         prompt.append("      \"기쁨\": \"정확한 비율%\",\n");
         prompt.append("      \"슬픔\": \"정확한 비율%\",\n");
@@ -85,16 +109,32 @@ public class OpenAiService {
         prompt.append("      \"중립\": \"정확한 비율%\"\n");
         prompt.append("    },\n");
         prompt.append("    \"key_arguments\": [\n");
-        prompt.append("      \"주요 논점 1\",\n");
-        prompt.append("      \"주요 논점 2\"\n");
+        prompt.append("      \"주요 논점을 작성해 주세요\"\n");
         prompt.append("    ],\n");
-        prompt.append("    \"debate_style\": \"개인화된 토론 스타일 분석 (이모지와 재미있는 표현 사용)\",\n");
-        prompt.append("    \"suggestions\": \"맞춤형 개선 제안 (긍정적이고 응원하는 톤으로)\"\n");
+        prompt.append("    \"debate_analysis\": {\n");
+        prompt.append("      \"선택한 답변\": \"토론자께서 선택하신 옵션\",\n");
+        prompt.append("      \"주요 발언\": [\n");
+        prompt.append("        \"토론자께서 하신 주요 발언 1\",\n");
+        prompt.append("        \"토론자께서 하신 주요 발언 2\"\n");
+        prompt.append("      ],\n");
+        prompt.append("      \"논리적 설득력 점수\": \"1~10 점수로 평가해 주세요\",\n");
+        prompt.append("      \"감정적 반응 분석\": \"격렬하셨는지, 유머러스하셨는지, 차분하셨는지 등을 분석해 주세요\",\n");
+        prompt.append("      \"토론에서의 역할\": \"중재자, 도전자, 감정적 반응을 보이신 분 등으로 분석해 주세요\",\n");
+        prompt.append("      \"논쟁 발생 시 반응\": \"상대방과의 의견 차이를 어떻게 다루셨는지 분석해 주세요\"\n");
+        prompt.append("    },\n");
+        prompt.append("    \"ai_evaluation\": {\n");
+        prompt.append("      \"종합 평가\": \"토론자의 스타일을 한 문장으로 정중하게 요약해 주시기 바랍니다. 예시:\n");
+        prompt.append("      - '깊은 통찰력을 지니시고, 타인의 감정을 잘 공감하시는 분석가이십니다'\n");
+        prompt.append("      - '논리로 상대를 설득하시는 냉철한 토론가이십니다'\n");
+        prompt.append("      - '자신의 신념을 끝까지 지키시는 열정적인 토론가이십니다'\n");
+        prompt.append("      - '모든 의견을 존중하시는 배려심 깊은 중재자이십니다'\n");
+        prompt.append("      토론자의 감정 반응과 토론 태도를 반영하여 정중하게 평가해 주시기 바랍니다.\"\n");
+        prompt.append("    }\n");
         prompt.append("  }\n");
         prompt.append("}\n");
 
-        prompt.append("\n반드시 위 JSON 형식을 지켜주시고, 모든 감정 수치를 정확하게 포함해주세요.");
-        prompt.append("\n각 사용자의 토론 스타일과 감정 패턴을 반영한 개인화된 분석을 제공해주세요.");
+        prompt.append("\n반드시 위 JSON 형식을 지켜주시고, 모든 감정 수치를 정확하게 포함해 주시기 바랍니다.");
+        prompt.append("\n각 토론자의 스타일과 감정 패턴을 반영한 개인화된 분석을 정중하게 제공해 주시기 바랍니다.");
 
         return prompt.toString();
     }
@@ -106,8 +146,20 @@ public class OpenAiService {
 
             Map<String, Object> analysisMap = objectMapper.readValue(analysisResult, Map.class);
             Map<String, Object> data = (Map<String, Object>) analysisMap.get("data");
-            List<Map<String, Object>> analysisResults =
-                    (List<Map<String, Object>>) data.get("analysis_results");
+
+            if (data == null) {
+                throw new IllegalArgumentException("데이터가 null입니다");
+            }
+
+            List<Map<String, Object>> analysisResults = (List<Map<String, Object>>) data.get("analysis_results");
+
+
+            // 1. 입력값 검증
+            if (analysisResult == null || analysisResult.isEmpty()) {
+                log.error("분석 결과가 비어있습니다");
+                throw new IllegalArgumentException("분석 결과가 비어있습니다");
+            }
+
 
             String prompt = buildReportPrompt(analysisResults, userId);
 
@@ -122,7 +174,6 @@ public class OpenAiService {
             ));
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, request, Map.class);
 
             String reportJson = extractReportFromResponse(response.getBody());

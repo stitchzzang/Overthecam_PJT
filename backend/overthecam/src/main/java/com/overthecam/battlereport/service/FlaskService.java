@@ -6,10 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -22,24 +24,34 @@ public class FlaskService {
     public String analyzeText(Integer userId, String text) {
         try {
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("userId", userId);
+            requestBody.put("speakerId", userId);
             requestBody.put("text", text);
 
+            log.info("플라스크 시작 전");
+
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "http://localhost:5001/api/debate/analyze",
+                    "https://overthecam.site:15555/python/api/debate/analyze",
                     requestBody,
                     String.class
             );
 
-            String analysisResult = response.getBody();
+            String analysisResult = Optional.ofNullable(response.getBody())
+                    .orElseThrow(() -> new RuntimeException("분석 결과가 없습니다."));
 
-            // 분석 결과를 Redis에 저장
+            validateAnalysisResult(analysisResult);
+            //redis 저장 로직
             redisService.saveAnalysisResultToRedis(userId, analysisResult);
 
             return analysisResult;
-        } catch (Exception e) {
-            log.error("텍스트 분석 중 오류 발생", e);
-            throw new RuntimeException("텍스트 분석 실패", e);
+        } catch (RestClientException e) {
+            log.error("Flask 서버 통신 오류", e);
+            throw new RuntimeException("Flask 서버 통신 실패", e);
+        }
+    }
+
+    private void validateAnalysisResult(String analysisResult) {
+        if (analysisResult == null || analysisResult.trim().isEmpty()) {
+            throw new IllegalArgumentException("분석 결과가 비어있습니다.");
         }
     }
 }

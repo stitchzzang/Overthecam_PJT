@@ -9,16 +9,13 @@ import com.overthecam.battlereport.service.OpenAiService;
 import com.overthecam.battlereport.service.RedisService;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.common.dto.ErrorResponse;
-import io.micrometer.common.util.StringUtils;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,30 +29,26 @@ public class BattleReportController {
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
 
+
+
     @PostMapping("/text")
-    public CommonResponseDto<String> getText(@RequestBody Map<String, Object> request) {
+    public CommonResponseDto<?> getText(@RequestBody ReportRealTimeRequest request) {
         try {
-            // 로그로 전체 요청 데이터 출력
-            log.info("Received full request: {}", request);
 
-            // text 추출
-            String text = extractTextFromRequest(request);
+            log.info("시작점");
 
-            // userId는 hardcoding
-            Integer userId = 1;
-
-            log.info("Received text analysis request for userId: {} with text length: {}",
-                    userId, text.length());
-
-            // 플라스크 분석 결과를 받아서 직접 Redis에 저장
-            String analysisResult = flaskService.analyzeText(userId, text);
+            //flask에 보냄
+            String analysisResult = flaskService.analyzeText(request.getUserId(), request.getText());
 
             log.info("Analysis Result: {}", analysisResult);
 
-            return CommonResponseDto.ok();
+            return CommonResponseDto.ok(analysisResult);
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 형식", e);
+            return CommonResponseDto.error(ErrorResponse.of(BattleReportErrorCode.ANALYSIS_DATA_NOT_FOUND));
         } catch (Exception e) {
-            log.error("Error processing text analysis request", e);
-            return CommonResponseDto.ok();
+            log.error("분석 중 오류 발생", e);
+            return CommonResponseDto.error(ErrorResponse.of(BattleReportErrorCode.REPORT_GENERATION_FAILED));
         }
     }
 

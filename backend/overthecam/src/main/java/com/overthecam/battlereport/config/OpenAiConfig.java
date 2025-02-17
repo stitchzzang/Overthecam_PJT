@@ -11,7 +11,8 @@ public class OpenAiConfig {
     public RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setConnectTimeout(5000);     // 연결 타임아웃 5초
-        requestFactory.setReadTimeout(30000);        // 읽기 타임아웃 5초
+        requestFactory.setReadTimeout(30000);       // 읽기 타임아웃 30초
+        // TODO: 필요시 재시도 정책 추가
 
         return new RestTemplate(requestFactory);
     }
