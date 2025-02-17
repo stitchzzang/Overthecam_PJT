@@ -177,3 +177,71 @@ footer {
 .menu-link-5.active {
   @apply translate-y-[270px];
 }
+
+/* Popular Vote Carousel Styles */
+.popular-vote-carousel {
+  position: relative;
+  width: 650px;
+  height: 300px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.popular-vote-list {
+  height: 100%;
+  position: relative;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.popular-vote-item {
+  position: absolute;
+  width: 100%;
+  left: 50%;
+  top: 50%;  /* 추가 */
+  transform: translate(-50%, -50%);  /* 수정: X, Y축 모두 중앙 정렬 */
+  transition: all 0.5s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.popular-vote-item.prev {
+  transform: translate(-150%, -50%);  /* 수정: Y축 중앙 유지 */
+  opacity: 0.7;
+  z-index: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  filter: blur(1px);
+}
+
+.popular-vote-item.active {
+  transform: translate(-50%, -50%);  /* 수정: Y축 중앙 유지 */
+  opacity: 1;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.popular-vote-item.next {
+  transform: translate(50%, -50%);  /* 수정: Y축 중앙 유지 */
+  opacity: 0.7;
+  z-index: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  filter: blur(1px);
+}
+
+.popular-vote-window {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 650px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  border: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+}
