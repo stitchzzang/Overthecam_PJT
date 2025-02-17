@@ -6,7 +6,8 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
 
-  const fetchRandomTopic = async () => {
+  const fetchRandomTopic = async (e) => {
+    e.stopPropagation();
     setIsLoading(true);
     setIsSpinning(true);
     try {
@@ -58,7 +59,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
 
   return (
     <dialog ref={ref} className="modal rounded-[30px] overflow-hidden">
-      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay">
+      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-8 mt-2">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
