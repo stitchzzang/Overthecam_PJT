@@ -64,7 +64,7 @@ function VoteDetailModal({ voteData, isLoading, onClose, clickedElement }) {
               <span className="text-cusRed text-lg font-bold">A. {voteData.options[0].optionTitle}</span>
               <span className="text-cusBlue text-lg font-bold">B. {voteData.options[1].optionTitle}</span>
             </div>
-            <div className="h-12 bg-gray-100 rounded-[1rem] flex overflow-hidden relative clay">
+            <div className="h-12 rounded-[1rem] flex overflow-hidden relative">
               {voteData.options[0].votePercentage > 0 && (
                 <div 
                   className="bg-cusRed h-full flex items-center clay"
