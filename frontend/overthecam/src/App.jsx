@@ -4,6 +4,7 @@ import {
   Route,
   useNavigate,
   useLocation,
+  Outlet
 } from "react-router-dom";
 import { useEffect } from "react";
 import "./App.css";
@@ -45,7 +46,8 @@ function ProtectedLogin() {
   return !isLoggedIn ? <Login /> : null;
 }
 
-function PrivateRoute({ children }) {
+// PrivateRoute 컴포넌트 수정
+function PrivateRoute() {
   const isLoggedIn = !!localStorage.getItem("token");
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,7 +58,7 @@ function PrivateRoute({ children }) {
     }
   }, [isLoggedIn, navigate, location]);
 
-  return isLoggedIn ? children : null;
+  return isLoggedIn ? <Outlet /> : null;
 }
 
 function App() {
@@ -81,67 +83,24 @@ function App() {
           />
         </Route>
 
-        {/* 메인 레이아웃과 라우트들 */}
+        {/* 메인 레이아웃과 관련 라우트들 */}
         <Route path="/main" element={<Layout />}>
           <Route index element={<MainPage />} />
           <Route path="search" element={<SearchResultPage />} />
           <Route path="battle-list" element={<BattleMainPage />} />
-          <Route
-            path="create-battle-room"
-            element={
-              <PrivateRoute>
-                <BattleCreatingPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="create-vote"
-            element={
-              <PrivateRoute>
-                <VoteCreatingPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="store"
-            element={
-              <PrivateRoute>
-                <ItemShopPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypage"
-            element={
-              <PrivateRoute>
-                <MyPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypagereport"
-            element={
-              <PrivateRoute>
-                <MyPageReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypagebattle"
-            element={
-              <PrivateRoute>
-                <MyPageBattle />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypagevote"
-            element={
-              <PrivateRoute>
-                <MyPageVote />
-              </PrivateRoute>
-            }
-          />
+
+          {/* Protected Routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="create-battle-room" element={<BattleCreatingPage />} />
+            <Route path="create-vote" element={<VoteCreatingPage />} />
+            <Route path="store" element={<ItemShopPage />} />
+            <Route path="mypage" element={<MyPage />} />
+            <Route path="mypagereport" element={<MyPageReport />} />
+            <Route path="mypagebattle" element={<MyPageBattle />} />
+            <Route path="mypagevote" element={<MyPageVote />} />
+          </Route>
+
+          {/* Public Routes */}
           <Route path="vote" element={<VotePage />} />
           <Route path="vote-detail/:voteId" element={<VoteDetailPage />} />
           <Route path="login" element={<ProtectedLogin />} />
