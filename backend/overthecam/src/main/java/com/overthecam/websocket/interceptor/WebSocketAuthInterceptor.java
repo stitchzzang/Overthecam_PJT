@@ -61,6 +61,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
         else if (StompCommand.SEND.equals(accessor.getCommand())) {
             log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
+            log.debug("메시지 내용: {}", message.getPayload());  // 추가
+            log.debug("메시지 헤더: {}", message.getHeaders());  // 추가
             return handleSend(message);
         }
         else if(StompCommand.DISCONNECT.equals(accessor.getCommand())){
