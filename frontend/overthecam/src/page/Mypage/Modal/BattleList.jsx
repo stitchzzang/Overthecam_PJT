@@ -83,7 +83,7 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
               <span className="text-cusRed text-lg font-bold">A. {battleDetail.voteStats[0].optionTitle}</span>
               <span className="text-cusBlue text-lg font-bold">B. {battleDetail.voteStats[1].optionTitle}</span>
             </div>
-            <div className="h-12 bg-gray-100 rounded-[1rem] flex overflow-hidden relative clay">
+            <div className="h-12 rounded-[1rem] flex overflow-hidden relative">
               <div 
                 className="bg-cusRed h-full flex items-center clay"
                 style={{ width: `${battleDetail.voteStats[0].votePercentage}%` }}
