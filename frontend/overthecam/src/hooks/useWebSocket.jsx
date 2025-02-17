@@ -63,6 +63,7 @@ const useWebSocket = (battleId) => {
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
   const [myResult, setMyResult] = useState(null);
+  const [isBattleEnded, setIsBattleEnded]= useState(false);
   const [isDraw, setIsDraw] = useState(false);
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
@@ -196,6 +197,7 @@ const useWebSocket = (battleId) => {
              });
              setMyResult(me);
              setIsDraw(data.winningInfo.draw);
+             setIsBattleEnded(true);
           }
           break;
         default:
@@ -510,10 +512,10 @@ const useWebSocket = (battleId) => {
     gameResult,
     myScores,
     setMyScores,
-    finishBattle,
     myRole,
     myResult,
-    isDraw
+    isDraw,
+    isBattleEnded,
   };
 };
 

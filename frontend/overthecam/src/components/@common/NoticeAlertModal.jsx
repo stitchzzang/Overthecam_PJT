@@ -18,7 +18,7 @@ const NoticeAlertModal = forwardRef(function NoticeAlertModal(_, ref) {
 
         setTimeout(() => {
           modalRef.current?.close();
-        }, 3000);
+        }, 1000);
       } catch (error) {
         console.error("모달 표시 중 에러:", error);
       }

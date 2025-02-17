@@ -30,7 +30,6 @@ function BattleTimer({ onTimerStoped }) {
         if (prevTime <= 0) {
           clearInterval(timer);
           finishBattle();
-          onTimerStoped("게임이 종료 되었습니다.");
           return 0;
         }
         // 2분 남았을 때

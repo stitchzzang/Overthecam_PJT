@@ -10,6 +10,7 @@ import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiti
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
+import BattleResultModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleResultModal";
 import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
@@ -34,9 +35,9 @@ function BattleRoomPage() {
     disconnectWS,
     vote,
     startBattle,
-    gameInfo,
     readyForBattle,
     isStarted,
+    isBattleEnded,
   } = useWebSocketContext();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
@@ -55,13 +56,15 @@ function BattleRoomPage() {
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
   const leaveConfirmModal = useRef(); // 나가기 확인 버튼
   const endBattleModal = useRef(); // 배틀 종료 버튼
+  const resultModal = useRef(); // 결과 알림모달
 
-  // 예외처리 관련련
+  // 예외처리 관련
   const failTost = useRef(); // 토스트
   const noticeToast = useRef(); // 알림 토스트
   const isCleanedUp = useRef(); // 클린업 함수 수행 여부 판단
 
-  // 예외처리
+  // 로딩
+  const [isResultLoading, setIsResultLoading] = useState(false);
 
   // 새로고침 버튼누르면 브라우저 보안 정책에 의해서 기본 alret 뜸
   const handleRefreshAttempt = (e) => {
@@ -401,11 +404,6 @@ function BattleRoomPage() {
     await cleanup(room);
   };
 
-  const handleEndBattle = async () => {
-    // 배틀 종료 후 결과 알림 등 로직
-    await cleanup(room);
-  };
-
   const battlerModalShow = (e) => {
     battlerSettingModal.current?.showModal(vote.option1, vote.option2);
   };
@@ -426,6 +424,18 @@ function BattleRoomPage() {
       noticeToast.current?.showAlert("배틀이 시작 되었습니다.");
     }
   }, [isStarted]);
+
+  useEffect(() => {
+    if (isBattleEnded) {
+      setIsResultLoading(true); // 로딩 시작
+      noticeToast.current?.showAlert("배틀이 종료 되었습니다.");
+      // 3초 조금 더 여유 있게 후에 결과 모달 표시
+      setTimeout(() => {
+        setIsResultLoading(false); // 로딩 끝
+        resultModal.current?.showAlert();
+      }, 2000);
+    }
+  }, [isBattleEnded]);
 
   // 연결 상태에 따른 에러 처리
   if (status === "ERROR") {
@@ -451,7 +461,18 @@ function BattleRoomPage() {
         onshowLeaveConfirmModal={handleLeavRoom}
         onShowEndBattleModal={endBattleModalShow}
       />
-      <div className="render-change flex-1 h-0">
+
+      <div className="render-change flex-1 h-0 relative">
+        {isResultLoading ? (
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cusRed"></div>
+              <h3 className="text-xl font-bold">결과 집계 중</h3>
+              <p className="text-gray-600">잠시만 기다려주세요...</p>
+            </div>
+          </div>
+        ) : null}
+
         {!isStarted ? (
           <div className="flex h-full">
             {/* h-full 유지 */}
@@ -491,7 +512,8 @@ function BattleRoomPage() {
         ref={leaveConfirmModal}
         onConfirm={handleConfirmLeave}
       />
-      <BattleEndModal ref={endBattleModal} onFinish={handleEndBattle} />
+      <BattleEndModal ref={endBattleModal} />
+      <BattleResultModal ref={resultModal} onFinish={handleConfirmLeave} />
     </div>
   );
 }
