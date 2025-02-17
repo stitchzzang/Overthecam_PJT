@@ -122,7 +122,7 @@ const PopularVote = ({ onVoteUpdate }) => {
       </div>
       
       <div className="p-4">
-        <div className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+        <div className="clay bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="text-left">
               <Link 
@@ -163,19 +163,18 @@ const PopularVote = ({ onVoteUpdate }) => {
                   B. {popularVote.options[1].optionTitle}
                 </div>
               </div>
-              <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+              <div className="relative h-12 rounded-full overflow-hidden">
                 {popularVote.options[0].votePercentage > 0 && (
                   <div
                     className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
                     style={{ width: `${popularVote.options[0].votePercentage >= 100 ? 100 : popularVote.options[0].votePercentage}%` }}
                   >
                     {popularVote.options[0].votePercentage < 25 ? (
-                      <div className="text-xs flex flex-col">
+                      <div className="text-base flex flex-col">
                         <div>{Math.round(popularVote.options[0].votePercentage)}%</div>
-                        <div>({popularVote.options[0].voteCount}명)</div>
                       </div>
                     ) : (
-                      <>{Math.round(popularVote.options[0].votePercentage)}% ({popularVote.options[0].voteCount}명)</>
+                      <span className="text-lg">{Math.round(popularVote.options[0].votePercentage)}%</span>
                     )}
                   </div>
                 )}
@@ -185,12 +184,11 @@ const PopularVote = ({ onVoteUpdate }) => {
                     style={{ width: `${popularVote.options[1].votePercentage >= 100 ? 100 : popularVote.options[1].votePercentage}%` }}
                   >
                     {popularVote.options[1].votePercentage < 25 ? (
-                      <div className="text-xs flex flex-col items-end">
+                      <div className="text-base flex flex-col items-end">
                         <div>{Math.round(popularVote.options[1].votePercentage)}%</div>
-                        <div>({popularVote.options[1].voteCount}명)</div>
                       </div>
                     ) : (
-                      <>{Math.round(popularVote.options[1].votePercentage)}% ({popularVote.options[1].voteCount}명)</>
+                      <span className="text-lg">{Math.round(popularVote.options[1].votePercentage)}%</span>
                     )}
                   </div>
                 )}
@@ -399,19 +397,18 @@ const MainPage = () => {
           B. {vote.options[1].optionTitle}
         </div>
       </div>
-      <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+      <div className="relative h-12 rounded-full overflow-hidden">
         {vote.options[0].votePercentage > 0 && (
           <div
             className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
             style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
           >
             {vote.options[0].votePercentage < 25 ? (
-              <div className="text-xs flex flex-col">
+              <div className="text-base flex flex-col">
                 <div>{Math.round(vote.options[0].votePercentage)}%</div>
-                <div>({vote.options[0].voteCount}명)</div>
               </div>
             ) : (
-              <>{Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)</>
+              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
             )}
           </div>
         )}
@@ -421,12 +418,11 @@ const MainPage = () => {
             style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
           >
             {vote.options[1].votePercentage < 25 ? (
-              <div className="text-xs flex flex-col items-end">
+              <div className="text-base flex flex-col items-end">
                 <div>{Math.round(vote.options[1].votePercentage)}%</div>
-                <div>({vote.options[1].voteCount}명)</div>
               </div>
             ) : (
-              <>{Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)</>
+              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
             )}
           </div>
         )}
@@ -537,7 +533,7 @@ const MainPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 pr-8 bg-white hover:scale-105 transition-transform h-[160px]">
+                      <div className="clay p-4 pr-8 bg-white h-[160px] hover:shadow-xl transition-shadow">
                         <div className="flex h-full gap-6 flex-col sm:flex-row items-center">
                           {/* 썸네일 이미지 */}
                           <div className="w-full sm:w-24 h-24 flex-shrink-0 ml-4">
@@ -561,7 +557,7 @@ const MainPage = () => {
                               <StatusBadge status={battle.status} onClick={(e) => {
                                 e.stopPropagation();
                                 handleBattleEnter(battle.battleId, battle.status);
-                              }} />
+                              }} className="btn px-4 py-2 bg-cusBlue text-white text-sm" />
                             </div>
                           </div>
                         </div>
