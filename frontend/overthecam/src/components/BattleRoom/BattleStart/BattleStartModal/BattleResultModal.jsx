@@ -1,4 +1,10 @@
-import { forwardRef, useState, useEffect, useRef, useImperativeHandle } from "react";
+import {
+  forwardRef,
+  useState,
+  useEffect,
+  useRef,
+  useImperativeHandle,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
 
@@ -26,7 +32,6 @@ const BattleResultModal = forwardRef(function BattleResultModal(
       dialogRef.current?.showModal();
     },
   }));
-  
 
   // gameResult가 없을 때의 처리 추가
   if (!gameResult || !gameResult.options) {
@@ -58,19 +63,19 @@ const BattleResultModal = forwardRef(function BattleResultModal(
           {/* Header */}
           <h4 className="text-xl font-bold text-cusBlack">게임 종료</h4>
 
+          <h4 className="text-lg font-semibold text-cusBlack">
+            {gameResult.battleTitle}
+          </h4>
           {/* 투표 결과 그래프 */}
-          <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden mb-8">
-            <div className="text-lg font-semibold text-cusBlack absolute left-1/2 -translate-x-1/2 z-10">
-              {gameResult.battleTitle}
-            </div>
-            <div className="flex h-full w-full">
+          <div className="relative h-12 clay bg-gray-200 !rounded-full overflow-hidden mb-8">
+            <div className="flex h-full w-[350px]">
               <div
                 className="h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold transition-all duration-300"
                 style={{
                   width: `${options[0]?.percentage || 50}%`,
                 }}
               >
-                {options[0]?.percentage || 0}%
+                {options[0]?.percentage || 0}% {options[0]?.optionTitle}
               </div>
               <div
                 className="h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold transition-all duration-300"
@@ -78,7 +83,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
                   width: `${options[1]?.percentage || 50}%`,
                 }}
               >
-                {options[1]?.percentage || 0}%
+                {options[0]?.optionTitle} {options[1]?.percentage || 0}%
               </div>
             </div>
           </div>
@@ -110,7 +115,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
             <button
               type="button"
               onClick={onLeaveRoom}
-              className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
+              className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
             >
               확인
             </button>
