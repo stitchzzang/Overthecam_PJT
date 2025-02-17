@@ -1,3 +1,8 @@
+# analyzer/debate_emotion_config.py
+# 감정 분석 관련 모든 설정 관리
+# 6가지 감정 레이블 및 설명 정의
+# GPU 설정 및 모델 경로 관리
+
 import os
 import torch
 import threading
@@ -5,8 +10,8 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import logging
 from transformers import BertTokenizer, BertForSequenceClassification
-import datetime  # 상단에 import 추가
-
+import datetime
+from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +39,17 @@ class DebateAnalyzer:
     def initialize_model(self):
         """BERT 모델 초기화"""
         try:
-            model_path = Path('/python-analyzer/models/saved/emotion_model')
+            # 로컬 개발환경의 기본 모델 경로
+            base_path = Path("C:/Users/SSAFY/Desktop/python-analyzer")
+            model_path = base_path / 'models' / 'saved' / 'emotion_model'
 
+            logger.info(f"Trying to load model from: {model_path}")
+            
             if not model_path.exists():
-                raise ValueError(f"Model path not found: {model_path}")
+                # 도커 환경의 경로 (나중에 사용)
+                model_path = Path('/python-analyzer/models/saved/emotion_model')
+                if not model_path.exists():
+                    raise ValueError(f"Model path not found: {model_path}")
                 
             # 모델과 토크나이저 로드
             self.tokenizer = BertTokenizer.from_pretrained(str(model_path))
@@ -50,14 +62,7 @@ class DebateAnalyzer:
             raise
 
     def analyze_debate_segment(self, texts: List[str]) -> List[Dict]:
-        """여러 문장을 배치로 처리하여 감정 분석
-        
-        Args:
-            texts: 분석할 문장 리스트 (3-5문장)
-            
-        Returns:
-            감정 분석 결과 리스트
-        """
+        """여러 문장을 배치로 처리하여 감정 분석"""
         try:
             if not texts:
                 return []
@@ -110,7 +115,7 @@ class DebateAnalyzer:
                 'analysis_results': results,
                 'total_chunks': len(text_chunks),
                 'timestamp': datetime.datetime.now().isoformat()
-        }
+            }
             
         except Exception as e:
             logger.error(f"Text processing error for debate {debate_id}: {str(e)}")
@@ -119,3 +124,37 @@ class DebateAnalyzer:
                 'error': str(e),
                 'status': 'failed'
             }
+
+@dataclass
+class TrainingConfig:
+    # 기본 모델 설정
+    model_name: str = "klue/bert-base"
+    num_labels: int = 5
+    max_length: int = 256
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    # 경로 설정
+    base_path: Path = Path("models")
+    model_path: Path = field(default_factory=lambda: Path("models/saved/emotion_model"))
+    checkpoint_path: Path = field(default_factory=lambda: Path("models/checkpoints"))
+    
+    # 감정 레이블
+    emotion_labels: dict = field(default_factory=lambda: {
+        '기쁨': '기쁨',
+        '슬픔': '슬픔', 
+        '분노': '분노',
+        '불안': '불안',
+        '중립': '중립'
+    })
+    
+    # 학습 관련 설정
+    epochs: int = 2
+    batch_size: int = 128
+    learning_rate: float = 5e-5
+    weight_decay: float = 0.01
+    warmup_steps: int = 0
+    max_grad_norm: float = 1.0
+    
+    # 데이터 경로
+    train_data_path: str = "data/labeled/train.json"
+    eval_data_path: str = "data/labeled/eval.json"
