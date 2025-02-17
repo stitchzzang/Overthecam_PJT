@@ -38,12 +38,6 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     return null; // 또는 로딩 상태를 보여줄 수 있습니다
   }
 
-  const handleClick = (e) => {
-    if (e.target === dialogRef.current) {
-      dialogRef.current.close();
-    }
-  };
-
   const onLeaveRoom = async () => {
     dialogRef.current.close();
     if (onFinish) {
@@ -56,7 +50,6 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     <>
       <dialog
         ref={dialogRef}
-        onClick={handleClick}
         className="rounded-xl shadow-2xl p-6 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm"
       >
         <div className="flex flex-col items-center gap-4">
