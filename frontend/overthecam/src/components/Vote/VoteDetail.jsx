@@ -1,11 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import VoteDeleteModal from './VoteModal/VoteDeleteModal';
 import { authAxios } from '../../common/axiosinstance';
+import Swal from 'sweetalert2';
 
 const VoteDetail = ({ voteData, onDelete }) => {
   const navigate = useNavigate();
-  const deleteModalRef = useRef();
   const [hasVoted, setHasVoted] = useState(false);
   const [currentVoteData, setCurrentVoteData] = useState(voteData);
 
@@ -128,6 +127,42 @@ const VoteDetail = ({ voteData, onDelete }) => {
 
   // 총 투표 수 계산
   const totalVotes = currentVoteData.options.reduce((sum, option) => sum + option.voteCount, 0);
+
+  // handleDelete 함수 추가
+  const handleDelete = async () => {
+    try {
+      const result = await Swal.fire({
+        title: '투표를 삭제하시겠습니까?',
+        text: "삭제된 투표는 복구할 수 없습니다.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: '삭제',
+        cancelButtonText: '취소'
+      });
+
+      if (result.isConfirmed) {
+        await onDelete();
+        
+        await Swal.fire({
+          title: '삭제되었습니다!',
+          icon: 'success',
+          confirmButtonColor: '#3085d6'
+        });
+        
+        navigate('/main/vote');
+      }
+    } catch (error) {
+      console.error('삭제 실패:', error);
+      await Swal.fire({
+        title: '삭제 실패',
+        text: '투표 삭제에 실패했습니다.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6'
+      });
+    }
+  };
 
   if (!currentVoteData) return <div>로딩 중...</div>;
 
@@ -351,11 +386,11 @@ const VoteDetail = ({ voteData, onDelete }) => {
           </div>
         )}
 
-        {/* 하단 정보와 삭제 버튼 */}
+        {/* 하단 정보와 삭제 버튼 수정 */}
         <div className="flex items-center justify-end text-sm text-gray-500">
           {isCreator && (
             <button 
-              onClick={() => deleteModalRef.current?.showModal()}
+              onClick={handleDelete}
               className="btn px-6 py-2 bg-cusPink-light text-cusRed rounded-full hover:bg-cusPink text-sm font-medium text-center"
             >
               삭제
@@ -363,8 +398,6 @@ const VoteDetail = ({ voteData, onDelete }) => {
           )}
         </div>
       </div>
-
-      <VoteDeleteModal ref={deleteModalRef} onDelete={onDelete} />
     </div>
   );
 };
