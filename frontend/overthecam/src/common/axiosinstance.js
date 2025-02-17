@@ -19,13 +19,7 @@ authAxios.interceptors.request.use(
       try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(window.atob(base64));
-        
-        console.log('토큰 페이로드:', payload);
-        console.log('현재 시간:', Math.floor(Date.now() / 1000));
-        console.log('만료 시간:', payload.exp);
-        console.log('남은 시간:', payload.exp - Math.floor(Date.now() / 1000), '초');
-        
+        const payload = JSON.parse(window.atob(base64));        
         config.headers.Authorization = `Bearer ${token}`;
       } catch (error) {
         console.error('토큰 디코딩 에러:', error);

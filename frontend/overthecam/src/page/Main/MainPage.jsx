@@ -60,9 +60,6 @@ const PopularVote = ({ onVoteUpdate }) => {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
 
-      // 응답 구조 확인을 위한 로그
-      console.log("전체 응답:", response.data);
-
       // 데이터 접근 경로 수정
       const voteList = response.data?.content;
       
@@ -72,7 +69,6 @@ const PopularVote = ({ onVoteUpdate }) => {
           .sort((a, b) => b.totalVoteCount - a.totalVoteCount)
           .slice(0, 5);
         
-        console.log("정렬된 상위 5개 투표:", sortedVotes);
         setPopularVotes(sortedVotes);
       } else {
         console.error("투표 목록이 비어있습니다");
@@ -534,7 +530,7 @@ const MainPage = () => {
                 duration: 2,
                 x: { duration: 1 },
               }}
-              className="flex flex-col mb-24 battle-section"
+              className="flex flex-col mb-16 battle-section"
             >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
@@ -542,7 +538,7 @@ const MainPage = () => {
                   to="/main/battle-list"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
-                  + 더보기
+                  + <span className="font-bold">more</span>
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -609,7 +605,7 @@ const MainPage = () => {
                   to="/main/vote"
                   className="text-cusBlue text-xl font-medium justify-end mr-5"
                 >
-                  + 더보기
+                  + <span className="font-bold">more</span>
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
