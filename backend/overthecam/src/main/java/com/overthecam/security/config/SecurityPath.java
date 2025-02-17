@@ -30,7 +30,6 @@ public enum SecurityPath {
     // 욕설 필터링 관련 경로
     BADWORD_FILTER("/api/bad-word/**");
 
-
     private final String path;
 
     SecurityPath(String path) {

@@ -1,136 +1,77 @@
-//package com.overthecam.battlereport.service;
-//
-//
-//import com.overthecam.battle.domain.Battle;
-//import com.overthecam.battle.repository.BattleRepository;
-//import com.overthecam.battlereport.domain.BattleReport;
-//import com.overthecam.battlereport.repository.BattleRecordRepository;
-//import com.overthecam.battlereport.repository.BattleReportRepository;
-//import jakarta.persistence.EntityNotFoundException;
-//import jakarta.transaction.Transactional;
-//import lombok.RequiredArgsConstructor;
-//import lombok.Value;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.stereotype.Service;
-//import org.springframework.web.client.RestTemplate;
-//
-//import java.net.http.WebSocket;
-//
-//@Service
-//@Slf4j
-//@RequiredArgsConstructor
-//public class BattleReportService {
-//    private final BattleRepository battleRepository;
-//    private final WebSocket webSocket;
-//
-//    // Python 모델 서버와 통신하기 위한 RestTemplate
-//    private final RestTemplate restTemplate;
-//
-//    @Value("${model.server.url}")
-//    private String modelServerUrl;
-//
-//    /**
-//     * STT로 변환된 텍스트를 분석하여 리포트 생성
-//     */
-//    @Transactional
-//    public BattleReport analyzeSpeech(Long battleId, BattleAnalysisRequest request) {
-//        Battle battle = battleRepository.findById(battleId)
-//                .orElseThrow(() -> new EntityNotFoundException("Battle not found"));
-//
-//        // 1. STT 텍스트 저장
-//        Speech speech = Speech.builder()
-//                .battle(battle)
-//                .user(request.getUser())
-//                .content(request.getText())
-//                .timestamp(LocalDateTime.now())
-//                .build();
-//        speechRepository.save(speech);
-//
-//        // 2. 감정 분석 요청
-//        EmotionAnalysisResponse emotionAnalysis = analyzeSpeechEmotion(request.getText());
-//
-//        // 3. 논쟁 스타일 분석
-//        DebateStyleAnalysis styleAnalysis = analyzeDebateStyle(request.getText());
-//
-//        // 4. 리포트 생성
-//        BattleReport report = BattleReport.builder()
-//                .battle(battle)
-//                .user(request.getUser())
-//                .emotions(emotionAnalysis.getEmotions())
-//                .debateStyle(styleAnalysis.getStyle())
-//                .summary(generateSummary(emotionAnalysis, styleAnalysis))
-//                .timestamp(LocalDateTime.now())
-//                .build();
-//
-//        // 5. 웹소켓으로 실시간 분석 결과 전송
-//        sendRealtimeAnalysis(battle.getId(), report);
-//
-//        return report;
-//    }
-//
-//    private EmotionAnalysisResponse analyzeSpeechEmotion(String text) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        Map<String, String> requestBody = new HashMap<>();
-//        requestBody.put("text", text);
-//
-//        HttpEntity<Map<String, String>> request =
-//                new HttpEntity<>(requestBody, headers);
-//
-//        return restTemplate.postForObject(
-//                modelServerUrl + "/analyze/emotion",
-//                request,
-//                EmotionAnalysisResponse.class
-//        );
-//    }
-//
-//    private DebateStyleAnalysis analyzeDebateStyle(String text) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        Map<String, String> requestBody = new HashMap<>();
-//        requestBody.put("text", text);
-//
-//        HttpEntity<Map<String, String>> request =
-//                new HttpEntity<>(requestBody, headers);
-//
-//        return restTemplate.postForObject(
-//                modelServerUrl + "/analyze/style",
-//                request,
-//                DebateStyleAnalysis.class
-//        );
-//    }
-//
-//    private String generateSummary(
-//            EmotionAnalysisResponse emotionAnalysis,
-//            DebateStyleAnalysis styleAnalysis
-//    ) {
-//        StringBuilder summary = new StringBuilder();
-//
-//        // 감정 분석 요약
-//        summary.append("# 감정 분석\n");
-//        emotionAnalysis.getEmotions().forEach((emotion, value) -> {
-//            summary.append(String.format("%s: %.1f%%\n", emotion, value * 100));
-//        });
-//
-//        // 논쟁 스타일 분석
-//        summary.append("\n# 논쟁 스타일\n");
-//        String dominantStyle = styleAnalysis.getDominantStyle();
-//        summary.append(String.format("%s 스타일의 토론가입니다.\n", dominantStyle));
-//
-//        // 조언 추가
-//        if (emotionAnalysis.getEmotions().get("분노") > 0.5) {
-//            summary.append("\n💡 조언: 감정을 조금 더 차분히 다스려보세요.");
-//        }
-//
-//        return summary.toString();
-//    }
-//
-//    private void sendRealtimeAnalysis(Long battleId, BattleReport report) {
-//        webSocket.convertAndSend(
-//                "/topic/battle/" + battleId + "/analysis",
-//                report
-//        );
-//    }
-//}
+package com.overthecam.battlereport.service;
+
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class BattleReportService {
+    private final RedisService redisService;
+    private final OpenAiService openAiService;
+
+    @Transactional
+    public Map<String, Object> generateBattleReport(Integer userId) {
+        try {
+            // 1. Redis에서 해당 유저의 모든 감정 분석 데이터 조회
+            Map<String, Object> analysisData = redisService.getRecentAnalysisResult(userId);
+
+            if (analysisData == null) {
+                log.warn("사용자 {}에 대한 분석 데이터를 찾을 수 없습니다.", userId);
+                throw new EntityNotFoundException("사용자 " + userId + "에 대한 분석 데이터가 없습니다.");
+            }
+
+            // 2. 감정 분석 데이터 포맷팅
+            String formattedData = formatAnalysisData(analysisData, userId);
+
+            // OpenAI로 리포트 생성
+            return openAiService.generateReport(formattedData, userId);
+
+        } catch (EntityNotFoundException e) {
+            log.error("분석 데이터 없음: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("배틀 리포트 생성 중 오류 발생", e);
+            throw new RuntimeException("배틀 리포트 생성 실패", e);
+        }
+    }
+
+    private String formatAnalysisData(Map<String, Object> analysisData, Integer userId) {
+        try {
+            StringBuilder formattedData = new StringBuilder();
+
+            // 타입 안전성 추가
+            // 감정 분석 데이터 포맷팅 로직
+            List<Map<String, Object>> analysisResults =
+                    (List<Map<String, Object>>) analysisData.getOrDefault("analysis_results", Collections.emptyList());
+
+            // 발화 텍스트와 감정 데이터 추출
+            for (Map<String, Object> result : analysisResults) {
+                String text = Optional.ofNullable(result.get("text"))
+                        .map(Object::toString)
+                        .orElse("Unknown Text");
+
+                Map<String, Object> emotions =
+                        (Map<String, Object>) result.getOrDefault("emotions", Collections.emptyMap());
+
+                formattedData.append("Text: ").append(text).append("\n");
+                formattedData.append("Emotions: ").append(emotions).append("\n\n");
+            }
+
+            return formattedData.toString();
+
+        } catch (Exception e) {
+            log.error("데이터 포맷팅 중 오류 발생", e);
+            throw new RuntimeException("분석 데이터 포맷팅 실패", e);
+        }
+    }
+}
