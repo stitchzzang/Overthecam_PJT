@@ -117,7 +117,7 @@ const PopularVote = ({ onVoteUpdate }) => {
     <div className="popular-vote-window">
       <div className="flex items-center px-4 py-2 bg-cusGray rounded-t-lg">
         <div className="flex-1 text-left">
-          <h3 className="text-gray-800 font-bold">🔥 실시간 인기 투표</h3>
+          <h3 className="text-gray-800 font-bold">🔥 인기 투표 TOP 5</h3>
         </div>
       </div>
       
@@ -623,9 +623,6 @@ const MainPage = () => {
                         <h2 className="text-xl font-bold mb-2 hover:text-blue-600">
                           {vote.title}
                         </h2>
-                        <p className="text-gray-600 mb-3">
-                          {vote.content}
-                        </p>
                       </div>
 
                       <div className="transition-all duration-300">

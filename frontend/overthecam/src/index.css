@@ -92,11 +92,11 @@ footer {
 /* NavBar Gooey Effect Styles */
 .gooey-filter {
   filter: url(#gooey);
-  z-index: 10;
+  z-index: 20;
 }
 
 .gooey-menu-item {
-  @apply absolute w-36 h-12 bg-cusBlue/90 rounded-full clay transition-all duration-300 ease-in-out;
+  @apply absolute w-36 h-12 bg-cusGray rounded-full clay transition-all duration-300 ease-in-out;
   box-shadow: 
     4px 4px 10px rgba(0, 0, 0, 0.2),
     -4px -4px 10px rgba(255, 255, 255, 0.7),
@@ -142,40 +142,6 @@ footer {
 
 .gooey-menu-item-5.active {
   @apply translate-y-[270px] opacity-100;
-}
-
-.menu-link {
-  @apply absolute w-36 h-12 flex items-center justify-start px-4 text-white 
-    transition-all duration-300 ease-in-out translate-y-0 opacity-0 pointer-events-none z-20;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.menu-link i {
-  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.2));
-}
-
-.menu-link.active {
-  @apply opacity-100 pointer-events-auto;
-}
-
-.menu-link-1.active {
-  @apply translate-y-[10px];
-}
-
-.menu-link-2.active {
-  @apply translate-y-[75px];
-}
-
-.menu-link-3.active {
-  @apply translate-y-[140px];
-}
-
-.menu-link-4.active {
-  @apply translate-y-[205px];
-}
-
-.menu-link-5.active {
-  @apply translate-y-[270px];
 }
 
 /* Popular Vote Carousel Styles */
@@ -244,4 +210,62 @@ footer {
   overflow: visible;
   border: 1px solid #e5e7eb;
   padding-bottom: 8px;
+}
+
+/* 오버레이 스타일 추가 */
+.menu-overlay {
+  @apply fixed inset-0 bg-black/5 backdrop-blur-[2px] opacity-0 pointer-events-none transition-opacity duration-300 z-10;
+}
+
+.menu-overlay.active {
+  @apply opacity-100 pointer-events-auto;
+}
+
+/* 기존 menu-link 스타일 수정 */
+.menu-link {
+  @apply absolute w-36 h-12 flex items-center justify-start px-4 text-cusBlack-light 
+    transition-all duration-300 ease-in-out translate-y-0 opacity-0 pointer-events-none z-30;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 배틀 생성과 투표 생성을 위한 특별한 스타일 수정 */
+.menu-link-1, .menu-link-2 {
+  @apply items-start pt-[9px];  /* 14px에서 12px로 수정 */
+}
+
+.menu-link-1 i, .menu-link-2 i {
+  @apply mt-[0px];  /* 2px에서 1px로 수정 */
+}
+
+.menu-link-1 span, .menu-link-2 span {
+  @apply mt-[1px];  /* 2px에서 1px로 수정 */
+}
+
+.menu-link i {
+  @apply text-cusBlack-light;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.menu-link.active {
+  @apply opacity-100 pointer-events-auto;
+}
+
+.menu-link-1.active {
+  @apply translate-y-[10px];
+}
+
+.menu-link-2.active {
+  @apply translate-y-[75px];
+}
+
+.menu-link-3.active {
+  @apply translate-y-[140px];
+}
+
+.menu-link-4.active {
+  @apply translate-y-[205px];
+}
+
+.menu-link-5.active {
+  @apply translate-y-[270px];
 }
