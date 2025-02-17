@@ -359,48 +359,44 @@ const useWebSocket = (battleId) => {
     [battleId, getResponse]
   );
 
-  const disconnectWS = useCallback(() => {
-    if (stompClientRef.current) {
-      // 상태 변경
-      setWsStatus(WS_STATUS.DISCONNECTED);
+ const disconnectWS = useCallback(() => {
+   if (stompClientRef.current) {
+     setWsStatus(WS_STATUS.DISCONNECTED);
 
-      try {
-        // 먼저 모든 구독을 정상적으로 해제
-        const unsubscribePromises = Object.values(subscriptionsRef.current).map(
-          (subscription) => {
-            return new Promise((resolve) => {
-              if (subscription) {
-                subscription.unsubscribe();
-                // 구독 해제 후 약간의 지연
-                setTimeout(resolve, 100);
-              } else {
-                resolve();
-              }
-            });
-          }
-        );
+     try {
+       const unsubscribePromises = Object.values(subscriptionsRef.current).map(
+         (subscription) => {
+           return new Promise((resolve) => {
+             if (subscription) {
+               subscription.unsubscribe();
+               setTimeout(resolve, 100);
+             } else {
+               resolve();
+             }
+           });
+         }
+       );
 
-        // 모든 구독이 해제되길 기다림
-        Promise.all(unsubscribePromises).then(() => {
-          // 구독 정보 초기화
-          subscriptionsRef.current = {};
+       Promise.all(unsubscribePromises).then(() => {
+         subscriptionsRef.current = {};
 
-          // 연결 종료 전 잠시 대기
-          setTimeout(() => {
-            // STOMP client 비활성화
-            stompClientRef.current.deactivate();
-            stompClientRef.current = null;
-            setWsStatus(WS_STATUS.DISCONNECTED);
-            setError(null);
-          }, 200);
-        });
-      } catch (error) {
-        console.error("Disconnect error:", error);
-        setError("연결 종료 중 오류가 발생했습니다");
-        setWsStatus(WS_STATUS.ERROR);
-      }
-    }
-  }, []);
+         setTimeout(() => {
+           // 여기서 한번 더 체크
+           if (stompClientRef.current) {
+             stompClientRef.current.deactivate();
+             stompClientRef.current = null;
+           }
+           setWsStatus(WS_STATUS.DISCONNECTED);
+           setError(null);
+         }, 200);
+       });
+     } catch (error) {
+       console.error("Disconnect error:", error);
+       setError("연결 종료 중 오류가 발생했습니다");
+       setWsStatus(WS_STATUS.ERROR);
+     }
+   }
+ }, []);
 
   const sendMessage = useCallback(
     (content) => {
