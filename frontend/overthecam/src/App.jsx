@@ -29,6 +29,8 @@ import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 import VotePage from "./page/Vote/VotePage.jsx";
 import OtherProfile from "./page/Mypage/OtherProfile";
 import SearchResultPage from "./page/Main/SearchResultPage.jsx";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ProtectedLogin() {
   const isLoggedIn = !!localStorage.getItem("token");
@@ -60,43 +62,46 @@ function PrivateRoute() {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* 랜딩 페이지 */}
-        <Route path="/" element={<FakeMainPage />} />
+    <>
+      <Router>
+        <Routes>
+          {/* 랜딩 페이지 */}
+          <Route path="/" element={<FakeMainPage />} />
 
-        {/* 메인 레이아웃과 관련 라우트들 */}
-        <Route path="/main" element={<Layout />}>
-          <Route index element={<MainPage />} />
-          <Route path="search" element={<SearchResultPage />} />
-          <Route path="battle-list" element={<BattleMainPage />} />
+          {/* 메인 레이아웃과 관련 라우트들 */}
+          <Route path="/main" element={<Layout />}>
+            <Route index element={<MainPage />} />
+            <Route path="search" element={<SearchResultPage />} />
+            <Route path="battle-list" element={<BattleMainPage />} />
 
-          {/* Protected Routes */}
-          <Route element={<PrivateRoute />}>
-            <Route path="create-battle-room" element={<BattleCreatingPage />} />
-            <Route
-              path="battle-room/:battleId"
-              element={<BattleRoomLoader />}
-            />
-            <Route path="create-vote" element={<VoteCreatingPage />} />
-            <Route path="store" element={<ItemShopPage />} />
-            <Route path="mypage" element={<MyPage />} />
-            <Route path="mypagereport" element={<MyPageReport />} />
-            <Route path="mypagebattle" element={<MyPageBattle />} />
-            <Route path="mypagevote" element={<MyPageVote />} />
+            {/* Protected Routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path="create-battle-room" element={<BattleCreatingPage />} />
+              <Route
+                path="battle-room/:battleId"
+                element={<BattleRoomLoader />}
+              />
+              <Route path="create-vote" element={<VoteCreatingPage />} />
+              <Route path="store" element={<ItemShopPage />} />
+              <Route path="mypage" element={<MyPage />} />
+              <Route path="mypagereport" element={<MyPageReport />} />
+              <Route path="mypagebattle" element={<MyPageBattle />} />
+              <Route path="mypagevote" element={<MyPageVote />} />
+            </Route>
+
+            {/* Public Routes */}
+            <Route path="vote" element={<VotePage />} />
+            <Route path="vote-detail/:voteId" element={<VoteDetailPage />} />
+            <Route path="login" element={<ProtectedLogin />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="find-account" element={<FindAccount />} />
+            <Route path="user-profile/:id" element={<UserProfile />} />
+            <Route path="profile/:id" element={<OtherProfile />} />
           </Route>
-
-          {/* Public Routes */}
-          <Route path="vote" element={<VotePage />} />
-          <Route path="vote-detail/:voteId" element={<VoteDetailPage />} />
-          <Route path="login" element={<ProtectedLogin />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="find-account" element={<FindAccount />} />
-          <Route path="user-profile/:id" element={<UserProfile />} />
-          <Route path="profile/:id" element={<OtherProfile />} />
-        </Route>
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+      <ToastContainer />
+    </>
   );
 }
 
