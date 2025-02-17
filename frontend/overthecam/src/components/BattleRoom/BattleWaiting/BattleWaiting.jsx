@@ -11,14 +11,13 @@ import { useWebSocketContext } from "../../../hooks/useWebSocket";
 import useUserStore from "../../../store/User/UserStore";
 
 function BattleWaiting({
-  room,
   localTrack,
   remoteTracks,
   participantName,
   isMaster,
   host,
   participants,
-  onBattleStart,
+  onShowBattlerModal,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
   const userId = useUserStore((state) => state.userId);
@@ -36,6 +35,10 @@ function BattleWaiting({
   const handleToggleReady = (e) => {
     readyForBattle(userId, participantName, !myReady);
   };
+
+  const handleStart = (e) => {
+    onShowBattlerModal();
+  }
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -143,12 +146,15 @@ function BattleWaiting({
             </div>
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1">
-                <div
-                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
-                  onClick={onBattleStart}
+                <button
+                  disabled={
+                    remoteTracks.length !== readyList.length || !isVoteSubmitted
+                  }
+                  className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg disabled:bg-cusGray disabled:cursor-not-allowed"
+                  onClick={handleStart}
                 >
                   <p>배틀 시작하기</p>
-                </div>
+                </button>
                 <div
                   className="h-1/3 bg-cusYellow my-1 btn flex items-center justify-center !rounded-lg"
                   onClick={onShowVoteCreate}
@@ -158,18 +164,19 @@ function BattleWaiting({
               </div>
             ) : (
               <div className="w-1/4 flex flex-col mx-1">
-                <div
+                <button
                   onClick={handleToggleReady}
+                  disabled={!isVoteSubmitted}
                   className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                 >
                   {myReady ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
-                </div>
+                </button>
               </div>
             )}
           </div>
         </div>
         <div className="w-1/4 flex flex-col h-full mb-5">
-          <BattleChating />
+          <BattleChating outHeight={"h-[550px]"} innerHeight={"h-[550px]"} />
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />

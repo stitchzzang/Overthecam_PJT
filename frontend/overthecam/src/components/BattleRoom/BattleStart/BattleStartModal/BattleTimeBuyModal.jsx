@@ -1,7 +1,8 @@
-import { forwardRef, useRef } from "react"
+import { forwardRef, useRef, useEffect } from "react"
 import SuccessAlertModal from "../../../@common/SuccessAlertModal";
 import FailAlertModal from "../../../@common/FailAlertModal";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
+import NoticeAlertModal from "../../../@common/NoticeAlertModal";
 
 const TimeBuyModal = forwardRef(function TimeBuyModal(
   _,
@@ -9,23 +10,22 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
 ) {
   const { timeExtention, isTimeExtended, error } = useWebSocketContext();
   const successAlertRef = useRef();
+  const noticeToast = useRef();
   const failAlertRef = useRef();
+
+  useEffect(() => {
+    if (isTimeExtended) {
+      if (ref.current) {
+        ref.current.close();
+      }
+      noticeToast.current?.showAlert("시간이 5분 추가 되었습니다.");
+    }
+  }, [isTimeExtended]);
 
   const onPurchase = async () => {
     try {
       // 시간 구매
         timeExtention();
-        if (isTimeExtended) {
-          if (ref.current) {
-            ref.current.close();
-          }
-          successAlertRef.current?.showAlert("구매에 성공했습니다.");
-        } else {
-          if(ref.current) {
-            ref.current.close();
-          }
-          failAlertRef.current?.showAlert(error)
-        }
     } catch (error) {
       // 현재 모달 닫기
       if (ref.current) {
@@ -68,6 +68,7 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
           {/* Confirmation Text */}
           <h5 className="text-lg font-semibold text-cusBlack">
             구매 시 5분이 추가 됩니다. 구매 하시겠습니까? 
+            구매 시 300 포인트가 차감됩니다.
           </h5>
 
           {/* Buttons */}
@@ -91,6 +92,7 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
       </dialog>
       <SuccessAlertModal ref={successAlertRef} />
       <FailAlertModal ref={failAlertRef} />
+      <NoticeAlertModal ref={noticeToast}/>
     </>
   );
 });

@@ -1,18 +1,29 @@
-import { useState, useRef } from "react";
-import BattleVoteBettingModal from "../BattleStart/BattleStartModal/BatlleVoteBettingModal";
+import { useState, useRef, useEffect } from "react";
+import BattleVoteBettingModal from "../BattleStart/BattleStartModal/BattleVoteBettingModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
+import { useBattleStore } from "../../../store/Battle/BattleStore";
 
 function BattleVote({ isWaiting }) {
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [isVoted, setIsVoted] = useState(false);
+  const [selectedOptionId, setSelectedOptionId] = useState(null);
   const bettingModal = useRef();
-  const { vote } = useWebSocketContext();
+  const { vote, myRole } = useWebSocketContext();
+  const [isBattler, setIsBattler] = useState(false);
+  const battleInfo = useBattleStore(s=>s.battleInfo)
 
-  const handleVote = (option) => {
+  const handleVote = (optionId) => {
+    console.log(optionId)
+    setSelectedOptionId(optionId);
     bettingModal.current?.showModal();
-    // 여기에 투표 API 호출 등의 로직 추가
-    // 성공하면 재투표 막기
-    // setSelectedOption(option);
   };
+
+  useEffect (()=>{
+    if (myRole === "PARTICIPANT"){
+      setIsBattler(false)
+    } else {
+      setIsBattler(true)
+    }
+  },[])
   // 배틀방 안에서 띄울 투표 시스템
   return (
     <div className="p-6 bg-white w-full h-full">
@@ -31,26 +42,30 @@ function BattleVote({ isWaiting }) {
       ) : (
         <div className="flex justify-between mx-10 gap-6">
           <button
-            onClick={() => handleVote("option1")}
-            disabled={selectedOption !== null}
+            onClick={() => handleVote(vote.option1Id)}
+            disabled={isVoted || isBattler}
             className={
-              "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300"
+              "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300 disabled:cursor-not-allowed"
             }
           >
             {vote.option1}
           </button>
           <button
-            onClick={() => handleVote("option2")}
-            disabled={selectedOption !== null}
+            onClick={() => handleVote(vote.option2Id)}
+            disabled={isVoted || isBattler}
             className={
-              "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300"
+              "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300 disabled:cursor-not-allowed"
             }
           >
             {vote.option2}
           </button>
         </div>
       )}
-      <BattleVoteBettingModal ref={bettingModal} />
+      <BattleVoteBettingModal
+        ref={bettingModal}
+        battleId={battleInfo.battleId}
+        optionId={selectedOptionId}
+      />
     </div>
   );
 }
