@@ -135,15 +135,8 @@ const PopularVote = ({ onVoteUpdate }) => {
             >
               <div className="p-4">
                 <div className="clay bg-white rounded-lg shadow-lg p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="text-gray-400 font-bold text-xl">
-                      {index === 0 ? "1st" : 
-                       index === 1 ? "2nd" : 
-                       index === 2 ? "3rd" : 
-                       `${index + 1}th`}
-                    </div>
-
-                    <div className="flex-1 text-center">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-left">
                       <Link 
                         to={`/main/vote-detail/${vote.voteId}`}
                         className="block"
@@ -165,7 +158,7 @@ const PopularVote = ({ onVoteUpdate }) => {
                       </p>
                     </div>
 
-                    <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0">
+                    <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0 ml-2">
                       <span className="text-sm text-gray-600 whitespace-nowrap">
                         {vote.totalVoteCount.toLocaleString()}명 참여중
                       </span>
