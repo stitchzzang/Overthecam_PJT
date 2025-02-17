@@ -27,6 +27,7 @@
     "react-joyride": "^2.9.3",
     "react-js-pagination": "^3.0.3",
     "react-router-dom": "^6.28.2",
+    "react-toastify": "^11.0.3",
     "remixicon": "^4.6.0",
     "sockjs": "^0.3.24",
     "sockjs-client": "^1.6.1",
