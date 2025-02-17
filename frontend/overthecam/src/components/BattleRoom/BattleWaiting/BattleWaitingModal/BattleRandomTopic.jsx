@@ -6,8 +6,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
 
-  const fetchRandomTopic = async (e) => {
-    e.stopPropagation();
+  const fetchRandomTopic = async () => {
     setIsLoading(true);
     setIsSpinning(true);
     try {
