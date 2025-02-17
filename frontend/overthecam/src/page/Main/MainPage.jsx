@@ -169,7 +169,14 @@ const PopularVote = ({ onVoteUpdate }) => {
                     className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
                     style={{ width: `${popularVote.options[0].votePercentage >= 100 ? 100 : popularVote.options[0].votePercentage}%` }}
                   >
-                    {Math.round(popularVote.options[0].votePercentage)}% ({popularVote.options[0].voteCount}명)
+                    {popularVote.options[0].votePercentage < 25 ? (
+                      <div className="text-xs flex flex-col">
+                        <div>{Math.round(popularVote.options[0].votePercentage)}%</div>
+                        <div>({popularVote.options[0].voteCount}명)</div>
+                      </div>
+                    ) : (
+                      <>{Math.round(popularVote.options[0].votePercentage)}% ({popularVote.options[0].voteCount}명)</>
+                    )}
                   </div>
                 )}
                 {popularVote.options[1].votePercentage > 0 && (
@@ -177,7 +184,14 @@ const PopularVote = ({ onVoteUpdate }) => {
                     className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
                     style={{ width: `${popularVote.options[1].votePercentage >= 100 ? 100 : popularVote.options[1].votePercentage}%` }}
                   >
-                    {Math.round(popularVote.options[1].votePercentage)}% ({popularVote.options[1].voteCount}명)
+                    {popularVote.options[1].votePercentage < 25 ? (
+                      <div className="text-xs flex flex-col items-end">
+                        <div>{Math.round(popularVote.options[1].votePercentage)}%</div>
+                        <div>({popularVote.options[1].voteCount}명)</div>
+                      </div>
+                    ) : (
+                      <>{Math.round(popularVote.options[1].votePercentage)}% ({popularVote.options[1].voteCount}명)</>
+                    )}
                   </div>
                 )}
               </div>
@@ -375,44 +389,50 @@ const MainPage = () => {
     navigate(`/main/vote-detail/${voteId}`);
   };
 
-  const renderVoteResult = (vote) => {
-    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
-    
-    return (
-      <div className="mb-4">
-        {vote.options && vote.options.length >= 2 && (
-          <>
-            <div className="flex justify-between mb-2">
-              <div className="text-cusRed font-bold">
-                A. {vote.options[0].optionTitle}
+  const renderVoteResult = (vote) => (
+    <div className="mb-4">
+      <div className="flex justify-between mb-2">
+        <div className="text-cusRed font-bold">
+          A. {vote.options[0].optionTitle}
+        </div>
+        <div className="text-cusBlue font-bold">
+          B. {vote.options[1].optionTitle}
+        </div>
+      </div>
+      <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+        {vote.options[0].votePercentage > 0 && (
+          <div
+            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
+            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
+          >
+            {vote.options[0].votePercentage < 25 ? (
+              <div className="text-xs flex flex-col">
+                <div>{Math.round(vote.options[0].votePercentage)}%</div>
+                <div>({vote.options[0].voteCount}명)</div>
               </div>
-              <div className="text-cusBlue font-bold">
-                B. {vote.options[1].optionTitle}
+            ) : (
+              <>{Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)</>
+            )}
+          </div>
+        )}
+        {vote.options[1].votePercentage > 0 && (
+          <div
+            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
+            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
+          >
+            {vote.options[1].votePercentage < 25 ? (
+              <div className="text-xs flex flex-col items-end">
+                <div>{Math.round(vote.options[1].votePercentage)}%</div>
+                <div>({vote.options[1].voteCount}명)</div>
               </div>
-            </div>
-            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
-              {vote.options[0].votePercentage > 0 && (
-                <div
-                  className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-                  style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
-                >
-                  {Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)
-                </div>
-              )}
-              {vote.options[1].votePercentage > 0 && (
-                <div
-                  className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-                  style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
-                >
-                  {Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)
-                </div>
-              )}
-            </div>
-          </>
+            ) : (
+              <>{Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)</>
+            )}
+          </div>
         )}
       </div>
-    );
-  };
+    </div>
+  );
 
   // 배틀룸 입장 처리 함수 수정
   const handleBattleEnter = (battleId, status) => {
