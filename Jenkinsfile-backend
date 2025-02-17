@@ -1,168 +1,169 @@
 pipeline {
-    agent any
+   agent any
 
-    environment {
-        DOCKER_IMAGE_BACKEND = 'ghkdtnql/overthecam-backend'
-        NETWORK_NAME = 'my_network'
-    }
+   environment {
+       DOCKER_IMAGE_BACKEND = 'ghkdtnql/overthecam-backend'
+       NETWORK_NAME = 'my_network'
+   }
 
-    stages {
-        stage('Git Clone') {
-            steps {
-                script {
-                    try {
-                        echo '====== Git Clone 시작 ======'
-                        git branch: 'main',
-                            url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
-                            credentialsId: 'gitlab-user'
-                        echo '====== Git Clone 성공 ======'
-                    } catch (Exception e) {
-                        echo '====== Git Clone 실패 ======'
-                        error "Git clone failed: ${e.message}"
-                    }
-                }
-            }
-        }
+   stages {
+       stage('Git Clone') {
+           steps {
+               script {
+                   try {
+                       echo '====== Git Clone 시작 ======'
+                       git branch: 'main',
+                           url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11D204.git',
+                           credentialsId: 'gitlab-user'
+                       echo '====== Git Clone 성공 ======'
+                   } catch (Exception e) {
+                       echo '====== Git Clone 실패 ======'
+                       error "Git clone failed: ${e.message}"
+                   }
+               }
+           }
+       }
 
-        stage('Clean old JARs') {
-            steps {
-                sh 'rm -f build/libs/*.jar'
-            }
-        }
+       stage('Clean old JARs') {
+           steps {
+               sh 'rm -f build/libs/*.jar'
+           }
+       }
 
-        stage('Build BE') {
-            steps {
-                script {
-                    try {
-                        echo '====== Gradle Build 시작 ======'
-                        sh '''
-                            cd backend/overthecam
-                            chmod +x gradlew
-                            rm -rf build
-                            ./gradlew clean
-                            ./gradlew build -x test
-                            ls -l build/libs/
-                        '''
-                        echo '====== Gradle Build 성공 ======'
-                    } catch (Exception e) {
-                        echo '====== Gradle Build 실패 ======'
-                        error "Build failed: ${e.message}"
-                    }
-                }
-            }
-        }
+       stage('Build BE') {
+           steps {
+               script {
+                   try {
+                       echo '====== Gradle Build 시작 ======'
+                       sh '''
+                           cd backend/overthecam
+                           chmod +x gradlew
+                           rm -rf build
+                           ./gradlew clean
+                           ./gradlew build -x test
+                           ls -l build/libs/
+                       '''
+                       echo '====== Gradle Build 성공 ======'
+                   } catch (Exception e) {
+                       echo '====== Gradle Build 실패 ======'
+                       error "Build failed: ${e.message}"
+                   }
+               }
+           }
+       }
 
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    try {
-                        echo '====== Docker Build 시작 ======'
-                        dir('backend/overthecam') {
-                            withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
-                                sh """
-                                    docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
-                                    docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
-                                    echo '${DOCKERHUB_CREDENTIALS_PSW}' | docker login -u '${DOCKERHUB_CREDENTIALS_USR}' --password-stdin
-                                    docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
-                                    docker logout
-                                """
-                            }
-                        }
-                        echo '====== Docker Build & Push 완료 ======'
-                    } catch (Exception e) {
-                        echo '====== Docker Build/Push 실패 ======'
-                        error "Docker build/push failed: ${e.message}"
-                    }
-                }
-            }
-        }
+       stage('Docker Build & Push') {
+           steps {
+               script {
+                   try {
+                       echo '====== Docker Build 시작 ======'
+                       dir('backend/overthecam') {
+                           withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                               sh """
+                                   docker images | grep ${DOCKER_IMAGE_BACKEND} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_BACKEND}:{} || true
+                                   docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} .
+                                   echo '${DOCKERHUB_CREDENTIALS_PSW}' | docker login -u '${DOCKERHUB_CREDENTIALS_USR}' --password-stdin
+                                   docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                                   docker logout
+                               """
+                           }
+                       }
+                       echo '====== Docker Build & Push 완료 ======'
+                   } catch (Exception e) {
+                       echo '====== Docker Build/Push 실패 ======'
+                       error "Docker build/push failed: ${e.message}"
+                   }
+               }
+           }
+       }
 
-      stage('Deploy to EC2') {
-    steps {
-        script {
-            try {
-                echo '====== EC2 배포 시작 ======'
-                sshagent(['ssh']) {
-                    withCredentials([
-                        string(credentialsId: 'mysql-url', variable: 'MYSQL_DB_URL'),
-                        usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'MYSQL_DB_USERNAME', passwordVariable: 'MYSQL_DB_PASSWORD'),
-                        string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
-                        string(credentialsId: 'LIVEKIT_API_KEY', variable: 'LIVEKIT_API_KEY'),
-                        string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET'),
-                        string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD'),
-                        string(credentialsId: 'secretkey-s3', variable:'secretkey-s3'),
-                        string(credentialsId: 'accesskey-s3', variable:'accesskey-s3'),
-                        string(credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY'),   // 추가
-                        string(credentialsId: 'OPENAI_API_URL', variable: 'OPENAI_API_URL')    // 추가
-                    ]) {
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
-                            # Redis 네트워크 생성 (없는 경우에만)
-                            docker network create redis-network || true && \
+       stage('Deploy to EC2') {
+           steps {
+               script {
+                   try {
+                       echo '====== EC2 배포 시작 ======'
+                       sshagent(['ssh']) {
+                           withCredentials([
+                               string(credentialsId: 'mysql-url', variable: 'MYSQL_DB_URL'),
+                               usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'MYSQL_DB_USERNAME', passwordVariable: 'MYSQL_DB_PASSWORD'),
+                               string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
+                               string(credentialsId: 'LIVEKIT_API_KEY', variable: 'LIVEKIT_API_KEY'),
+                               string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET'),
+                               string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD'),
+                               string(credentialsId: 'secretkey-s3', variable:'secretkey-s3'),
+                               string(credentialsId: 'accesskey-s3', variable:'accesskey-s3'),
+                               string(credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY'),
+                               string(credentialsId: 'OPENAI_API_URL', variable: 'OPENAI_API_URL')
+                           ]) {
+                               sh '''
+                                   ssh -o StrictHostKeyChecking=no ubuntu@i12d204.p.ssafy.io "\
+                                   # Redis 네트워크 생성 (없는 경우에만)
+                                   docker network create redis-network || true && \
 
-                            # Redis 컨테이너 실행/재시작
-                            echo '기존 Redis 컨테이너 정리 중...' && \
-                            docker stop spring-redis || true && \
-                            docker rm spring-redis || true && \
+                                   # Redis 컨테이너 실행/재시작
+                                   echo '기존 Redis 컨테이너 정리 중...' && \
+                                   docker stop spring-redis || true && \
+                                   docker rm spring-redis || true && \
 
-                            echo 'Redis 컨테이너 시작 중...' && \
-                            docker run -d \
-                                --name spring-redis \
-                                --network redis-network \
-                                -p 6379:6379 \
-                                redis:7.4.1-alpine \
-                                /bin/sh -c 'redis-server --requirepass "${SPRING_REDIS_PASSWORD}"'
+                                   echo 'Redis 컨테이너 시작 중...' && \
+                                   docker run -d \
+                                       --name spring-redis \
+                                       --network redis-network \
+                                       -p 6379:6379 \
+                                       redis:7.4.1-alpine \
+                                       /bin/sh -c 'redis-server --requirepass "${SPRING_REDIS_PASSWORD}"'
 
-                            echo '새 이미지 가져오는 중...' && \
-                            docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
-                            echo '기존 컨테이너 중지 중...' && \
-                            docker stop backend || true && \
-                            docker rm backend || true && \
-                            echo '새 컨테이너 시작 중...' && \
-                            docker run -d --name backend \
-                                --network redis-network \
-                                -p 5556:8080 \
-                                -e SPRING_PROFILES_ACTIVE=prod \
-                                -e MYSQL_DB_URL='${MYSQL_DB_URL}' \
-                                -e MYSQL_DB_USERNAME='${MYSQL_DB_USERNAME}' \
-                                -e MYSQL_DB_PASSWORD='${MYSQL_DB_PASSWORD}' \
-                                -e JWT_SECRET='${JWT_SECRET}' \
-                                -e LIVEKIT_API_KEY='${LIVEKIT_API_KEY}' \
-                                -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \
-                                -e SPRING_REDIS_PASSWORD='${SPRING_REDIS_PASSWORD}' \
-                                -e accesskey-s3='${accesskey-s3}'\
-                                -e secretkey-s3='${secretkey-s3}'\
-                                -e OPENAI_API_KEY='${OPENAI_API_KEY}'\
-                                -e OPENAI_API_URL='${OPENAI_API_URL}'\
-                                ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
-                            docker system prune -f && \
-                            echo '컨테이너 로그:' && \
-                            sleep 10 && \
-                            docker logs backend"
-                        '''
-                    }
-                }
-                echo '====== EC2 배포 성공 ======'
-            } catch (Exception e) {
-                echo '====== EC2 배포 실패 ======'
-                error "Deployment failed: ${e.message}"
-            }
-        }
-    }
-}
+                                   echo '새 이미지 가져오는 중...' && \
+                                   docker pull ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
+                                   echo '기존 컨테이너 중지 중...' && \
+                                   docker stop backend || true && \
+                                   docker rm backend || true && \
+                                   echo '새 컨테이너 시작 중...' && \
+                                   docker run -d --name backend \
+                                       --network redis-network \
+                                       -p 5556:8080 \
+                                       -e SPRING_PROFILES_ACTIVE=prod \
+                                       -e MYSQL_DB_URL='${MYSQL_DB_URL}' \
+                                       -e MYSQL_DB_USERNAME='${MYSQL_DB_USERNAME}' \
+                                       -e MYSQL_DB_PASSWORD='${MYSQL_DB_PASSWORD}' \
+                                       -e JWT_SECRET='${JWT_SECRET}' \
+                                       -e LIVEKIT_API_KEY='${LIVEKIT_API_KEY}' \
+                                       -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \
+                                       -e SPRING_REDIS_PASSWORD='${SPRING_REDIS_PASSWORD}' \
+                                       -e accesskey-s3='${accesskey-s3}'\
+                                       -e secretkey-s3='${secretkey-s3}'\
+                                       -e OPENAI_API_KEY='${OPENAI_API_KEY}'\
+                                       -e OPENAI_API_URL='${OPENAI_API_URL}'\
+                                       ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \
+                                   docker system prune -f && \
+                                   echo '컨테이너 로그:' && \
+                                   sleep 10 && \
+                                   docker logs backend"
+                               '''
+                           }
+                       }
+                       echo '====== EC2 배포 성공 ======'
+                   } catch (Exception e) {
+                       echo '====== EC2 배포 실패 ======'
+                       error "Deployment failed: ${e.message}"
+                   }
+               }
+           }
+       }
+   }
 
-    post {
-        always {
-            echo '====== 파이프라인 종료 ======'
-            sh "docker logout || true"
-            cleanWs()
-        }
-        failure {
-            echo '====== 파이프라인 실패 ======'
-            sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
-        }
-        success {
-            echo '====== 파이프라인 성공 ======'
-        }
-    }
+   post {
+       always {
+           echo '====== 파이프라인 종료 ======'
+           sh "docker logout || true"
+           cleanWs()
+       }
+       failure {
+           echo '====== 파이프라인 실패 ======'
+           sh "docker rmi ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} || true"
+       }
+       success {
+           echo '====== 파이프라인 성공 ======'
+       }
+   }
 }
