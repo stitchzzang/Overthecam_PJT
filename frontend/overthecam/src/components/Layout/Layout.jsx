@@ -3,6 +3,8 @@ import NavBar from "./NavBar";
 
 function Layout() {
   const location = useLocation();
+  const isBattleRoom = location.pathname.includes("/main/battle-room");
+
   const getBackgroundColor = () => {
     if (
       location.pathname === "/main/login" ||
@@ -16,7 +18,7 @@ function Layout() {
   };
   return (
     <div className="flex flex-col h-screen">
-      <NavBar />
+      {!isBattleRoom && <NavBar />}
       <main
         className={`flex-grow ${
           getBackgroundColor() || "bg-cusGray"

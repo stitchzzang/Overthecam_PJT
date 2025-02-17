@@ -34,7 +34,7 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
        });
 
        // 3. 페이지 이동
-       navigate(`/battle-room/${battleId}`);
+       navigate(`/main/battle-room/${battleId}`);
     } catch (error) {
       console.error("Battle room navigation error:", error);
       navigate('/main/battle-list');

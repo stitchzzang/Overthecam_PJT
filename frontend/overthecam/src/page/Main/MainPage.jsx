@@ -446,7 +446,7 @@ const MainPage = () => {
     }
     
     // 로그인된 상태면 배틀룸으로 이동
-    navigate(`/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
+    navigate(`/main/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
   };
 
   return (

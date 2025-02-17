@@ -4,7 +4,7 @@ import {
   Route,
   useNavigate,
   useLocation,
-  Outlet
+  Outlet,
 } from "react-router-dom";
 import { useEffect } from "react";
 import "./App.css";
@@ -13,7 +13,7 @@ import Layout from "./components/Layout/Layout";
 import FakeMainPage from "./page/Main/FakeMainPage";
 import BattleMainPage from "./page/Main/BattleMainPage";
 import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
-import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
+import BattleRoomLoader from "./page/BattleRoom/BattleRoomLoader.jsx";
 import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
 import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage";
@@ -29,9 +29,6 @@ import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 import VotePage from "./page/Vote/VotePage.jsx";
 import OtherProfile from "./page/Mypage/OtherProfile";
 import SearchResultPage from "./page/Main/SearchResultPage.jsx";
-import BattleRoomLayout from "./components/Layout/BattleRoomLayOut.jsx";
-import WebSocketProvider from "./hooks/useWebSocket.jsx";
-import { useBattleStore } from "./store/Battle/BattleStore.jsx";
 
 function ProtectedLogin() {
   const isLoggedIn = !!localStorage.getItem("token");
@@ -62,26 +59,11 @@ function PrivateRoute() {
 }
 
 function App() {
-  const battleInfo = useBattleStore(s => s.battleInfo)
   return (
     <Router>
       <Routes>
         {/* 랜딩 페이지 */}
         <Route path="/" element={<FakeMainPage />} />
-
-        {/* 네비게이션바 필요 없는 라우터 */}
-        <Route element={<BattleRoomLayout />}>
-          <Route
-            path="/battle-room/:battleId"
-            element={
-              <PrivateRoute>
-                <WebSocketProvider battleId={battleInfo.battleId}>
-                  <BattleRoomPage />
-                </WebSocketProvider>
-              </PrivateRoute>
-            }
-          />
-        </Route>
 
         {/* 메인 레이아웃과 관련 라우트들 */}
         <Route path="/main" element={<Layout />}>
@@ -92,6 +74,10 @@ function App() {
           {/* Protected Routes */}
           <Route element={<PrivateRoute />}>
             <Route path="create-battle-room" element={<BattleCreatingPage />} />
+            <Route
+              path="battle-room/:battleId"
+              element={<BattleRoomLoader />}
+            />
             <Route path="create-vote" element={<VoteCreatingPage />} />
             <Route path="store" element={<ItemShopPage />} />
             <Route path="mypage" element={<MyPage />} />

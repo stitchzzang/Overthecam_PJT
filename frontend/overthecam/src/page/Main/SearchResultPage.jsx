@@ -286,7 +286,7 @@ const SearchResultPage = () => {
                               <ParticipantsBadge current={battle.totalUsers} max={6} />
                               {battle.status === 0 ? (
                                 <Link 
-                                  to={`/battle-room/${battle.battleId}`}
+                                  to={`main/battle-room/${battle.battleId}`}
                                   className="hover:scale-105 transition-transform"
                                 >
                                   <StatusBadge status={battle.status} />
