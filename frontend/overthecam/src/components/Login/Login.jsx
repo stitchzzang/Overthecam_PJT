@@ -58,7 +58,9 @@ const Login = () => {
           profileImage: response.data.profileImage,
           token: accessToken,
           tokenType: grantType,
-          expiresIn: accessTokenExpiresIn
+          expiresIn: accessTokenExpiresIn,
+          point: response.data.point,
+          supportScore: response.data.supportScore
         };
 
         localStorage.setItem("token", accessToken);
@@ -73,9 +75,11 @@ const Login = () => {
         }
 
         setUserInfo({
-          userId: userInfo.userId,
           isLoggedIn: true,
-          userNickname: userInfo.nickname
+          userNickname: userInfo.nickname,
+          userId: userInfo.userId,
+          point: userInfo.point,
+          cheerPoint: userInfo.cheerPoint
         });
 
         const from = location.state?.from || '/main';
