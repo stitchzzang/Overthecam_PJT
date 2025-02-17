@@ -1,9 +1,25 @@
+/* 폰트 설정 */
+@font-face {
+  font-family: 'Paperlogy';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   background-color: rgb(242, 247, 255);
   width: 100%; /* html과 body의 너비를 100%로 설정 */
+  font-family: 'Paperlogy', sans-serif;
 }
 
 #root {

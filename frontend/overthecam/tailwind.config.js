@@ -57,6 +57,10 @@ export default {
           hover: "rgb(255, 243, 71)",
         },
       },
+      fontFamily: {
+        paperlogy: ['Paperlogy', 'sans-serif'],
+        pretendard: ['Pretendard', 'sans-serif'],
+      },
     }, // 테마 확장
   },
   plugins: [require("tailwind-scrollbar-hide")], // 플러그인 추가

@@ -68,7 +68,7 @@ const BattleChating = ({outHeight, innerHeight}) => {
           {messageList.length > 0 ? (
             <ul className="space-y-2 w-full">
               {messageList.map((msg, index) => (
-                <li key={index} className="flex flex-col items-start">
+                <li key={index} className="flex flex-col items-start font-['Pretendard']">
                   {msg.nickname === "SYSTEM" ? (
                     <>
                       {" "}
