@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BattleReportController {
     private final FlaskService flaskService;
-    private final BattleReportService battleReportService;
     private final RedisService redisService;
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
