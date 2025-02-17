@@ -69,9 +69,9 @@ public class UserScoreRedisService {
         return redisLockService.executeWithLock(userId, () ->
             transactionTemplate.execute(operations -> {
                 UserScoreInfo currentScore = redisRepository.getUserScore(battleId, userId);
-                if (currentScore == null) {
-                    throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
-                }
+//                if (currentScore == null) {
+//                    throw new GlobalException(BattleErrorCode.NOT_PREPARED, "배틀 준비가 필요합니다");
+//                }
 
                 if (currentScore.getPoint() < point) {
                     throw new GlobalException(UserErrorCode.INSUFFICIENT_POINT, "포인트가 부족합니다");
