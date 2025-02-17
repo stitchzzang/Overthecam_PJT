@@ -155,7 +155,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
             {/* 채팅 */}
             <div className="flex flex-col items-center justify-start">
               <div className="w-full h-full">
-                <BattleChating height={"h-full"} />
+                <BattleChating innerHeight={"h-200px"} outHeight={"h-200px"} />
               </div>
             </div>
 

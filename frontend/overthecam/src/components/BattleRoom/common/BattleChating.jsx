@@ -2,7 +2,7 @@ import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 import { useState, useRef, useEffect } from "react";
 
-const BattleChating = ({height}) => {
+const BattleChating = ({outHeight, innerHeight}) => {
   const [inputMessage, setInputMessage] = useState("");
   const { status, sendMessage, messageList } = useWebSocketContext();
   const [connectStatus, setConnectStatus] = useState("DISCONNECTED");
@@ -36,7 +36,7 @@ const BattleChating = ({height}) => {
 
   return (
     <div
-      className={`w-full max-w-md ${height} bg-cusGray rounded-lg clay flex flex-col p-1`}
+      className={`w-full max-w-md ${outHeight} bg-cusGray rounded-lg clay flex flex-col p-1`}
     >
       {/* 채팅 헤더 */}
       <div className="flex justify-between items-center px-4 py-2">
@@ -53,7 +53,9 @@ const BattleChating = ({height}) => {
       </div>
 
       {/* 채팅 메시지 영역 */}
-      <div className="mx-2 bg-white rounded-md h-[550px] overflow-hidden flex flex-col mb-2">
+      <div
+        className={`mx-2 bg-white rounded-md  ${innerHeight} overflow-hidden flex flex-col mb-2`}
+      >
         <div
           className="flex-1 p-4 overflow-y-auto h-96 
           [&::-webkit-scrollbar]:w-2
