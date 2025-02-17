@@ -442,16 +442,17 @@ function BattleRoomPage() {
   if (status === "ERROR") {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">
-          WebSocket 연결에 실패했습니다. 페이지를 새로고침 해주세요.
-        </p>
+        <div className="text-gray-600">
+          <p>연결이 끊어졌습니다.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-cusRed text-white rounded hover:bg-red-600"
+          >
+            다시 연결
+          </button>
+        </div>
       </div>
     );
-  }
-
-  // battleInfo가 없는 경우 처리
-  if (!battleInfo?.battleId) {
-    return <div>배틀방 id 가 없습니다.</div>;
   }
 
   return (
