@@ -3,6 +3,8 @@ import NavBar from "./NavBar";
 
 function Layout() {
   const location = useLocation();
+  const isBattleRoom = location.pathname.includes("/main/battle-room");
+
   const getBackgroundColor = () => {
     if (
       location.pathname === "/main/login" ||
@@ -12,11 +14,13 @@ function Layout() {
       location.pathname === "/main/create-vote"
     ) {
       return "bg-transparent";
+    } else if (isBattleRoom) {
+      return "bg-gradient-to-b from-cusPink to-cusLightBlue flex-1 scrollbar-hide overflow-y-auto transition-al";
     }
   };
   return (
     <div className="flex flex-col h-screen">
-      <NavBar />
+      {!isBattleRoom && <NavBar />}
       <main
         className={`flex-grow ${
           getBackgroundColor() || "bg-cusGray"

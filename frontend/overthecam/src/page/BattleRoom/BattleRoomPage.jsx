@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 
 import { useWebSocketContext } from "../../hooks/useWebSocket";
+import WebSocketProvider from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
@@ -441,80 +442,83 @@ function BattleRoomPage() {
   if (status === "ERROR") {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">
-          WebSocket 연결에 실패했습니다. 페이지를 새로고침 해주세요.
-        </p>
+        <div className="text-gray-600">
+          <p>연결이 끊어졌습니다.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-cusRed text-white rounded hover:bg-red-600"
+          >
+            다시 연결
+          </button>
+        </div>
       </div>
     );
   }
 
-  // battleInfo가 없는 경우 처리
-  if (!battleInfo?.battleId) {
-    return <div>배틀방 id 가 없습니다.</div>;
-  }
-
   return (
-    <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
-      <BattleHeader
-        isWaiting={!isStarted}
-        isMaster={isMaster}
-        onshowLeaveConfirmModal={handleLeavRoom}
-        onShowEndBattleModal={endBattleModalShow}
-      />
+    <WebSocketProvider battleId={battleInfo.battleId}>
+      <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
+        <BattleHeader
+          isWaiting={!isStarted}
+          isMaster={isMaster}
+          onshowLeaveConfirmModal={handleLeavRoom}
+          onShowEndBattleModal={endBattleModalShow}
+        />
 
-      <div className="render-change flex-1 h-0 relative">
-        {isResultLoading ? (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cusRed"></div>
-              <h3 className="text-xl font-bold">결과 집계 중</h3>
-              <p className="text-gray-600">잠시만 기다려주세요...</p>
+        <div className="render-change flex-1 h-0 relative">
+          {isResultLoading ? (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cusRed"></div>
+                <h3 className="text-xl font-bold">결과 집계 중</h3>
+                <p className="text-gray-600">잠시만 기다려주세요...</p>
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {!isStarted ? (
-          <div className="flex h-full">
-            {/* h-full 유지 */}
-            <div className="w-full h-full flex flex-col">
-              {/* flex flex-col 추가 */}
-              <BattleWaiting
-                room={room}
+          {!isStarted ? (
+            <div className="flex h-full">
+              {/* h-full 유지 */}
+              <div className="w-full h-full flex flex-col">
+                {/* flex flex-col 추가 */}
+                <BattleWaiting
+                  room={room}
+                  localTrack={localTrack}
+                  remoteTracks={remoteTracks}
+                  participantName={battleInfo.participantName}
+                  isMaster={isMaster}
+                  host={host}
+                  participants={participants}
+                  onShowBattlerModal={battlerModalShow}
+                  onBattleStart={handleBattleStart}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <BattleStart
                 localTrack={localTrack}
                 remoteTracks={remoteTracks}
                 participantName={battleInfo.participantName}
-                isMaster={isMaster}
-                host={host}
-                participants={participants}
-                onShowBattlerModal={battlerModalShow}
-                onBattleStart={handleBattleStart}
               />
-            </div>
-          </div>
-        ) : (
-          <>
-            <BattleStart
-              localTrack={localTrack}
-              remoteTracks={remoteTracks}
-              participantName={battleInfo.participantName}
-            />
-          </>
-        )}
+            </>
+          )}
+        </div>
+        <BattlerSettingModal
+          ref={battlerSettingModal}
+          participants={participants}
+          myNickname={battleInfo.participantName}
+        />
+        <FailAlertModal ref={failTost} />
+        <NoticeAlertModal ref={noticeToast} />
+        <BattleLeaveConfirmModal
+          ref={leaveConfirmModal}
+          onConfirm={handleConfirmLeave}
+        />
+        <BattleEndModal ref={endBattleModal} />
+        <BattleResultModal ref={resultModal} onFinish={handleConfirmLeave} />
       </div>
-      <BattlerSettingModal
-        ref={battlerSettingModal}
-        participants={participants}
-        myNickname={battleInfo.participantName}
-      />
-      <FailAlertModal ref={failTost} />
-      <NoticeAlertModal ref={noticeToast} />
-      <BattleLeaveConfirmModal
-        ref={leaveConfirmModal}
-        onConfirm={handleConfirmLeave}
-      />
-      <BattleEndModal ref={endBattleModal} />
-      <BattleResultModal ref={resultModal} onFinish={handleConfirmLeave} />
-    </div>
+    </WebSocketProvider>
   );
 }
 

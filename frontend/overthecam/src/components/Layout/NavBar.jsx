@@ -7,7 +7,7 @@ import 'remixicon/fonts/remixicon.css';
 export default function NavBar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isBattleRoomPage = location.pathname.startsWith("/battle-room");
+  const isBattleRoomPage = location.pathname.startsWith("/main/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);

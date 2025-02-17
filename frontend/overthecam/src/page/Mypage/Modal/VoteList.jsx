@@ -26,6 +26,10 @@ function VoteDetailModal({ voteData, isLoading, onClose, clickedElement }) {
     onClose();
   };
 
+  // 전체 데이터 구조 확인
+  console.log('Full option 0:', JSON.stringify(voteData.options[0], null, 2));
+  console.log('Full option 1:', JSON.stringify(voteData.options[1], null, 2));
+
   return (
     <div className="absolute top-0 left-0 w-full h-screen" onClick={handleOutsideClick}>
       {/* 배경 오버레이 */}

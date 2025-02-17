@@ -301,19 +301,21 @@ function MyPageVote({ userId, isOtherProfile }) {
         />
       )}
 
-      {/* CSS 애니메이션 추가 */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.98);
+      {/* CSS 애니메이션 부분 수정 */}
+      <style type="text/css">
+        {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.98);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
           }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }
