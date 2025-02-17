@@ -5,7 +5,7 @@ import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.service.BattleService;
 import com.overthecam.battle.service.LiveKitTokenService;
 import com.overthecam.common.dto.CommonResponseDto;
-import com.overthecam.common.dto.ErrorResponse;
+import com.overthecam.common.exception.GlobalException;
 import com.overthecam.security.util.SecurityUtils;
 import livekit.LivekitWebhook;
 import lombok.RequiredArgsConstructor;
@@ -44,11 +44,7 @@ public class BattleController {
         String participantName = params.get("participantName");
 
         if (roomName == null || participantName == null) {
-            return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.MISSING_REQUIRED_FIELD)
-                )
-            );
+            throw new GlobalException(BattleErrorCode.MISSING_REQUIRED_FIELD, "필수 입력값이 누락되었습니다.");
         }
 
         try {
@@ -61,12 +57,9 @@ public class BattleController {
                 "roomName", response.getRoomName()
             )));
         } catch (Exception e) {
+
             log.error("배틀방 생성 실패", e);
-            return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.BATTLE_ROOM_READ_FAILED)
-                )
-            );
+            throw new GlobalException(BattleErrorCode.BATTLE_ROOM_READ_FAILED, "만들어진 배틀방이 없습니다");
         }
     }
 
@@ -81,11 +74,7 @@ public class BattleController {
         String participantName = params.get("participantName");
 
         if (participantName == null) {
-            return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.MISSING_REQUIRED_FIELD)
-                )
-            );
+            throw new GlobalException(BattleErrorCode.MISSING_REQUIRED_FIELD, "필수 입력값이 누락되었습니다.");
         }
 
         try {
@@ -99,11 +88,8 @@ public class BattleController {
             )));
         } catch (Exception e) {
             log.error("배틀방 참가 실패", e);
-            return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.BATTLE_NOT_FOUND)
-                )
-            );
+            throw new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀방을 찾을 수 없습니다.");
+
         }
     }
 
@@ -123,11 +109,8 @@ public class BattleController {
             )));
         } catch (Exception e) {
             log.error("배틀방 퇴장 실패", e);
-            return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.BATTLE_NOT_FOUND)
-                )
-            );
+            throw new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, "배틀방을 찾을 수 없습니다.");
+
         }
     }
 
@@ -143,12 +126,10 @@ public class BattleController {
             LivekitWebhook.WebhookEvent event = liveKitTokenService.handleWebhookEvent(authHeader, body);
             log.info("파싱된 웹훅 이벤트: {}", event);
 
-            if (event.getEvent().equals("participant_left")) {
+            if (event.getEvent().equals("participantLeft")) {
                 if (event.getParticipant() == null || event.getParticipant().getMetadata() == null) {
                     log.error("이벤트에서 참가자 정보 또는 메타데이터 누락");
-                    return ResponseEntity.ok(CommonResponseDto.error(
-                            ErrorResponse.of(BattleErrorCode.INVALID_WEBHOOK_DATA)
-                    ));
+                    throw new GlobalException(BattleErrorCode.INVALID_WEBHOOK_DATA, "웹훅 데이터가 올바르지 않습니다");
                 }
 
                 try {
@@ -166,9 +147,7 @@ public class BattleController {
                     )));
                 } catch (JSONException e) {
                     log.error("메타데이터 파싱 실패: {}", event.getParticipant().getMetadata(), e);
-                    return ResponseEntity.ok(CommonResponseDto.error(
-                            ErrorResponse.of(BattleErrorCode.INVALID_METADATA_FORMAT)
-                    ));
+                    throw new GlobalException(BattleErrorCode.INVALID_METADATA_FORMAT, "메타데이터 형식이 올바르지 않습니다");
                 }
             } else {
                 log.info("participant_left 외 다른 이벤트 수신: {}", event.getEvent());
@@ -180,11 +159,7 @@ public class BattleController {
             )));
         } catch (Exception e) {
             log.error("웹훅 처리 실패", e);
-            return ResponseEntity.ok(
-                    CommonResponseDto.error(
-                            ErrorResponse.of(BattleErrorCode.OPENVIDU_CONNECTION_ERROR)
-                    )
-            );
+            throw new GlobalException(BattleErrorCode.OPENVIDU_CONNECTION_ERROR, "OpenVidu 서버 연동 중 오류가 발생했습니다");
         }
     }
 
@@ -197,7 +172,7 @@ public class BattleController {
             BattleRoomAllResponse response = battleService.getAllBattleRooms();
             return CommonResponseDto.ok(response);
         } catch (Exception e) {
-            return CommonResponseDto.error(ErrorResponse.of(BattleErrorCode.BATTLE_ROOM_READ_FAILED));
+            throw new GlobalException(BattleErrorCode.BATTLE_ROOM_READ_FAILED, "만들어진 배틀방이 없습니다");
         }
     }
 
