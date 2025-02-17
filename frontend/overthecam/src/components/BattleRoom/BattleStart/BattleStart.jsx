@@ -119,7 +119,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
         return {
           type: "remote",
           track: watcherVideo.trackPublication.videoTrack,
-          audioTrack: watcherAudio?.trackPublication.audioTrack,
+          // audioTrack: watcherAudio?.trackPublication.audioTrack, 판정단의 오디오 설정 막기
           participantName: watcherVideo.participantIdentity,
         };
       }

@@ -53,22 +53,37 @@ function BattleWaiting({
         };
       }
 
-      // 나머지 슬롯에 리모트 트랙 매핑
+          // 나머지 슬롯에 리모트 트랙 매핑
+    if (remoteTracks.length > 0) {
       const remoteVideo = remoteTracks.find(
-        (track) => track.trackPublication.kind === "video"
+        (track) =>
+          track.trackPublication.kind === "video" &&
+          !slots.some(
+            (slot) => slot?.participantName === track.participantIdentity
+          )
       );
 
       if (remoteVideo) {
+        const remoteAudio = remoteTracks.find(
+          (track) =>
+            track.participantIdentity === remoteVideo.participantIdentity &&
+            track.trackPublication.kind === "audio"
+        );
+
         // 이미 할당된 참가자는 remoteTracks에서 제거
-        remoteTracks = remoteTracks.filter((t) => t !== remoteVideo);
+        remoteTracks = remoteTracks.filter(
+          (t) => 
+            t.participantIdentity !== remoteVideo.participantIdentity
+        );
 
         return {
           type: "remote",
           track: remoteVideo.trackPublication.videoTrack,
+          audioTrack: remoteAudio?.trackPublication.audioTrack,
           participantName: remoteVideo.participantIdentity,
         };
       }
-
+    }
       return null;
     });
   return (
