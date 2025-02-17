@@ -107,6 +107,16 @@ const PopularVote = ({ onVoteUpdate }) => {
     return '';
   };
 
+  // 순위 뱃지 매핑 함수 추가
+  const getRankBadge = (index) => {
+    switch(index) {
+      case 0: return "🥇";
+      case 1: return "🥈";
+      case 2: return "🥉";
+      default: return "🏅";
+    }
+  };
+
   if (loading || popularVotes.length === 0) return null;
 
   return (
@@ -145,6 +155,7 @@ const PopularVote = ({ onVoteUpdate }) => {
                         }}
                       >
                         <h2 className="text-xl font-bold mb-3 hover:text-blue-600 cursor-pointer line-clamp-1">
+                          <span className="mr-2 text-2xl">{getRankBadge(index)}</span>
                           {vote.title}
                         </h2>
                       </Link>

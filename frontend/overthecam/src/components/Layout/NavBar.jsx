@@ -311,7 +311,7 @@ export default function NavBar() {
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className="hidden xl:block max-w-[550px] flex-1 -ml-2">
+          <div className={`hidden xl:block max-w-[550px] flex-1 ${isLoggedIn ? '-ml-2' : '-ml-56'}`}>
             <SearchBar />
           </div>
 
