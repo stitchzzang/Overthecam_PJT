@@ -58,14 +58,14 @@ const BattleRandomTopic = forwardRef((props, ref) => {
 
   return (
     <dialog ref={ref} className="modal rounded-[30px] overflow-hidden">
-      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[600px] clay" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[800px] clay" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-8 mt-2">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
         
         <div className="w-full flex items-center gap-4 mb-6">
-          <div className="flex-1 clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="slot-machine bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden min-h-[100px] h-auto">
+          <div className="flex-1 clay bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
+            <div className="slot-machine bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden min-h-[120px] h-auto">
               <div className={`slot-wrapper flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
                 {isLoading ? (
                   <div className="animate-pulse">
@@ -76,15 +76,21 @@ const BattleRandomTopic = forwardRef((props, ref) => {
                     <p className="text-xl font-bold text-center whitespace-pre-line">
                       {topic ? (
                         <>
-                          {topic.includes('A.') && topic.includes('B.') ? (
-                            <>
-                              {topic.split('A.')[0]}
-                              <span className="text-cusRed">A. {topic.split('A.')[1]?.split('B.')[0]}</span>
-                              <span className="text-cusBlue">B. {topic.split('B.')[1]}</span>
-                            </>
-                          ) : topic}
+                          <span className="block text-black mb-2">
+                            {topic.split('\n')[0]}
+                          </span>
+                          {topic.split('\n').slice(1).map((line, index) => (
+                            <span 
+                              key={index} 
+                              className={`block ${index === 0 ? 'text-cusRed' : 'text-cusBlue'}`}
+                            >
+                              {line}
+                            </span>
+                          ))}
                         </>
-                      ) : '주제를 생성해보세요!'}
+                      ) : (
+                        '주제를 생성해보세요!'
+                      )}
                     </p>
                   </div>
                 )}
@@ -108,7 +114,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           </button>
         </div>
         
-        <p className="text-lg mb-6">즐거운 배틀 되세요 :)</p>
+        <p className="text-lg font-bold mb-6">즐거운 배틀 되세요 :)</p>
 
         <form method="dialog" className="modal-backdrop">
           <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
@@ -142,7 +148,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           }
           
           .slot-wrapper.spinning {
-            animation: spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            animation: spin 2.5s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
           }
           
           .slot-content {
@@ -157,21 +163,25 @@ const BattleRandomTopic = forwardRef((props, ref) => {
               transform: translateY(0);
               opacity: 1;
             }
-            20% {
-              transform: translateY(-100%);
+            15% {
+              transform: translateY(-80%);
+              opacity: 0.2;
+            }
+            30% {
+              transform: translateY(-160%);
               opacity: 0;
             }
-            40% {
-              transform: translateY(-200%);
+            45% {
+              transform: translateY(-240%);
               opacity: 0;
             }
             60% {
-              transform: translateY(-300%);
-              opacity: 0;
+              transform: translateY(40%);
+              opacity: 0.2;
             }
-            80% {
-              transform: translateY(50%);
-              opacity: 0;
+            75% {
+              transform: translateY(20%);
+              opacity: 0.6;
             }
             100% { 
               transform: translateY(0);
