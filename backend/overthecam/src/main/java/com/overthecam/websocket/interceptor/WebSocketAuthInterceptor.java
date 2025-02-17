@@ -33,6 +33,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
+        if (accessor == null || accessor.getCommand() == null) {
+            return message;
+        }
+
         try {
             switch (accessor.getCommand()) {
                 case CONNECT:
