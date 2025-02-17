@@ -38,7 +38,7 @@ function BattleWaiting({
 
   const handleStart = (e) => {
     onShowBattlerModal();
-  }
+  };
 
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
@@ -53,37 +53,22 @@ function BattleWaiting({
         };
       }
 
-          // 나머지 슬롯에 리모트 트랙 매핑
-    if (remoteTracks.length > 0) {
+      // 나머지 슬롯에 리모트 트랙 매핑
       const remoteVideo = remoteTracks.find(
-        (track) =>
-          track.trackPublication.kind === "video" &&
-          !slots.some(
-            (slot) => slot?.participantName === track.participantIdentity
-          )
+        (track) => track.trackPublication.kind === "video"
       );
 
       if (remoteVideo) {
-        const remoteAudio = remoteTracks.find(
-          (track) =>
-            track.participantIdentity === remoteVideo.participantIdentity &&
-            track.trackPublication.kind === "audio"
-        );
-
         // 이미 할당된 참가자는 remoteTracks에서 제거
-        remoteTracks = remoteTracks.filter(
-          (t) => 
-            t.participantIdentity !== remoteVideo.participantIdentity
-        );
+        remoteTracks = remoteTracks.filter((t) => t !== remoteVideo);
 
         return {
           type: "remote",
           track: remoteVideo.trackPublication.videoTrack,
-          audioTrack: remoteAudio?.trackPublication.audioTrack,
           participantName: remoteVideo.participantIdentity,
         };
       }
-    }
+
       return null;
     });
   return (
