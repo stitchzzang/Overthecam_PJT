@@ -75,14 +75,19 @@ const BattleRandomTopic = forwardRef((props, ref) => {
                   <div className="slot-content py-4 px-6 w-full">
                     <p className="text-xl font-bold text-center whitespace-pre-line">
                       {topic ? (
-                        topic.split('\n').map((line, index) => (
-                          <span 
-                            key={index} 
-                            className={`block ${index === 0 ? 'text-cusRed' : 'text-cusBlue'}`}
-                          >
-                            {line}
+                        <>
+                          <span className="block text-black mb-2">
+                            {topic.split('\n')[0]}
                           </span>
-                        ))
+                          {topic.split('\n').slice(1).map((line, index) => (
+                            <span 
+                              key={index} 
+                              className={`block ${index === 0 ? 'text-cusRed' : 'text-cusBlue'}`}
+                            >
+                              {line}
+                            </span>
+                          ))}
+                        </>
                       ) : (
                         '주제를 생성해보세요!'
                       )}
