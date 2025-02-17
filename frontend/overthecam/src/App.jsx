@@ -72,7 +72,7 @@ function App() {
         {/* 네비게이션바 필요 없는 라우터 */}
         <Route element={<BattleRoomLayout />}>
           <Route
-            path="/battle-room/:battleId"
+            path="battle-room/:battleId"
             element={
               <PrivateRoute>
                 <WebSocketProvider battleId={battleInfo.battleId}>
