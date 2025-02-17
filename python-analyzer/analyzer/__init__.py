@@ -1,3 +1,5 @@
 # analyzer/__init__.py
-from analyzer.emotion_analyzer import EmotionAnalyzer
-from analyzer.debate_analyzer import DebateAnalyzer
+from .debate_emotion_analyzer import DebateEmotionAnalyzer
+from .debate_emotion_config import TrainingConfig
+
+__all__ = ['DebateEmotionAnalyzer', 'TrainingConfig']
