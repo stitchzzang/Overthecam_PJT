@@ -42,6 +42,11 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // 무승부 판별 함수 추가
+  const isDraw = (voteStats) => {
+    return Math.abs(voteStats[0].votePercentage - voteStats[1].votePercentage) < 1;  // 1% 미만 차이면 무승부
+  };
+
   if (!isOpen || !battleDetail) return null;
 
   const handleOutsideClick = (e) => {
@@ -66,7 +71,7 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
           <h1 className="text-2xl font-bold text-center mb-3">Battle Detail</h1>
           <div className="flex items-center justify-center gap-2 text-gray-600 text-sm mb-4">
             <span className="flex items-center gap-1">
-              📅 {battleDetail.createdAt}
+              📅 {formatDate(battleDetail.createdAt)}
             </span>
             <span>|</span>
             <span className="flex items-center gap-1">
@@ -114,10 +119,12 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
             {/* 승패 및 점수 카드 */}
             <div className="bg-cusYellow-light p-6 rounded-[1rem] text-center shadow-md w-[200px]">
               <div className="text-4xl mb-2">
-                {battleDetail.winner === true ? '🏆' : battleDetail.winner === false ? '💀' : '🤝'}
+                {isDraw(battleDetail.voteStats) ? '🤝' : 
+                 battleDetail.winner ? '🏆' : '💀'}
               </div>
               <div className="text-4xl font-bold text-red-500 mb-2">
-                {battleDetail.winner === true ? '승' : battleDetail.winner === false ? '패' : '무'}
+                {isDraw(battleDetail.voteStats) ? '무' : 
+                 battleDetail.winner ? '승' : '패'}
               </div>
               <div className="text-xl text-red-500">
                 (+{battleDetail.earnedScore})
