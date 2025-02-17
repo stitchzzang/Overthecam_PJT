@@ -39,17 +39,9 @@ class DebateAnalyzer:
     def initialize_model(self):
         """BERT 모델 초기화"""
         try:
-            # 로컬 개발환경의 기본 모델 경로
-            base_path = Path("C:/Users/SSAFY/Desktop/python-analyzer")
-            model_path = base_path / 'models' / 'saved' / 'emotion_model'
-
-            logger.info(f"Trying to load model from: {model_path}")
-            
+            model_path = Path('/python-analyzer/models/saved/emotion_model')
             if not model_path.exists():
-                # 도커 환경의 경로 (나중에 사용)
-                model_path = Path('/python-analyzer/models/saved/emotion_model')
-                if not model_path.exists():
-                    raise ValueError(f"Model path not found: {model_path}")
+                raise ValueError(f"Model path not found: {model_path}")
                 
             # 모델과 토크나이저 로드
             self.tokenizer = BertTokenizer.from_pretrained(str(model_path))
