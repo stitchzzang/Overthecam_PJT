@@ -43,6 +43,21 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
         else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
+            log.debug("구독 요청 수신 - destination: {}, sessionId: {}, user: {}, headers: {}",
+                accessor.getDestination(),
+                accessor.getSessionId(),
+                accessor.getUser(),
+                accessor.getMessageHeaders());
+
+            // 구독 처리가 실제로 되는지 확인하기 위한 로깅
+            try {
+                Message<?> result = message;
+                log.debug("구독 처리 결과: {}", result);
+                return result;
+            } catch (Exception e) {
+                log.error("구독 처리 중 오류 발생", e);
+                throw e;
+            }
         }
         else if (StompCommand.SEND.equals(accessor.getCommand())) {
             log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
