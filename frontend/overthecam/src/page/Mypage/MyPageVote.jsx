@@ -168,6 +168,22 @@ function MyPageVote({ userId, isOtherProfile }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end items-center gap-2 mb-4">
+        <span className="text-gray-600 font-medium">내가 만든 투표만 보기</span>
+        <button
+          onClick={() => setShowMyVotesOnly(!showMyVotesOnly)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            showMyVotesOnly ? 'bg-cusBlue' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              showMyVotesOnly ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
       {votes.length === 0 ? (
         <div className="flex flex-col items-center justify-center space-y-4 bg-white rounded-lg p-8">
           <div className="text-center text-gray-500 text-lg">
@@ -198,51 +214,61 @@ function MyPageVote({ userId, isOtherProfile }) {
           </button>
         </div>
       ) : (
-        // battleId가 없는 투표만 렌더링
-        votes.filter(vote => !vote.battleId).map((vote) => (
-          <div key={vote.voteId} className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-200">
-            <div className="relative">
-              {vote.creatorUserId === currentUserId && (
-                <button
-                  onClick={() => handleDeleteVote(vote.voteId)}
-                  className="absolute right-0 top-0 text-red-500 hover:text-red-700 transition-colors font-semibold flex items-center gap-1"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    strokeWidth={1.5} 
-                    stroke="currentColor" 
-                    className="w-5 h-5"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" 
-                    />
-                  </svg>
-                  삭제
-                </button>
-              )}
-
-              <div className="text-center px-12">
-                <h3 
-                  className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight mb-2"
-                  onClick={() => handleVoteClick(vote.voteId)}
-                >
-                  {vote.title}
-                </h3>
-                <p className="text-lg text-gray-600 leading-relaxed font-medium">
-                  {vote.content}
-                </p>
+        <div className="space-y-6">
+          {votes
+            .filter(vote => !showMyVotesOnly || vote.creatorUserId === currentUserId)
+            .map((vote) => (
+              <div 
+                key={vote.voteId} 
+                className="bg-white rounded-lg p-6 clay hover:shadow-lg transition-all duration-300 opacity-100 transform scale-100"
+                style={{
+                  animation: 'fadeIn 0.3s ease-in-out'
+                }}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-center gap-2 w-full">
+                      <h3 
+                        className="text-2xl font-bold cursor-pointer text-cusBlack hover:text-cusBlue transition-colors tracking-tight text-center w-full"
+                        onClick={() => handleVoteClick(vote.voteId)}
+                      >
+                        {vote.title}
+                      </h3>
+                    </div>
+                    <p className="text-lg text-gray-600 mt-2 leading-relaxed font-medium text-center">
+                      {vote.content}
+                    </p>
+                  </div>
+                  {vote.creatorUserId === currentUserId && (
+                    <button
+                      onClick={() => handleDeleteVote(vote.voteId)}
+                      className="text-red-500 hover:text-red-700 transition-colors ml-4 font-semibold flex items-center gap-1 shrink-0"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth={1.5} 
+                        stroke="currentColor" 
+                        className="w-5 h-5"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" 
+                        />
+                      </svg>
+                      삭제
+                    </button>
+                  )}
+                </div>
+                
+                <div className="space-y-3 mt-4">
+                  {renderVoteResult(vote.options)}
+                </div>
               </div>
-            </div>
-            
-            <div className="space-y-3 mt-4">
-              {renderVoteResult(vote.options)}
-            </div>
-          </div>
-        ))
+            ))}
+        </div>
       )}
 
       {pageInfo.totalPages > 1 && (
@@ -274,6 +300,20 @@ function MyPageVote({ userId, isOtherProfile }) {
           }}
         />
       )}
+
+      {/* CSS 애니메이션 추가 */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
