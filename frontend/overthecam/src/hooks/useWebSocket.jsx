@@ -243,6 +243,14 @@ const useWebSocket = (battleId) => {
                 // 연결 후 잠시 대기
                 await new Promise((resolve) => setTimeout(resolve, 1000));
 
+                // 이전 구독이 있다면 정리
+                if (subscriptionsRef.current.private) {
+                  subscriptionsRef.current.private.unsubscribe();
+                }
+                if (subscriptionsRef.current.public) {
+                  subscriptionsRef.current.public.unsubscribe();
+                }
+
                 // 순차적 구독 처리
                 console.log("Private 채널 구독 시도...");
                 subscriptionsRef.current.private =
@@ -283,6 +291,14 @@ const useWebSocket = (battleId) => {
               setError(new Error(errorMessage));
               setWsStatus(WS_STATUS.ERROR);
 
+              // 에러 발생 시 현재 구독 정리
+              if (subscriptionsRef.current.private) {
+                subscriptionsRef.current.private.unsubscribe();
+              }
+              if (subscriptionsRef.current.public) {
+                subscriptionsRef.current.public.unsubscribe();
+              }
+
               // STOMP 에러 시 재연결 시도
               if (retryCount < maxRetries) {
                 console.log(
@@ -295,6 +311,14 @@ const useWebSocket = (battleId) => {
               console.error("WebSocket 연결 오류:", error);
               setError(error);
               setWsStatus(WS_STATUS.ERROR);
+
+              // 현재 구독 정리
+              if (subscriptionsRef.current.private) {
+                subscriptionsRef.current.private.unsubscribe();
+              }
+              if (subscriptionsRef.current.public) {
+                subscriptionsRef.current.public.unsubscribe();
+              }
 
               // WebSocket 에러 시 재연결 시도
               if (retryCount < maxRetries) {
@@ -312,6 +336,14 @@ const useWebSocket = (battleId) => {
           console.error("연결 시도 중 오류:", error);
           setError(error);
           setWsStatus(WS_STATUS.ERROR);
+
+          // 현재 구독 정리
+          if (subscriptionsRef.current.private) {
+            subscriptionsRef.current.private.unsubscribe();
+          }
+          if (subscriptionsRef.current.public) {
+            subscriptionsRef.current.public.unsubscribe();
+          }
 
           if (retryCount < maxRetries) {
             console.log(`일반 에러, 재시도 ${retryCount + 1}/${maxRetries}`);
