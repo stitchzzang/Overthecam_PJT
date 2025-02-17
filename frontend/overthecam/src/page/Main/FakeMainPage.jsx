@@ -141,7 +141,7 @@ const FakeMainPage = () => {
                 논쟁은 예술이다
               </h1>
               <p className="text-2xl text-gray-300">
-                승패에 쿨하게 승복하실 분들<br />언제나 환영합니다!
+              승리도 패배도 품격있게!<br />당신의 논리가 빛나는 순간
               </p>
             </motion.div>
             <OptimizedImage
@@ -179,7 +179,7 @@ const FakeMainPage = () => {
               >
                 실시간 논쟁 배틀,<br />지금 시작됩니다!
               </motion.h2>
-              <ul className="space-y-4 text-xl whitespace-normal">
+              <ul className="space-y-4 text-lg whitespace-normal">
                 <motion.li
                   initial={{ x: -100, opacity: 0 }}
                   whileInView={{ x: 0, opacity: 1 }}
@@ -189,7 +189,7 @@ const FakeMainPage = () => {
                     ease: "easeInOut"
                   }}
                 >
-                  2명의 배틀러, 최대 4명의 관전자
+                  2인의 배틀러, 4인의 판정단이 만드는 열띤 토론의 장
                 </motion.li>
                 <motion.li
                   initial={{ x: -100, opacity: 0 }}
@@ -200,7 +200,7 @@ const FakeMainPage = () => {
                     ease: "easeInOut"
                   }}
                 >
-                  AI 기반 욕설 필터링 클린한 채팅 환경
+                  건전한 배틀 문화를 위한 실시간 관리 시스템 적용
                 </motion.li>
               </ul>
             </motion.div>
@@ -230,8 +230,8 @@ const FakeMainPage = () => {
               }}
               className="space-y-4 text-xl"
             >
-              <p>투표 및 포인트 베팅 참여</p>
-              <p>결과에 따라 포인트 획득 가능</p>
+              <p>배틀러에게 응원 포인트를 걸어보세요</p>
+              <p>승리의 기쁨을 함께 나누는 특별한 보상</p>
             </motion.div>
           </motion.div>
         </Section>
@@ -252,16 +252,16 @@ const FakeMainPage = () => {
             className="space-y-6 text-white"
           >
             <h2 className="text-4xl font-bold text-cusGreen">
-              평범한 논쟁은 이제 그만!
+             평범한 논쟁은 No, 특별한 배틀은 Yes
             </h2>
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               whileInView={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="space-y-2 text-lg"
+              className="space-y-2 text-xl"
             >
-              <p>다양한 아이템으로 몰입감을 높이세요!</p>
-              <p>상점에서 가면, 프레임, 효과음 구매 가능</p>
+              <p>가면과 음성변조로 더욱 자유로운 토론</p>
+              <p>화려한 프레임과 효과음으로 나만의 색깔을 입히세요</p>
             </motion.div>
           </motion.div>
         </Section>
@@ -280,9 +280,9 @@ const FakeMainPage = () => {
               initial={{ y: -50, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 2 }}
-              className="text-4xl font-bold text-cusYellow"
+              className="text-5xl font-bold text-cusYellow"
             >
-              커뮤니티에서도 다양한 주제로 투표를 즐겨보세요!
+              투표로 즐기는 또 다른 논쟁의 장
             </motion.h2>
             <motion.div
               initial={{ y: 50, opacity: 0 }}
@@ -295,14 +295,14 @@ const FakeMainPage = () => {
                 whileInView={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                실시간 배틀이 아니어도 괜찮습니다!
+                실시간 토론이 부담되시나요?
               </motion.p>
               <motion.p
                 initial={{ x: 50, opacity: 0 }}
                 whileInView={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
-                커뮤니티에서 다양한 의견을 나누고 소통해보세요!
+                커뮤니티에서 당신의 의견을 자유롭게 나눠보세요!
               </motion.p>
             </motion.div>
           </motion.div>
@@ -321,9 +321,9 @@ const FakeMainPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              className="text-6xl font-bold bg-gradient-to-r from-cusRed-light to-cusBlue-light bg-clip-text text-transparent"
+              className="text-6xl font-bold bg-gradient-to-r from-cusRed-light to-cusBlue-light bg-clip-text text-transparent leading-[1.3]"
             >
-              논쟁의 새로운 패러다임,<br />지금 시작해보세요!
+              캠 건너 불구경에서<br />당신의 논리가 빛나는 순간을<br />경험하세요!
             </motion.h2>
             <motion.button
               initial={{ y: 50, opacity: 0 }}
