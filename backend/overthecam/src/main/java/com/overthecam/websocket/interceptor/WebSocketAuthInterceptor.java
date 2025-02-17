@@ -1,7 +1,10 @@
 package com.overthecam.websocket.interceptor;
 
+import com.overthecam.common.dto.ErrorResponse;
 import com.overthecam.security.jwt.JwtProperties;
 import com.overthecam.security.jwt.JwtTokenProvider;
+import com.overthecam.websocket.dto.MessageType;
+import com.overthecam.websocket.dto.WebSocketResponseDto;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
 
@@ -13,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -26,23 +30,78 @@ import org.springframework.stereotype.Component;
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider tokenProvider;
+    private final SimpMessagingTemplate messagingTemplate; // 메시지 전송을 위해 추가
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            return handleConnect(message, accessor);
-        }
-        else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
-        }
-        else if (StompCommand.SEND.equals(accessor.getCommand())) {
-            log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
-            return handleSend(message);
-        }
+        try {
+            switch (accessor.getCommand()) {
+                case CONNECT:
+                    log.debug("StompCommand.CONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
+                    return handleConnect(message, accessor);
 
-        return message;
+                case DISCONNECT:
+                    log.debug("StompCommand.DISCONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
+                    handleDisconnect(accessor);
+                    return message;
+
+                case SUBSCRIBE:
+                    log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
+                    return message;
+
+                case SEND:
+                    log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
+                    return handleSend(message);
+
+                default:
+                    return message;
+            }
+        } catch (WebSocketException e) {
+            log.error("WebSocket 처리 중 예외 발생: {}", e.getMessage());
+            // 예외 발생 시 개인 큐로 에러 메시지 전송
+            sendErrorMessage(accessor, e);
+            // CONNECT 시 예외는 연결 거부
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                return null;
+            }
+            return message;
+        } catch (Exception e) {
+            log.error("예상치 못한 예외 발생", e);
+            sendErrorMessage(accessor,
+                new WebSocketException(WebSocketErrorCode.INTERNAL_SERVER_ERROR, e.getMessage()));
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                return null;
+            }
+            return message;
+        }
+    }
+
+    private void sendErrorMessage(StompHeaderAccessor accessor, WebSocketException e) {
+        if (accessor.getUser() != null) {
+            String destination = "/user/queue/errors";
+            ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode());
+            WebSocketResponseDto<?> response = WebSocketResponseDto.error(MessageType.ERROR, errorResponse);
+            messagingTemplate.convertAndSendToUser(
+                accessor.getUser().getName(),
+                destination,
+                response
+            );
+        }
+    }
+
+    private void handleDisconnect(StompHeaderAccessor accessor) {
+        try {
+            String sessionId = accessor.getSessionId();
+            Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+            if (sessionAttributes != null) {
+                sessionAttributes.clear();
+            }
+            log.debug("WebSocket 세션 정리 완료 - sessionId: {}", sessionId);
+        } catch (Exception e) {
+            log.warn("세션 정리 중 예외 발생", e);
+        }
     }
 
     private Message<?> handleConnect(Message<?> message, StompHeaderAccessor accessor) {
