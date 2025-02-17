@@ -30,7 +30,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config){
         config.enableSimpleBroker("/api/subscribe", "/queue") // 구독(브로드캐스트)용 prefix
-                .setHeartbeatValue(new long[]{10000, 10000})  // heartbeat 간격 설정
+                //.setHeartbeatValue(new long[]{10000, 10000})  // heartbeat 간격 설정
                 .setTaskScheduler(taskScheduler());  // 메시지 스케줄러 설정
 
         config.setApplicationDestinationPrefixes("/api/publish"); // 클라이언트에서 서버로 발행하는 메시지의 prefix
