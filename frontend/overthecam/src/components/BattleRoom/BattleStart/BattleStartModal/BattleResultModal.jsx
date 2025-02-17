@@ -60,24 +60,26 @@ const BattleResultModal = forwardRef(function BattleResultModal(
 
           {/* 투표 결과 그래프 */}
           <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden mb-8">
-            <div className="text-lg font-semibold text-cusBlack">
+            <div className="text-lg font-semibold text-cusBlack absolute left-1/2 -translate-x-1/2 z-10">
               {gameResult.battleTitle}
             </div>
-            <div
-              className="absolute left-0 top-0 h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold"
-              style={{
-                width: `${options[0]?.percentage || 0}%`,
-              }}
-            >
-              {options[0]?.percentage || 0}%
-            </div>
-            <div
-              className="absolute right-0 top-0 h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold"
-              style={{
-                width: `${options[1]?.percentage || 0}%`,
-              }}
-            >
-              {options[1]?.percentage || 0}%
+            <div className="flex h-full w-full">
+              <div
+                className="h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold transition-all duration-300"
+                style={{
+                  width: `${options[0]?.percentage || 50}%`,
+                }}
+              >
+                {options[0]?.percentage || 0}%
+              </div>
+              <div
+                className="h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold transition-all duration-300"
+                style={{
+                  width: `${options[1]?.percentage || 50}%`,
+                }}
+              >
+                {options[1]?.percentage || 0}%
+              </div>
             </div>
           </div>
 
