@@ -24,6 +24,18 @@ def init_analyzer():
         analyzer = DebateAnalyzer()
     return analyzer
 
+
+@app.route('/python')  # 두 경로 모두 처리
+def index():
+    return jsonify({
+        'message': 'Python Emotion Analysis Server',
+        'status': 'running',
+        'endpoints': {
+            'health_check': '/api/health',
+            'analyze': '/api/debate/analyze'
+        }
+    })
+
 @app.route('/api/debate/analyze', methods=['POST'])
 def analyze_debate():
     """
