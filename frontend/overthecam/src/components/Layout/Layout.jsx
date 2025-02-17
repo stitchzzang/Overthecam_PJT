@@ -14,6 +14,8 @@ function Layout() {
       location.pathname === "/main/create-vote"
     ) {
       return "bg-transparent";
+    } else if (isBattleRoom) {
+      return "bg-gradient-to-b from-cusPink to-cusLightBlue flex-1 scrollbar-hide overflow-y-auto transition-al";
     }
   };
   return (
