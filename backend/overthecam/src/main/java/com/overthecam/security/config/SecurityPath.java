@@ -10,8 +10,6 @@ public enum SecurityPath {
 
     // WebSocket 관련 경로
     WS_CONNECT("/api/ws-connect/**"),
-    WS_CONNECT_ROOT("/api/ws-connect"),
-    WS_CONNECT_INFO("/api/ws-connect/info"),
 
     // Messaging 관련 경로
     PUBLISH("/api/publish/**"),
@@ -24,7 +22,10 @@ public enum SecurityPath {
     BATTLE_VIEW_LIST("/api/battle/room/all"),
 
     // 검색 관련 경로
-    SEARCH("/api/search/**");
+    SEARCH("/api/search/**"),
+
+    // 욕설 필터링 관련 경로
+    BADWORD_FILTER("/api/bad-word/**");
 
 
     private final String path;

@@ -27,7 +27,7 @@ public class BattleVoteRedisService {
     public void processVote(Long battleId, BattleBettingInfo vote) {
         transactionTemplate.execute(operations -> {
             voteRedisRepository.saveVote(battleId, vote);
-            if (!vote.isBattler()) {
+            if (vote.isBattler()) {
                 voteRedisRepository.incrementOptionScore(battleId, vote.getVoteOptionId(), vote.getSupportScore());
             }
             return null;

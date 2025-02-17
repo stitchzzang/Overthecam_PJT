@@ -4,24 +4,24 @@ import { persist, createJSONStorage } from "zustand/middleware";
 const useUserStore = create(
   persist(
     (set) => ({
-      userId: null,
       isLoggedIn: false,
       userNickname: null,
+      userId: null,
       // token: null,
-      setUser: (userData) =>
-        set((state) => ({
-          userId: userData.userId,
-          isLoggedIn: userData.isLoggedIn,
-          userNickname: userData.userNickname,
-          // token: userData.token,
-        })),
-      clearUser: () => 
-        set({ 
-          userId: null, 
-          isLoggedIn: false, 
-          userNickname: null,
-          // token: null,
-        }),
+      setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
+      setUserNickname: (nickname) => set({ userNickname: nickname }),
+      setUserId: (id) => set({ userId: id }),
+      setUserInfo: (info) => set((state) => ({
+        ...state,
+        isLoggedIn: info.isLoggedIn ?? state.isLoggedIn,
+        userNickname: info.userNickname ?? state.userNickname,
+        userId: info.userId ?? state.userId
+      })),
+      clearUserInfo: () => set({
+        isLoggedIn: false,
+        userNickname: null,
+        userId: null
+      }),
     }),
     {
       name: 'user-storage', // localStorage에 저장될 키 이름

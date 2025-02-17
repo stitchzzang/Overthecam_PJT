@@ -10,6 +10,8 @@ import com.overthecam.security.util.SecurityUtils;
 import livekit.LivekitWebhook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -134,20 +136,54 @@ public class BattleController {
      */
     @PostMapping(value = "/livekit/webhook", consumes = "application/webhook+json")
     public ResponseEntity<CommonResponseDto<?>> handleWebhook(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestBody String body) {
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody String body) {
         try {
+            log.info("웹훅 이벤트 수신: {}", body);
             LivekitWebhook.WebhookEvent event = liveKitTokenService.handleWebhookEvent(authHeader, body);
+            log.info("파싱된 웹훅 이벤트: {}", event);
+
+            if (event.getEvent().equals("participant_left")) {
+                if (event.getParticipant() == null || event.getParticipant().getMetadata() == null) {
+                    log.error("이벤트에서 참가자 정보 또는 메타데이터 누락");
+                    return ResponseEntity.ok(CommonResponseDto.error(
+                            ErrorResponse.of(BattleErrorCode.INVALID_WEBHOOK_DATA)
+                    ));
+                }
+
+                try {
+                    JSONObject metadata = new JSONObject(event.getParticipant().getMetadata());
+                    Long userId = metadata.getLong("userId");
+                    Long battleId = metadata.getLong("battleId");
+
+                    log.info("참가자 퇴장 이벤트 처리 시작 - 배틀ID: {}, 사용자ID: {}", battleId, userId);
+                    battleService.handleUserLeave(battleId, userId);
+                    log.info("참가자 퇴장 이벤트 처리 완료");
+
+                    return ResponseEntity.ok(CommonResponseDto.ok(Map.of(
+                            "message", "웹훅 이벤트가 성공적으로 처리되었습니다",
+                            "event", event.toString()
+                    )));
+                } catch (JSONException e) {
+                    log.error("메타데이터 파싱 실패: {}", event.getParticipant().getMetadata(), e);
+                    return ResponseEntity.ok(CommonResponseDto.error(
+                            ErrorResponse.of(BattleErrorCode.INVALID_METADATA_FORMAT)
+                    ));
+                }
+            } else {
+                log.info("participant_left 외 다른 이벤트 수신: {}", event.getEvent());
+            }
+
             return ResponseEntity.ok(CommonResponseDto.ok(Map.of(
-                "message", "웹훅 이벤트가 성공적으로 처리되었습니다",
-                "event", event.toString()
+                    "message", "웹훅 이벤트가 성공적으로 처리되었습니다",
+                    "event", event.toString()
             )));
         } catch (Exception e) {
             log.error("웹훅 처리 실패", e);
             return ResponseEntity.ok(
-                CommonResponseDto.error(
-                    ErrorResponse.of(BattleErrorCode.OPENVIDU_CONNECTION_ERROR)
-                )
+                    CommonResponseDto.error(
+                            ErrorResponse.of(BattleErrorCode.OPENVIDU_CONNECTION_ERROR)
+                    )
             );
         }
     }
@@ -171,6 +207,7 @@ public class BattleController {
     @GetMapping("/random")
     public CommonResponseDto<RandomVoteTopicResponse> createRandomVoteTopic() {
         RandomVoteTopicResponse response = battleService.createRandomVoteTopic();
+        log.info("랜덤 주제 생성 완료");
         return CommonResponseDto.ok(response);
     }
 }

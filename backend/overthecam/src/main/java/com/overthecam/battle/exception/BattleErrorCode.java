@@ -36,7 +36,11 @@ public enum BattleErrorCode implements ErrorCode {
     // 배틀러 선정 관련 에러
     FAIL_BATTLER_SELECT(400, "배틀러 선정에 실패했습니다. 해당 사용자가 배틀방에 참여하고 있는지 확인해주세요."),
     INVALID_BATTLER_SELECT(400, "동일한 사용자를 배틀러로 선택할 수 없습니다. 서로 다른 참가자를 선택해주세요."),
-    MISSING_BATTLER_INFO(400, "배틀러 정보가 누락되었습니다. 두 명의 배틀러 정보를 모두 입력해주세요.");
+    MISSING_BATTLER_INFO(400, "배틀러 정보가 누락되었습니다. 두 명의 배틀러 정보를 모두 입력해주세요."),
+
+    // 웹훅 관련 에러
+    INVALID_WEBHOOK_DATA(400, "웹훅 데이터가 올바르지 않습니다"),
+    INVALID_METADATA_FORMAT(400, "메타데이터 형식이 올바르지 않습니다");
 
 
 

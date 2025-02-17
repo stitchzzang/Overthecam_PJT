@@ -15,7 +15,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const setUser = useUserStore((state) => state.setUser);
+  const setUserInfo = useUserStore((state) => state.setUserInfo);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -72,11 +72,10 @@ const Login = () => {
           localStorage.setItem("rememberMe", "true");
         }
 
-        setUser({
+        setUserInfo({
           userId: userInfo.userId,
           isLoggedIn: true,
-          userNickname: userInfo.nickname,
-          token: userInfo.token,
+          userNickname: userInfo.nickname
         });
 
         const from = location.state?.from || '/main';

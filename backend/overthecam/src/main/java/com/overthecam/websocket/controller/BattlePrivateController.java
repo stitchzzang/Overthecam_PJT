@@ -5,6 +5,8 @@ import com.overthecam.member.dto.UserScoreInfo;
 import com.overthecam.websocket.dto.*;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
+import com.overthecam.websocket.service.BattleReadyService;
+import com.overthecam.websocket.service.BattleVoteService;
 import com.overthecam.websocket.util.WebSocketRequestMapper;
 import com.overthecam.websocket.util.WebSocketSecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -22,8 +25,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class BattlePrivateController {
 
     private final BattleBettingService battleBettingService;
+    private final BattleReadyService battleReadyService;
+    private final BattleVoteService battleVoteService;
     private final WebSocketRequestMapper requestMapper;
 
+    @SubscribeMapping("/battle/private/{battleId}")
+    @SendToUser("/queue/battle/{battleId}")
+    public WebSocketResponseDto<?> handleSubscribe(
+        @DestinationVariable Long battleId,
+        SimpMessageHeaderAccessor headerAccessor) {
+
+        UserPrincipal user = authenticateUser(headerAccessor);
+        log.debug("새로운 사용자 개인 채널 구독 - battleId: {}, user: {}", battleId, user.getEmail());
+
+        // 현재 방의 상태 정보를 조회
+        BattleRoomStatus status = BattleRoomStatus.builder()
+            .readyUsers(battleReadyService.getReadyUsers(battleId))
+            .voteInfo(battleVoteService.getCurrentVote(battleId))
+            .build();
+
+        return WebSocketResponseDto.ok(MessageType.ROOM_STATUS, status);
+    }
 
     // 배틀 개인 공지 - 포인트, 응원 점수
     @MessageMapping("/battle/private/{battleId}")
