@@ -164,18 +164,19 @@ function BattleWaiting({
               </div>
             ) : (
               <div className="w-1/4 flex flex-col mx-1">
-                <div
+                <button
                   onClick={handleToggleReady}
+                  disabled={!isVoteSubmitted}
                   className="h-full bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg"
                 >
                   {myReady ? <p>배틀 준비취소</p> : <p>배틀 준비하기</p>}
-                </div>
+                </button>
               </div>
             )}
           </div>
         </div>
         <div className="w-1/4 flex flex-col h-full mb-5">
-          <BattleChating height={"h-[550px]"} />
+          <BattleChating outHeight={"h-[550px]"} innerHeight={"h-[550px]"} />
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />
