@@ -8,6 +8,7 @@ import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
 import { useLocation, useNavigate } from 'react-router-dom';
 import useUserStore from '../../store/User/UserStore';
+import AiReport from './AiReport';  // 새로운 AiReport import
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
@@ -1035,7 +1036,7 @@ function MyPage() {
                 </form>
               </div>
             )}
-            {activeTab === 'report' && <MyPageReport />}
+            {activeTab === 'report' && <AiReport />}
             {activeTab === 'battle' && <MyPageBattle />}
             {activeTab === 'vote' && <MyPageVote />}
           </div>

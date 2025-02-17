@@ -26,6 +26,10 @@ function VoteDetailModal({ voteData, isLoading, onClose, clickedElement }) {
     onClose();
   };
 
+  // 전체 데이터 구조 확인
+  console.log('Full option 0:', JSON.stringify(voteData.options[0], null, 2));
+  console.log('Full option 1:', JSON.stringify(voteData.options[1], null, 2));
+
   return (
     <div className="absolute top-0 left-0 w-full h-screen" onClick={handleOutsideClick}>
       {/* 배경 오버레이 */}
@@ -65,22 +69,22 @@ function VoteDetailModal({ voteData, isLoading, onClose, clickedElement }) {
               <span className="text-cusBlue text-lg font-bold">B. {voteData.options[1].optionTitle}</span>
             </div>
             <div className="h-12 bg-gray-100 rounded-[1rem] flex overflow-hidden relative clay">
-              {voteData.options[0].votePercentage > 0 && (
-                <div 
-                  className="bg-cusRed h-full flex items-center clay"
-                  style={{ width: `${voteData.options[0].votePercentage}%` }}
-                >
-                  <span className="absolute left-4 text-white font-bold text-lg">{Math.round(voteData.options[0].votePercentage)}%</span>
-                </div>
-              )}
-              {voteData.options[1].votePercentage > 0 && (
-                <div 
-                  className="bg-cusBlue h-full flex items-center clay"
-                  style={{ width: `${voteData.options[1].votePercentage}%` }}
-                >
-                  <span className="absolute right-4 text-white font-bold text-lg">{Math.round(voteData.options[1].votePercentage)}%</span>
-                </div>
-              )}
+              <div 
+                className={`h-full flex items-center clay ${voteData.options[0].selected ? 'bg-cusRed' : 'bg-gray-400'}`}
+                style={{ width: `${voteData.options[0].votePercentage}%` }}
+              >
+                <span className="absolute left-4 text-white font-bold text-lg">
+                  {Math.round(voteData.options[0].votePercentage)}%
+                </span>
+              </div>
+              <div 
+                className={`h-full flex items-center clay ${voteData.options[1].selected ? 'bg-cusBlue' : 'bg-gray-400'}`}
+                style={{ width: `${voteData.options[1].votePercentage}%` }}
+              >
+                <span className="absolute right-4 text-white font-bold text-lg">
+                  {Math.round(voteData.options[1].votePercentage)}%
+                </span>
+              </div>
             </div>
           </div>
 
