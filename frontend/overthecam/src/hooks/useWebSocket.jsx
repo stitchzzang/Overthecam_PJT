@@ -3,6 +3,7 @@ import { Stomp } from "@stomp/stompjs";
 import { createContext, useContext } from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useBattleStore } from "../store/Battle/BattleStore";
+import useUserStore from "../store/User/UserStore";
 
 // WebSocket 상태를 나타내는 상수
 const WS_STATUS = {
@@ -56,10 +57,17 @@ const useWebSocket = (battleId) => {
   const [isStarted, setIsStarted] = useState(false);
   const [battlers, setBattlers] = useState([]);
   const [gameInfo, setGameInfo] = useState({});
+  const [participants, setParticipants] = useState([]);
+  const [myScores, setMyScores] = useState({});
+  const [myRole, setMyRole] = useState(null);
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
+  const [myResult, setMyResult] = useState(null);
+  const [isBattleEnded, setIsBattleEnded] = useState(false);
+  const [isDraw, setIsDraw] = useState(false);
 
   const battleInfo = useBattleStore((s) => s.battleInfo);
+  const userId = useUserStore((s) => s.userId);
 
   const getResponse = useCallback((response) => {
     console.log("[WS] getResponse 호출됨, raw response:", response);
@@ -71,6 +79,22 @@ const useWebSocket = (battleId) => {
       switch (type) {
         case "ERROR":
           setError(error); // 에러 메세지 .. 구조 분해 다시
+          break;
+        case "ROOM_STATUS":
+          if (data.readyUsers) {
+            setReadyList((prev) => [...prev, data.readyUsers]);
+          }
+          if (data.voteInfo) {
+            setVote({
+              title: data.voteInfo.title,
+              content: data.voteInfo.content,
+              option1: data.voteInfo.options[0]?.optionTitle,
+              option2: data.voteInfo.options[1]?.optionTitle,
+              option1Id: data.voteInfo.options[0]?.optionId,
+              option2Id: data.voteInfo.options[1]?.optionId,
+            });
+            setIsVoteSubmitted(true);
+          }
           break;
         case "CHAT":
           if (success) {
@@ -110,14 +134,31 @@ const useWebSocket = (battleId) => {
               prev.filter((p) => p.nickname !== data.nickname)
             );
           }
-          if (data.nickname===battleInfo.participantName) {
-            setMyReady(data.ready)
+          if (data.nickname === battleInfo.participantName) {
+            setMyReady(data.ready);
           }
           break;
         case "BATTLE_START":
           if (success) {
             setGameInfo(data);
+            setVote({
+              title: data.voteInfo.title,
+              content: data.voteInfo.content,
+              option1: data.voteInfo.options[0]?.optionTitle,
+              option2: data.voteInfo.options[1]?.optionTitle,
+              option1Id: data.voteInfo.options[0]?.optionId,
+              option2Id: data.voteInfo.options[1]?.optionId,
+            });
+            setIsVoteSubmitted(true);
             setIsStarted(success);
+            const me = data.participants.filter((p) => {
+              p.userId === userId;
+            });
+            setMyScores({
+              supportScore: me.supportScore,
+              point: me.point,
+            });
+            setMyRole(me.role);
           }
           break;
         case "BATTLER_SELECT":
@@ -146,6 +187,17 @@ const useWebSocket = (battleId) => {
               const newList = [...prev, newMsg];
               return newList;
             });
+          }
+          break;
+        case "BATTLE_END":
+          if (success) {
+            setGameResult(data);
+            const me = data.userResults.filter((p) => {
+              p.userId === userId;
+            });
+            setMyResult(me);
+            setIsDraw(data.winningInfo.draw);
+            setIsBattleEnded(true);
           }
           break;
         default:
@@ -191,6 +243,14 @@ const useWebSocket = (battleId) => {
                 // 연결 후 잠시 대기
                 await new Promise((resolve) => setTimeout(resolve, 1000));
 
+                // 이전 구독이 있다면 정리
+                if (subscriptionsRef.current.private) {
+                  subscriptionsRef.current.private.unsubscribe();
+                }
+                if (subscriptionsRef.current.public) {
+                  subscriptionsRef.current.public.unsubscribe();
+                }
+
                 // 순차적 구독 처리
                 console.log("Private 채널 구독 시도...");
                 subscriptionsRef.current.private =
@@ -231,6 +291,14 @@ const useWebSocket = (battleId) => {
               setError(new Error(errorMessage));
               setWsStatus(WS_STATUS.ERROR);
 
+              // 에러 발생 시 현재 구독 정리
+              if (subscriptionsRef.current.private) {
+                subscriptionsRef.current.private.unsubscribe();
+              }
+              if (subscriptionsRef.current.public) {
+                subscriptionsRef.current.public.unsubscribe();
+              }
+
               // STOMP 에러 시 재연결 시도
               if (retryCount < maxRetries) {
                 console.log(
@@ -243,6 +311,14 @@ const useWebSocket = (battleId) => {
               console.error("WebSocket 연결 오류:", error);
               setError(error);
               setWsStatus(WS_STATUS.ERROR);
+
+              // 현재 구독 정리
+              if (subscriptionsRef.current.private) {
+                subscriptionsRef.current.private.unsubscribe();
+              }
+              if (subscriptionsRef.current.public) {
+                subscriptionsRef.current.public.unsubscribe();
+              }
 
               // WebSocket 에러 시 재연결 시도
               if (retryCount < maxRetries) {
@@ -261,6 +337,14 @@ const useWebSocket = (battleId) => {
           setError(error);
           setWsStatus(WS_STATUS.ERROR);
 
+          // 현재 구독 정리
+          if (subscriptionsRef.current.private) {
+            subscriptionsRef.current.private.unsubscribe();
+          }
+          if (subscriptionsRef.current.public) {
+            subscriptionsRef.current.public.unsubscribe();
+          }
+
           if (retryCount < maxRetries) {
             console.log(`일반 에러, 재시도 ${retryCount + 1}/${maxRetries}`);
             await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -275,19 +359,44 @@ const useWebSocket = (battleId) => {
     [battleId, getResponse]
   );
 
-  const disconnectWS = useCallback(() => {
-    Object.values(subscriptionsRef.current).forEach((subscription) => {
-      subscription?.unsubscribe();
-    });
-    subscriptionsRef.current = {};
+ const disconnectWS = useCallback(() => {
+   if (stompClientRef.current) {
+     setWsStatus(WS_STATUS.DISCONNECTED);
 
-    if (stompClientRef.current) {
-      stompClientRef.current.deactivate();
-      stompClientRef.current = null;
-      setWsStatus(WS_STATUS.DISCONNECTED);
-      setError(null);
-    }
-  }, []);
+     try {
+       const unsubscribePromises = Object.values(subscriptionsRef.current).map(
+         (subscription) => {
+           return new Promise((resolve) => {
+             if (subscription) {
+               subscription.unsubscribe();
+               setTimeout(resolve, 100);
+             } else {
+               resolve();
+             }
+           });
+         }
+       );
+
+       Promise.all(unsubscribePromises).then(() => {
+         subscriptionsRef.current = {};
+
+         setTimeout(() => {
+           // 여기서 한번 더 체크
+           if (stompClientRef.current) {
+             stompClientRef.current.deactivate();
+             stompClientRef.current = null;
+           }
+           setWsStatus(WS_STATUS.DISCONNECTED);
+           setError(null);
+         }, 200);
+       });
+     } catch (error) {
+       console.error("Disconnect error:", error);
+       setError("연결 종료 중 오류가 발생했습니다");
+       setWsStatus(WS_STATUS.ERROR);
+     }
+   }
+ }, []);
 
   const sendMessage = useCallback(
     (content) => {
@@ -347,25 +456,28 @@ const useWebSocket = (battleId) => {
     [battleId, wsStatus]
   );
 
-  const readyForBattle = useCallback((userId, nickname, ready) => {
-    try {
-      stompClientRef.current?.send(
-        `/api/publish/battle/${battleId}`,
-        {},
-        JSON.stringify({
-          type: "BATTLE_READY",
-          data: {
-            userId,
-            nickname,
-            ready,
-          },
-        })
-      );
-    } catch (error) {
-      console.error("준비 실패:", error);
-      setError("준비에 실패했습니다.");
-    }
-  }, [battleId, wsStatus]);
+  const readyForBattle = useCallback(
+    (userId, nickname, ready) => {
+      try {
+        stompClientRef.current?.send(
+          `/api/publish/battle/${battleId}`,
+          {},
+          JSON.stringify({
+            type: "BATTLE_READY",
+            data: {
+              userId,
+              nickname,
+              ready,
+            },
+          })
+        );
+      } catch (error) {
+        console.error("준비 실패:", error);
+        setError("준비에 실패했습니다.");
+      }
+    },
+    [battleId, wsStatus]
+  );
 
   const startBattle = useCallback(() => {
     try {
@@ -455,6 +567,12 @@ const useWebSocket = (battleId) => {
     isTimeExtended,
     finishBattle,
     gameResult,
+    myScores,
+    setMyScores,
+    myRole,
+    myResult,
+    isDraw,
+    isBattleEnded,
   };
 };
 

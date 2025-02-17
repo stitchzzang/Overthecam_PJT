@@ -1,5 +1,7 @@
 package com.overthecam.websocket.interceptor;
 
+import com.overthecam.common.dto.ErrorResponse;
+import com.overthecam.common.exception.GlobalException;
 import com.overthecam.security.jwt.JwtProperties;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
@@ -31,19 +33,57 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
+//        if (accessor == null || accessor.getCommand() == null) {
+//            return message;
+//        }
+
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            log.debug("StompCommand.CONNECT 요청 수신 - destination: {}", accessor.getDestination());
+            log.debug("StompCommand.CONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
             return handleConnect(message, accessor);
         }
         else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
+            log.debug("구독 요청 수신 - destination: {}, sessionId: {}, user: {}, headers: {}",
+                accessor.getDestination(),
+                accessor.getSessionId(),
+                accessor.getUser(),
+                accessor.getMessageHeaders());
+
+            // 구독 처리가 실제로 되는지 확인하기 위한 로깅
+            try {
+                Message<?> result = message;
+                log.debug("구독 처리 결과: {}", result);
+                return result;
+            } catch (Exception e) {
+                log.error("구독 처리 중 오류 발생", e);
+                throw e;
+            }
         }
         else if (StompCommand.SEND.equals(accessor.getCommand())) {
             log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
+            log.debug("메시지 내용: {}", message.getPayload());  // 추가
+            log.debug("메시지 헤더: {}", message.getHeaders());  // 추가
             return handleSend(message);
+        }
+        else if(StompCommand.DISCONNECT.equals(accessor.getCommand())){
+            log.debug("StompCommand.DISCONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
+            handleDisconnect(accessor);
         }
 
         return message;
+    }
+
+    private void handleDisconnect(StompHeaderAccessor accessor) {
+        try {
+            String sessionId = accessor.getSessionId();
+            Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+            if (sessionAttributes != null) {
+                sessionAttributes.clear();
+            }
+            log.debug("WebSocket 세션 정리 완료 - sessionId: {}", sessionId);
+        } catch (Exception e) {
+            log.warn("세션 정리 중 예외 발생", e);
+        }
     }
 
     private Message<?> handleConnect(Message<?> message, StompHeaderAccessor accessor) {

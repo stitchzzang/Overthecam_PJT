@@ -14,4 +14,6 @@ public class TokenResponse {
     private Long userId;
     private String nickname;
     private String profileImage;
+    private int supportScore;
+    private int point;
 }

@@ -3,14 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useBattleStore } from "../../store/Battle/BattleStore";
-import { leaveRoom } from "../../service/BattleRoom/api";
 
 import { useWebSocketContext } from "../../hooks/useWebSocket";
+import WebSocketProvider from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
 import BattleWaiting from "../../components/BattleRoom/BattleWaiting/BattleWaiting";
 import BattleStart from "../../components/BattleRoom/BattleStart/BattleStart";
 import BattlerSettingModal from "../../components/BattleRoom/BattleWaiting/BattleWaitingModal/BattlerSettingModal";
 import BattleLeaveConfirmModal from "../../components/BattleRoom/common/BattleLeaveComfirmModal";
+import BattleResultModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleResultModal";
 import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
@@ -26,7 +27,7 @@ function BattleRoomPage() {
 
   const navigate = useNavigate();
   // user 데이터
-  const userId = useUserStore(s=>s.userId)
+  const userId = useUserStore((s) => s.userId);
   // 웹소켓 관련
   const {
     status,
@@ -37,6 +38,7 @@ function BattleRoomPage() {
     startBattle,
     readyForBattle,
     isStarted,
+    isBattleEnded,
   } = useWebSocketContext();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
@@ -55,13 +57,15 @@ function BattleRoomPage() {
   const battlerSettingModal = useRef(); // 배틀러 선정 모달 -> 대기실로 옮겨도 될듯
   const leaveConfirmModal = useRef(); // 나가기 확인 버튼
   const endBattleModal = useRef(); // 배틀 종료 버튼
+  const resultModal = useRef(); // 결과 알림모달
 
-  // 예외처리 관련련
+  // 예외처리 관련
   const failTost = useRef(); // 토스트
   const noticeToast = useRef(); // 알림 토스트
   const isCleanedUp = useRef(); // 클린업 함수 수행 여부 판단
 
-  // 예외처리
+  // 로딩
+  const [isResultLoading, setIsResultLoading] = useState(false);
 
   // 새로고침 버튼누르면 브라우저 보안 정책에 의해서 기본 alret 뜸
   const handleRefreshAttempt = (e) => {
@@ -150,10 +154,14 @@ function BattleRoomPage() {
           break;
         case "disconnected":
           failTost.current?.showAlert("연결이 끊어졌습니다.");
+          cleanup();
+          disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
           break;
         default:
           failTost.current?.showAlert("오류가 발생했습니다.");
+          cleanup();
+          disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
       }
     };
@@ -252,26 +260,31 @@ function BattleRoomPage() {
 
     // 방 연결 시 사용
     room.on(RoomEvent.Connected, async () => {
-      // 잠시 기다려서 localParticipant가 설정될 시간 주기
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      try {
+        // localParticipant가 설정될 때까지 기다림
+        while (!room.localParticipant?.metadata) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
 
-      const allParticipants = [];
-      // localParticipant 추가
-      if (room.localParticipant?.metadata) {
-        const localMeta = JSON.parse(room.localParticipant.metadata);
-        allParticipants.push(localMeta);
+        const allParticipants = [];
+        if (room.localParticipant?.metadata) {
+          const localMeta = JSON.parse(room.localParticipant.metadata);
+          allParticipants.push(localMeta);
+        }
+        if (room.remoteParticipants) {
+          room.remoteParticipants.forEach((participant, key) => {
+            const remoteMeta = JSON.parse(participant.metadata);
+            allParticipants.push(remoteMeta);
+            if (JSON.parse(participant.metadata).role === "host") {
+              setHost(JSON.parse(participant.metadata).nickname);
+            }
+          });
+        }
+        setParticipants(allParticipants);
+      } catch (error) {
+        console.error("Room connection error:", error);
+        failTost.current?.showAlert("연결 중 오류가 발생했습니다.");
       }
-
-      if (room.remoteParticipants) {
-        room.remoteParticipants.forEach((participant, key) => {
-          const remoteMeta = JSON.parse(participant.metadata);
-          allParticipants.push(remoteMeta);
-          if (JSON.parse(participant.metadata).role === "host") {
-            setHost(JSON.parse(participant.metadata).nickname);
-          }
-        });
-      }
-      setParticipants(allParticipants);
     });
 
     room.on(RoomEvent.TrackUnsubscribed, (_track, publication) => {
@@ -327,6 +340,7 @@ function BattleRoomPage() {
     } catch (error) {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
+      cleanup();
       setTimeout(() => navigate("/main/battle-list"), 1500);
     }
 
@@ -365,18 +379,11 @@ function BattleRoomPage() {
 
       // room 연결 종료
       await room?.disconnect();
+      disconnectWS();
       setRoom(undefined);
       setLocalTrack(undefined);
       setRemoteTracks([]);
       clearBattleInfo();
-
-      try {
-        console.log(battleInfo.battleId);
-        const response = await leaveRoom(battleInfo.battleId);
-        console.log("방 나가기 처리가 되었음:", response.data.message);
-      } catch (error) {
-        console.error("배틀방 나가기 에러:", error);
-      }
 
       console.log("Cleanup completed successfully");
     } catch (error) {
@@ -398,11 +405,6 @@ function BattleRoomPage() {
     await cleanup(room);
   };
 
-  const handleEndBattle = async () => {
-    // 배틀 종료 후 결과 알림 등 로직
-    await cleanup(room);
-  };
-
   const battlerModalShow = (e) => {
     battlerSettingModal.current?.showModal(vote.option1, vote.option2);
   };
@@ -417,71 +419,106 @@ function BattleRoomPage() {
     startBattle();
   };
 
+  useEffect(() => {
+    if (isStarted) {
+      // isStarted가 true일 때만 실행
+      noticeToast.current?.showAlert("배틀이 시작 되었습니다.");
+    }
+  }, [isStarted]);
+
+  useEffect(() => {
+    if (isBattleEnded) {
+      setIsResultLoading(true); // 로딩 시작
+      noticeToast.current?.showAlert("배틀이 종료 되었습니다.");
+      // 3초 조금 더 여유 있게 후에 결과 모달 표시
+      setTimeout(() => {
+        setIsResultLoading(false); // 로딩 끝
+        resultModal.current?.showAlert();
+      }, 2000);
+    }
+  }, [isBattleEnded]);
+
   // 연결 상태에 따른 에러 처리
   if (status === "ERROR") {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">
-          WebSocket 연결에 실패했습니다. 페이지를 새로고침 해주세요.
-        </p>
+        <div className="text-gray-600">
+          <p>연결이 끊어졌습니다.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-cusRed text-white rounded hover:bg-red-600"
+          >
+            다시 연결
+          </button>
+        </div>
       </div>
     );
   }
 
-  // battleInfo가 없는 경우 처리
-  if (!battleInfo?.battleId) {
-    return <div>배틀방 id 가 없습니다.</div>;
-  }
-
   return (
-    <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
-      <BattleHeader
-        isWaiting={!isStarted}
-        isMaster={isMaster}
-        onshowLeaveConfirmModal={handleLeavRoom}
-        onShowBattlerModal={battlerModalShow}
-        onShowEndBattleModal={endBattleModalShow}
-      />
-      <div className="render-change flex-1 h-0">
-        {!isStarted ? (
-          <div className="flex h-full">
-            {/* h-full 유지 */}
-            <div className="w-full h-full flex flex-col">
-              {/* flex flex-col 추가 */}
-              <BattleWaiting
-                room={room}
+    <WebSocketProvider battleId={battleInfo.battleId}>
+      <div className="room-container flex flex-col bg-white p-5 h-full rounded-xl m-4">
+        <BattleHeader
+          isWaiting={!isStarted}
+          isMaster={isMaster}
+          onshowLeaveConfirmModal={handleLeavRoom}
+          onShowEndBattleModal={endBattleModalShow}
+        />
+
+        <div className="render-change flex-1 h-0 relative">
+          {isResultLoading ? (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cusRed"></div>
+                <h3 className="text-xl font-bold">결과 집계 중</h3>
+                <p className="text-gray-600">잠시만 기다려주세요...</p>
+              </div>
+            </div>
+          ) : null}
+
+          {!isStarted ? (
+            <div className="flex h-full">
+              {/* h-full 유지 */}
+              <div className="w-full h-full flex flex-col">
+                {/* flex flex-col 추가 */}
+                <BattleWaiting
+                  room={room}
+                  localTrack={localTrack}
+                  remoteTracks={remoteTracks}
+                  participantName={battleInfo.participantName}
+                  isMaster={isMaster}
+                  host={host}
+                  participants={participants}
+                  onShowBattlerModal={battlerModalShow}
+                  onBattleStart={handleBattleStart}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <BattleStart
                 localTrack={localTrack}
                 remoteTracks={remoteTracks}
                 participantName={battleInfo.participantName}
-                isMaster={isMaster}
-                host={host}
-                participants={participants}
-                onBattleStart={handleBattleStart}
               />
-            </div>
-          </div>
-        ) : (
-          <>
-            <BattleStart
-              localTrack={localTrack}
-              remoteTracks={remoteTracks}
-              participantName={battleInfo.participantName}
-            />
-          </>
-        )}
+            </>
+          )}
+        </div>
+        <BattlerSettingModal
+          ref={battlerSettingModal}
+          participants={participants}
+          myNickname={battleInfo.participantName}
+        />
+        <FailAlertModal ref={failTost} />
+        <NoticeAlertModal ref={noticeToast} />
+        <BattleLeaveConfirmModal
+          ref={leaveConfirmModal}
+          onConfirm={handleConfirmLeave}
+        />
+        <BattleEndModal ref={endBattleModal} />
+        <BattleResultModal ref={resultModal} onFinish={handleConfirmLeave} />
       </div>
-      <BattlerSettingModal
-        ref={battlerSettingModal}
-        participants={participants}
-      />
-      <FailAlertModal ref={failTost} />
-      <NoticeAlertModal ref={noticeToast} />
-      <BattleLeaveConfirmModal
-        ref={leaveConfirmModal}
-        onConfirm={handleConfirmLeave}
-      />
-      <BattleEndModal ref={endBattleModal} onFinish={handleEndBattle} />
-    </div>
+    </WebSocketProvider>
   );
 }
 

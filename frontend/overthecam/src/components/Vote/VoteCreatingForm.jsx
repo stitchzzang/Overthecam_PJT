@@ -9,17 +9,27 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title || !content || !option1 || !option2) {
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+    const trimmedOption1 = option1.trim();
+    const trimmedOption2 = option2.trim();
+
+    if (!trimmedTitle || !trimmedContent || !trimmedOption1 || !trimmedOption2) {
       alert('모든 필드를 입력해주세요.');
       return;
     }
 
+    if (trimmedTitle.length < 2 || trimmedTitle.length > 100) {
+      alert('제목은 2~100자 사이로 입력해주세요.');
+      return;
+    }
+
     const voteData = {
-      title: title.trim(),
-      content: content.trim(),
+      title: trimmedTitle,
+      content: trimmedContent,
       options: [
-        option1.trim(),
-        option2.trim()
+        trimmedOption1,
+        trimmedOption2
       ]
     };
 

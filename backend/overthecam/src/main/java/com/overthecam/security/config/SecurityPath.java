@@ -13,6 +13,7 @@ public enum SecurityPath {
     WS_CONNECT_ROOT("/api/ws-connect"),
     WS_CONNECT_INFO("/api/ws-connect/info"),
 
+
     // Messaging 관련 경로
     PUBLISH("/api/publish/**"),
     SUBSCRIBE("/api/subscribe/**"),

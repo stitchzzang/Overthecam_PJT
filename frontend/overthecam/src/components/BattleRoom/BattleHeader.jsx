@@ -10,13 +10,12 @@ function BattleHeader({
   isWaiting,
   isMaster,
   onshowLeaveConfirmModal,
-  onShowBattlerModal,
   onShowEndBattleModal,
 }) {
   const battleInfo = useBattleStore((state) => state.battleInfo);
+  const { myScores, setMyScores } = useWebSocketContext();
   const noticeToast = useRef();
   const randomTopicModal = useRef();
-  const { isVoteSubmitted } = useWebSocketContext();
 
   const handleTimerStoped = (message) => {
     noticeToast.current?.showAlert(message);
@@ -62,15 +61,6 @@ function BattleHeader({
             >
               랜덤 주제 생성기
             </button>
-            {isMaster && (
-              <button
-                onClick={onShowBattlerModal}
-                disabled={!isVoteSubmitted}
-                className={`battler-selector btn bg-cusYellow !rounded-xl flex items-center h-12 disabled:cursor-not-allowed disabled:bg-cusGray disabled:pointer-events-none`}
-              >
-                배틀러 선정하기
-              </button>
-            )}
           </div>
         ) : (
           <div className="flex gap-3">
@@ -79,9 +69,13 @@ function BattleHeader({
             </div>
             <div className="my-points flex bg-gray-300 rounded-xl items-center h-12 clay gap-2 px-2 font-semibold">
               <span>내 포인트</span>
-              <div className="points bg-white rounded-lg px-1">100</div>
+              <div className="points bg-white rounded-lg px-1">
+                {myScores.point}
+              </div>
               <span>내 응원 점수</span>
-              <div className="cheer-score bg-white rounded-lg px-1">1000</div>
+              <div className="cheer-score bg-white rounded-lg px-1">
+                {myScores.supportScore}
+              </div>
             </div>
           </div>
         )}

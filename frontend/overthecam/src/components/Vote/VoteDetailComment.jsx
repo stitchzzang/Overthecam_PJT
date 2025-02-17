@@ -170,12 +170,12 @@ const VoteDetailComment = ({ voteId }) => {
   };
 
   return (
-    <div className="w-full max-w-[800px] mx-auto my-7">
-      <div className="clay bg-cusLightBlue-lighter p-4">
-        <h2 className="text-xl font-bold mb-4">댓글</h2>
+    <div className="w-full max-w-[1000px] mx-auto mt-8">
+      <div className="clay bg-cusLightBlue-lighter rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-bold mb-6">댓글</h2>
         
         {/* 댓글 목록 */}
-        <div className="space-y-4 mb-4">
+        <div className="space-y-4 mb-4 px-4">
           {comments.map((comment) => (
             <div key={comment.commentId} className="flex flex-col">
               {/* 댓글 작성자 정보 */}
@@ -249,7 +249,7 @@ const VoteDetailComment = ({ voteId }) => {
         </div>
 
         {/* 댓글 입력 폼 */}
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 mb-3">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 mb-3 mt-6 px-4">
           <input
             type="text"
             value={newComment}

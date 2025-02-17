@@ -8,8 +8,14 @@ function MyInventory() {
   const exchangeDialog = useRef();
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [myPoints, setMyPoints] = useState(200);
-  const [myCheerScore, setMyCheerScore] = useState(1000);
+  const [myPoints, setMyPoints] = useState(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+    return userInfo ? userInfo.point : 0;
+  });
+  const [myCheerScore, setMyCheerScore] = useState(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+    return userInfo ? userInfo.supportScore : 0;
+  });
   const [filter, setFilter] = useState("all");
   const [myItems, setMyItems] = useState([]);
   const [filteredMyItems, setFilteredMyItems] = useState(myItems);

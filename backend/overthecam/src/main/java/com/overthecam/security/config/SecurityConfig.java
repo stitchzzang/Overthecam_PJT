@@ -69,6 +69,8 @@ public class SecurityConfig {
                 "http://localhost:5175",
                 "http://localhost:5080",
                 "http://127.0.0.1:5080",
+                "http://127.0.0.1:5500",
+                "http://overthecam.site",
                 "https://overthecam.site",
                 "https://overthecam.site:15555",
                 "https://localhost:5173",

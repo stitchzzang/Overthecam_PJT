@@ -44,162 +44,193 @@ const ParticipantsBadge = ({ current, max }) => {
 // 새로운 PopularVote 컴포넌트 추가
 const PopularVote = ({ onVoteUpdate }) => {
   const navigate = useNavigate();
-  const [popularVote, setPopularVote] = useState(null);
+  const [popularVotes, setPopularVotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [popularVoteKey, setPopularVoteKey] = useState(0); // PopularVote 컴포넌트 리렌더링을 위한 key
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const fetchPopularVote = async () => {
+  const fetchPopularVotes = async () => {
     try {
       const token = localStorage.getItem('token');
+      const response = await publicAxios.get('/vote/list', {
+        params: {
+          page: 0,
+          size: 100,
+          status: 'active'
+        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      // 응답 구조 확인을 위한 로그
+      console.log("전체 응답:", response.data);
+
+      // 데이터 접근 경로 수정
+      const voteList = response.data?.content;
       
-      // 먼저 전체 페이지 수를 알아내기 위한 요청
-      const initialResponse = await publicAxios.get('/vote/list', {
-        params: {
-          page: 0,
-          size: 1,
-          status: 'active'
-        },
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-
-      if (!initialResponse.data?.pageInfo?.totalPages) {
-        return;
-      }
-
-      // 모든 active 투표를 가져오기 위한 요청
-      const allVotesResponse = await publicAxios.get('/vote/list', {
-        params: {
-          page: 0,
-          size: initialResponse.data.pageInfo.totalElements, // 전체 투표 개수만큼 size 설정
-          status: 'active'
-        },
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-
-      if (allVotesResponse.data?.content) {
-        // 투표수로 정렬하여 가장 많은 투표를 선택
-        const sortedVotes = allVotesResponse.data.content.sort((a, b) => 
-          b.totalVoteCount - a.totalVoteCount
-        );
+      if (voteList && voteList.length > 0) {
+        // totalVoteCount로 정렬 후 상위 5개 선택
+        const sortedVotes = voteList
+          .sort((a, b) => b.totalVoteCount - a.totalVoteCount)
+          .slice(0, 5);
         
-        if (sortedVotes[0]) {
-          setPopularVote(sortedVotes[0]);
-        }
+        console.log("정렬된 상위 5개 투표:", sortedVotes);
+        setPopularVotes(sortedVotes);
+      } else {
+        console.error("투표 목록이 비어있습니다");
+        setPopularVotes([]);
       }
     } catch (error) {
-      console.error('인기 투표 조회 중 오류 발생:', error.response || error);
+      console.error('인기 투표 조회 중 오류 발생:', error);
+      setPopularVotes([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVote = async (optionId) => {
-    try {
-      if (!popularVote) return;
-      await onVoteUpdate(popularVote.voteId, optionId);
-    } catch (err) {
-      console.error('Popular vote error:', err);
-    }
-  };
-
   useEffect(() => {
-    fetchPopularVote();
+    fetchPopularVotes();
+    // 30초마다 데이터 새로고침
+    const interval = setInterval(fetchPopularVotes, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (loading || !popularVote) return null;
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % popularVotes.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + popularVotes.length) % popularVotes.length);
+  };
+
+  const getSlideClass = (index) => {
+    if (popularVotes.length <= 1) return 'active';
+    
+    const diff = (index - currentIndex + popularVotes.length) % popularVotes.length;
+    if (diff === 0) return 'active';
+    if (diff === 1 || diff === -4) return 'next';
+    if (diff === popularVotes.length - 1 || diff === -1) return 'prev';
+    return '';
+  };
+
+  if (loading || popularVotes.length === 0) return null;
 
   return (
-    <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[650px] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border border-gray-200">
-      <div className="flex items-center px-4 py-2 bg-cusGray">
+    <div className="popular-vote-window">
+      <div className="flex items-center px-4 py-2 bg-cusGray rounded-t-lg">
         <div className="flex-1 text-left">
-          <h3 className="text-gray-800 font-bold">🔥 실시간 인기 투표</h3>
-        </div>
-        <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-cusRed-light"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-          <div className="w-3 h-3 rounded-full bg-green-400"></div>
+          <h3 className="text-gray-800 font-bold">🔥 인기 투표 TOP 5</h3>
         </div>
       </div>
       
-      <div className="p-4">
-        <div className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="text-left">
-              <Link 
-                to={`/main/vote-detail/${popularVote.voteId}`}
-                className="block"
-                onClick={(e) => {
-                  if (!localStorage.getItem('token')) {
-                    e.preventDefault();
-                    alert('로그인이 필요합니다.');
-                    navigate('/main/login');
-                  }
-                }}
-              >
-                <h2 className="text-xl font-bold mb-3 hover:text-blue-600 cursor-pointer line-clamp-1">
-                  {popularVote.title}
-                </h2>
-              </Link>
-              
-              <p className="text-gray-600 mb-2 line-clamp-2 text-sm">
-                {popularVote.content}
-              </p>
-            </div>
+      <div className="popular-vote-carousel">
+        <ul className="popular-vote-list">
+          {popularVotes.map((vote, index) => (
+            <li 
+              key={vote.voteId} 
+              className={`popular-vote-item ${getSlideClass(index)}`}
+              onClick={() => {
+                const slideClass = getSlideClass(index);
+                if (slideClass === 'prev') prevSlide();
+                if (slideClass === 'next') nextSlide();
+              }}
+            >
+              <div className="p-4">
+                <div className="clay bg-white rounded-lg shadow-lg p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-left">
+                      <Link 
+                        to={`/main/vote-detail/${vote.voteId}`}
+                        className="block"
+                        onClick={(e) => {
+                          if (!localStorage.getItem('token')) {
+                            e.preventDefault();
+                            alert('로그인이 필요합니다.');
+                            navigate('/main/login');
+                          }
+                        }}
+                      >
+                        <h2 className="text-xl font-bold mb-3 hover:text-blue-600 cursor-pointer line-clamp-1">
+                          {vote.title}
+                        </h2>
+                      </Link>
+                      
+                      <p className="text-gray-600 mb-2 line-clamp-2 text-sm">
+                        {vote.content}
+                      </p>
+                    </div>
 
-            <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0 ml-2">
-              <span className="text-sm text-gray-600 whitespace-nowrap">
-                {popularVote.totalVoteCount.toLocaleString()}명 참여중
-              </span>
-            </div>
-          </div>
+                    <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0 ml-2">
+                      <span className="text-sm text-gray-600 whitespace-nowrap">
+                        {vote.totalVoteCount.toLocaleString()}명 참여중
+                      </span>
+                    </div>
+                  </div>
 
-          {popularVote.hasVoted ? (
-            <div>
-              <div className="mb-2 flex justify-between">
-                <div className="text-cusRed font-bold">
-                  A. {popularVote.options[0].optionTitle}
-                </div>
-                <div className="text-cusBlue font-bold">
-                  B. {popularVote.options[1].optionTitle}
+                  {vote.hasVoted ? (
+                    <div>
+                      <div className="mb-2 flex justify-between">
+                        <div className="text-cusRed font-bold">
+                          A. {vote.options[0].optionTitle}
+                        </div>
+                        <div className="text-cusBlue font-bold">
+                          B. {vote.options[1].optionTitle}
+                        </div>
+                      </div>
+                      <div className="relative h-12 rounded-full overflow-hidden">
+                        {vote.options[0].votePercentage > 0 && (
+                          <div
+                            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
+                            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
+                          >
+                            {vote.options[0].votePercentage < 25 ? (
+                              <div className="text-base flex flex-col">
+                                <div>{Math.round(vote.options[0].votePercentage)}%</div>
+                              </div>
+                            ) : (
+                              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
+                            )}
+                          </div>
+                        )}
+                        {vote.options[1].votePercentage > 0 && (
+                          <div
+                            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
+                            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
+                          >
+                            {vote.options[1].votePercentage < 25 ? (
+                              <div className="text-base flex flex-col items-end">
+                                <div>{Math.round(vote.options[1].votePercentage)}%</div>
+                              </div>
+                            ) : (
+                              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-4">
+                      {vote.options.map((option) => (
+                        <button
+                          key={option.optionId}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onVoteUpdate(vote.voteId, option.optionId);
+                          }}
+                          className={`clay flex-1 p-4 ${
+                            option.optionId === vote.options[0].optionId
+                              ? 'bg-red-100 hover:bg-red-200 text-cusRed'
+                              : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                          } rounded-lg transition-colors text-lg font-bold`}
+                        >
+                          {option.optionTitle}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
-                {popularVote.options[0].votePercentage > 0 && (
-                  <div
-                    className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-                    style={{ width: `${popularVote.options[0].votePercentage >= 100 ? 100 : popularVote.options[0].votePercentage}%` }}
-                  >
-                    {Math.round(popularVote.options[0].votePercentage)}% ({popularVote.options[0].voteCount}명)
-                  </div>
-                )}
-                {popularVote.options[1].votePercentage > 0 && (
-                  <div
-                    className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-                    style={{ width: `${popularVote.options[1].votePercentage >= 100 ? 100 : popularVote.options[1].votePercentage}%` }}
-                  >
-                    {Math.round(popularVote.options[1].votePercentage)}% ({popularVote.options[1].voteCount}명)
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-4">
-              {popularVote.options.map((option) => (
-                <button
-                  key={option.optionId}
-                  onClick={() => handleVote(option.optionId)}
-                  className={`clay flex-1 p-4 ${
-                    option.optionId === popularVote.options[0].optionId
-                      ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                      : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                  } rounded-lg transition-colors text-lg font-bold`}
-                >
-                  {option.optionTitle}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
@@ -375,44 +406,48 @@ const MainPage = () => {
     navigate(`/main/vote-detail/${voteId}`);
   };
 
-  const renderVoteResult = (vote) => {
-    const totalVotes = vote.options.reduce((sum, option) => sum + option.voteCount, 0);
-    
-    return (
-      <div className="mb-4">
-        {vote.options && vote.options.length >= 2 && (
-          <>
-            <div className="flex justify-between mb-2">
-              <div className="text-cusRed font-bold">
-                A. {vote.options[0].optionTitle}
+  const renderVoteResult = (vote) => (
+    <div className="mb-4">
+      <div className="flex justify-between mb-2">
+        <div className="text-cusRed font-bold">
+          A. {vote.options[0].optionTitle}
+        </div>
+        <div className="text-cusBlue font-bold">
+          B. {vote.options[1].optionTitle}
+        </div>
+      </div>
+      <div className="relative h-12 rounded-full overflow-hidden">
+        {vote.options[0].votePercentage > 0 && (
+          <div
+            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
+            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
+          >
+            {vote.options[0].votePercentage < 25 ? (
+              <div className="text-base flex flex-col">
+                <div>{Math.round(vote.options[0].votePercentage)}%</div>
               </div>
-              <div className="text-cusBlue font-bold">
-                B. {vote.options[1].optionTitle}
+            ) : (
+              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
+            )}
+          </div>
+        )}
+        {vote.options[1].votePercentage > 0 && (
+          <div
+            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
+            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
+          >
+            {vote.options[1].votePercentage < 25 ? (
+              <div className="text-base flex flex-col items-end">
+                <div>{Math.round(vote.options[1].votePercentage)}%</div>
               </div>
-            </div>
-            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
-              {vote.options[0].votePercentage > 0 && (
-                <div
-                  className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-                  style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
-                >
-                  {Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)
-                </div>
-              )}
-              {vote.options[1].votePercentage > 0 && (
-                <div
-                  className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-                  style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
-                >
-                  {Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)
-                </div>
-              )}
-            </div>
-          </>
+            ) : (
+              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
+            )}
+          </div>
         )}
       </div>
-    );
-  };
+    </div>
+  );
 
   // 배틀룸 입장 처리 함수 수정
   const handleBattleEnter = (battleId, status) => {
@@ -426,7 +461,7 @@ const MainPage = () => {
     }
     
     // 로그인된 상태면 배틀룸으로 이동
-    navigate(`/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
+    navigate(`/main/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
   };
 
   return (
@@ -488,7 +523,7 @@ const MainPage = () => {
         />
         
         <div className="container mx-auto px-4">
-          <div className="container mx-auto px-14 pt-44 pb-12">
+          <div className="container mx-auto px-14 pt-52 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
@@ -499,7 +534,7 @@ const MainPage = () => {
                 duration: 2,
                 x: { duration: 1 },
               }}
-              className="flex flex-col mb-16 battle-section"
+              className="flex flex-col mb-24 battle-section"
             >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Battle" />
@@ -517,7 +552,7 @@ const MainPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 pr-8 bg-white hover:scale-105 transition-transform h-[160px]">
+                      <div className="clay p-4 pr-8 bg-white h-[160px] hover:shadow-xl transition-shadow">
                         <div className="flex h-full gap-6 flex-col sm:flex-row items-center">
                           {/* 썸네일 이미지 */}
                           <div className="w-full sm:w-24 h-24 flex-shrink-0 ml-4">
@@ -541,7 +576,7 @@ const MainPage = () => {
                               <StatusBadge status={battle.status} onClick={(e) => {
                                 e.stopPropagation();
                                 handleBattleEnter(battle.battleId, battle.status);
-                              }} />
+                              }} className="btn px-4 py-2 bg-cusBlue text-white text-sm" />
                             </div>
                           </div>
                         </div>
@@ -556,7 +591,7 @@ const MainPage = () => {
               </div>
             </motion.section>
 
-            {/* 메인 Framer motion 추가 */}
+            {/* Vote Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -566,7 +601,7 @@ const MainPage = () => {
                 duration: 2,
                 x: { duration: 2 },
               }}
-              className="flex flex-col mb-24 vote-section"
+              className="flex flex-col mb-32 vote-section"
             >
               <div className="flex justify-between items-center">
                 <SectionTitle title="Vote" />
@@ -588,9 +623,6 @@ const MainPage = () => {
                         <h2 className="text-xl font-bold mb-2 hover:text-blue-600">
                           {vote.title}
                         </h2>
-                        <p className="text-gray-600 mb-3">
-                          {vote.content}
-                        </p>
                       </div>
 
                       <div className="transition-all duration-300">

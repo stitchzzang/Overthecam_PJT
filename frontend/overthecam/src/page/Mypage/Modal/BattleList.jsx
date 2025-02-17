@@ -42,90 +42,110 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // 무승부 판별 함수 추가
+  const isDraw = (voteStats) => {
+    return Math.abs(voteStats[0].votePercentage - voteStats[1].votePercentage) < 1;  // 1% 미만 차이면 무승부
+  };
+
   if (!isOpen || !battleDetail) return null;
 
+  const handleOutsideClick = (e) => {
+    if (e.target.closest('.modal-content')) {
+      return;
+    }
+    onClose();
+  };
+
   return (
-    <dialog className="modal fixed inset-0 z-50 flex items-center justify-center rounded-[2rem]" open>
-      <div className="bg-white w-full max-w-[180rem] relative shadow-2xl rounded-[2rem]" 
-           style={{ margin: '0', padding: '6rem', minHeight: '44rem' }}>
-        {/* 상단 제목 영역 */}
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold mb-2">Battle Detail</h1>
-          <div className="flex items-center justify-center gap-4 text-gray-600 text-lg">
-            <span>📅 {battleDate}</span>
+    <div className="absolute top-0 left-0 w-full h-screen" onClick={handleOutsideClick}>
+      <div className="relative w-full flex justify-center mt-4">
+        <div className="modal-content bg-white w-[800px] p-6 rounded-[2rem] relative">
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-lg"
+          >
+            ✕
+          </button>
+
+          {/* 상단 제목 영역 */}
+          <h1 className="text-2xl font-bold text-center mb-3">Battle Detail</h1>
+          <div className="flex items-center justify-center gap-2 text-gray-600 text-sm mb-4">
+            <span className="flex items-center gap-1">
+              📅 {formatDate(battleDetail.createdAt)}
+            </span>
             <span>|</span>
-            <span>👑 {battleDetail?.hostNickname}</span>
+            <span className="flex items-center gap-1">
+              👑 {battleDetail?.hostNickname}
+            </span>
+          </div>
+
+          {/* 배틀 결과 그래프 영역 */}
+          <div className="mb-6">
+            <div className="text-2xl font-bold text-gray-600 text-center mb-2">
+              {battleDetail.title}
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="text-cusRed text-lg font-bold">A. {battleDetail.voteStats[0].optionTitle}</span>
+              <span className="text-cusBlue text-lg font-bold">B. {battleDetail.voteStats[1].optionTitle}</span>
+            </div>
+            <div className="h-12 rounded-[1rem] flex overflow-hidden relative">
+              <div 
+                className="bg-cusRed h-full flex items-center clay"
+                style={{ width: `${battleDetail.voteStats[0].votePercentage}%` }}
+              >
+                <span className="absolute left-4 text-white font-bold text-lg">
+                  {Math.round(battleDetail.voteStats[0].votePercentage)}%
+                </span>
+              </div>
+              <div 
+                className="bg-cusBlue h-full flex items-center clay"
+                style={{ width: `${battleDetail.voteStats[1].votePercentage}%` }}
+              >
+                <span className="absolute right-4 text-white font-bold text-lg">
+                  {Math.round(battleDetail.voteStats[1].votePercentage)}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 하단 정보 카드들 */}
+          <div className="flex justify-center gap-8">
+            {/* 시간 카드 */}
+            <div className="bg-cusBlue-light p-6 rounded-[1rem] text-center shadow-md w-[200px]">
+              <div className="text-4xl mb-2">⏱</div>
+              <div className="text-3xl font-bold">{formatTime(battleDetail.totalTime)}</div>
+            </div>
+
+            {/* 승패 및 점수 카드 */}
+            <div className="bg-cusYellow-light p-6 rounded-[1rem] text-center shadow-md w-[200px]">
+              <div className="text-4xl mb-2">
+                {isDraw(battleDetail.voteStats) ? '🤝' : 
+                 battleDetail.winner ? '🏆' : '💀'}
+              </div>
+              <div className="text-4xl font-bold text-red-500 mb-2">
+                {isDraw(battleDetail.voteStats) ? '무' : 
+                 battleDetail.winner ? '승' : '패'}
+              </div>
+              <div className="text-xl text-red-500">
+                (+{battleDetail.earnedScore})
+              </div>
+            </div>
+
+            {/* 참가자 정보 카드 */}
+            <div className="bg-cusPink-light p-6 rounded-[1rem] text-center shadow-md w-[200px]">
+              <div className="text-4xl mb-2">
+                👥
+              </div>
+              <div className="text-sm space-y-1">
+                {battleDetail.participants.map((participant, index) => (
+                  <div key={index}>{participant}</div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* 배틀 결과 그래프 영역 - 파란 테두리 추가 */}
-        <div className="bg-white p-8 mb-6 border-4 border-blue-400 rounded-[1.5rem]">
-          <div className="text-2xl font-bold text-center mb-6">
-            {battleDetail.title}
-          </div>
-
-          <div className="flex justify-between mb-2">
-            <span className="text-red-500 text-xl font-bold">A. {battleDetail.voteStats[0].optionTitle}</span>
-            <span className="text-gray-500 text-xl font-bold">B. {battleDetail.voteStats[1].optionTitle}</span>
-          </div>
-          <div className="h-14 bg-gray-200 rounded-[2rem] overflow-hidden flex">
-            <div 
-              className="bg-red-400 transition-all duration-300 flex items-center justify-end pr-4"
-              style={{ width: `${battleDetail.voteStats[0].votePercentage}%` }}
-            >
-              <span className="text-white font-bold">{battleDetail.voteStats[0].votePercentage}%</span>
-            </div>
-            <div 
-              className="bg-gray-400 transition-all duration-300 flex items-center justify-start pl-4"
-              style={{ width: `${battleDetail.voteStats[1].votePercentage}%` }}
-            >
-              <span className="text-white font-bold">{battleDetail.voteStats[1].votePercentage}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 하단 정보 카드들 */}
-        <div className="flex justify-center gap-8">
-          {/* 시간 카드 */}
-          <div className="bg-blue-100 p-6 rounded-[1rem] text-center shadow-md">
-            <div className="text-4xl mb-2">⏱</div>
-            <div className="text-3xl font-bold">{formatTime(battleDetail.totalTime)}</div>
-          </div>
-
-          {/* 승패 및 점수 카드 */}
-          <div className="bg-yellow-100 p-6 rounded-[1rem] text-center shadow-md">
-            <div className="text-4xl mb-2">
-              {battleDetail.winner === true ? '🏆' : battleDetail.winner === false ? '💀' : '🤝'}
-            </div>
-            <div className="text-4xl font-bold text-red-500 mb-2">
-              {battleDetail.winner === true ? '승' : battleDetail.winner === false ? '패' : '무'}
-            </div>
-            <div className="text-xl text-red-500">
-              (+{battleDetail.earnedScore})
-            </div>
-          </div>
-
-          {/* 참가자 정보 카드 */}
-          <div className="bg-pink-100 p-6 rounded-[1rem] text-center shadow-md">
-            <div className="text-4xl mb-2">
-              👥
-            </div>
-            <div className="text-sm space-y-1">
-              {battleDetail.participants.map((participant, index) => (
-                <div key={index}>{participant}</div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 text-xl transition-colors"
-        >
-          ✕
-        </button>
       </div>
-    </dialog>
+    </div>
   );
 };
 

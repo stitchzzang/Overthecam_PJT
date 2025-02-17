@@ -1,11 +1,13 @@
 import { forwardRef, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useWebSocketContext } from "../../../../hooks/useWebSocket";
 
 const BattleEndModal = forwardRef(function BattleEndModal(
-  { onFinish },
+  _,
   ref
 ) {
-  const navigate = useNavigate();
+  const { finishBattle } = useWebSocketContext();
+  const noticeToast = useRef();
 
   const handleClick = (e) => {
     if (e.target === ref.current) {
@@ -14,11 +16,8 @@ const BattleEndModal = forwardRef(function BattleEndModal(
   };
 
   const onEndBattle = async () => {
+    await finishBattle();
     ref.current.close();
-    if (onFinish) {
-      await onFinish(); // cleanup + 배틀 종료 요청 
-    }
-    navigate("/battle-list"); // 페이지 이동
   };
 
   return (
@@ -51,7 +50,7 @@ const BattleEndModal = forwardRef(function BattleEndModal(
               onClick={onEndBattle}
               className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
             >
-              나가기
+              종료하기
             </button>
           </div>
         </div>

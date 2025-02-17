@@ -71,32 +71,34 @@ public class AuthService {
     @Transactional
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
-                String.format("사용자를 찾을 수 없습니다: %s", request.getEmail())));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
+                        String.format("사용자를 찾을 수 없습니다: %s", request.getEmail())));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new GlobalException(AuthErrorCode.INVALID_PASSWORD,
-                String.format("비밀번호가 일치하지 않습니다: %s", request.getEmail()));
+                    String.format("비밀번호가 일치하지 않습니다: %s", request.getEmail()));
         }
 
         TokenResponse tokenResponse = jwtTokenProvider.createToken(user);
 
         // Redis에 Refresh Token 저장
         tokenService.saveRefreshToken(
-            user.getId(),
-            tokenResponse.getRefreshToken(),
-            tokenResponse.getAccessTokenExpiresIn()
+                user.getId(),
+                tokenResponse.getRefreshToken(),
+                tokenResponse.getAccessTokenExpiresIn()
         );
 
         return TokenResponse.builder()
-            .accessToken(tokenResponse.getAccessToken())
-            .refreshToken(tokenResponse.getRefreshToken())
-            .grantType(tokenResponse.getGrantType())
-            .accessTokenExpiresIn(tokenResponse.getAccessTokenExpiresIn())
-            .userId(user.getId())
-            .profileImage(user.getProfileImage())
-            .nickname(user.getNickname())
-            .build();
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .grantType(tokenResponse.getGrantType())
+                .accessTokenExpiresIn(tokenResponse.getAccessTokenExpiresIn())
+                .userId(user.getId())
+                .profileImage(user.getProfileImage())
+                .nickname(user.getNickname())
+                .point(user.getPoint())
+                .supportScore(user.getSupportScore())
+                .build();
     }
 
     /**
@@ -113,7 +115,7 @@ public class AuthService {
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다"));
 
         String accessToken = request.getHeader("Authorization");
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
@@ -155,27 +157,27 @@ public class AuthService {
 
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE,
-                "유효하지 않은 토큰입니다");
+                    "유효하지 않은 토큰입니다");
         }
 
         String email = jwtTokenProvider.getEmail(refreshToken);
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
-                "사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
+                        "사용자를 찾을 수 없습니다"));
 
         // Redis에서 Refresh Token 검증
         if (!tokenService.validateRefreshToken(user.getId(), refreshToken)) {
             throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE,
-                "유효하지 않은 토큰입니다");
+                    "유효하지 않은 토큰입니다");
         }
 
         String newAccessToken = jwtTokenProvider.recreateAccessToken(user);
         TokenResponse tokenResponse = TokenResponse.builder()
-            .accessToken(newAccessToken)
-            .refreshToken(refreshToken)
-            .grantType("Bearer")
-            .accessTokenExpiresIn(System.currentTimeMillis() + 1800000)
-            .build();
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .grantType("Bearer")
+                .accessTokenExpiresIn(System.currentTimeMillis() + 1800000)
+                .build();
 
         return CommonResponseDto.ok(tokenResponse);
     }
@@ -219,9 +221,9 @@ public class AuthService {
 
         // Redis에 Refresh Token 저장
         tokenService.saveRefreshToken(
-            user.getId(),
-            tokenResponse.getRefreshToken(),
-            tokenResponse.getAccessTokenExpiresIn()
+                user.getId(),
+                tokenResponse.getRefreshToken(),
+                tokenResponse.getAccessTokenExpiresIn()
         );
 
         return tokenResponse;

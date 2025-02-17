@@ -27,9 +27,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config){
         config.enableSimpleBroker("/api/subscribe", "/queue"); // 구독(브로드캐스트)용 prefix
+            //.setHeartbeatValue(new long[]{10000, 10000})  // heartbeat 간격 설정
+            //.setTaskScheduler(taskScheduler());  // 메시지 스케줄러 설정
+
         config.setApplicationDestinationPrefixes("/api/publish"); // 클라이언트에서 서버로 발행하는 메시지의 prefix
         config.setUserDestinationPrefix("/api/user"); // 사용자별 메시지 라우팅을 위한 prefix
     }
+
+//    @Bean
+//    public TaskScheduler taskScheduler() {
+//        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+//        scheduler.setPoolSize(2);
+//        scheduler.setThreadNamePrefix("websocket-heartbeat-");
+//        scheduler.initialize();
+//        return scheduler;
+//    }
+
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -60,16 +73,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(webSocketAuthInterceptor);
         registration.taskExecutor()
-                .corePoolSize(2)
-                .maxPoolSize(4);
+            .corePoolSize(2)
+            .maxPoolSize(4);
     }
 
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
         registration.setMessageSizeLimit(64 * 1024)
-                .setSendTimeLimit(20 * 1000)
-                .setSendBufferSizeLimit(512 * 1024);
+            .setSendTimeLimit(20 * 1000)
+            .setSendBufferSizeLimit(512 * 1024);
     }
 
     @Override

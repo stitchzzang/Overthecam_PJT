@@ -4,6 +4,7 @@ import {
   Route,
   useNavigate,
   useLocation,
+  Outlet,
 } from "react-router-dom";
 import { useEffect } from "react";
 import "./App.css";
@@ -12,7 +13,7 @@ import Layout from "./components/Layout/Layout";
 import FakeMainPage from "./page/Main/FakeMainPage";
 import BattleMainPage from "./page/Main/BattleMainPage";
 import BattleCreatingPage from "./page/BattleRoom/BattleCreatingPage";
-import BattleRoomPage from "./page/BattleRoom/BattleRoomPage";
+import BattleRoomLoader from "./page/BattleRoom/BattleRoomLoader.jsx";
 import VoteCreatingPage from "./page/Vote/VoteCreatingPage.jsx";
 import VoteDetailPage from "./page/Vote/VoteDetailPage.jsx";
 import ItemShopPage from "./page/ItemShop/ItemShopPage";
@@ -28,9 +29,8 @@ import MyPageVote from "./page/Mypage/MyPageVote.jsx";
 import VotePage from "./page/Vote/VotePage.jsx";
 import OtherProfile from "./page/Mypage/OtherProfile";
 import SearchResultPage from "./page/Main/SearchResultPage.jsx";
-import BattleRoomLayout from "./components/Layout/BattleRoomLayOut.jsx";
-import WebSocketProvider from "./hooks/useWebSocket.jsx";
-import { useBattleStore } from "./store/Battle/BattleStore.jsx";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ProtectedLogin() {
   const isLoggedIn = !!localStorage.getItem("token");
@@ -45,7 +45,8 @@ function ProtectedLogin() {
   return !isLoggedIn ? <Login /> : null;
 }
 
-function PrivateRoute({ children }) {
+// PrivateRoute 컴포넌트 수정
+function PrivateRoute() {
   const isLoggedIn = !!localStorage.getItem("token");
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,102 +57,51 @@ function PrivateRoute({ children }) {
     }
   }, [isLoggedIn, navigate, location]);
 
-  return isLoggedIn ? children : null;
+  return isLoggedIn ? <Outlet /> : null;
 }
 
 function App() {
-  const battleInfo = useBattleStore(s => s.battleInfo)
   return (
-    <Router>
-      <Routes>
-        {/* 랜딩 페이지 */}
-        <Route path="/" element={<FakeMainPage />} />
+    <>
+      <Router>
+        <Routes>
+          {/* 랜딩 페이지 */}
+          <Route path="/" element={<FakeMainPage />} />
 
-        {/* 네비게이션바 필요 없는 라우터 */}
-        <Route element={<BattleRoomLayout />}>
-          <Route
-            path="/battle-room/:battleId"
-            element={
-              <PrivateRoute>
-                <WebSocketProvider battleId={battleInfo.battleId}>
-                  <BattleRoomPage />
-                </WebSocketProvider>
-              </PrivateRoute>
-            }
-          />
-        </Route>
+          {/* 메인 레이아웃과 관련 라우트들 */}
+          <Route path="/main" element={<Layout />}>
+            <Route index element={<MainPage />} />
+            <Route path="search" element={<SearchResultPage />} />
+            <Route path="battle-list" element={<BattleMainPage />} />
 
-        {/* 메인 레이아웃과 라우트들 */}
-        <Route path="/main" element={<Layout />}>
-          <Route index element={<MainPage />} />
-          <Route path="search" element={<SearchResultPage />} />
-          <Route path="battle-list" element={<BattleMainPage />} />
-          <Route
-            path="create-battle-room"
-            element={
-              <PrivateRoute>
-                <BattleCreatingPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="create-vote"
-            element={
-              <PrivateRoute>
-                <VoteCreatingPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="store"
-            element={
-              <PrivateRoute>
-                <ItemShopPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypage"
-            element={
-              <PrivateRoute>
-                <MyPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypagereport"
-            element={
-              <PrivateRoute>
-                <MyPageReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypagebattle"
-            element={
-              <PrivateRoute>
-                <MyPageBattle />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="mypagevote"
-            element={
-              <PrivateRoute>
-                <MyPageVote />
-              </PrivateRoute>
-            }
-          />
-          <Route path="vote" element={<VotePage />} />
-          <Route path="vote-detail/:voteId" element={<VoteDetailPage />} />
-          <Route path="login" element={<ProtectedLogin />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="find-account" element={<FindAccount />} />
-          <Route path="user-profile/:id" element={<UserProfile />} />
-          <Route path="profile/:id" element={<OtherProfile />} />
-        </Route>
-      </Routes>
-    </Router>
+            {/* Protected Routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path="create-battle-room" element={<BattleCreatingPage />} />
+              <Route
+                path="battle-room/:battleId"
+                element={<BattleRoomLoader />}
+              />
+              <Route path="create-vote" element={<VoteCreatingPage />} />
+              <Route path="store" element={<ItemShopPage />} />
+              <Route path="mypage" element={<MyPage />} />
+              <Route path="mypagereport" element={<MyPageReport />} />
+              <Route path="mypagebattle" element={<MyPageBattle />} />
+              <Route path="mypagevote" element={<MyPageVote />} />
+            </Route>
+
+            {/* Public Routes */}
+            <Route path="vote" element={<VotePage />} />
+            <Route path="vote-detail/:voteId" element={<VoteDetailPage />} />
+            <Route path="login" element={<ProtectedLogin />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="find-account" element={<FindAccount />} />
+            <Route path="user-profile/:id" element={<UserProfile />} />
+            <Route path="profile/:id" element={<OtherProfile />} />
+          </Route>
+        </Routes>
+      </Router>
+      <ToastContainer />
+    </>
   );
 }
 

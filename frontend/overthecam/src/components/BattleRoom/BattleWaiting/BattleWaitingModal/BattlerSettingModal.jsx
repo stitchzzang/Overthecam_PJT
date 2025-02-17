@@ -10,16 +10,18 @@ import { useBattleStore } from "../../../../store/Battle/BattleStore";
 import FailAlertModal from "../../../@common/FailAlertModal";
 import SuccessAlertModal from "../../../@common/SuccessAlertModal";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
-
+import useUserStore from "../../../../store/User/UserStore";
 const BattlerSettingModal = forwardRef(function BattlerSettingModal(
-  { participants },
+  { participants, myNickname },
   ref
 ) {
   const modalRef = useRef();
   const failToast = useRef();
   const sucessToast = useRef();
   const battleInfo = useBattleStore((state) => state.battleInfo);
-  const { vote, resultBattler } = useWebSocketContext();
+  const userId = useUserStore((state) => state.userId);
+  const { vote, resultBattler, startBattle, readyForBattle } =
+    useWebSocketContext();
   const [options, setOptions] = useState({
     option1: vote.option1,
     option2: vote.option2,
@@ -63,6 +65,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
     e.preventDefault();
 
     try {
+      readyForBattle(userId, myNickname, true);
       if (!selectedBattlers.option1 || !selectedBattlers.option2) {
         throw new Error("각 선택지마다 배틀러를 선택해주세요.");
       }
@@ -82,6 +85,7 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
       modalRef.current?.close();
       sucessToast.current?.showAlert("배틀러가 선정 되었습니다.");
       setTimeout(resultBattler(), 1500);
+      setTimeout(startBattle(), 1500);
     } catch (error) {
       console.error("배틀러 선정 중 에러:", error);
       failToast.current?.showAlert(

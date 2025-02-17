@@ -3,11 +3,40 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import useUserStore from "../../store/User/UserStore";
 import 'remixicon/fonts/remixicon.css';
+import { motion } from "framer-motion";
+
+// Logo 컴포넌트 추가
+const Logo = () => {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  return (
+    <Link to="/main">
+      <motion.img 
+        src="/assets/Logo.png" 
+        alt="Logo" 
+        className="h-16 w-auto cursor-pointer" 
+        animate={isAnimating ? {
+          scale: [1, 1.2, 0.9, 1.1, 1],
+          rotate: [0, 10, -10, 5, 0],
+        } : {}}
+        transition={{
+          duration: 0.5,
+          ease: "easeInOut",
+        }}
+        onClick={() => {
+          setIsAnimating(true);
+          setTimeout(() => setIsAnimating(false), 500);
+        }}
+        whileHover={{ scale: 1.05 }}
+      />
+    </Link>
+  );
+};
 
 export default function NavBar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isBattleRoomPage = location.pathname.startsWith("/battle-room");
+  const isBattleRoomPage = location.pathname.startsWith("/main/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);
@@ -180,6 +209,10 @@ export default function NavBar() {
           {/* Left Section - Logo & Menu Button */}
           <div className="flex items-center gap-4">
             <div className="relative">
+              {/* 오버레이 추가 */}
+              <div className={`menu-overlay ${isMenuOpen ? 'active' : ''}`} 
+                   onClick={() => setIsMenuOpen(false)} />
+
               {/* 햄버거 버튼 */}
               <button
                 className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[40px] relative z-20"
@@ -259,13 +292,8 @@ export default function NavBar() {
               </div>
             </div>
 
-            <Link to={"/main"}>
-              <img 
-                src="/assets/Logo.png" 
-                alt="Logo" 
-                className="h-16 w-auto" 
-              />
-            </Link>
+            {/* 기존 Link를 Logo 컴포넌트로 교체 */}
+            <Logo />
 
             {/* Mobile Profile Button */}
             <div className="xl:hidden relative ml-6 mt-1" ref={mobileDropdownRef}>
@@ -291,7 +319,7 @@ export default function NavBar() {
 
                   <button
                     onClick={handleLogout}
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                    className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                   >
                     로그아웃
                   </button>
@@ -300,13 +328,13 @@ export default function NavBar() {
                 <div className="flex gap-3">
                   <Link
                     to="/main/login"
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                    className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                   >
                     로그인
                   </Link>
                   <Link
                     to="/main/signup"
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                    className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                   >
                     회원가입
                   </Link>
@@ -360,7 +388,7 @@ export default function NavBar() {
 
                   <button
                     onClick={handleLogout}
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                    className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                   >
                     로그아웃
                   </button>
@@ -370,13 +398,13 @@ export default function NavBar() {
               <div className="flex gap-3">
                 <Link
                   to="/main/login"
-                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   로그인
                 </Link>
                 <Link
                   to="/main/signup"
-                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   회원가입
                 </Link>
