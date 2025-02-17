@@ -9,16 +9,9 @@ const AiReport = () => {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        
-        if (!userInfo || !userInfo.userId) {
-          setError('사용자 정보를 찾을 수 없습니다.');
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await authAxios.post(`/report/generate/${userInfo.userId}`, {
-          userId: Number(userInfo.userId)
+        // 테스트를 위해 userId 1로 고정
+        const response = await authAxios.post(`/report/generate/1`, {
+          userId: 1
         });
         
         if (response.success) {

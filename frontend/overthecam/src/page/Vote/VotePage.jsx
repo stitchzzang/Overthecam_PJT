@@ -7,6 +7,11 @@ const VotePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pageInfo, setPageInfo] = useState({
+    totalPages: 1,
+    totalElements: 0,
+    pageSize: 10
+  });
   const [pages, setPages] = useState({
     all: 1,
     active: 1,
@@ -52,6 +57,11 @@ const VotePage = () => {
         const paginatedContent = filteredContent.slice(startIndex, endIndex);
         
         setCurrentList(paginatedContent);
+        setPageInfo({
+          totalPages: Math.ceil(filteredContent.length / 10),
+          totalElements: filteredContent.length,
+          pageSize: 10
+        });
         setTotalPages(prev => ({
           ...prev,
           [voteStatus]: Math.ceil(filteredContent.length / 10)
@@ -154,19 +164,18 @@ const VotePage = () => {
             B. {vote.options[1].optionTitle}
           </div>
         </div>
-        <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+        <div className="relative h-12 rounded-full overflow-hidden">
           {vote.options[0].votePercentage > 0 && (
             <div
               className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold text-lg"
               style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
             >
               {vote.options[0].votePercentage < 25 ? (
-                <div className="text-xs flex flex-col">
+                <div className="text-base flex flex-col">
                   <div>{Math.round(vote.options[0].votePercentage)}%</div>
-                  <div>({vote.options[0].voteCount}명)</div>
                 </div>
               ) : (
-                <>{Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)</>
+                <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
               )}
             </div>
           )}
@@ -176,12 +185,11 @@ const VotePage = () => {
               style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
             >
               {vote.options[1].votePercentage < 25 ? (
-                <div className="text-xs flex flex-col items-end">
+                <div className="text-base flex flex-col items-end">
                   <div>{Math.round(vote.options[1].votePercentage)}%</div>
-                  <div>({vote.options[1].voteCount}명)</div>
                 </div>
               ) : (
-                <>{Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)</>
+                <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
               )}
             </div>
           )}
@@ -273,88 +281,103 @@ const VotePage = () => {
           </div>
         </div>
         
-        <div className="space-y-4 mt-4">
-          {currentList.map((vote) => (
-            <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <Link 
-                to={`/main/vote-detail/${vote.voteId}`}
-                onClick={(e) => {
-                  if (!localStorage.getItem('token')) {
-                    e.preventDefault();
-                    alert('로그인이 필요합니다.');
-                    navigate('/main/login');
-                  }
-                }}
-                className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer"
-              >
-                <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
-                  {vote.title}
-                </h2>
-              </Link>
-              
-              <p className="text-gray-600 mb-4">{vote.content}</p>
+        {currentList.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 gap-4">
+              {currentList.map((vote) => (
+                <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-6">
+                  <Link 
+                    to={`/main/vote-detail/${vote.voteId}`}
+                    onClick={(e) => {
+                      if (!localStorage.getItem('token')) {
+                        e.preventDefault();
+                        alert('로그인이 필요합니다.');
+                        navigate('/main/login');
+                      }
+                    }}
+                    className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer"
+                  >
+                    <h2 className="text-xl font-bold mb-4 hover:text-blue-600 cursor-pointer">
+                      {vote.title}
+                    </h2>
+                  </Link>
+                  
+                  <p className="text-gray-600 mb-4">{vote.content}</p>
 
-              <div className="transition-all duration-300">
-                {vote.hasVoted ? (
-                  renderVoteResult(vote)
-                ) : (
-                  <div className="flex gap-4 mb-4">
-                    {vote.options.map((option) => (
-                      <button
-                        key={option.optionId}
-                        onClick={() => handleVote(vote, option.optionId)}
-                        className={`clay flex-1 p-4 ${
-                          option.optionId === vote.options[0].optionId
-                            ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                            : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                        } rounded-lg transition-colors text-lg font-bold`}
-                      >
-                        {option.optionTitle}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {/* 투표 여부와 관계없이 항상 표시되는 정보 */}
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                      </svg>
-                      {vote.creatorNickname}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                      </svg>
-                      댓글 {vote.commentCount}개
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 px-3 py-1 rounded-full">
-                    <span className="text-sm text-gray-600 whitespace-nowrap">
-                      {vote.totalVoteCount.toLocaleString()}명 참여중
-                    </span>
+                  <div className="transition-all duration-300">
+                    {vote.hasVoted ? (
+                      renderVoteResult(vote)
+                    ) : (
+                      <div className="flex gap-4 mb-4">
+                        {vote.options.map((option) => (
+                          <button
+                            key={option.optionId}
+                            onClick={() => handleVote(vote, option.optionId)}
+                            className={`clay flex-1 p-4 ${
+                              option.optionId === vote.options[0].optionId
+                                ? 'bg-red-100 hover:bg-red-200 text-cusRed'
+                                : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                            } rounded-lg transition-colors text-lg font-bold`}
+                          >
+                            {option.optionTitle}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {/* 투표 여부와 관계없이 항상 표시되는 정보 */}
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                          </svg>
+                          {vote.creatorNickname}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                          </svg>
+                          댓글 {vote.commentCount}개
+                        </span>
+                      </div>
+                      <div className="bg-gray-100 px-3 py-1 rounded-full">
+                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                          {vote.totalVoteCount.toLocaleString()}명 참여중
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-        </div>
-        <div className="flex justify-center items-center p-4 mt-2">
-          <Pagination
-            activePage={pages[voteStatus]}
-            itemsCountPerPage={10}
-            totalItemsCount={totalPages[voteStatus] * 10}
-            pageRangeDisplayed={5}
-            prevPageText={"이전"}
-            nextPageText={"다음"}
-            onChange={handlePageChange}
-            innerClass="flex gap-2 items-center justify-center"
-            itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
-            activeClass="bg-cusBlack-light !text-white"
-            linkClass="block w-full h-full text-center"
-          />
+            
+            {pageInfo.totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  activePage={pages[voteStatus]}
+                  itemsCountPerPage={pageInfo.pageSize}
+                  totalItemsCount={pageInfo.totalElements}
+                  pageRangeDisplayed={5}
+                  prevPageText={"이전"}
+                  nextPageText={"다음"}
+                  onChange={handlePageChange}
+                  innerClass="flex gap-2"
+                  itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+                  activeClass="bg-cusBlack-light !text-white"
+                  linkClass="block w-full h-full text-center"
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-xl text-gray-500 font-medium">
+              {voteStatus === 'all' ? '현재 투표가 없습니다.' :
+               voteStatus === 'active' ? '현재 진행중인 투표가 없습니다.' :
+               '종료된 투표가 없습니다.'}
+            </p>
+          </div>
+        )}
         </div>
       </div>
     </div>

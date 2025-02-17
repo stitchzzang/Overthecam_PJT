@@ -68,23 +68,23 @@ function VoteDetailModal({ voteData, isLoading, onClose, clickedElement }) {
               <span className="text-cusRed text-lg font-bold">A. {voteData.options[0].optionTitle}</span>
               <span className="text-cusBlue text-lg font-bold">B. {voteData.options[1].optionTitle}</span>
             </div>
-            <div className="h-12 bg-gray-100 rounded-[1rem] flex overflow-hidden relative clay">
-              <div 
-                className={`h-full flex items-center clay ${voteData.options[0].selected ? 'bg-cusRed' : 'bg-gray-400'}`}
-                style={{ width: `${voteData.options[0].votePercentage}%` }}
-              >
-                <span className="absolute left-4 text-white font-bold text-lg">
-                  {Math.round(voteData.options[0].votePercentage)}%
-                </span>
-              </div>
-              <div 
-                className={`h-full flex items-center clay ${voteData.options[1].selected ? 'bg-cusBlue' : 'bg-gray-400'}`}
-                style={{ width: `${voteData.options[1].votePercentage}%` }}
-              >
-                <span className="absolute right-4 text-white font-bold text-lg">
-                  {Math.round(voteData.options[1].votePercentage)}%
-                </span>
-              </div>
+            <div className="h-12 rounded-[1rem] flex overflow-hidden relative">
+              {voteData.options[0].votePercentage > 0 && (
+                <div 
+                  className="bg-cusRed h-full flex items-center clay"
+                  style={{ width: `${voteData.options[0].votePercentage}%` }}
+                >
+                  <span className="absolute left-4 text-white font-bold text-lg">{Math.round(voteData.options[0].votePercentage)}%</span>
+                </div>
+              )}
+              {voteData.options[1].votePercentage > 0 && (
+                <div 
+                  className="bg-cusBlue h-full flex items-center clay"
+                  style={{ width: `${voteData.options[1].votePercentage}%` }}
+                >
+                  <span className="absolute right-4 text-white font-bold text-lg">{Math.round(voteData.options[1].votePercentage)}%</span>
+                </div>
+              )}
             </div>
           </div>
 

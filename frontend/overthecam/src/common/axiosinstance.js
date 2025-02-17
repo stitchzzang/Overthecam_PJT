@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
@@ -18,13 +19,7 @@ authAxios.interceptors.request.use(
       try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(window.atob(base64));
-        
-        console.log('토큰 페이로드:', payload);
-        console.log('현재 시간:', Math.floor(Date.now() / 1000));
-        console.log('만료 시간:', payload.exp);
-        console.log('남은 시간:', payload.exp - Math.floor(Date.now() / 1000), '초');
-        
+        const payload = JSON.parse(window.atob(base64));        
         config.headers.Authorization = `Bearer ${token}`;
       } catch (error) {
         console.error('토큰 디코딩 에러:', error);
@@ -37,6 +32,9 @@ authAxios.interceptors.request.use(
   }
 );
 
+// 전역 변수로 토스트 표시 여부 관리
+let isToastShown = false;
+
 authAxios.interceptors.response.use(
   (response) => {
     return response.data;
@@ -44,54 +42,53 @@ authAxios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    console.log('에러 발생:', error.response?.status);
-    console.log('에러 메시지:', error.response?.data);
-    
-    const isTokenExpired = 
+    if (!originalRequest._retry && (
       error.response?.status === 401 || 
       error.response?.status === 403 || 
       error.response?.data?.message === 'EXPIRED_ACCESS_TOKEN' ||
-      error.response?.data?.error?.message === 'EXPIRED_ACCESS_TOKEN';
-
-    if (isTokenExpired && !originalRequest._retry) {
-      console.log('토큰 만료 감지! 리프레시 시도...');
+      error.response?.data?.error?.message === 'EXPIRED_ACCESS_TOKEN'
+    )) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        console.log('저장된 리프레시 토큰:', refreshToken ? '존재' : '없음');
-
         if (!refreshToken) {
           throw new Error('리프레시 토큰이 없습니다');
         }
 
-        console.log('리프레시 토큰으로 새 토큰 요청 시작');
         const response = await publicAxios.post('/auth/refresh', { refreshToken });
-        console.log('리프레시 응답:', response);
 
         if (response.success) {
-          console.log('새 토큰 발급 성공!');
           const { accessToken, refreshToken: newRefreshToken } = response.data;
-          
-          // 새 토큰 저장
           localStorage.setItem('token', accessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
-          
-          // 새 토큰으로 원래 요청 재시도
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          console.log('원래 요청 재시도...');
           return authAxios(originalRequest);
         } else {
-          console.log('리프레시 응답이 success가 아님:', response);
           throw new Error('토큰 갱신 실패');
         }
       } catch (refreshError) {
-        console.error('리프레시 토큰 에러:', refreshError);
-        console.log('로그아웃 처리 시작...');
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userInfo');
-        window.location.href = '/main/login';
+        if (!isToastShown) {  // 전역 플래그 체크
+          isToastShown = true;  // 토스트 표시 상태로 변경
+          toast.error('로그인이 만료되었습니다. 다시 로그인해 주세요.', {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            onClose: () => {
+              isToastShown = false;  // 토스트가 닫힐 때 플래그 초기화
+            }
+          });
+
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/main/login';
+          }, 3000);
+        }
         return Promise.reject(refreshError);
       }
     }

@@ -32,18 +32,7 @@ pipeline {
                 script {
                     try {
                         echo '====== Docker Build 시작 ======'
-                        dir('python-analyzer') {
-                            writeFile file: '.dockerignore', text: '''
-                                __pycache__/
-                                *.pyc
-                                venv/
-                                .git/
-                                .env
-                                temp/
-                                *.pth
-                                checkpoints/
-                            '''
-                            
+                        dir('python-analyzer') {                            
                             withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
                                 sh """
                                     docker images | grep ${DOCKER_IMAGE_ANALYZER} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi ${DOCKER_IMAGE_ANALYZER}:{} || true
@@ -74,17 +63,16 @@ pipeline {
                                 echo '새 이미지 가져오는 중...' && \
                                 docker pull ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
                                 echo '기존 컨테이너 중지 중...' && \
-                                docker stop analyzer || true && \
-                                docker rm analyzer || true && \
+                                docker stop python || true && \
+                                docker rm python || true && \
                                 echo '새 컨테이너 시작 중...' && \
-                                docker run -d --name analyzer \
-                                    -v /var/jenkins_home/workspace/python/python-analyzer/models/saved/emotion_model:/python-analyzer/models/saved/emotion_model \
+                                docker run -d --name python \
                                     -p 5001:5001 \
                                     ${DOCKER_IMAGE_ANALYZER}:${BUILD_NUMBER} && \
                                 docker system prune -f && \
                                 echo '컨테이너 로그:' && \
                                 sleep 10 && \
-                                docker logs analyzer"
+                                docker logs python"
                             '''
                         }
                         echo '====== EC2 배포 성공 ======'

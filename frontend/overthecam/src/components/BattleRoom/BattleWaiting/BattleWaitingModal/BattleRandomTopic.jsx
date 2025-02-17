@@ -57,14 +57,14 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   };
 
   return (
-    <dialog ref={ref} className="modal rounded-[30px] overflow-hidden">
-      <div className="modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[800px] clay" onClick={(e) => e.stopPropagation()}>
+    <dialog ref={ref} className="random-topic-modal rounded-[30px] overflow-hidden">
+      <div className="random-topic-modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[800px] random-topic-clay" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-6 mt-2">
           <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
         </div>
         
         <div className="w-full flex items-center gap-4 mb-6">
-          <div className="flex-1 clay bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
+          <div className="flex-1 random-topic-clay bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
             <div className="slot-machine bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden min-h-[120px] h-auto">
               <div className={`slot-wrapper flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
                 {isLoading ? (
@@ -99,7 +99,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           </div>
           
           <button 
-            className="w-16 h-16 bg-cusYellowLight hover:bg-cusYellow rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 clay"
+            className="random-topic-btn w-16 h-16 bg-cusYellowLight hover:bg-cusYellow rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 random-topic-clay"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
@@ -117,18 +117,18 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         <p className="text-lg font-bold mb-6">즐거운 배틀 되세요 :)</p>
 
         <form method="dialog" className="modal-backdrop">
-          <button className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
+          <button className="random-topic-close-btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
             닫기
           </button>
         </form>
 
         <style jsx>{`
-          .modal {
+          .random-topic-modal {
             border: none;
             background: rgba(0, 0, 0, 0.5);
           }
           
-          .clay {
+          .random-topic-clay {
             background: rgba(255, 255, 255, 0.95);
             box-shadow: 
               8px 8px 16px rgba(0, 0, 0, 0.1),
@@ -189,14 +189,14 @@ const BattleRandomTopic = forwardRef((props, ref) => {
             }
           }
 
-          .btn {
+          .random-topic-btn {
             font-weight: 500;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
           }
 
-          .btn:hover {
+          .random-topic-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }

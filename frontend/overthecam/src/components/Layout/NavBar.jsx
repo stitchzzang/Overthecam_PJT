@@ -3,17 +3,44 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import useUserStore from "../../store/User/UserStore";
 import 'remixicon/fonts/remixicon.css';
+import { motion } from "framer-motion";
+
+// Logo 컴포넌트 추가
+const Logo = () => {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  return (
+    <Link to="/main">
+      <motion.img 
+        src="/assets/Logo.png" 
+        alt="Logo" 
+        className="h-16 w-auto cursor-pointer" 
+        animate={isAnimating ? {
+          scale: [1, 1.2, 0.9, 1.1, 1],
+          rotate: [0, 10, -10, 5, 0],
+        } : {}}
+        transition={{
+          duration: 0.5,
+          ease: "easeInOut",
+        }}
+        onClick={() => {
+          setIsAnimating(true);
+          setTimeout(() => setIsAnimating(false), 500);
+        }}
+        whileHover={{ scale: 1.05 }}
+      />
+    </Link>
+  );
+};
 
 export default function NavBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const isBattleRoomPage = location.pathname.startsWith("/main/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isMobileProfileDropdownOpen, setIsMobileProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const mobileDropdownRef = useRef(null);
   const sidebarRef = useRef(null);  // 사이드바용 ref 추가
+  const mobileDropdownRef = useRef(null);
 
   // Zustand store 사용
   const userStore = useUserStore();
@@ -25,9 +52,6 @@ export default function NavBar() {
     const checkLoginStatus = () => {
       const token = localStorage.getItem("token");
       const userInfoStr = localStorage.getItem("userInfo");
-      
-      console.log('NavBar - 토큰 체크:', !!token);
-      console.log('NavBar - 유저정보 체크:', !!userInfoStr);
       
       if (!token || !userInfoStr) {
         // 토큰이나 유저정보가 없으면 로그아웃 상태로 변경
@@ -103,16 +127,9 @@ export default function NavBar() {
   // 외부 클릭 감지를 위한 useEffect 수정
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileDropdownOpen(false);
-      }
-      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target)) {
-        setIsMobileProfileDropdownOpen(false);
-      }
-      // 사이드바 외부 클릭 처리 추가
       if (sidebarRef.current && 
           !sidebarRef.current.contains(event.target) && 
-          !event.target.closest('button[aria-label="menu"]')) {  // 햄버거 버튼 클릭은 제외
+          !event.target.closest('button[aria-label="menu"]')) {
         setIsMenuOpen(false);
       }
     };
@@ -143,10 +160,6 @@ export default function NavBar() {
       userNickname: null,
       userId: null 
     });
-    
-    // UI 상태 초기화 - 모바일 상태도 함께 초기화
-    setIsProfileDropdownOpen(false);
-    setIsMobileProfileDropdownOpen(false);
     
     // 홈으로 이동
     navigate("/main");
@@ -180,6 +193,10 @@ export default function NavBar() {
           {/* Left Section - Logo & Menu Button */}
           <div className="flex items-center gap-4">
             <div className="relative">
+              {/* 오버레이 추가 */}
+              <div className={`menu-overlay ${isMenuOpen ? 'active' : ''}`} 
+                   onClick={() => setIsMenuOpen(false)} />
+
               {/* 햄버거 버튼 */}
               <button
                 className="text-4xl bg-transparent hover:bg-transparent border-none focus:outline-none text-cusBlue w-[40px] relative z-20"
@@ -259,28 +276,16 @@ export default function NavBar() {
               </div>
             </div>
 
-            <Link to={"/main"}>
-              <img 
-                src="/assets/Logo.png" 
-                alt="Logo" 
-                className="h-16 w-auto" 
-              />
-            </Link>
+            {/* Logo */}
+            <Logo />
 
-            {/* Mobile Profile Button */}
+            {/* Mobile Profile Button - 다시 추가 */}
             <div className="xl:hidden relative ml-6 mt-1" ref={mobileDropdownRef}>
               {isLoggedIn && userNickname ? (
                 <div className="flex items-center gap-4">
-                  <Link
-                    to="/main/mypage"
-                    className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-3 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105"
-                  >
+                  <Link to="/main/mypage" className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-3 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
                     <div className="w-8 h-8 rounded-full overflow-hidden -ml-1">
-                      <img 
-                        src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"} alt="Profile" className="w-full h-full object-cover" />
                     </div>
                     <span className="whitespace-nowrap">
                       <span className="font-bold">{userNickname}</span> 님,
@@ -288,26 +293,16 @@ export default function NavBar() {
                       안녕하세요!
                     </span>
                   </Link>
-
-                  <button
-                    onClick={handleLogout}
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
-                  >
+                  <button onClick={handleLogout} className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
                     로그아웃
                   </button>
                 </div>
               ) : (
                 <div className="flex gap-3">
-                  <Link
-                    to="/main/login"
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
-                  >
+                  <Link to="/main/login" className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
                     로그인
                   </Link>
-                  <Link
-                    to="/main/signup"
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
-                  >
+                  <Link to="/main/signup" className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
                     회원가입
                   </Link>
                 </div>
@@ -360,7 +355,7 @@ export default function NavBar() {
 
                   <button
                     onClick={handleLogout}
-                    className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                    className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                   >
                     로그아웃
                   </button>
@@ -370,13 +365,13 @@ export default function NavBar() {
               <div className="flex gap-3">
                 <Link
                   to="/main/login"
-                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   로그인
                 </Link>
                 <Link
                   to="/main/signup"
-                  className="btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                  className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
                 >
                   회원가입
                 </Link>

@@ -31,7 +31,6 @@ public class BattleBroadcastController {
     private final VoteService voteService;
     private final BattleReadyService battleReadyService;
     private final BattleStartService battleStartService;
-    private final BattleStartService battleWebsocketService;
     private final BattleBettingService battleBettingService;
     private final ChatMessageService chatMessageService;
     private final BattleVoteService battleVoteService;
@@ -79,7 +78,7 @@ public class BattleBroadcastController {
 
                 case BATTLER_SELECT:
                     return WebSocketResponseDto.ok(MessageType.BATTLER_SELECT,
-                            battleWebsocketService.getBattlerNotification(battleId));
+                        battleStartService.getBattlerNotification(battleId));
 
                 case VOTE_CREATE:
                     VoteRequest voteRequest = requestMapper.mapToVoteRequestDto(request.getData());

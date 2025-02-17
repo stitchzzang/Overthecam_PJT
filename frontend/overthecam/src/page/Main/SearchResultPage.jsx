@@ -346,19 +346,18 @@ const SearchResultPage = () => {
                                 B. {vote.options[1].optionTitle}
                               </div>
                             </div>
-                            <div className="relative h-12 clay bg-gray-200 rounded-full overflow-hidden">
+                            <div className="relative h-12 rounded-full overflow-hidden">
                               {vote.options[0].votePercentage > 0 && (
                                 <div
                                   className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
                                   style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
                                 >
                                   {vote.options[0].votePercentage < 25 ? (
-                                    <div className="text-xs flex flex-col">
+                                    <div className="text-base flex flex-col">
                                       <div>{Math.round(vote.options[0].votePercentage)}%</div>
-                                      <div>({vote.options[0].voteCount}명)</div>
                                     </div>
                                   ) : (
-                                    <>{Math.round(vote.options[0].votePercentage)}% ({vote.options[0].voteCount}명)</>
+                                    <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
                                   )}
                                 </div>
                               )}
@@ -368,12 +367,11 @@ const SearchResultPage = () => {
                                   style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
                                 >
                                   {vote.options[1].votePercentage < 25 ? (
-                                    <div className="text-xs flex flex-col items-end">
+                                    <div className="text-base flex flex-col items-end">
                                       <div>{Math.round(vote.options[1].votePercentage)}%</div>
-                                      <div>({vote.options[1].voteCount}명)</div>
                                     </div>
                                   ) : (
-                                    <>{Math.round(vote.options[1].votePercentage)}% ({vote.options[1].voteCount}명)</>
+                                    <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
                                   )}
                                 </div>
                               )}
