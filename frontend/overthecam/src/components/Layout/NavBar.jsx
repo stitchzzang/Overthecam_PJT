@@ -46,6 +46,9 @@ export default function NavBar() {
   const userStore = useUserStore();
   const isLoggedIn = userStore.isLoggedIn;
   const userNickname = userStore.userNickname ? userStore.userNickname : null;
+  const [profileImage, setProfileImage] = useState(
+    JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"
+  );
 
   // localStorage 변경 감지를 위한 useEffect 수정
   useEffect(() => {
@@ -117,10 +120,28 @@ export default function NavBar() {
     // 주기적으로 토큰 상태 체크 (1초마다)
     const interval = setInterval(checkLoginStatus, 60000);
     
+    // localStorage의 userInfo가 변경될 때마다 프로필 이미지 업데이트
+    const handleStorageChange = () => {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      setProfileImage(userInfo?.profileImage || "/assets/default-profile.png");
+    };
+
+    // localStorage 변경 이벤트 리스너 추가
+    window.addEventListener('storage', handleStorageChange);
+    
+    // 컴포넌트 내부의 변경도 감지하기 위한 MutationObserver 설정
+    const observer = new MutationObserver(handleStorageChange);
+    observer.observe(document.body, { 
+      subtree: true, 
+      childList: true 
+    });
+
     // cleanup
     return () => {
       window.removeEventListener('storage', checkLoginStatus);
       clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+      observer.disconnect();
     };
   }, []);
 
@@ -145,6 +166,32 @@ export default function NavBar() {
     // location이 변경될 때마다 메뉴 닫기
     setIsMenuOpen(false);
   }, [location.pathname]);
+
+  // NavBar.jsx에서 이벤트 리스너 추가
+  useEffect(() => {
+    // 프로필 이미지 업데이트 이벤트 핸들러
+    const handleProfileUpdate = (event) => {
+      console.log("프로필 이미지 업데이트 이벤트 수신:", event.detail);  // 디버깅용
+      const newImage = event.detail.profileImage;
+      setProfileImage(newImage);
+    };
+
+    // 이벤트 리스너 등록
+    window.addEventListener('profileImageUpdated', handleProfileUpdate);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener('profileImageUpdated', handleProfileUpdate);
+    };
+  }, []);
+
+  // localStorage 변경 감지
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+    if (userInfo?.profileImage) {
+      setProfileImage(userInfo.profileImage);
+    }
+  }, [localStorage.getItem("userInfo")]);
 
   const handleLogout = () => {
     // localStorage 데이터 삭제
@@ -285,7 +332,14 @@ export default function NavBar() {
                 <div className="flex items-center gap-4">
                   <Link to="/main/mypage" className="flex items-center gap-3 bg-cusGray text-gray-700 rounded-full px-6 py-3 hover:bg-gray-200 text-sm font-medium text-center shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out transform scale-100 hover:scale-105">
                     <div className="w-8 h-8 rounded-full overflow-hidden -ml-1">
-                      <img src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"} alt="Profile" className="w-full h-full object-cover" />
+                      <img 
+                        src={profileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "/assets/default-profile.png";
+                        }}
+                      />
                     </div>
                     <span className="whitespace-nowrap">
                       <span className="font-bold">{userNickname}</span> 님,
@@ -341,9 +395,12 @@ export default function NavBar() {
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden -ml-1">
                       <img 
-                        src={JSON.parse(localStorage.getItem("userInfo"))?.profileImage || "/assets/default-profile.png"}
+                        src={profileImage} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "/assets/default-profile.png";
+                        }}
                       />
                     </div>
                     <span className="whitespace-nowrap">

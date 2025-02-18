@@ -328,7 +328,7 @@ const Signup = () => {
             </button>
 
             <div className="flex justify-center items-center space-x-6 text-sm text-gray-500 mt-2">
-              <Link to="/login" className="hover:text-gray-700">
+              <Link to="/main/login" className="hover:text-gray-700">
                 이미 계정이 있으신가요? 로그인하기
               </Link>
             </div>

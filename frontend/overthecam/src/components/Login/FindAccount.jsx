@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { publicAxios } from '../../common/axiosinstance';
+import CursorMotionEffect from "../../components/Layout/CusorMotionDesign";
 
 const FindAccount = () => {
   const [findIdForm, setFindIdForm] = useState({
@@ -43,12 +44,10 @@ const FindAccount = () => {
   const handleFindId = async (e) => {
     e.preventDefault();
     try {
-      // 전화번호에 하이픈이 없는 경우에만 추가
       const formattedPhoneNumber = findIdForm.phoneNumber.includes('-') 
         ? findIdForm.phoneNumber 
         : findIdForm.phoneNumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
       
-      // 생년월일 형식 확인
       if (!findIdForm.birth) {
         setMessage({
           text: '생년월일을 입력해주세요.',
@@ -64,16 +63,20 @@ const FindAccount = () => {
       };
       
       const response = await publicAxios.post('/auth/find-email', requestData);
+      console.log('서버 응답:', response); // 응답 확인용 로그
 
-      if (response.code === 200) {
+      if (response.data && response.data.email) {
         setMessage({
           text: `회원님의 이메일은 ${response.data.email} 입니다.`,
           isError: false
         });
+      } else {
+        throw new Error('이메일을 찾을 수 없습니다.');
       }
     } catch (error) {
+      console.error('에러 상세:', error); // 에러 확인용 로그
       setMessage({
-        text: error.message || '아이디 찾기에 실패했습니다.',
+        text: error.response?.data?.message || '아이디 찾기에 실패했습니다.',
         isError: true
       });
     }
@@ -144,14 +147,10 @@ const FindAccount = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Left Side - Image */}
+      {/* Left Side - Motion Design */}
       <div className="hidden lg:block lg:w-[55%] p-12">
         <div className="h-full w-full rounded-3xl overflow-hidden">
-          <img 
-            src="/images/loginPageImage.png" 
-            alt="Find Account decoration" 
-            className="w-full h-full object-cover translate-x-8"
-          />
+          <CursorMotionEffect />
         </div>
       </div>
 
@@ -434,7 +433,7 @@ const FindAccount = () => {
 
           <div className="flex gap-4 pt-4">
             <Link
-              to="/login"
+              to="/main/login"
               className="w-full px-3 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors text-center text-base"
             >
               로그인으로 돌아가기

@@ -8,9 +8,9 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    id: "",
+    id: localStorage.getItem('savedId') || "",
     password: "",
-    rememberMe: false,
+    saveId: localStorage.getItem('savedId') ? true : false,
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -33,6 +33,12 @@ const Login = () => {
     if (!formData.id.trim() || !formData.password.trim()) {
       setError("아이디와 비밀번호를 모두 입력해주세요.");
       return;
+    }
+
+    if (formData.saveId) {
+      localStorage.setItem('savedId', formData.id);
+    } else {
+      localStorage.removeItem('savedId');
     }
 
     const loginData = {
@@ -69,10 +75,6 @@ const Login = () => {
         localStorage.setItem("tokenExpiresIn", accessTokenExpiresIn);
         localStorage.setItem("userInfo", JSON.stringify(userInfo));
         localStorage.setItem("isLoggedIn", "true");
-
-        if (formData.rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        }
 
         setUserInfo({
           isLoggedIn: true,
@@ -148,14 +150,14 @@ const Login = () => {
             <div className="flex items-center">
               <input
                 type="checkbox"
-                id="remember"
-                name="rememberMe"
-                checked={formData.rememberMe}
+                id="saveId"
+                name="saveId"
+                checked={formData.saveId}
                 onChange={handleChange}
                 className="w-4 h-4 text-cusBlue border-gray-300 rounded focus:ring-cusLightBlue"
               />
-              <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
-                로그인 유지하기
+              <label htmlFor="saveId" className="ml-2 text-sm text-gray-600">
+                아이디 저장하기
               </label>
             </div>
 
