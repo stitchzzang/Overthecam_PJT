@@ -2,11 +2,7 @@ package com.overthecam.battle.service;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.repository.UserRepository;
-import com.overthecam.battle.domain.BalanceGame;
-import com.overthecam.battle.domain.Battle;
-import com.overthecam.battle.domain.BattleParticipant;
-import com.overthecam.battle.domain.ParticipantRole;
-import com.overthecam.battle.domain.Status;
+import com.overthecam.battle.domain.*;
 import com.overthecam.battle.dto.*;
 import com.overthecam.battle.exception.BattleErrorCode;
 import com.overthecam.battle.repository.BalanceGameRepository;
@@ -85,12 +81,12 @@ public class BattleService {
      */
     private Battle createInitialBattle(String roomName) {
         Battle battle = Battle.builder()
-            .title(roomName)
-            .roomUrl("roomurl:roomurl")
-            .thumbnailUrl("https://d26tym50939cjl.cloudfront.net/thumbnails/thumbnail+1.png")
-            .totalUsers(1)
-            .status(Status.WAITING)
-            .build();
+                .title(roomName)
+                .roomUrl("roomurl:roomurl")
+                .thumbnailUrl(DefaultThumbnail.getRandomThumbnailUrl())
+                .totalUsers(1)
+                .status(Status.WAITING)
+                .build();
         return battleRepository.save(battle);
     }
 
