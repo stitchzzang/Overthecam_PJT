@@ -64,38 +64,38 @@ footer {
 
 .btn {
   @apply relative font-bold px-6 rounded-full border-transparent
-  shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-0px_-2px_4px_rgba(0,0,0,0.1)]
   transition-all duration-300 ease-in-out transform scale-100 
 }
 
 .btn:hover {
-  @apply hover:scale-105 hover:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  @apply hover:scale-105 hover:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-0px_-2px_4px_rgba(0,0,0,0.1)]
 }
 
 .btn:active {
-  @apply active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  @apply active:scale-95 active:shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-0px_-2px_4px_rgba(0,0,0,0.1)]
 }
 
 /* 비활성화된 버튼이 hover되더라도 효과가 없도록 설정 */
 .btn:disabled,
 .btn-disabled {
-  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]
+  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-0px_-2px_4px_rgba(0,0,0,0.1)]
   opacity-50 cursor-not-allowed;
 }
 
 /* 비활성화된 버튼에 hover 효과 방지 */
 .btn:disabled:hover,
 .btn-disabled:hover {
-  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)];
+  @apply rounded-full scale-100 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-0px_-2px_4px_rgba(0,0,0,0.1)];
 }
 
 .category {
-  @apply px-4 py-2 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
+  @apply px-4 py-2 shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-1px_-2px_4px_rgba(0,0,0,0.1)]
 }
 
 
 .clay {
-  @apply rounded-lg shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-1px_-2px_4px_rgba(0,0,0,0.2)]
+  @apply rounded-lg shadow-[inset_0px_2px_4px_rgba(255,255,255,0.1),inset_-1px_-2px_4px_rgba(0,0,0,0.1)]
   transition-all duration-300 ease-in-out transform scale-100 
 }
 
