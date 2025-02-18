@@ -356,7 +356,7 @@ const useWebSocket = (battleId) => {
       // 초기 연결 시도 시작
       await connectWithRetry();
     },
-    [battleId, getResponse]
+    [battleId]
   );
 
  const disconnectWS = useCallback(() => {
