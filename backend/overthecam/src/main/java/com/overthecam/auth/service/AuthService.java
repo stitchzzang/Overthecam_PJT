@@ -1,5 +1,6 @@
 package com.overthecam.auth.service;
 
+import com.overthecam.auth.domain.DefaultProfileImage;
 import com.overthecam.auth.domain.User;
 import com.overthecam.auth.dto.*;
 import com.overthecam.auth.exception.AuthErrorCode;
@@ -50,7 +51,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
-                .profileImage("https://d26tym50939cjl.cloudfront.net/profiles/profile_person.jpg")
+                .profileImage(DefaultProfileImage.getRandomProfileUrl())
                 .username(request.getUsername())
                 .gender(request.getGender())
                 .birth(request.getBirth())
