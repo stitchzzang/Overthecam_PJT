@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Pagination from "react-js-pagination";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import ItemListItem from "./ItemListItem";
 import { getItem } from "../../service/ItemShop/api";
+import { authAxios } from "../../common/axiosinstance";
+import SuccessAlertModal from "../@common/SuccessAlertModal";  // 경로 수정
 
 function ItemList() {
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +19,10 @@ function ItemList() {
   // slice할 index범위
   const indexOfLastItem = page * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const [purchasedItems, setPurchasedItems] = useState(new Set());
+  const [myPoints, setMyPoints] = useState(0);
+  const [myCheerScore, setMyCheerScore] = useState(0);
+  const successAlertRef = useRef();
 
   useEffect(() => {
     setIsLoading(true);
@@ -24,7 +30,8 @@ function ItemList() {
     getItem()
       .then((res) => {
         setItems(res);
-        console.log("데이터 불러오기 성공", res);
+        console.log("상점 아이템 데이터:", res);
+        console.log("첫 번째 아이템:", res[0]);
       })
       .catch((error) => {
         console.log("데이터 불러오기 실패", error);
@@ -61,13 +68,86 @@ function ItemList() {
     setPage(1);
   };
 
+  // 내 아이템 목록 가져오기
+  const fetchMyItems = async () => {
+    try {
+      const response = await authAxios.get('/store/item/my/all');  // API 경로 수정
+      if (response.data) {  // data.data 확인
+        const purchasedItemIds = new Set(
+          response.data.map(item => item.storeItemId)
+        );
+        setPurchasedItems(purchasedItemIds);
+      }
+    } catch (error) {
+      // 구매한 상품이 없는 경우는 정상적인 상황으로 처리
+      if (error.response?.data?.code === 'STORE_ITEM_NOT_PURCHASE') {
+        setPurchasedItems(new Set());
+      } else {
+        console.error('내 아이템 목록 로드 실패:', error);
+      }
+    }
+  };
+
+  // 포인트와 응원점수 가져오기
+  const fetchUserStats = async () => {
+    try {
+      const response = await authAxios.get('/mypage/stats');
+      if (response.data) {  // data 체크 추가
+        const { scoreInfo } = response.data;
+        if (scoreInfo) {
+          setMyPoints(scoreInfo.point);
+          setMyCheerScore(scoreInfo.supportScore);
+          console.log('포인트 업데이트:', scoreInfo.point); // 디버깅용
+        }
+      }
+    } catch (error) {
+      console.error('사용자 정보 로드 실패:', error);
+    }
+  };
+
+  const handlePurchaseSuccess = async (itemId, price) => {
+    try {
+      // 즉시 포인트 차감 및 구매 목록 업데이트
+      setMyPoints(prev => {
+        console.log('이전 포인트:', prev);
+        console.log('차감할 금액:', price);
+        return prev - price;
+      });
+      setPurchasedItems(prev => new Set([...prev, itemId]));
+      
+      // 백그라운드에서 데이터 동기화
+      await Promise.all([
+        fetchMyItems(),
+        fetchUserStats()
+      ]);
+      
+      successAlertRef.current?.showAlert("아이템 구매에 성공했습니다!");
+    } catch (error) {
+      console.error('구매 후 데이터 업데이트 실패:', error);
+    }
+  };
+
+  // 초기 데이터 로드
+  useEffect(() => {
+    Promise.all([
+      fetchMyItems(),
+      fetchUserStats()
+    ]);
+  }, []);
+
   return (
     <div className="bg-cusGray-light m-5 rounded-2xl p-6">
+      <SuccessAlertModal ref={successAlertRef} />
+      
       {/* Header Section */}
       <div className="flex justify-between items-center m-3">
         <h1 className="text-2xl font-extrabold text-cusBlack-light">
           아이템 상점
         </h1>
+        <div className="flex gap-4">
+          <span className="font-semibold">보유 포인트: {myPoints.toLocaleString()}</span>
+          <span className="font-semibold">응원점수: {myCheerScore.toLocaleString()}</span>
+        </div>
       </div>
       <div className="bg-white rounded-2xl p-4 pt-10 clay">
         {/* Filter and Sort Section */}
@@ -161,9 +241,14 @@ function ItemList() {
             </div>
           ) : currentList.length > 0 ? (
             <div className="grid grid-cols-4 gap-4">
-              {currentList.map((item, i) => (
-                <div key={i}>
-                  <ItemListItem itemInfo={item} />
+              {currentList.map((item) => (
+                <div key={item.storeItemId}>
+                  <ItemListItem 
+                    itemInfo={item} 
+                    isPurchased={purchasedItems.has(item.storeItemId)}
+                    onPurchaseSuccess={(itemId, price) => handlePurchaseSuccess(itemId, price)}
+                    myPoints={myPoints}
+                  />
                 </div>
               ))}
             </div>

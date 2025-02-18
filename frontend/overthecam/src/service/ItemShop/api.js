@@ -48,10 +48,8 @@ export const postPurchase = async (storeItemId) => {
 
 export const postExchangePoints = async (score) => {
   try {
-    // const response = await authAxios.post("/points/convert ", {
-    //   score,
-    // })
-    // return response;
+    const response = await authAxios.post(`/mypage/revert?supportScore=${score}`, {})
+    return response;
   } catch (error) {
     const errorMessage = error.error.message;
     const errorCode = error.error.code;  
@@ -60,3 +58,13 @@ export const postExchangePoints = async (score) => {
     throw error.error;
   }
 };
+
+// // 아이템 구매 API
+// export const purchaseItem = async (storeItemId) => {
+//   try {
+//     const response = await authAxios.post(`/store/item/${storeItemId}/purchase`);
+//     return response;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
