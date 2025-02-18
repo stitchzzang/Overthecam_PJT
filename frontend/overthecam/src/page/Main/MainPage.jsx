@@ -37,7 +37,7 @@ const StatusBadge = ({ status, onClick }) => {
 };
 
 // 새로운 PopularVote 컴포넌트 추가
-const PopularVote = ({ onVoteUpdate }) => {
+const PopularVote = () => {
   const navigate = useNavigate();
   const [popularVotes, setPopularVotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -109,6 +109,61 @@ const PopularVote = ({ onVoteUpdate }) => {
       case 1: return "🥈";
       case 2: return "🥉";
       default: return "🏅";
+    }
+  };
+
+  const createConfetti = (isFirstOption) => {
+    const emojis = isFirstOption 
+      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+      : ['💙', '🐠', '🌍', '💎','🐬','❄️'];
+
+    for (let i = 0; i < 15; i++) {
+      const confetti = document.createElement('div');
+      const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+      confetti.className = `confetti ${animationType}`;
+      confetti.style.left = `${Math.random() * window.innerWidth}px`;
+      confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2500);
+    }
+  };
+
+  const handleVoteUpdate = async (voteId, optionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      // 현재 투표 찾기
+      const currentVote = popularVotes.find(v => v.voteId === voteId);
+      if (!currentVote) return;
+
+      // 서버에 투표 요청
+      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
+
+      // 투표 결과 가져오기
+      const response = await authAxios.get(`/vote/${voteId}`);
+      const updatedVote = response.data;
+
+      // 로컬 상태 업데이트
+      setPopularVotes(prev => 
+        prev.map(v => v.voteId === voteId ? {
+          ...v,
+          hasVoted: true,
+          options: updatedVote.options,
+          totalVoteCount: updatedVote.totalVoteCount
+        } : v)
+      );
+
+    } catch (error) {
+      console.error('Vote error:', error);
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+      }
     }
   };
 
@@ -221,18 +276,39 @@ const PopularVote = ({ onVoteUpdate }) => {
                       <div className="flex gap-4">
                         {vote.options.map((option) => (
                           <button
+                            id={`vote-button-${option.optionId}`}
                             key={option.optionId}
                             onClick={(e) => {
                               e.stopPropagation();
-                              // 중앙 카드가 아닐 경우 투표 방지
                               if (!isActive) return;
-                              onVoteUpdate(vote.voteId, option.optionId);
+                              
+                              // 리플 이펙트 생성
+                              const button = e.currentTarget;
+                              const ripple = document.createElement('div');
+                              ripple.className = 'ripple';
+                              
+                              const rect = button.getBoundingClientRect();
+                              const size = Math.max(rect.width, rect.height);
+                              ripple.style.width = ripple.style.height = `${size}px`;
+                              
+                              button.appendChild(ripple);
+                              ripple.classList.add('active');
+
+                              // 컨페티 생성
+                              const isFirstOption = option.optionId === vote.options[0].optionId;
+                              createConfetti(isFirstOption);
+
+                              // 투표 처리
+                              handleVoteUpdate(vote.voteId, option.optionId);
+
+                              // 리플 제거
+                              setTimeout(() => ripple.remove(), 600);
                             }}
-                            className={`clay flex-1 p-4 ${
+                            className={`vote-button clay flex-1 p-4 ${
                               option.optionId === vote.options[0].optionId
-                                ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                                : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                            } rounded-lg transition-colors text-lg font-bold ${
+                                ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                                : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                            } rounded-lg transition-colors text-lg font-bold relative overflow-hidden ${
                               !isActive ? 'opacity-50 cursor-default pointer-events-none' : 'cursor-pointer'
                             }`}
                           >
@@ -255,7 +331,7 @@ const PopularVote = ({ onVoteUpdate }) => {
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
   const [voteList, setVoteList] = useState([]);
-  const [popularVoteKey, setPopularVoteKey] = useState(0); // PopularVote 컴포넌트 리렌더링을 위한 key
+  const [popularVoteKey, setPopularVoteKey] = useState(0);
   const navigate = useNavigate();
   const userInfo = localStorage.getItem('userInfo');
   const userId = userInfo ? JSON.parse(userInfo).userId : null;
@@ -352,121 +428,6 @@ const MainPage = () => {
     }
   };
 
-  // 투표 처리 함수를 상위 컴포넌트로 이동
-  const handleVoteUpdate = async (voteId, optionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('로그인이 필요합니다.');
-        navigate('/main/login');
-        return;
-      }
-
-      // UI 즉시 업데이트 (일반 투표 목록)
-      setVoteList(prevList => 
-        prevList.map(v => {
-          if (v.voteId === voteId) {
-            const updatedOptions = v.options.map(option => ({
-              ...option,
-              voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
-            }));
-            
-            const totalVotes = updatedOptions.reduce((sum, opt) => sum + opt.voteCount, 0);
-            
-            const optionsWithPercentage = updatedOptions.map(option => ({
-              ...option,
-              votePercentage: (option.voteCount / totalVotes) * 100
-            }));
-
-            return {
-              ...v,
-              hasVoted: true,
-              options: optionsWithPercentage
-            };
-          }
-          return v;
-        })
-      );
-
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
-      
-      // PopularVote 컴포넌트 리렌더링
-      setPopularVoteKey(prev => prev + 1);
-      
-      // 투표 목록 새로고침
-      await fetchVotes();
-
-    } catch (err) {
-      console.error('Vote error:', err);
-      if (err.response?.status === 401) {
-        alert('로그인이 필요합니다.');
-        navigate('/main/login');
-        return;
-      }
-      if (err.response?.data?.error?.code === 'DUPLICATE_VOTE') {
-        // 이미 투표한 경우 UI 업데이트만 수행
-        await fetchVotes();
-        setPopularVoteKey(prev => prev + 1);
-      } else {
-        alert('투표 처리 중 오류가 발생했습니다.');
-      }
-    }
-  };
-
-  const handleVoteDetailClick = (voteId) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/main/login');
-      return;
-    }
-    navigate(`/main/vote-detail/${voteId}`);
-  };
-
-  const renderVoteResult = (vote) => (
-    <div className="mb-4">
-      <div className="flex justify-between mb-2">
-        <div className="text-cusRed font-bold">
-          A. {vote.options[0].optionTitle}
-        </div>
-        <div className="text-cusBlue font-bold">
-          B. {vote.options[1].optionTitle}
-        </div>
-      </div>
-      <div className="relative h-12 rounded-full overflow-hidden">
-        {vote.options[0].votePercentage > 0 && (
-          <div
-            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
-          >
-            {vote.options[0].votePercentage < 25 ? (
-              <div className="text-base flex flex-col">
-                <div>{Math.round(vote.options[0].votePercentage)}%</div>
-              </div>
-            ) : (
-              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
-            )}
-          </div>
-        )}
-        {vote.options[1].votePercentage > 0 && (
-          <div
-            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
-          >
-            {vote.options[1].votePercentage < 25 ? (
-              <div className="text-base flex flex-col items-end">
-                <div>{Math.round(vote.options[1].votePercentage)}%</div>
-              </div>
-            ) : (
-              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   // 배틀룸 입장 처리 함수 수정
   const handleBattleEnter = async (battleId, status) => {
     if (status !== 0) return;
@@ -561,14 +522,11 @@ const MainPage = () => {
           </Link>
         </div>
         
-        {/* PopularVote 컴포넌트 */}
-        <PopularVote 
-          key={popularVoteKey} 
-          onVoteUpdate={handleVoteUpdate}
-        />
+        {/* PopularVote 컴포넌트에서 onVoteUpdate props 제거 */}
+        <PopularVote key={popularVoteKey} />
         
         <div className="container mx-auto px-4">
-          <div className="container mx-auto px-14 pt-44 pb-12">
+          <div className="container mx-auto px-14 pt-48 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}

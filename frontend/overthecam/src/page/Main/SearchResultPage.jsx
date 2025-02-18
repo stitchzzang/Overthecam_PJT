@@ -8,6 +8,22 @@ import { joinRoom } from "../../service/BattleRoom/api";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import useUserStore from "../../store/User/UserStore";
 
+const createConfetti = (isFirstOption) => {
+  const emojis = isFirstOption 
+    ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+    : ['💙', '🐠', '🌍', '💎','🐬','❄️'];
+
+  for (let i = 0; i < 15; i++) {
+    const confetti = document.createElement('div');
+    const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+    confetti.className = `confetti ${animationType}`;
+    confetti.style.left = `${Math.random() * window.innerWidth}px`;
+    confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+    document.body.appendChild(confetti);
+    setTimeout(() => confetti.remove(), 2500);
+  }
+};
+
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
 );
@@ -175,6 +191,27 @@ const SearchResultPage = () => {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
         return;
+      }
+
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
+        
+        // 컨페티 생성
+        const isFirstOption = optionId === vote.options[0].optionId;
+        createConfetti(isFirstOption);
+
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
       }
 
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
@@ -420,16 +457,17 @@ const SearchResultPage = () => {
                           <div className="flex gap-4">
                             {vote.options.map((option) => (
                               <button
+                                id={`vote-button-${option.optionId}`}
                                 key={option.optionId}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleVote(vote, option.optionId);
                                 }}
-                                className={`clay flex-1 p-4 ${
+                                className={`vote-button clay flex-1 p-4 ${
                                   option.optionId === vote.options[0].optionId
-                                    ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                                    : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                                } rounded-lg transition-colors text-lg font-bold`}
+                                    ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                                    : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                                } rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
                               >
                                 {option.optionTitle}
                               </button>

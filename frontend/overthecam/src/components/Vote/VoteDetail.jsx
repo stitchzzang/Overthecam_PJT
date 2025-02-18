@@ -56,6 +56,23 @@ const VoteDetail = ({ voteData, onDelete }) => {
   };
 
   const handleVote = async (optionId) => {
+    // 리플 이펙트 생성
+    const button = document.querySelector(`#vote-button-${optionId}`);
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    
+    button.appendChild(ripple);
+    ripple.classList.add('active');
+
+    // 컨페티 생성
+    const isFirstOption = optionId === currentVoteData.options[0].optionId;
+    createConfetti(isFirstOption);
+
+    // 기존 투표 로직
     try {
       if (!userInfo) {
         alert('로그인이 필요합니다.');
@@ -122,6 +139,25 @@ const VoteDetail = ({ voteData, onDelete }) => {
         // 다른 에러는 무시하고 UI는 업데이트된 상태 유지
         console.log('투표 처리 중 오류가 발생했지만 UI는 유지됩니다.');
       }
+    }
+
+    // 리플 제거
+    setTimeout(() => ripple.remove(), 600);
+  };
+
+  const createConfetti = (isFirstOption) => {
+    const emojis = isFirstOption 
+      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+      : ['💙', '🐠', '🥶', '💎','🐬','❄️'];
+
+    for (let i = 0; i < 15; i++) {
+      const confetti = document.createElement('div');
+      const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+      confetti.className = `confetti ${animationType}`;
+      confetti.style.left = `${Math.random() * window.innerWidth}px`;
+      confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2500);
     }
   };
 
@@ -240,13 +276,14 @@ const VoteDetail = ({ voteData, onDelete }) => {
           <div className="flex gap-4 mb-8">
             {currentVoteData.options.map((option) => (
               <button
+                id={`vote-button-${option.optionId}`}
                 key={option.optionId}
                 onClick={() => handleVote(option.optionId)}
-                className={`clay flex-1 p-4 ${
+                className={`vote-button ${
                   option.optionId === currentVoteData.options[0].optionId
-                    ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                    : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                } rounded-lg transition-colors text-lg font-bold`}
+                    ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                    : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                } clay flex-1 p-4 rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
               >
                 {option.optionTitle}
               </button>
