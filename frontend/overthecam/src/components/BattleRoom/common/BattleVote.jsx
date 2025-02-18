@@ -37,7 +37,7 @@ function BattleVote({ isWaiting }) {
                 <h1 className="text-2xl font-bold text-gray-800">
                   {vote.title}
                 </h1>
-                <h4>{vote.content}ddd</h4>
+                <h4>{vote.content}</h4>
               </div>
             </div>
           </>
