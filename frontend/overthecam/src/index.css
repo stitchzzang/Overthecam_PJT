@@ -1,15 +1,9 @@
 /* 폰트 설정 */
 @font-face {
-  font-family: 'Paperlogy';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Pretendard';
-  src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-  font-weight: 400;
+  font-family: 'GmarketSansMedium';
+  src: url('/fonts/GmarketSansMedium.ttf') format('truetype'),
+       url('/fonts/GmarketSansMedium.otf') format('opentype');
+  font-weight: normal;
   font-style: normal;
 }
 
@@ -19,7 +13,21 @@ html, body {
   padding: 0;
   background-color: rgb(242, 247, 255);
   width: 100%; /* html과 body의 너비를 100%로 설정 */
-  font-family: 'Paperlogy', sans-serif;
+  font-family: 'GmarketSansMedium', sans-serif;
+  font-size: 17px;
+}
+
+/* 모바일 환경에서는 폰트 크기를 조금 줄일 수 있습니다 */
+@media screen and (max-width: 768px) {
+  html, body {
+    font-size: 16px;
+  }
+}
+
+/* 채팅 메시지 폰트 크기 설정 */
+.font-pretendard {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
 }
 
 #root {
@@ -284,4 +292,9 @@ footer {
 
 .menu-link-5.active {
   @apply translate-y-[270px];
+}
+
+/* 채팅 메시지 폰트 크기 설정 */
+.chat-message {
+  font-size: 14px;
 }
