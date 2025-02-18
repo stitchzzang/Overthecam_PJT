@@ -11,7 +11,7 @@ import useUserStore from "../../store/User/UserStore";
 const createConfetti = (isFirstOption) => {
   const emojis = isFirstOption 
     ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
-    : ['💙', '🐠', '🥶', '🌍', '💎','🐬','❄️'];
+    : ['💙', '🐠', '🌍', '💎','🐬','❄️'];
 
   for (let i = 0; i < 15; i++) {
     const confetti = document.createElement('div');

@@ -37,7 +37,7 @@ const StatusBadge = ({ status, onClick }) => {
 };
 
 // 새로운 PopularVote 컴포넌트 추가
-const PopularVote = ({ onVoteUpdate }) => {
+const PopularVote = () => {
   const navigate = useNavigate();
   const [popularVotes, setPopularVotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,8 +114,8 @@ const PopularVote = ({ onVoteUpdate }) => {
 
   const createConfetti = (isFirstOption) => {
     const emojis = isFirstOption 
-      ? ['🍎', '🧧', '❤️', '🍒', '🎀','🍬','👺']
-      : ['💙', '🐠', '🥶', '🌍', '💎','🐬','❄️'];
+      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+      : ['💙', '🐠', '🌍', '💎','🐬','❄️'];
 
     for (let i = 0; i < 15; i++) {
       const confetti = document.createElement('div');
@@ -125,6 +125,45 @@ const PopularVote = ({ onVoteUpdate }) => {
       confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
       document.body.appendChild(confetti);
       setTimeout(() => confetti.remove(), 2500);
+    }
+  };
+
+  const handleVoteUpdate = async (voteId, optionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      // 현재 투표 찾기
+      const currentVote = popularVotes.find(v => v.voteId === voteId);
+      if (!currentVote) return;
+
+      // 서버에 투표 요청
+      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
+
+      // 투표 결과 가져오기
+      const response = await authAxios.get(`/vote/${voteId}`);
+      const updatedVote = response.data;
+
+      // 로컬 상태 업데이트
+      setPopularVotes(prev => 
+        prev.map(v => v.voteId === voteId ? {
+          ...v,
+          hasVoted: true,
+          options: updatedVote.options,
+          totalVoteCount: updatedVote.totalVoteCount
+        } : v)
+      );
+
+    } catch (error) {
+      console.error('Vote error:', error);
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+      }
     }
   };
 
@@ -260,7 +299,7 @@ const PopularVote = ({ onVoteUpdate }) => {
                               createConfetti(isFirstOption);
 
                               // 투표 처리
-                              onVoteUpdate(vote.voteId, option.optionId);
+                              handleVoteUpdate(vote.voteId, option.optionId);
 
                               // 리플 제거
                               setTimeout(() => ripple.remove(), 600);
@@ -389,69 +428,6 @@ const MainPage = () => {
     }
   };
 
-  // handleVoteUpdate 함수 추가
-  const handleVoteUpdate = async (voteId, optionId) => {
-    try {
-      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
-      // 필요한 경우 추가 로직
-    } catch (error) {
-      console.error('Vote update error:', error);
-    }
-  };
-
-  const handleVoteDetailClick = (voteId) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/main/login');
-      return;
-    }
-    navigate(`/main/vote-detail/${voteId}`);
-  };
-
-  const renderVoteResult = (vote) => (
-    <div className="mb-4">
-      <div className="flex justify-between mb-2">
-        <div className="text-cusRed font-bold">
-          A. {vote.options[0].optionTitle}
-        </div>
-        <div className="text-cusBlue font-bold">
-          B. {vote.options[1].optionTitle}
-        </div>
-      </div>
-      <div className="relative h-12 rounded-full overflow-hidden">
-        {vote.options[0].votePercentage > 0 && (
-          <div
-            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
-          >
-            {vote.options[0].votePercentage < 25 ? (
-              <div className="text-base flex flex-col">
-                <div>{Math.round(vote.options[0].votePercentage)}%</div>
-              </div>
-            ) : (
-              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
-            )}
-          </div>
-        )}
-        {vote.options[1].votePercentage > 0 && (
-          <div
-            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
-          >
-            {vote.options[1].votePercentage < 25 ? (
-              <div className="text-base flex flex-col items-end">
-                <div>{Math.round(vote.options[1].votePercentage)}%</div>
-              </div>
-            ) : (
-              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   // 배틀룸 입장 처리 함수 수정
   const handleBattleEnter = async (battleId, status) => {
     if (status !== 0) return;
@@ -546,11 +522,8 @@ const MainPage = () => {
           </Link>
         </div>
         
-        {/* PopularVote 컴포넌트에 handleVoteUpdate props 전달 */}
-        <PopularVote 
-          key={popularVoteKey} 
-          onVoteUpdate={handleVoteUpdate}
-        />
+        {/* PopularVote 컴포넌트에서 onVoteUpdate props 제거 */}
+        <PopularVote key={popularVoteKey} />
         
         <div className="container mx-auto px-4">
           <div className="container mx-auto px-14 pt-44 pb-12">
