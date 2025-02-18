@@ -196,18 +196,18 @@ function BattleRoomPage() {
   }, [room]);
 
   // ws 연결 에러
-  useEffect(() => {
-    if (status === "DISCONNECTED") {
-      // 잠시 후 재연결 시도
-      const reconnectTimer = setTimeout(() => {
-        connectWS(BASE_URL, token);
-      }, 3000);
+  // useEffect(() => {
+  //   if (status === "DISCONNECTED") {
+  //     // 잠시 후 재연결 시도
+  //     const reconnectTimer = setTimeout(() => {
+  //       connectWS(BASE_URL, token);
+  //     }, 3000);
 
-      return () => clearTimeout(reconnectTimer);
-    } else if (status === "ERROR") {
-      failTost.current?.showAlert(error);
-    }
-  }, [status, error]);
+  //     return () => clearTimeout(reconnectTimer);
+  //   } else if (status === "ERROR") {
+  //     failTost.current?.showAlert(error);
+  //   }
+  // }, [status, error]);
 
   async function initializeRoom() {
     try {
