@@ -101,7 +101,7 @@ const VoteCreatingForm = ({ onCreateVote, disabled }) => {
         disabled={disabled}
         className="btn min-w-[120px] w-1/3 self-center bg-cusBlue text-cusLightBlue-lighter hover:bg-cusLightBlue hover:text-cusBlue px-4 py-3 mt-6 whitespace-nowrap"
       >
-        Create !
+        생성 
       </button>
     </form>
   );
