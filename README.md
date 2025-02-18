@@ -1,7 +1,7 @@
-# YES204 팀의 OverTheCam 서비스 입니다.
+# YES204 팀의 캠건너 불구경 서비스 입니다.
 
 
-## 📽️ OverTheCam (캠 건너 불구경)
+## 📽️ 캠 건너 불구경(OverTheCam)
 (사진추가가)
 
 
@@ -9,7 +9,7 @@
 실시간으로 논쟁이 필요한 사람들을 위한 화상 논쟁 플랫폼
 
 
-OverTheCam은 일상의 모든 논쟁을 재미있게 해결하는 플랫폼입니다.
+"캠건너 불구경"은 일상의 모든 논쟁을 재미있게 해결하는 플랫폼입니다.
 친구랑 의견이 다를 때, 동료와 입장이 갈릴 때,
 실시간 화상으로 배틀하고 투표와 배팅으로 승자를 가려보세요!
 
@@ -19,15 +19,14 @@ OverTheCam은 일상의 모든 논쟁을 재미있게 해결하는 플랫폼입�
 
 [회의록 바로가기](https://romantic-blanket-13b.notion.site/YES-204-OverTheCam-1739cee6017880c89ac1fa8ccee63de8?pvs=4)
 
-👪 Team
----
-FRONTEND
+## 👪 Team
+### FRONTEND
 
 | 심순화 | 신해인 | 박민수|
 | ------ | ------ |----- |
 |      |        |      |
 
-BACKEND
+### BACKEND
 
 | 안수진 | 정예지 | 황수비 
 | ------ | ------ |------|
@@ -35,7 +34,6 @@ BACKEND
 
 
 ## OverTheCam의 주요 기능
----
 📌실시간 화상 배틀
 (시연 영상 찍은 후 추가)
 
@@ -50,11 +48,12 @@ BACKEND
 (사용자 매뉴얼)
 
 ## Architecture
----
-(사진 추가)
+![image](/uploads/34c19640155cef1083f4d5615317336e/image.png)
+
+## ERD Diagram
+![image](/uploads/c5052d4a7336c62f6c5fc97c34ac1f6b/image.png)
 
 # Tech Stack
----
 **1️⃣ Framework & Library**
 
 **FRONTEND**
