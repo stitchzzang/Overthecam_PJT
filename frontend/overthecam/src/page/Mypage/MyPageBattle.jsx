@@ -75,12 +75,12 @@ function MyPageBattle() {
         text: '승',
         style: 'text-green-600'
       };
-    } else if (!battle.winner && battle.earnedScore === 0) {
+    } else if (!battle.winner && battle.earnedScore >= 0) {
       return {
         text: '무',
         style: 'text-gray-600'
       };
-    } else {
+    } else if (!battle.winner && battle.earnedScore < 0) {
       return {
         text: '패',
         style: 'text-red-600'
