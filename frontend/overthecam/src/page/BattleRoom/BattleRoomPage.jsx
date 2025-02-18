@@ -15,6 +15,7 @@ import NoticeAlertModal from "../../components/@common/NoticeAlertModal";
 import FailAlertModal from "../../components/@common/FailAlertModal";
 import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartModal/BattleEndModal";
 import useUserStore from "../../store/User/UserStore";
+import LiveSTT from "../../components/BattleRoom/BattleStart/LiveSTT";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -107,7 +108,6 @@ function BattleRoomPage() {
       }
 
       try {
-
         if (isSubscribed) {
           // 컴포넌트가 여전히 마운트된 상태인지 확인
           await connectWS(BASE_URL, token);
@@ -454,6 +454,14 @@ function BattleRoomPage() {
     startBattle();
   };
 
+  const handleTranscriptionComplete = async (transcript) => {
+    try {
+      console.log("대화 내용", transcript);
+    } catch (error) {
+      console.log("기록 실패", error);
+    }
+  };
+
   useEffect(() => {
     if (isStarted) {
       // isStarted가 true일 때만 실행
@@ -539,6 +547,10 @@ function BattleRoomPage() {
           </>
         )}
       </div>
+      <LiveSTT
+        onTranscriptionComplete={handleTranscriptionComplete}
+        shouldStop={isBattleEnded}
+      />
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
