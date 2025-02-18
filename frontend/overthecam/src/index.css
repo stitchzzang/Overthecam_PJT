@@ -113,60 +113,6 @@ footer {
   @apply w-10 h-10 border-4 border-gray-300 border-t-cusBlue rounded-full animate-spin
 }
 
-/* NavBar Gooey Effect Styles */
-.gooey-filter {
-  filter: url(#gooey);
-  z-index: 20;
-}
-
-.gooey-menu-item {
-  @apply absolute w-36 h-12 bg-cusGray rounded-full clay transition-all duration-300 ease-in-out;
-  box-shadow: 
-    4px 4px 10px rgba(0, 0, 0, 0.2),
-    -4px -4px 10px rgba(255, 255, 255, 0.7),
-    inset 2px 2px 4px rgba(255, 255, 255, 0.1),
-    inset -2px -2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.gooey-menu-item-1 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-1.active {
-  @apply translate-y-[10px] opacity-100;
-}
-
-.gooey-menu-item-2 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-2.active {
-  @apply translate-y-[77px] opacity-100;
-}
-
-.gooey-menu-item-3 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-3.active {
-  @apply translate-y-[144px] opacity-100;
-}
-
-.gooey-menu-item-4 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-4.active {
-  @apply translate-y-[211px] opacity-100;
-}
-
-.gooey-menu-item-5 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-5.active {
-  @apply translate-y-[278px] opacity-100;
-}
 
 /* Popular Vote Carousel Styles */
 .popular-vote-carousel {
@@ -236,6 +182,62 @@ footer {
   padding-bottom: 8px;
 }
 
+
+/* NavBar Gooey Effect Styles */
+.gooey-filter {
+  filter: url(#gooey);
+  z-index: 20;
+}
+
+.gooey-menu-item {
+  @apply absolute w-36 h-12 bg-cusGray rounded-full clay transition-all duration-300 ease-in-out;
+  box-shadow: 
+    4px 4px 10px rgba(0, 0, 0, 0.2),
+    -4px -4px 10px rgba(255, 255, 255, 0.7),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gooey-menu-item-1 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-1.active {
+  @apply translate-y-[10px] opacity-100;
+}
+
+.gooey-menu-item-2 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-2.active {
+  @apply translate-y-[77px] opacity-100;
+}
+
+.gooey-menu-item-3 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-3.active {
+  @apply translate-y-[144px] opacity-100;
+}
+
+.gooey-menu-item-4 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-4.active {
+  @apply translate-y-[211px] opacity-100;
+}
+
+.gooey-menu-item-5 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-5.active {
+  @apply translate-y-[278px] opacity-100;
+}
+
 /* 오버레이 스타일 추가 */
 .menu-overlay {
   @apply fixed inset-0 bg-black/5 backdrop-blur-[2px] opacity-0 pointer-events-none transition-opacity duration-300 z-10;
@@ -248,7 +250,7 @@ footer {
 /* 기존 menu-link 스타일 수정 */
 .menu-link {
   @apply absolute w-36 h-12 flex items-center justify-start px-4 text-cusBlack-light 
-    transition-all duration-300 ease-in-out translate-y-0 opacity-0 pointer-events-none z-30;
+    transition-all duration-300 ease-in-out translate-y-0 opacity-0 pointer-events-none z-50;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
