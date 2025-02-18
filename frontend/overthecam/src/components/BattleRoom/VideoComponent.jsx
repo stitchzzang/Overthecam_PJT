@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-function VideoComponent({ track, participantIdentity, local = false }) {
+function VideoComponent({ track, local = false }) {
   const videoRef = useRef(null);
 
   useEffect(() => {
