@@ -96,12 +96,43 @@ const VotePage = () => {
   };
 
   const handleVote = async (vote, optionId) => {
+    let ripple;
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
         return;
+      }
+
+      // 리플 이펙트 생성
+      const button = document.querySelector(`[data-vote-button="${optionId}"]`);
+      if (!button) return;  // 버튼이 없으면 함수 종료
+
+      ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      
+      button.appendChild(ripple);
+      ripple.classList.add('active');
+
+      // 컨페티 생성
+      const isFirstOption = optionId === vote.options[0].optionId;
+      const emojis = isFirstOption 
+        ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+        : ['💙', '🐠', '🥶', '💎','🐬','❄️'];
+
+      for (let i = 0; i < 15; i++) {
+        const confetti = document.createElement('div');
+        const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+        confetti.className = `confetti ${animationType}`;
+        confetti.style.left = `${Math.random() * window.innerWidth}px`;
+        confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 2500);
       }
 
       // 즉시 UI 업데이트
@@ -142,6 +173,10 @@ const VotePage = () => {
       }
       alert('투표 처리 중 오류가 발생했습니다.');
       await fetchVotes();
+    } finally {
+      if (ripple) {
+        setTimeout(() => ripple.remove(), 600);
+      }
     }
   };
 
@@ -311,13 +346,14 @@ const VotePage = () => {
                       <div className="flex gap-4 mb-4">
                         {vote.options.map((option) => (
                           <button
+                            data-vote-button={`${option.optionId}`}
                             key={option.optionId}
                             onClick={() => handleVote(vote, option.optionId)}
-                            className={`clay flex-1 p-4 ${
+                            className={`vote-button ${
                               option.optionId === vote.options[0].optionId
-                                ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                                : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                            } rounded-lg transition-colors text-lg font-bold`}
+                                ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                                : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                            } clay flex-1 p-4 rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
                           >
                             {option.optionTitle}
                           </button>

@@ -33,6 +33,14 @@ const Logo = () => {
   );
 };
 
+// 닉네임 말줄임표 처리 함수 추가
+const truncateNickname = (nickname) => {
+  if (nickname.length > 5) {
+    return nickname.slice(0, 5) + '...';
+  }
+  return nickname;
+};
+
 export default function NavBar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -342,12 +350,12 @@ export default function NavBar() {
                       />
                     </div>
                     <span className="whitespace-nowrap">
-                      <span className="font-bold">{userNickname}</span> 님,
+                      <span className="font-bold">{truncateNickname(userNickname)}</span> 님,
                       <br />
                       안녕하세요!
                     </span>
                   </Link>
-                  <button onClick={handleLogout} className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
+                  <button onClick={handleLogout} className="btn px-6 py-4 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center min-w-[120px]">
                     로그아웃
                   </button>
                 </div>
@@ -404,7 +412,7 @@ export default function NavBar() {
                       />
                     </div>
                     <span className="whitespace-nowrap">
-                      <span className="font-bold">{userNickname}</span> 님,
+                      <span className="font-bold">{truncateNickname(userNickname)}</span> 님,
                       <br />
                       안녕하세요!
                     </span>
@@ -412,7 +420,7 @@ export default function NavBar() {
 
                   <button
                     onClick={handleLogout}
-                    className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center"
+                    className="btn px-8 py-4 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center min-w-[120px]"
                   >
                     로그아웃
                   </button>

@@ -1,17 +1,131 @@
 /* 폰트 설정 */
 @font-face {
   font-family: 'GmarketSansMedium';
-  src: url('../fonts/GmarketSansTTFMedium.ttf') format('truetype');
+  src: url('../fonts/GmarketSansTTFMedium.ttf') format('truetype'),
+       url('../fonts/GmarketSansMedium.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
-@font-face {
-  font-family: 'GmarketSansMedium';
-  src: url('../fonts/GmarketSansMedium.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+
+/* 기본 폰트 폴백 설정 */
+:root {
+  --font-fallback: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 전역 스타일에 폰트 적용 */
+* {
+  font-family: 'GmarketSansMedium', var(--font-fallback);
+}
+
+/* 투표 버튼 스타일 */
+.vote-button {
+  position: relative;
+  overflow: hidden;
+  font-family: 'GmarketSansMedium', var(--font-fallback) !important;
+}
+
+/* 리플 이펙트 애니메이션 */
+@keyframes ripple {
+  from {
+    transform: scale(0);
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+
+.vote-button .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0);
+  pointer-events: none;
+}
+
+.vote-button .ripple.active {
+  animation: ripple 0.6s linear;
+}
+
+/* 컨페티 애니메이션 - 여러 버전 */
+@keyframes fall-1 {
+  from {
+    top: -10px;
+    transform: rotate(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fall-2 {
+  from {
+    top: -10px;
+    transform: rotate(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes fall-3 {
+  from {
+    top: -10px;
+    transform: rotate(0) translateX(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(720deg) translateX(100px);
+  }
+}
+
+@keyframes fall-4 {
+  from {
+    top: -10px;
+    transform: rotate(0) translateX(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(-720deg) translateX(-100px);
+  }
+}
+
+.confetti {
+  position: fixed;
+  pointer-events: none;
+  width: 10px;
+  height: 10px;
+  font-size: 25px;
+  z-index: 9999;
+}
+
+.confetti.type-1 {
+  animation: fall-1 2s cubic-bezier(.05,.46,1,1);
+}
+
+.confetti.type-2 {
+  animation: fall-2 2.5s cubic-bezier(.05,.46,.8,1);
+}
+
+.confetti.type-3 {
+  animation: fall-3 1.8s cubic-bezier(.05,.46,.9,1);
+}
+
+.confetti.type-4 {
+  animation: fall-4 2.2s cubic-bezier(.05,.46,.7,1);
+}
+
+/* 버튼 액티브 상태 */
+.vote-button-red:active {
+  background-color: rgb(254, 202, 202) !important;
+}
+
+.vote-button-blue:active {
+  background-color: rgb(191, 219, 254) !important;
 }
 
 html, body {
@@ -20,7 +134,6 @@ html, body {
   padding: 0;
   background-color: rgb(242, 247, 255);
   width: 100%;
-  font-family: 'GmarketSansMedium', sans-serif;
   font-size: 17px;
 }
 
