@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { useBattleStore } from "../../../store/Battle/BattleStore";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
+import useUserStore from "../../../store/User/UserStore";
+import { sendSTT } from "../../../service/BattleRoom/api";
 
-const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
+const LiveSTT = ({ shouldStop }) => {
   const [fullTranscript, setFullTranscript] = useState("");
   const [listening, setListening] = useState(false);
   const { isStarted } = useWebSocketContext();
-  const battleInfo = useBattleStore((s) => s.battleInfo);
+  const userId = useUserStore((s) => s.userId);
+  const isDataSentRef = useRef(false); // 데이터 전송 여부를 추적하는 플래그
   const recognitionRef = useRef();
   const failToast = useRef();
 
@@ -26,14 +27,15 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
     recognition.continuous = true;
     recognition.interimResults = false;
 
-    recognition.onstart = () => {setListening(true); console.log("대화 시작 ")}
+    recognition.onstart = () => {
+      setListening(true);
+      console.log("대화 시작 ");
+    };
+
     recognition.onend = () => {
-      console.log("대화 끝끝")
       setListening(false);
-      sendDataToServer(battleInfo.participantName, fullTranscript); //사용자 닉네임과 내용 전달
-      if (onTranscriptionComplete) {
-        onTranscriptionComplete(fullTranscript); // 배틀 완료 시 백으로 전달
-      }
+      // 타임아웃 시간을 2초로 줄이고 참조 저장
+      sendDataToServer(userId, fullTranscript);
     };
 
     recognition.onresult = (event) => {
@@ -44,38 +46,70 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
       setFullTranscript((prev) => prev + newText);
     };
 
-    recognition.onerror = (event) =>
-      console.error("Speech Recognition Error:", event.error);
+    recognition.onerror = (event) => {
+      console.error("음성 인식 오류:", event.error);
+      // 치명적이지 않은 오류에서 인식 재시작 시도
+      if (event.error !== "aborted" && event.error !== "not-allowed") {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error("인식 재시작 실패:", e);
+        }
+      }
+    };
 
     if (isStarted) {
-      recognition.start();
-    } // 배틀 시작과 동시에 start
+      try {
+        recognition.start();
+      } catch (e) {
+        console.error("인식 시작 실패:", e);
+        failToast.current?.showAlert("음성 인식 시작에 실패했습니다.");
+      }
+    }
 
     return () => {
+      // recognition 정리
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (e) {}
+        } catch (e) {
+          // 정리 중 오류 무시
+        }
+      }
+
+      // 언마운트 전 데이터 전송 (텍스트가 있는 경우)
+      if (fullTranscript && fullTranscript.trim() !== "") {
+        sendDataToServer(userId, fullTranscript);
       }
     };
-  }, [isStarted]);
+  }, [isStarted, userId]);
 
   // shoulStop->부모 이벤트 발생 시 사용
+  // shouldStop->부모 이벤트 발생 시 사용
   useEffect(() => {
     if (shouldStop && recognitionRef.current && listening) {
       try {
         recognitionRef.current.stop();
+        // 부모에 의해 중지될 때 즉시 데이터 전송
+        if (fullTranscript && fullTranscript.trim() !== "") {
+          sendDataToServer(userId, fullTranscript);
+        }
       } catch (e) {
         console.error("STT 중단이 불가:", e);
       }
     }
   }, [shouldStop, listening]);
 
-  const sendDataToServer = async (userName, text) => {
-    if (!text.trim()) return;
+  const sendDataToServer = async (userId, text) => {
+    // 이미 전송된 데이터면 무시
+    if (isDataSentRef.current) {
+      console.log("🔄 이미 데이터가 전송되었습니다. 중복 전송 방지");
+      return;
+    }
+
     try {
-    //   await axios.post("https://your-backend.com/api/stt", { text });
-      console.log("✅ STT 데이터 백업 성공:", userName, text);
+      const response = await sendSTT(userId, text);
+      console.log("✅ STT 데이터 백업 성공:", response);
     } catch (error) {
       console.error("❌ STT 데이터 백업 실패:", error);
       console.log("보내려고 한 데이터:", text);
@@ -84,7 +118,7 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
 
   return (
     <div>
-      <p>🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
+      <p className="z-index">🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
       <p>📝 변환된 텍스트: {fullTranscript}</p>
     </div>
   );

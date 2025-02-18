@@ -165,6 +165,9 @@ function BattleRoomPage() {
       switch (error.code) {
         case "permission_denied":
           failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
+          cleanup();
+          disconnectWS();
+          setTimeout(() => navigate("/main/battle-list"), 1500);
           break;
         case "disconnected":
           failTost.current?.showAlert("연결이 끊어졌습니다.");
@@ -464,14 +467,6 @@ function BattleRoomPage() {
     startBattle();
   };
 
-  const handleTranscriptionComplete = async (transcript) => {
-    try {
-      console.log("대화 내용", transcript);
-    } catch (error) {
-      console.log("기록 실패", error);
-    }
-  };
-
   useEffect(() => {
     if (isStarted) {
       // isStarted가 true일 때만 실행
@@ -558,7 +553,6 @@ function BattleRoomPage() {
         )}
       </div>
       <LiveSTT
-        onTranscriptionComplete={handleTranscriptionComplete}
         shouldStop={isBattleEnded}
       />
       <BattlerSettingModal

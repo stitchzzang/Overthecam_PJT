@@ -1,19 +1,12 @@
 import { forwardRef, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
+import useUserStore from "../../../../store/User/UserStore";
 
 const BattleEndModal = forwardRef(function BattleEndModal(
   _,
   ref
 ) {
   const { finishBattle } = useWebSocketContext();
-  const noticeToast = useRef();
-
-  const handleClick = (e) => {
-    if (e.target === ref.current) {
-      ref.current.close();
-    }
-  };
 
   const onEndBattle = async () => {
     await finishBattle();
@@ -24,7 +17,6 @@ const BattleEndModal = forwardRef(function BattleEndModal(
     <>
       <dialog
         ref={ref}
-        onClick={handleClick}
         className="rounded-xl shadow-2xl p-6 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm"
       >
         <div className="flex flex-col items-center gap-4">

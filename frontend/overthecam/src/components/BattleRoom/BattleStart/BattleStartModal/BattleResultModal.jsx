@@ -7,6 +7,8 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
+import { getReport } from "../../../../service/BattleRoom/api";
+import useUserStore from "../../../../store/User/UserStore";
 
 const BattleResultModal = forwardRef(function BattleResultModal(
   { onFinish },
@@ -19,6 +21,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     { percentage: 0 },
   ]);
   const dialogRef = useRef(null); // 내부 ref 추가
+  const userId = useUserStore((s) => s.userId);
 
   useEffect(() => {
     if (gameResult?.options?.length > 0) {
@@ -42,6 +45,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     dialogRef.current.close();
     if (onFinish) {
       await onFinish(); // cleanup + 배틀 종료 요청
+      await getReport(userId);
     }
     setTimeout(navigate("/main/battle-list"), 1000);
   };
