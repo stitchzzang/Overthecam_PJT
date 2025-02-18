@@ -1,7 +1,7 @@
 // AudioComponent.jsx
 import { useEffect, useRef } from "react";
 
-function AudioComponent({ track }) {
+function AudioComponent({ track, local }) {
   const audioRef = useRef(null);
 
   useEffect(() => {

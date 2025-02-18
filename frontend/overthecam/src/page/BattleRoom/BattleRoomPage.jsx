@@ -42,6 +42,7 @@ function BattleRoomPage() {
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
   const [localTrack, setLocalTrack] = useState(null);
+  const [localAudioTrack, setLocalAudioTrack] = useState(null);
   const [remoteTracks, setRemoteTracks] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [mediaStream, setMediaStream] = useState(null);
@@ -368,6 +369,17 @@ function BattleRoomPage() {
       } else {
         console.warn("No video track available");
       }
+
+      const audioTrack = room.localParticipant.audioTrackPublications
+        .values()
+        .next().value?.audioTrack;
+
+      if (audioTrack) {
+        console.log("Audio track obtained:", audioTrack);
+        setLocalAudioTrack(audioTrack);
+      } else {
+        console.warn("No audio track available");
+      }
     } catch (error) {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
@@ -514,6 +526,7 @@ function BattleRoomPage() {
               <BattleWaiting
                 room={room}
                 localTrack={localTrack}
+                localAudioTrack={localAudioTrack}
                 remoteTracks={remoteTracks}
                 participantName={battleInfo.participantName}
                 isMaster={isMaster}
