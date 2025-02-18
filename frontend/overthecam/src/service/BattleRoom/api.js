@@ -118,7 +118,8 @@ export const sendSTT = async(userId, text) => {
         text,
       }
     );
-    console.log("대화 내용 보내기 성공", response.success)
+    console.log("대화 내용 보내기 성공 여부:", response.success)
+    console.log("대화 내용", response)
   } catch (error) {
     const errorMessage = error.error.message;
     const errorCode = error.error.code;
