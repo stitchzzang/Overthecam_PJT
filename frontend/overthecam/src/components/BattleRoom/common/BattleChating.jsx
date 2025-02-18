@@ -35,11 +35,9 @@ const BattleChating = ({outHeight, innerHeight}) => {
   }, [status]);
 
   return (
-    <div
-      className={`w-full max-w-md ${outHeight} bg-cusGray rounded-lg clay flex flex-col p-1`}
-    >
+    <div className="w-full h-full flex flex-col overflow-hidden">
       {/* 채팅 헤더 */}
-      <div className="flex justify-between items-center px-4 py-2">
+      <div className="flex justify-between items-center px-4 py-2 bg-cusGray rounded-t-lg">
         <h2 className="text-lg font-semibold text-cusBlack-light">
           실시간 채팅
         </h2>
@@ -52,18 +50,16 @@ const BattleChating = ({outHeight, innerHeight}) => {
         </span>
       </div>
 
-      {/* 채팅 메시지 영역 */}
-      <div
-        className={`mx-2 bg-white rounded-md  ${innerHeight} overflow-hidden flex flex-col mb-2`}
-      >
+      {/* 채팅 메시지 영역 - 최대 높이 및 오버플로우 스크롤 적용 */}
+      <div className="flex-1 bg-white overflow-hidden">
         <div
-          className="flex-1 p-4 overflow-y-auto h-96 
-          [&::-webkit-scrollbar]:w-2
-          [&::-webkit-scrollbar-track]:bg-white
-          [&::-webkit-scrollbar-track]:rounded-md
-          [&::-webkit-scrollbar-thumb]:bg-gray-500 
-          [&::-webkit-scrollbar-thumb]:rounded-md
-          [&::-webkit-scrollbar-thumb:hover]:bg-gray-400"
+          className="h-full overflow-y-scroll p-4
+        [&::-webkit-scrollbar]:w-2
+        [&::-webkit-scrollbar-track]:bg-white
+        [&::-webkit-scrollbar-track]:rounded-md
+        [&::-webkit-scrollbar-thumb]:bg-gray-500 
+        [&::-webkit-scrollbar-thumb]:rounded-md
+        [&::-webkit-scrollbar-thumb:hover]:bg-gray-400"
         >
           {messageList.length > 0 ? (
             <ul className="space-y-2 w-full">
@@ -71,12 +67,10 @@ const BattleChating = ({outHeight, innerHeight}) => {
                 <li key={index} className="flex flex-col items-start">
                   {msg.nickname === "SYSTEM" ? (
                     <>
-                      {" "}
                       <span className="text-sm text-red-700">
                         {msg.nickname}
                       </span>
                       <span className="text-sm text-red-900 max-w-36 font-semibold">
-                        {" "}
                         {msg.content}
                       </span>
                     </>
@@ -86,7 +80,6 @@ const BattleChating = ({outHeight, innerHeight}) => {
                         {msg.nickname}
                       </span>
                       <span className="text-sm text-gray-900 max-w-36 font-semibold">
-                        {" "}
                         {msg.content}
                       </span>
                     </>
@@ -104,7 +97,7 @@ const BattleChating = ({outHeight, innerHeight}) => {
       </div>
 
       {/* 메시지 입력 영역 */}
-      <div className="p-2 mb-2">
+      <div className="p-2 mb-2 bg-cusGray rounded-b-lg p-2">
         <form onSubmit={handleSubmit} className="flex">
           <input
             type="text"

@@ -153,9 +153,9 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
             </div>
 
             {/* 채팅 */}
-            <div className="flex flex-col items-center justify-start">
-              <div className="w-full h-full">
-                <BattleChating innerHeight={"h-200px"} outHeight={"h-200px"} />
+            <div className="flex flex-col items-center justify-start h-full overflow-hidden">
+              <div className="w-full h-full overflow-hidden">
+                <BattleChating />
               </div>
             </div>
 
@@ -184,10 +184,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
         <div className="watcher-section mx-5">
           <div className="grid grid-cols-4 gap-4">
             {watcherSlots.map((slot, index) => (
-              <div
-                key={index}
-                className="relative aspect-video bg-cusGray rounded-lg"
-              >
+              <div key={index} className="relative h-24 bg-cusGray rounded-lg">
                 {slot ? (
                   <div className="absolute inset-0">
                     <VideoComponent
@@ -215,11 +212,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
 
         {/* 투표 섹션 */}
         <div className="vote-section mx-5 my-3">
-          <div className="relative w-full aspect-[16/2.5] bg-cusGray rounded-lg clay">
-            <div className="absolute inset-0 flex items-center justify-center p-3">
-              <BattleVote isWaiting={false} />
-            </div>
-          </div>
+          <BattleVote isWaiting={false} />
         </div>
       </div>
     </div>
