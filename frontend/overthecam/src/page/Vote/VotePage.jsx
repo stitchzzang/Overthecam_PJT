@@ -28,22 +28,6 @@ const VotePage = () => {
   const userInfo = localStorage.getItem('userInfo');
   const userId = userInfo ? JSON.parse(userInfo).userId : null;
 
-  const createConfetti = (isFirstOption) => {
-    const emojis = isFirstOption 
-      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
-      : ['💙', '🐠', '🥶', '💎','🐬','❄️']; 
-  
-    for (let i = 0; i < 15; i++) {
-      const confetti = document.createElement('div');
-      const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
-      confetti.className = `confetti ${animationType}`;
-      confetti.style.left = `${Math.random() * window.innerWidth}px`;
-      confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
-      document.body.appendChild(confetti);
-      setTimeout(() => confetti.remove(), 2500);
-    }
-  };
-
   const fetchVotes = async () => {
     try {
       setLoading(true);
@@ -112,12 +96,43 @@ const VotePage = () => {
   };
 
   const handleVote = async (vote, optionId) => {
+    let ripple;
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
         return;
+      }
+
+      // 리플 이펙트 생성
+      const button = document.querySelector(`[data-vote-button="${optionId}"]`);
+      if (!button) return;  // 버튼이 없으면 함수 종료
+
+      ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      
+      button.appendChild(ripple);
+      ripple.classList.add('active');
+
+      // 컨페티 생성
+      const isFirstOption = optionId === vote.options[0].optionId;
+      const emojis = isFirstOption 
+        ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+        : ['💙', '🐠', '🥶', '💎','🐬','❄️'];
+
+      for (let i = 0; i < 15; i++) {
+        const confetti = document.createElement('div');
+        const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+        confetti.className = `confetti ${animationType}`;
+        confetti.style.left = `${Math.random() * window.innerWidth}px`;
+        confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 2500);
       }
 
       // 즉시 UI 업데이트
@@ -158,6 +173,10 @@ const VotePage = () => {
       }
       alert('투표 처리 중 오류가 발생했습니다.');
       await fetchVotes();
+    } finally {
+      if (ripple) {
+        setTimeout(() => ripple.remove(), 600);
+      }
     }
   };
 
@@ -212,6 +231,15 @@ const VotePage = () => {
         </div>
       </div>
     );
+  };
+
+  const shouldShowVoteButtons = (vote) => {
+    return vote.active && !vote.hasVoted;
+  };
+
+  const shouldShowVoteResult = (vote) => {
+    // 투표가 종료되었거나(ended), 사용자가 투표했거나(hasVoted)인 경우 결과를 보여줌
+    return voteStatus === 'ended' || !vote.active || vote.hasVoted;
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -318,17 +346,14 @@ const VotePage = () => {
                       <div className="flex gap-4 mb-4">
                         {vote.options.map((option) => (
                           <button
-                            id={`vote-button-${option.optionId}`}
+                            data-vote-button={`${option.optionId}`}
                             key={option.optionId}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVote(vote.voteId, option.optionId);
-                            }}
-                            className={`vote-button clay flex-1 p-4 ${
+                            onClick={() => handleVote(vote, option.optionId)}
+                            className={`vote-button ${
                               option.optionId === vote.options[0].optionId
                                 ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
                                 : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                            } rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
+                            } clay flex-1 p-4 rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
                           >
                             {option.optionTitle}
                           </button>
