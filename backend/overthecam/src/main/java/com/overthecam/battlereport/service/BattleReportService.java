@@ -27,7 +27,6 @@ public class BattleReportService {
     @Transactional
     public BattleReport generateAndSaveBattleReport(Integer userId) {
         try {
-            // 1. Redis에서 해당 유저의 분석 데이터 조회
             Map<String, Object> analysisData = redisService.getRecentAnalysisResult(userId);
 
             if (analysisData == null) {
@@ -35,29 +34,29 @@ public class BattleReportService {
                 throw new EntityNotFoundException("사용자 " + userId + "에 대한 분석 데이터가 없습니다.");
             }
 
-            // 2. OpenAI로 리포트 생성
-            String formattedData = formatAnalysisData(analysisData, userId);
-            Map<String, Object> reportData = openAiService.generateReport(formattedData, userId);
+            // analysisData를 JSON 문자열로 변환
+            String analysisResultJson = objectMapper.writeValueAsString(analysisData);
 
-            // 3. 리포트 데이터 파싱
-            Map<String, Object> report = (Map<String, Object>) reportData.get("report");
+            // OpenAI로 리포트 생성
+            Map<String, Object> reportData = openAiService.generateReport(analysisResultJson, userId);
+            Map<String, Object> reportContent = (Map<String, Object>) reportData.get("report");
 
-            // 4. BattleReport 엔티티 생성 및 저장
+            // BattleReport 엔티티 생성 및 저장
             BattleReport battleReport = BattleReport.builder()
                     .userId(userId)
-                    .title((String) report.get("title"))
-                    .summary((String) report.get("summary"))
-                    .emotionAnalysis(objectMapper.writeValueAsString(report.get("emotion_analysis")))
-                    .keyArguments(objectMapper.writeValueAsString(report.get("key_arguments")))
-                    .debateAnalysis(objectMapper.writeValueAsString(report.get("debate_analysis")))
-                    .aiEvaluation(objectMapper.writeValueAsString(report.get("ai_evaluation")))
+                    .title((String) reportContent.get("title"))
+                    .summary((String) reportContent.get("summary"))
+                    .emotionAnalysis(objectMapper.writeValueAsString(reportContent.get("emotion_analysis")))
+                    .keyArguments(objectMapper.writeValueAsString(reportContent.get("key_arguments")))
+                    .debateAnalysis(objectMapper.writeValueAsString(reportContent.get("debate_analysis")))
+                    .aiEvaluation(objectMapper.writeValueAsString(reportContent.get("ai_evaluation")))
                     .build();
 
             return battleReportRepository.save(battleReport);
 
         } catch (Exception e) {
-            log.error("배틀 리포트 생성 및 저장 중 오류 발생", e);
-            throw new RuntimeException("배틀 리포트 생성 실패", e);
+            log.error("리포트 생성 중 오류 발생", e);
+            throw new RuntimeException("리포트 생성 실패", e);
         }
     }
 
@@ -101,26 +100,5 @@ public class BattleReportService {
     public BattleReport getBattleReport(Long reportId) {
         return battleReportRepository.findById(reportId)
                 .orElseThrow(() -> new EntityNotFoundException("배틀 리포트를 찾을 수 없습니다: " + reportId));
-    }
-
-    public void saveReport(Integer userId, Map<String, Object> reportContent) {
-        try {
-            BattleReport battleReport = BattleReport.builder()
-                    .userId(userId)
-                    .title((String) reportContent.get("title"))
-                    .summary((String) reportContent.get("summary"))
-                    .emotionAnalysis(objectMapper.writeValueAsString(reportContent.get("emotion_analysis")))
-                    .keyArguments(objectMapper.writeValueAsString(reportContent.get("key_arguments")))
-                    .debateAnalysis(objectMapper.writeValueAsString(reportContent.get("debate_analysis")))
-                    .aiEvaluation(objectMapper.writeValueAsString(reportContent.get("ai_evaluation")))
-                    .build();
-
-            battleReportRepository.save(battleReport);
-            log.info("배틀 리포트 저장 완료. userId: {}", userId);
-
-        } catch (Exception e) {
-            log.error("배틀 리포트 저장 중 오류 발생. userId: {}", userId, e);
-            throw new RuntimeException("배틀 리포트 저장 실패", e);
-        }
     }
 }

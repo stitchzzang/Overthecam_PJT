@@ -86,7 +86,7 @@ public class BattleReportController {
 
             // 서비스를 통한 저장
             Map<String, Object> reportContent = (Map<String, Object>) report.get("report");
-            battleReportService.saveReport(userId, reportContent);
+            battleReportService.generateAndSaveBattleReport(userId);
 
             return CommonResponseDto.ok(report);
         } catch (Exception e) {
