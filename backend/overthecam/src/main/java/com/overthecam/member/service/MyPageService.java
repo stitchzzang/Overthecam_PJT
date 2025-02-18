@@ -47,7 +47,7 @@ public class MyPageService {
 
     private void updateUserPoints(Long userId, int newPoints) {
         userRepository.findById(userId).ifPresent(user -> {
-            user.setPoint(user.getPoint() + newPoints);
+            user.setPoint(newPoints);
             userRepository.save(user);
         });
     }
