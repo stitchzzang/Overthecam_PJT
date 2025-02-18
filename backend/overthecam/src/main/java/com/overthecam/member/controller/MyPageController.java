@@ -27,7 +27,7 @@ public class MyPageController {
     private final VoteHistoryService voteHistoryService;
 
 
-    @GetMapping("/revert")
+    @PostMapping("/revert")
     public CommonResponseDto<UserScoreInfo> revertScoreToPoint(Authentication authentication, @RequestParam("supportScore") int supportScore) {
         Long userId = securityUtils.getCurrentUserId(authentication);
         return CommonResponseDto.ok(myPageService.revertScoreToPoint(userId, supportScore));
