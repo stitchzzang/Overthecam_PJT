@@ -130,7 +130,7 @@ export const sendSTT = async (userId, text) => {
 
 export const getReport = async (userId) => {
   try {
-    const response = await authAxios.post(`/api/report/generate/${userId}`, {});
+    const response = await authAxios.post(`/report/generate/${userId}`, {});
     console.log("발화분석 요청  보내기 성공 여부:", response.success);
     console.log("발화분석 내용", response);
   } catch (error) {
