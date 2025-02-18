@@ -107,14 +107,6 @@ function BattleRoomPage() {
       }
 
       try {
-        // WebSocket 연결이 이미 되어있는지 확인
-        if (
-          wsStatus === WS_STATUS.CONNECTING ||
-          wsStatus === WS_STATUS.CONNECTED
-        ) {
-          console.log("WebSocket is already connected or connecting");
-          return;
-        }
 
         if (isSubscribed) {
           // 컴포넌트가 여전히 마운트된 상태인지 확인
