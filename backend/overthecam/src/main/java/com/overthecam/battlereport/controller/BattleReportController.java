@@ -84,6 +84,7 @@ public class BattleReportController {
             String analysisResultJson = objectMapper.writeValueAsString(recentAnalysis);
             Map<String, Object> report = openAiService.generateReport(analysisResultJson, userId);
 
+
             // 서비스를 통한 저장
             Map<String, Object> reportContent = (Map<String, Object>) report.get("report");
             battleReportService.generateAndSaveBattleReport(userId);
