@@ -175,7 +175,7 @@ public class BattleService {
         long remainingParticipants = battleParticipantRepository.countByBattleId(battleId);
         log.info("Battle {} 남은 참가자 수: {}", battleId, remainingParticipants);
 
-        if (remainingParticipants <= 0) {
+        if (remainingParticipants <= 0 && battle.getStatus() != Status.END) {
             voteRepository.findByBattleId(battleId)
                 .ifPresent(Vote::setBattleToNull);
 
