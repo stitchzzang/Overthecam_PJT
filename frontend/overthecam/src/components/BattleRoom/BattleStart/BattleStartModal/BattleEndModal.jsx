@@ -1,6 +1,6 @@
 import { forwardRef, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
+import { getReport } from "../../../../service/BattleRoom/api";
 
 const BattleEndModal = forwardRef(function BattleEndModal(
   _,
@@ -17,6 +17,7 @@ const BattleEndModal = forwardRef(function BattleEndModal(
 
   const onEndBattle = async () => {
     await finishBattle();
+    await getReport();
     ref.current.close();
   };
 
