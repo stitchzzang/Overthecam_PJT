@@ -188,7 +188,7 @@ export default function NavBar() {
         </defs>
       </svg>
 
-      <header className="h-[80px] mb-3 mt-6">
+      <header className="h-[80px] mb-2 mt-6">
         <div className="max-w-7xl mx-auto h-full px-1 relative flex items-center justify-between">
           {/* Left Section - Logo & Menu Button */}
           <div className="flex items-center gap-4">
@@ -311,7 +311,7 @@ export default function NavBar() {
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className={`hidden xl:block max-w-[550px] flex-1 ${isLoggedIn ? '-ml-2' : '-ml-44'}`}>
+          <div className={`hidden xl:block max-w-[550px] flex-1 ${isLoggedIn ? '-ml-2' : '-ml-56'}`}>
             <SearchBar />
           </div>
 
