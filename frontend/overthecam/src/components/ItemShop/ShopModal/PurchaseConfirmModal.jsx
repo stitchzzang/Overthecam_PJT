@@ -1,57 +1,80 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useRef, useImperativeHandle } from "react";
 import { postPurchase } from "../../../service/ItemShop/api";
 import SuccessAlertModal from "../../@common/SuccessAlertModal";
 import FailAlertModal from "../../@common/FailAlertModal";
+import { useNavigate } from 'react-router-dom';
 
 const PurchaseConfirmModal = forwardRef(function PurchaseConfirmModal(
-  { itemId, itemName, itemDetail, itemImg, itemType },
+  { itemId, itemName, itemDetail, itemImg, itemType, itemPrice, onPurchaseSuccess },
   ref
 ) {
+  const navigate = useNavigate();
   const successAlertRef = useRef();
   const failAlertRef = useRef();
+  const dialogRef = useRef();
 
-  const onPurchase = async (itemId) => {
+  useImperativeHandle(ref, () => ({
+    showModal: () => {
+      if (dialogRef.current) {
+        dialogRef.current.showModal();
+      }
+    },
+    close: () => {
+      if (dialogRef.current) {
+        dialogRef.current.close();
+      }
+    },
+  }));
+
+  const onPurchase = async () => {
+    if (!itemId) {
+      console.error("아이템 ID가 없습니다");
+      return;
+    }
+
     try {
       const response = await postPurchase(itemId);
-
-      if (response.data) {
-        if (ref.current) {
-          ref.current.close();
+      
+      if (response.success) {
+        // 모달 닫기
+        if (dialogRef.current) {
+          dialogRef.current.close();
         }
-        successAlertRef.current?.showAlert("구매에 성공했습니다.");
+        
+        // 성공 알림 표시
+        successAlertRef.current?.showAlert("구매에 성공했습니다!");
+        
+        // 부모 컴포넌트에 성공 알림 (가격 정보도 함께 전달)
+        if (onPurchaseSuccess) {
+          onPurchaseSuccess(itemId, itemPrice);
+        }
+      } else {
+        // API 응답이 success: false인 경우
+        failAlertRef.current?.showAlert(response.error?.message || "구매에 실패했습니다.");
       }
     } catch (error) {
-      // 현재 모달 닫기
-      if (ref.current) {
-        ref.current.close();
-      }
-
-      // 에러 타입에 따른 메시지 설정
-      let errorMessage = "구매에 실패했습니다.";
-      if (error.code === "ERR_NETWORK") {
-        errorMessage =
-          "서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.";
-      }
-
-      // 실패 알림 표시 시도
-      if (failAlertRef.current && failAlertRef.current.showAlert) {
-        failAlertRef.current.showAlert(errorMessage);
-      } else {
-        console.error("failAlertRef.current나 showAlert 메서드가 없습니다.");
-      }
+      // 네트워크 에러 등의 예외 처리
+      console.error("구매 중 에러 발생:", error);
+      failAlertRef.current?.showAlert(
+        error.code === "ALREADY_PURCHASED_ITEM" 
+          ? "이미 구매한 상품입니다."
+          : error.message || "구매에 실패했습니다."
+      );
     }
   };
 
   const handleClick = (e) => {
-    if (e.target === ref.current) {
-      ref.current.close();
+    if (e.target === dialogRef.current) {
+      dialogRef.current.close();
     }
   };
 
   return (
     <>
+      <SuccessAlertModal ref={successAlertRef} />
+      <FailAlertModal ref={failAlertRef} />
       <dialog
-        ref={ref}
+        ref={dialogRef}
         onClick={handleClick}
         className="rounded-xl shadow-2xl p-6 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm"
       >
@@ -100,14 +123,14 @@ const PurchaseConfirmModal = forwardRef(function PurchaseConfirmModal(
           <div className="flex gap-3 w-full mt-2">
             <button
               type="button"
-              onClick={() => ref.current.close()}
+              onClick={() => dialogRef.current.close()}
               className="btn flex-1 py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300 font-semibold"
             >
               취소
             </button>
             <button
               type="button"
-              onClick={() => onPurchase(itemId)}
+              onClick={onPurchase}
               className="btn flex-1 py-2 px-4 bg-cusRed hover:bg-cusRed-light text-white rounded-lg transition-all duration-300 font-semibold"
             >
               구매 확정
@@ -115,8 +138,6 @@ const PurchaseConfirmModal = forwardRef(function PurchaseConfirmModal(
           </div>
         </div>
       </dialog>
-      <SuccessAlertModal ref={successAlertRef} />
-      <FailAlertModal ref={failAlertRef} />
     </>
   );
 });

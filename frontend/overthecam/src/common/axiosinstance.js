@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const authAxios = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
@@ -62,34 +63,19 @@ authAxios.interceptors.response.use(
           const { accessToken, refreshToken: newRefreshToken } = response.data;
           localStorage.setItem('token', accessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return authAxios(originalRequest);
-        } else {
-          throw new Error('토큰 갱신 실패');
-        }
-      } catch (refreshError) {
-        if (!isToastShown) {  // 전역 플래그 체크
-          isToastShown = true;  // 토스트 표시 상태로 변경
-          toast.error('로그인이 만료되었습니다. 다시 로그인해 주세요.', {
-            position: "top-center",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            onClose: () => {
-              isToastShown = false;  // 토스트가 닫힐 때 플래그 초기화
+          
+          // 이미지의 두 번째 방식으로 수정
+          return authAxios({
+            ...originalRequest,
+            headers: {
+              ...originalRequest.headers,
+              Authorization: `Bearer ${accessToken}`
             }
           });
-
-          setTimeout(() => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('userInfo');
-            window.location.href = '/main/login';
-          }, 3000);
         }
-        return Promise.reject(refreshError);
+      } catch (error) {
+        localStorage.clear();
+        window.location.href = '/main/login';
       }
     }
     return Promise.reject(error.response?.data || error);
@@ -129,5 +115,23 @@ publicAxios.interceptors.response.use(
 // // 환경변수 값도 직접 확인
 // console.log('VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);  // 여기 추가
 // console.log("Current origin:", window.location.origin);
+
+const handleLogout = async () => {
+  try {
+    // 서버에 로그아웃 요청 보내기
+    await authAxios.post('/auth/logout');
+    
+    // 로컬 스토리지 클리어
+    localStorage.clear();
+    
+    // 로그인 페이지로 리다이렉트
+    navigate('/main/login');
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+    // 에러가 발생해도 로컬 스토리지는 클리어하고 로그인 페이지로 이동
+    localStorage.clear();
+    navigate('/main/login');
+  }
+};
 
 export { authAxios, publicAxios };
