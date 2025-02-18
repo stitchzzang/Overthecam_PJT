@@ -25,11 +25,11 @@ const StatusBadge = ({ status, onClick }) => {
       onClick={onClick}
       className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black cursor-pointer`}
     >
-      입장
+      입장하기
     </span>
   ) : (
     <div className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
-      진행
+      진행 중
     </div>
   );
 };

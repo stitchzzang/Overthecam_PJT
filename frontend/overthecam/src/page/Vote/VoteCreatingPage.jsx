@@ -32,8 +32,8 @@ export default function VoteCreatingPage() {
   };
 
   return (
-    <div className="flex justify-center mt-16"> {/* 배경색 관련 클래스 제거 */}
-      <div className="flex bg-white rounded-lg h-[600px] w-max-70vh shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]">
+    <div className="flex justify-center mt-8">
+      <div className="flex bg-white rounded-lg h-[600px] w-[1000px] shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]">
         <div className="w-1/2 overflow-hidden">
           <CursorMotionEffect />
         </div>
