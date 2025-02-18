@@ -4,6 +4,9 @@ import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 import { publicAxios } from '../../common/axiosinstance';
 import { authAxios } from '../../common/axiosinstance';
+import { joinRoom } from "../../service/BattleRoom/api";
+import { useBattleStore } from "../../store/Battle/BattleStore";
+import useUserStore from "../../store/User/UserStore";
 
 const Card = ({ children }) => (
   <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
@@ -14,19 +17,6 @@ const SectionTitle = ({ title }) => (
     {title}
   </h2>
 );
-
-const StatusBadge = ({ status }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold";
-  return status === 0 ? (
-    <span className={`${baseClasses} bg-cusRed-light text-cusBlack`}>
-      입장하기
-    </span>
-  ) : (
-    <div className={`${baseClasses} bg-cusLightBlue text-white pointer-events-none`}>
-      진행 중
-    </div>
-  );
-};
 
 const ParticipantsBadge = ({ current, max }) => {
   const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
@@ -47,6 +37,8 @@ const SearchResultPage = () => {
     users: []
   });
   const [votingStates, setVotingStates] = useState({});
+  const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
+  const userNickname = useUserStore((state) => state.userNickname);
 
   const handleProfileClick = (userId) => {
     const token = localStorage.getItem('token');
@@ -240,6 +232,55 @@ const SearchResultPage = () => {
     return '50';
   };
 
+  const gotoBattleRoom = async (battleId) => {
+    console.log(battleId);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("로그인이 필요한 서비스입니다.");
+        navigate("/main/login");
+        return;
+      }
+
+      const response = await joinRoom(battleId, userNickname);
+      await new Promise((resolve) => {
+        const newBattleInfo = {
+          battleId: response.data.battleId,
+          participantName: userNickname,
+          roomName: response.data.roomName,
+          userToken: response.data.token,
+          isMaster: false,
+        };
+
+        setBattleInfo(newBattleInfo);
+        requestAnimationFrame(resolve);
+      });
+
+      // 배틀룸으로 이동
+      navigate(`/main/battle-room/${battleId}`);
+    } catch (error) {
+      console.error("Battle room navigation error:", error);
+      alert("배틀룸 입장에 실패했습니다.");
+    }
+  };
+
+  // StatusBadge 컴포넌트 수정
+  const StatusBadge = ({ status, battleId }) => {
+    const baseClasses = "btn px-3 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
+    return status === 0 ? (
+      <button
+        className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold cursor-pointer`}
+        onClick={() => gotoBattleRoom(battleId)}
+      >
+        입장
+      </button>
+    ) : (
+      <button className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
+        진행
+      </button>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="relative">
@@ -269,31 +310,29 @@ const SearchResultPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 bg-white h-32 hover:scale-105 transition-transform">
+                      <div className="clay p-4 bg-white h-[140px] hover:shadow-xl transition-shadow">
                         <div className="flex h-full gap-4">
-                          <div className="w-24 h-24 flex-shrink-0">
+                          <div className="w-[100px] h-[100px] flex-shrink-0 flex items-center justify-center">
                             <img 
                               src={battle.thumbnailUrl} 
                               alt={battle.title}
-                              className="w-full h-full object-cover rounded-lg"
+                              className="w-[100px] h-[100px] object-cover rounded-lg"
                             />
                           </div>
-                          <div className="flex flex-col justify-center flex-grow h-full">
-                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-3">
-                              {battle.title}
-                            </h3>
-                            <div className="flex justify-center items-center gap-2">
-                              <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              {battle.status === 0 ? (
-                                <Link 
-                                  to={`main/battle-room/${battle.battleId}`}
-                                  className="hover:scale-105 transition-transform"
-                                >
-                                  <StatusBadge status={battle.status} />
-                                </Link>
-                              ) : (
-                                <StatusBadge status={battle.status} />
-                              )}
+                          <div className="flex-1 flex flex-col px-4">
+                            <div className="flex-1 flex items-center mb-4">
+                              <h3 className="text-lg font-semibold line-clamp-1 text-black">
+                                {battle.title}
+                              </h3>
+                            </div>
+                            <div className="flex justify-between items-center gap-4 mb-2">
+                              <span className="text-cusBlue font-bold">
+                                {battle.totalUsers}/6
+                              </span>
+                              <StatusBadge 
+                                status={battle.status} 
+                                battleId={battle.battleId}
+                              />
                             </div>
                           </div>
                         </div>

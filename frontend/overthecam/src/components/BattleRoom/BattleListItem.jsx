@@ -43,35 +43,35 @@ function BattleListItem({ title, totalUsers, thumbnail, status, battleId }) {
 
   return (
     <div className="battle-list-item flex bg-white rounded-lg h-[140px] m-2 clay p-3">
-      <div className="w-32 flex items-center justify-center">
+      <div className="w-[120px] flex items-center justify-center">
         <img
           src={thumbnail}
           alt="배틀방 썸네일"
-          className="w-28 h-28 object-cover rounded-lg"
+          className="w-[110px] h-[110px] object-cover rounded-lg"
         />
       </div>
-      <div className="flex-1 flex flex-col px-4">
-        {/* 제목 영역 */}
-        <div className="flex-1 flex items-center mb-6">
+      <div className="flex-1 flex flex-col px-6">
+        <div className="flex-1 flex items-center mb-1">
           <h3 className="text-lg font-semibold line-clamp-1 text-black">
             {title ? title : "방제 없음"}
           </h3>
         </div>
-        {/* 하단 버튼 영역 */}
-        <div className="flex justify-end items-center gap-3 -mt-3 mb-2">
-          <span className="btn px-4 py-1.5 text-sm font-bold bg-cusGray-light text-cusBlack pointer-events-none">
-            {totalUsers} / 6
+        <div className="flex justify-between items-center gap-4 mb-1">
+          <span className="text-cusBlue font-bold">
+            {totalUsers}/6
           </span>
           {status === "WAITING" ? (
             <button
-              className="btn bg-cusRed-light hover:bg-cusRed w-[120px] h-10"
+              className="btn px-4 sm:px-6 py-2 bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold rounded-lg whitespace-nowrap"
               onClick={() => gotoBattleRoom(battleId)}
             >
-              입장하기
+              <span className="sm:inline hidden">입장하기</span>
+              <span className="sm:hidden">입장</span>
             </button>
           ) : (
-            <button className="btn-disabled bg-cusLightBlue w-[120px] h-10 text-white font-bold">
-              진행 중
+            <button className="btn px-4 sm:px-6 py-2 bg-cusGray text-white font-bold rounded-lg pointer-events-none whitespace-nowrap">
+              <span className="sm:inline hidden">진행 중</span>
+              <span className="sm:hidden">진행</span>
             </button>
           )}
         </div>

@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { motion } from "framer-motion"; // 메인 Framer motion 추가
 import { publicAxios, authAxios } from '../../common/axiosinstance';
+import { joinRoom } from "../../service/BattleRoom/api";
+import { useBattleStore } from "../../store/Battle/BattleStore";
+import useUserStore from "../../store/User/UserStore";
 // import Joyride from 'react-joyride'; // 코치마크를 위한 import - 추후 구현 예정
 
 const Card = ({ children }) => (
@@ -16,17 +19,17 @@ const SectionTitle = ({ title }) => (
 );
 
 const StatusBadge = ({ status, onClick }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold w-[100px] text-center whitespace-nowrap";
+  const baseClasses = "btn px-3 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
   return status === 0 ? (
     <span 
       onClick={onClick}
-      className={`${baseClasses} bg-cusRed-light text-cusBlack hover:bg-cusRed-dark cursor-pointer`}
+      className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black cursor-pointer`}
     >
-      입장하기
+      입장
     </span>
   ) : (
-    <div className={`${baseClasses} bg-cusLightBlue text-white pointer-events-none`}>
-      진행 중
+    <div className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
+      진행
     </div>
   );
 };
@@ -250,6 +253,8 @@ const MainPage = () => {
   const navigate = useNavigate();
   const userInfo = localStorage.getItem('userInfo');
   const userId = userInfo ? JSON.parse(userInfo).userId : null;
+  const setBattleInfo = useBattleStore((state) => state.setBattleInfo);
+  const userNickname = useUserStore((state) => state.userNickname);
 
   // 코치마크 단계 정의 - 추후 구현 예정
   /*
@@ -457,18 +462,36 @@ const MainPage = () => {
   );
 
   // 배틀룸 입장 처리 함수 수정
-  const handleBattleEnter = (battleId, status) => {
-    const token = localStorage.getItem('token');
+  const handleBattleEnter = async (battleId, status) => {
+    if (status !== 0) return;
     
-    // 로그인 체크
-    if (!token) {
-      alert('로그인이 필요한 서비스입니다.');
-      navigate('/main/login');  // /login -> /main/login 으로 수정
-      return;
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요한 서비스입니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      const response = await joinRoom(battleId, userNickname);
+      await new Promise((resolve) => {
+        const newBattleInfo = {
+          battleId: response.data.battleId,
+          participantName: userNickname,
+          roomName: response.data.roomName,
+          userToken: response.data.token,
+          isMaster: false,
+        };
+
+        setBattleInfo(newBattleInfo);
+        requestAnimationFrame(resolve);
+      });
+
+      navigate(`/main/battle-room/${battleId}`);
+    } catch (error) {
+      console.error("Battle room navigation error:", error);
+      navigate('/main/battle-list');
     }
-    
-    // 로그인된 상태면 배틀룸으로 이동
-    navigate(`/main/battle-room/${battleId}`);  // /battle-room -> /main/battle-room 으로 수정
   };
 
   return (
@@ -547,7 +570,7 @@ const MainPage = () => {
                 <SectionTitle title="Battle" />
                 <Link
                   to="/main/battle-list"
-                  className="text-cusBlue text-xl font-medium justify-end mr-5"
+                  className="text-cusBlack-light text-xl font-medium justify-end mr-5"
                 >
                   + <span className="font-bold">more</span>
                 </Link>
@@ -559,31 +582,32 @@ const MainPage = () => {
                       key={`battle-${battle.battleId}`}
                       className="block"
                     >
-                      <div className="clay p-4 pr-8 bg-white h-[160px] hover:shadow-xl transition-shadow">
-                        <div className="flex h-full gap-6 flex-col sm:flex-row items-center">
-                          {/* 썸네일 이미지 */}
-                          <div className="w-full sm:w-24 h-24 flex-shrink-0 ml-4">
+                      <div className="clay p-4 bg-white h-[140px] hover:shadow-xl transition-shadow">
+                        <div className="flex h-full gap-4">
+                          <div className="w-[100px] h-[100px] flex-shrink-0 flex items-center justify-center">
                             <img 
                               src={battle.thumbnailUrl} 
                               alt={battle.title}
-                              className="w-full h-full object-cover rounded-lg"
+                              className="w-[100px] h-[100px] object-cover rounded-lg"
                             />
                           </div>
-                          
-                          {/* 내용 */}
-                          <div className="flex flex-col justify-between flex-grow w-full pl-2">
-                            {/* 제목 */}
-                            <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 text-center sm:text-left">
-                              {battle.title}
-                            </h3>
-                            
-                            {/* 상태와 참가자 정보 */}
-                            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 w-full">
-                              <ParticipantsBadge current={battle.totalUsers} max={6} />
-                              <StatusBadge status={battle.status} onClick={(e) => {
-                                e.stopPropagation();
-                                handleBattleEnter(battle.battleId, battle.status);
-                              }} className="btn px-4 py-2 bg-cusBlue text-white text-sm" />
+                          <div className="flex-1 flex flex-col px-4">
+                            <div className="flex-1 flex items-center mb-4">
+                              <h3 className="text-lg font-semibold line-clamp-1 text-black">
+                                {battle.title}
+                              </h3>
+                            </div>
+                            <div className="flex justify-between items-center gap-4 mb-2">
+                              <span className="text-cusBlue font-bold">
+                                {battle.totalUsers}/6
+                              </span>
+                              <StatusBadge 
+                                status={battle.status} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBattleEnter(battle.battleId, battle.status);
+                                }} 
+                              />
                             </div>
                           </div>
                         </div>
@@ -614,7 +638,7 @@ const MainPage = () => {
                 <SectionTitle title="Vote" />
                 <Link
                   to="/main/vote"
-                  className="text-cusBlue text-xl font-medium justify-end mr-5"
+                  className="text-cusBlack-light text-xl font-medium justify-end mr-5"
                 >
                   + <span className="font-bold">more</span>
                 </Link>
@@ -627,7 +651,7 @@ const MainPage = () => {
                         onClick={() => handleVoteDetailClick(vote.voteId)}
                         className="cursor-pointer pt-2"
                       >
-                        <h2 className="text-xl font-bold mb-2 hover:text-blue-600">
+                        <h2 className="text-xl font-bold mb-4 hover:text-blue-600">
                           {vote.title}
                         </h2>
                       </div>
@@ -648,9 +672,9 @@ const MainPage = () => {
                                   option.optionId === vote.options[0].optionId
                                     ? 'bg-red-100 hover:bg-red-200 text-red-500'
                                     : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                                } rounded-lg transition-colors text-lg font-bold`}
+                                } rounded-lg transition-colors text-base font-bold`}
                               >
-                                {option.optionTitle}
+                                <span className="line-clamp-1">{option.optionTitle}</span>
                               </button>
                             ))}
                           </div>

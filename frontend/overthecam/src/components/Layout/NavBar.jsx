@@ -38,7 +38,6 @@ export default function NavBar() {
   const navigate = useNavigate();
   const isBattleRoomPage = location.pathname.startsWith("/main/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);  // 사이드바용 ref 추가
   const mobileDropdownRef = useRef(null);
 
