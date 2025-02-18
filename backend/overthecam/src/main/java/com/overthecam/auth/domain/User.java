@@ -2,11 +2,7 @@ package com.overthecam.auth.domain;
 
 import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -25,6 +21,7 @@ public class User extends TimeStampEntity {
     @Column(nullable = false)
     private String nickname;
 
+    @Column(name = "profile_image")
     private String profileImage;
 
     @Column(unique = true)
@@ -97,5 +94,9 @@ public class User extends TimeStampEntity {
         if (phoneNumber != null) {
             this.phoneNumber = phoneNumber;
         }
+    }
+
+    public void updateProfileImage(String imageUrl) {
+        this.profileImage = imageUrl;
     }
 }
