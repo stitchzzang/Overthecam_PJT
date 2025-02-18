@@ -137,27 +137,42 @@ const PopularVote = () => {
         return;
       }
 
-      // 현재 투표 찾기
-      const currentVote = popularVotes.find(v => v.voteId === voteId);
-      if (!currentVote) return;
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
 
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
+        // 컨페티 생성
+        const isFirstOption = optionId === vote.options[0].optionId;
+        createConfetti(isFirstOption);
 
-      // 투표 결과 가져오기
-      const response = await authAxios.get(`/vote/${voteId}`);
-      const updatedVote = response.data;
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
 
-      // 로컬 상태 업데이트
-      setPopularVotes(prev => 
-        prev.map(v => v.voteId === voteId ? {
-          ...v,
-          hasVoted: true,
-          options: updatedVote.options,
-          totalVoteCount: updatedVote.totalVoteCount
-        } : v)
-      );
+        // 투표 결과 가져오기
+        const response = await authAxios.get(`/vote/${voteId}`);
+        const updatedVote = response.data;
 
+        setPopularVotes(prev => 
+          prev.map(v => v.voteId === voteId ? {
+            ...v,
+            hasVoted: true,
+            options: updatedVote.options,
+            totalVoteCount: updatedVote.totalVoteCount
+          } : v)
+        );
+
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
+      }
     } catch (error) {
       console.error('Vote error:', error);
       if (error.response?.status === 401) {
@@ -282,7 +297,14 @@ const PopularVote = () => {
                               e.stopPropagation();
                               if (!isActive) return;
                               
-                              // 리플 이펙트 생성
+                              // 로그인 체크
+                              if (!localStorage.getItem('token')) {
+                                alert('로그인이 필요합니다.');
+                                navigate('/main/login');
+                                return;
+                              }
+                              
+                              // 로그인된 경우에만 리플과 컨페티 효과
                               const button = e.currentTarget;
                               const ripple = document.createElement('div');
                               ripple.className = 'ripple';
@@ -545,7 +567,7 @@ const MainPage = () => {
                   to="/main/battle-list"
                   className="text-cusBlack-light text-xl font-medium justify-end mr-5"
                 >
-                  + <span className="font-bold">more</span>
+                  + <span className="font-bold"> 더보기</span>
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -96,7 +96,6 @@ const VotePage = () => {
   };
 
   const handleVote = async (vote, optionId) => {
-    let ripple;
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -106,76 +105,42 @@ const VotePage = () => {
       }
 
       // 리플 이펙트 생성
-      const button = document.querySelector(`[data-vote-button="${optionId}"]`);
-      if (!button) return;  // 버튼이 없으면 함수 종료
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
 
-      ripple = document.createElement('div');
-      ripple.className = 'ripple';
-      
-      const rect = button.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      ripple.style.width = ripple.style.height = `${size}px`;
-      
-      button.appendChild(ripple);
-      ripple.classList.add('active');
+        // 컨페티 생성
+        const isFirstOption = optionId === vote.options[0].optionId;
+        createConfetti(isFirstOption);
 
-      // 컨페티 생성
-      const isFirstOption = optionId === vote.options[0].optionId;
-      const emojis = isFirstOption 
-        ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
-        : ['💙', '🐠', '🥶', '💎','🐬','❄️'];
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
 
-      for (let i = 0; i < 15; i++) {
-        const confetti = document.createElement('div');
-        const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
-        confetti.className = `confetti ${animationType}`;
-        confetti.style.left = `${Math.random() * window.innerWidth}px`;
-        confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 2500);
+        // 최신 데이터 가져오기
+        const response = await authAxios.get(`/vote/${vote.voteId}`);
+        if (response.data) {
+          const updatedVotes = currentList.map(v => 
+            v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
+          );
+          setCurrentList(updatedVotes);
+        }
+
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
       }
-
-      // 즉시 UI 업데이트
-      setCurrentList(prevList => 
-        prevList.map(v => {
-          if (v.voteId === vote.voteId) {
-            const updatedOptions = v.options.map(option => ({
-              ...option,
-              voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
-            }));
-            
-            const totalVotes = updatedOptions.reduce((sum, opt) => sum + opt.voteCount, 0);
-            
-            const optionsWithPercentage = updatedOptions.map(option => ({
-              ...option,
-              votePercentage: (option.voteCount / totalVotes) * 100
-            }));
-
-            return {
-              ...v,
-              hasVoted: true,
-              options: optionsWithPercentage
-            };
-          }
-          return v;
-        })
-      );
-
-      // UI 업데이트 후 서버 요청
-      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
-      
-    } catch (err) {
-      console.error('Vote error:', err);
-      if (err.response?.status === 401) {
+    } catch (error) {
+      console.error('투표 처리 중 오류 발생:', error);
+      if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
-        return;
-      }
-      alert('투표 처리 중 오류가 발생했습니다.');
-      await fetchVotes();
-    } finally {
-      if (ripple) {
-        setTimeout(() => ripple.remove(), 600);
       }
     }
   };
