@@ -526,7 +526,7 @@ const MainPage = () => {
         <PopularVote key={popularVoteKey} />
         
         <div className="container mx-auto px-4">
-          <div className="container mx-auto px-14 pt-44 pb-12">
+          <div className="container mx-auto px-14 pt-48 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
