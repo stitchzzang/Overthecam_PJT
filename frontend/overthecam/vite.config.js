@@ -1,11 +1,10 @@
-// vite.config.js
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
 export default defineConfig({
-  base: "/",
+  base: "/", // 기본 URL 설정
   plugins: [react()],
   css: {
     postcss: {
@@ -15,4 +14,5 @@ export default defineConfig({
   define: {
     global: "globalThis",
   },
+  assetsInclude: ["**/*.ttf", "**/*.otf"], // 🔥 폰트 파일 포함 설정 추가
 });
