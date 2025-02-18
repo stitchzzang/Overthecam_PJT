@@ -20,12 +20,11 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: rgb(242, 247, 255);
-  width: 100%; /* html과 body의 너비를 100%로 설정 */
+  width: 100%;
   font-family: 'GmarketSansMedium', sans-serif;
   font-size: 17px;
 }
 
-/* 모바일 환경에서는 폰트 크기를 조금 줄일 수 있습니다 */
 @media screen and (max-width: 768px) {
   html, body {
     font-size: 16px;
@@ -143,7 +142,7 @@ footer {
 }
 
 .gooey-menu-item-2.active {
-  @apply translate-y-[75px] opacity-100;
+  @apply translate-y-[77px] opacity-100;
 }
 
 .gooey-menu-item-3 {
@@ -151,7 +150,7 @@ footer {
 }
 
 .gooey-menu-item-3.active {
-  @apply translate-y-[140px] opacity-100;
+  @apply translate-y-[144px] opacity-100;
 }
 
 .gooey-menu-item-4 {
@@ -159,7 +158,7 @@ footer {
 }
 
 .gooey-menu-item-4.active {
-  @apply translate-y-[205px] opacity-100;
+  @apply translate-y-[211px] opacity-100;
 }
 
 .gooey-menu-item-5 {
@@ -167,7 +166,7 @@ footer {
 }
 
 .gooey-menu-item-5.active {
-  @apply translate-y-[270px] opacity-100;
+  @apply translate-y-[278px] opacity-100;
 }
 
 /* Popular Vote Carousel Styles */
@@ -254,17 +253,21 @@ footer {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* 배틀 생성과 투표 생성을 위한 특별한 스타일 수정 */
-.menu-link-1, .menu-link-2 {
-  @apply items-start pt-[9px];  /* 14px에서 12px로 수정 */
+/* 배틀 생성과 투표 생성 세부 스타일 수정 */
+.menu-link-1 i {
+  @apply translate-y-[-1px];
 }
 
-.menu-link-1 i, .menu-link-2 i {
-  @apply mt-[0px];  /* 2px에서 1px로 수정 */
+.menu-link-2 i {
+  @apply mt-[-1px];  
 }
 
-.menu-link-1 span, .menu-link-2 span {
-  @apply mt-[1px];  /* 2px에서 1px로 수정 */
+.menu-link-1 span  {
+  @apply translate-y-[-2px];
+}
+
+.menu-link-2 span {
+  @apply translate-y-[-2px];
 }
 
 .menu-link i {
@@ -277,26 +280,21 @@ footer {
 }
 
 .menu-link-1.active {
-  @apply translate-y-[10px];
+  @apply translate-y-[11px];
 }
 
 .menu-link-2.active {
-  @apply translate-y-[75px];
+  @apply translate-y-[77px];
 }
 
 .menu-link-3.active {
-  @apply translate-y-[140px];
+  @apply translate-y-[143px];
 }
 
 .menu-link-4.active {
-  @apply translate-y-[205px];
+  @apply translate-y-[210px];
 }
 
 .menu-link-5.active {
-  @apply translate-y-[270px];
-}
-
-/* 채팅 메시지 폰트 크기 설정 */
-.chat-message {
-  font-size: 14px;
+  @apply translate-y-[275px];
 }
