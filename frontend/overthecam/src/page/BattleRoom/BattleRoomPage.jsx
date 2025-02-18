@@ -464,14 +464,6 @@ function BattleRoomPage() {
     startBattle();
   };
 
-  const handleTranscriptionComplete = async (transcript) => {
-    try {
-      console.log("대화 내용", transcript);
-    } catch (error) {
-      console.log("기록 실패", error);
-    }
-  };
-
   useEffect(() => {
     if (isStarted) {
       // isStarted가 true일 때만 실행
@@ -558,7 +550,6 @@ function BattleRoomPage() {
         )}
       </div>
       <LiveSTT
-        onTranscriptionComplete={handleTranscriptionComplete}
         shouldStop={isBattleEnded}
       />
       <BattlerSettingModal

@@ -108,3 +108,22 @@ export const betSupportScore = async (battleId, optionId, supportScore) => {
     throw error.error;
   }
 };
+
+export const sendSTT = async(userId, text) => {
+  try {
+    const response = await authAxios.post(
+      `/report/text`,
+      {
+        userId,
+        text,
+      }
+    );
+    console.log("대화 내용 보내기 성공", response.success)
+  } catch (error) {
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;
+    const errorStatus = error.error.status;
+    console.error("배팅 오류: ", errorStatus, errorCode, errorMessage);
+    throw error.error;
+  }
+}

@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { useBattleStore } from "../../../store/Battle/BattleStore";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
+import useUserStore from "../../../store/User/UserStore";
+import { sendSTT } from "../../../service/BattleRoom/api";
 
-const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
+const LiveSTT = ({ shouldStop }) => {
   const [fullTranscript, setFullTranscript] = useState("");
   const [listening, setListening] = useState(false);
   const { isStarted } = useWebSocketContext();
-  const battleInfo = useBattleStore((s) => s.battleInfo);
+  const userId = useUserStore((s) => s.userId);
   const recognitionRef = useRef();
   const failToast = useRef();
 
@@ -26,13 +26,25 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
     recognition.continuous = true;
     recognition.interimResults = false;
 
-    recognition.onstart = () => {setListening(true); console.log("대화 시작 ")}
+    recognition.onstart = () => {
+      setListening(true);
+      console.log("대화 시작 ");
+    };
     recognition.onend = () => {
-      console.log("대화 끝끝")
-      setListening(false);
-      sendDataToServer(battleInfo.participantName, fullTranscript); //사용자 닉네임과 내용 전달
-      if (onTranscriptionComplete) {
-        onTranscriptionComplete(fullTranscript); // 배틀 완료 시 백으로 전달
+      // 의도적으로 중지하지 않았고, 배틀이 진행 중이면 재시작
+      if (!shouldStop && isStarted) {
+        try {
+          recognition.start();
+          console.log("음성 인식 자동 재시작됨");
+        } catch (e) {
+          console.error("재시작 실패:", e);
+        }
+      } else {
+        // 의도적인 중지라면 정상 종료 처리
+        setListening(false);
+        setTimeout(() => {
+          sendDataToServer(userId, fullTranscript);
+        }, 10000);
       }
     };
 
@@ -71,11 +83,10 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
     }
   }, [shouldStop, listening]);
 
-  const sendDataToServer = async (userName, text) => {
-    if (!text.trim()) return;
+  const sendDataToServer = async (userId, text) => {
     try {
-    //   await axios.post("https://your-backend.com/api/stt", { text });
-      console.log("✅ STT 데이터 백업 성공:", userName, text);
+      const response = await sendSTT(userId, text);
+      console.log("✅ STT 데이터 백업 성공:", response);
     } catch (error) {
       console.error("❌ STT 데이터 백업 실패:", error);
       console.log("보내려고 한 데이터:", text);
@@ -84,8 +95,8 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
 
   return (
     <div>
-      <p>🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
-      <p>📝 변환된 텍스트: {fullTranscript}</p>
+      {/* <p>🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
+      <p>📝 변환된 텍스트: {fullTranscript}</p> */}
     </div>
   );
 };
