@@ -2,11 +2,15 @@ package com.overthecam.websocket.dto;
 
 import com.overthecam.common.dto.ErrorResponse;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class WebSocketResponseDto<T> {
     private boolean success;
     private MessageType type;

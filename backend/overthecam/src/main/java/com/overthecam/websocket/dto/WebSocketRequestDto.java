@@ -1,13 +1,17 @@
 package com.overthecam.websocket.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 // 공통 요청 객체
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class WebSocketRequestDto<T> {
     private MessageType type;
     private T data;

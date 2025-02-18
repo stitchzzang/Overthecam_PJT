@@ -16,7 +16,7 @@ public class WebSocketExceptionHandler {
     @MessageExceptionHandler({WebSocketException.class, Exception.class})  // 모든 예외 처리
     @SendToUser(destinations = "/queue/battle/{battleId}", broadcast = false)
     public WebSocketResponseDto<?> handleWebSocketException(Exception e) {
-        // log.error("WebSocket Exception occurred: {} - {}", e.getMessage());
+        log.error("WebSocket Exception occurred: {} - {}", e.getMessage());
 
 
         if (e instanceof WebSocketException) {
