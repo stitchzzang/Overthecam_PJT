@@ -26,8 +26,9 @@ const LiveSTT = ({ onTranscriptionComplete, shouldStop }) => {
     recognition.continuous = true;
     recognition.interimResults = false;
 
-    recognition.onstart = () => setListening(true);
+    recognition.onstart = () => {setListening(true); console.log("대화 시작 ")}
     recognition.onend = () => {
+      console.log("대화 끝끝")
       setListening(false);
       sendDataToServer(battleInfo.participantName, fullTranscript); //사용자 닉네임과 내용 전달
       if (onTranscriptionComplete) {
