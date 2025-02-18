@@ -1,8 +1,10 @@
 package com.overthecam.battlereport.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.overthecam.battlereport.domain.BattleReport;
 import com.overthecam.battlereport.dto.ReportRealTimeRequest;
 import com.overthecam.battlereport.exception.BattleReportErrorCode;
+import com.overthecam.battlereport.repository.BattleReportRepository;
 import com.overthecam.battlereport.service.BattleReportService;
 import com.overthecam.battlereport.service.FlaskService;
 import com.overthecam.battlereport.service.OpenAiService;
@@ -27,6 +29,7 @@ public class BattleReportController {
     private final RedisService redisService;
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
+    private final BattleReportService battleReportService;
 
 
 
@@ -78,17 +81,14 @@ public class BattleReportController {
     public CommonResponseDto<Map<String, Object>> generateReport(@PathVariable Integer userId) {
         try {
             Map<String, Object> recentAnalysis = redisService.getRecentAnalysisResult(userId);
-
-            if (recentAnalysis == null) {
-                log.error("사용자 {}의 최근 분석 결과를 찾을 수 없습니다.", userId);
-                return CommonResponseDto.error(ErrorResponse.of(BattleReportErrorCode.ANALYSIS_DATA_NOT_FOUND));
-            }
-
             String analysisResultJson = objectMapper.writeValueAsString(recentAnalysis);
             Map<String, Object> report = openAiService.generateReport(analysisResultJson, userId);
 
-            return CommonResponseDto.ok(report);
+            // 서비스를 통한 저장
+            Map<String, Object> reportContent = (Map<String, Object>) report.get("report");
+            battleReportService.generateAndSaveBattleReport(userId);
 
+            return CommonResponseDto.ok(report);
         } catch (Exception e) {
             log.error("리포트 생성 중 오류 발생. userId: {}", userId, e);
             return CommonResponseDto.error(ErrorResponse.of(BattleReportErrorCode.REPORT_GENERATION_FAILED));
