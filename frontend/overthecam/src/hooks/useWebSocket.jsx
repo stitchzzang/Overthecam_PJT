@@ -213,10 +213,6 @@ const useWebSocket = (battleId) => {
   const connectWS = useCallback(
     async (url, token) => {
       console.log("연결 시도합니다.");
-      if (!url || !token) {
-        setError(new Error("URL과 토큰이 필요합니다"));
-        return;
-      }
 
       // 초기 지연
       await new Promise((resolve) => setTimeout(resolve, 1000));
