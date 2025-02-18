@@ -16,26 +16,31 @@ import java.util.List;
 public interface BattleHistoryViewRepository extends JpaRepository<BattleHistoryView, Long> {
 
     // 사용자의 전적 조회
-    List<BattleHistoryView> findByUserId(Long userId);
+    @Query(value = "SELECT * FROM battle_history_view WHERE user_id = :userId", nativeQuery = true)
+    List<BattleHistoryView> findByUserId(@Param("userId") Long userId);
 
     // 페이지네이션 메서드 추가
-    Page<BattleHistoryView> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    @Query(value = "SELECT * FROM battle_history_view WHERE user_id = :userId ORDER BY created_at DESC",
+        countQuery = "SELECT count(*) FROM battle_history_view WHERE user_id = :userId",
+        nativeQuery = true)
+    Page<BattleHistoryView> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
-
-    @Query("SELECT new com.overthecam.member.dto.BattleStatsInfo(" +
-            "b.userId, COUNT(*), " +
-            "SUM(CASE WHEN b.isWinner = true AND b.earnedScore >= 0 THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN b.isWinner = false AND b.earnedScore < 0 THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN b.isWinner = false AND b.earnedScore >= 0 THEN 1 ELSE 0 END)) " +
-            "FROM BattleHistoryView b WHERE b.userId = :userId GROUP BY b.userId")
+    @Query(value = "SELECT user_id, " +
+        "COUNT(*) as total, " +
+        "SUM(CASE WHEN is_winner = true AND earned_score >= 0 THEN 1 ELSE 0 END) as wins, " +
+        "SUM(CASE WHEN is_winner = false AND earned_score < 0 THEN 1 ELSE 0 END) as losses, " +
+        "SUM(CASE WHEN is_winner = false AND earned_score >= 0 THEN 1 ELSE 0 END) as draws " +
+        "FROM battle_history_view " +
+        "WHERE user_id = :userId GROUP BY user_id",
+        nativeQuery = true)
     BattleStatsInfo findBattleStatsByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT new com.overthecam.battle.dto.BattleResultDto(vo.optionTitle, vo.isWinner, br.earnedScore) " +
-            "FROM VoteRecord vr " +
-            "JOIN VoteOption vo ON vr.voteOption.voteOptionId = vo.voteOptionId " +
-            "JOIN BettingRecord br ON vr.voteRecordId = br.voteRecord.voteRecordId " +
-            "WHERE vr.user.id = :userId " +
-            "AND vr.vote.voteId = (SELECT v.voteId FROM Vote v WHERE v.battle.id = :battleId)")
+    @Query(value = "SELECT vo.option_title as optionTitle, vo.is_winner as isWinner, br.earned_score as earnedScore " +
+        "FROM vote_record vr " +
+        "JOIN vote_option vo ON vr.vote_option_id = vo.vote_option_id " +
+        "JOIN betting_record br ON vr.vote_record_id = br.vote_record_id " +
+        "WHERE vr.user_id = :userId " +
+        "AND vr.vote_id = (SELECT v.vote_id FROM vote v WHERE v.battle_id = :battleId)",
+        nativeQuery = true)
     BattleResultDto findBattleResult(@Param("userId") Long userId, @Param("battleId") Long battleId);
-
 }
