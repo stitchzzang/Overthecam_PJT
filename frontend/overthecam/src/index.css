@@ -32,12 +32,6 @@ html, body {
   }
 }
 
-/* 채팅 메시지 폰트 크기 설정 */
-.font-pretendard {
-  font-family: 'Pretendard', sans-serif;
-  font-size: 14px;
-}
-
 #root {
   height: 100vh; /* root 영역을 화면 전체 높이로 설정 */
   width: 100%; /* root 영역의 너비를 화면 전체로 설정 */
