@@ -57,7 +57,7 @@ function BattleWaiting({
 
       // 나머지 슬롯에 리모트 트랙 매핑
       const remoteVideo = remoteTracks.find(
-        (track) => track.trackPublication.kind === "video"      
+        (track) => track.trackPublication.kind === "video"
       );
 
       if (remoteVideo) {
@@ -84,7 +84,11 @@ function BattleWaiting({
     <>
       <div
         className="w-full h-full flex p-4 gap-3"
-        style={{ height: "calc(100vh - 2rem)" }}
+        style={{
+          height: "calc(100vh - 2rem)",
+          maxHeight: "calc(100vh - 2rem)",
+          overflow: "hidden",
+        }}
       >
         <div className="w-3/4 h-full flex flex-col">
           {/* Video grid section */}
@@ -149,19 +153,19 @@ function BattleWaiting({
 
           {/* Battle vote section */}
           <div className="h-1/4 flex gap-2">
-            <div className="w-3/4 h-full bg-cusGray clay p-3">
-              {isVoteSubmitted ? (
-                <BattleVote isWaiting={true} />
-              ) : (
+            {isVoteSubmitted ? (
+              <BattleVote isWaiting={true} />
+            ) : (
+              <div className=" w-full h-full bg-cusGray p-3 clay">
                 <div className="p-6 bg-white w-full h-full flex items-center justify-center">
                   <p className="font-semibold text-gray-300">
                     아직 등록된 투표가 없습니다.
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
             {isMaster ? (
-              <div className="w-1/4 flex flex-col mx-1">
+              <div className="w-1/4 flex flex-col mx-1 justify-center">
                 <button
                   disabled={
                     remoteTracks.length !== readyList.length || !isVoteSubmitted
@@ -191,8 +195,8 @@ function BattleWaiting({
             )}
           </div>
         </div>
-        <div className="w-1/4 flex flex-col h-full mb-5">
-          <BattleChating outHeight={"h-[550px]"} innerHeight={"h-[550px]"} />
+        <div className="w-1/4 h-full" style={{ height: "100%" }}>
+          <BattleChating />
         </div>
       </div>
       <BattleVoteCreate ref={voteCreateModal} />
