@@ -56,93 +56,61 @@ const VoteDetail = ({ voteData, onDelete }) => {
   };
 
   const handleVote = async (optionId) => {
-    // 리플 이펙트 생성
-    const button = document.querySelector(`#vote-button-${optionId}`);
-    const ripple = document.createElement('div');
-    ripple.className = 'ripple';
-    
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.width = ripple.style.height = `${size}px`;
-    
-    button.appendChild(ripple);
-    ripple.classList.add('active');
-
-    // 컨페티 생성
-    const isFirstOption = optionId === currentVoteData.options[0].optionId;
-    createConfetti(isFirstOption);
-
-    // 기존 투표 로직
     try {
       if (!userInfo) {
         alert('로그인이 필요합니다.');
+        navigate('/main/login');
         return;
       }
 
-      const userInfoObj = JSON.parse(userInfo);
-      const age = calculateAge(userInfoObj.birth);
-      const ageGroup = getAgeGroup(age);
-      const gender = userInfoObj.gender === 0 ? 'male' : 'female';
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
 
-      // 먼저 UI 업데이트
-      setHasVoted(true);
-      
-      // 현재 투표 데이터를 복사하여 업데이트
-      const updatedVoteData = JSON.parse(JSON.stringify(currentVoteData));
-      
-      // 선택한 옵션의 투표 수 증가
-      updatedVoteData.options = updatedVoteData.options.map(option => ({
-        ...option,
-        voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
-      }));
+        // 컨페티 생성
+        const isFirstOption = optionId === currentVoteData.options[0].optionId;
+        createConfetti(isFirstOption);
 
-      // 총 투표수 계산
-      const newTotalVotes = updatedVoteData.options.reduce((sum, opt) => sum + opt.voteCount, 0);
+        const userInfoObj = JSON.parse(userInfo);
+        const age = calculateAge(userInfoObj.birth);
+        const ageGroup = getAgeGroup(age);
+        const gender = userInfoObj.gender === 0 ? 'male' : 'female';
 
-      // 퍼센티지 업데이트
-      updatedVoteData.options = updatedVoteData.options.map(option => ({
-        ...option,
-        votePercentage: (option.voteCount / newTotalVotes) * 100,
-        genderDistribution: {
-          ...option.genderDistribution,
-          [userInfoObj.gender === 0 ? '남성' : '여성']: 
-            option.optionId === optionId ? 100 : 0
-        },
-        ageDistribution: {
-          ...option.ageDistribution,
-          [`${ageGroup}대${ageGroup === '50' ? ' 이상' : ''}`]: 
-            option.optionId === optionId ? 100 : 0
+        // 먼저 UI 업데이트
+        setHasVoted(true);
+        
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${voteData.voteId}/vote/${optionId}`, {
+          age: ageGroup,
+          gender: gender
+        });
+
+        // 서버에서 최신 데이터 가져오기
+        const voteResponse = await authAxios.get(`/vote/${voteData.voteId}`);
+        if (voteResponse.data) {
+          setCurrentVoteData(voteResponse.data);
         }
-      }));
 
-      // UI 즉시 업데이트
-      setCurrentVoteData(updatedVoteData);
-
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${voteData.voteId}/vote/${optionId}`, {
-        age: ageGroup,
-        gender: gender
-      });
-
-      // 서버에서 최신 데이터 가져오기
-      const voteResponse = await authAxios.get(`/vote/${voteData.voteId}`);
-      if (voteResponse.data) {
-        setCurrentVoteData(voteResponse.data);
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
       }
-
     } catch (error) {
       console.error('투표 처리 중 오류 발생:', error);
       if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
+        navigate('/main/login');
         setHasVoted(false); // UI 롤백
-      } else {
-        // 다른 에러는 무시하고 UI는 업데이트된 상태 유지
-        console.log('투표 처리 중 오류가 발생했지만 UI는 유지됩니다.');
       }
     }
-
-    // 리플 제거
-    setTimeout(() => ripple.remove(), 600);
   };
 
   const createConfetti = (isFirstOption) => {

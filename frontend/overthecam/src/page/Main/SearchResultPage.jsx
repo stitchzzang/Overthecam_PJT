@@ -205,45 +205,34 @@ const SearchResultPage = () => {
         
         button.appendChild(ripple);
         ripple.classList.add('active');
-        
+
         // 컨페티 생성
         const isFirstOption = optionId === vote.options[0].optionId;
         createConfetti(isFirstOption);
 
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
+
+        // 최신 데이터 가져오기
+        const response = await authAxios.get(`/vote/${vote.voteId}`);
+        if (response.data) {
+          const updatedVotes = searchResults.votes.map(v => 
+            v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
+          );
+          setSearchResults(prev => ({
+            ...prev,
+            votes: updatedVotes
+          }));
+        }
+
         // 리플 제거
         setTimeout(() => ripple.remove(), 600);
       }
-
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      const age = calculateAge(userInfo.birth);
-      const ageGroup = getAgeGroup(age);
-      const gender = userInfo.gender === 0 ? 'male' : 'female';
-
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`, {
-        age: ageGroup,
-        gender: gender
-      });
-
-      // 최신 데이터 가져오기
-      const response = await authAxios.get(`/vote/${vote.voteId}`);
-      if (response.data) {
-        const updatedVotes = searchResults.votes.map(v => 
-          v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
-        );
-        setSearchResults(prev => ({
-          ...prev,
-          votes: updatedVotes
-        }));
-      }
-
     } catch (error) {
       console.error('투표 처리 중 오류 발생:', error);
       if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
-      } else {
-        console.log('투표 처리 중 오류가 발생했습니다.');
       }
     }
   };
