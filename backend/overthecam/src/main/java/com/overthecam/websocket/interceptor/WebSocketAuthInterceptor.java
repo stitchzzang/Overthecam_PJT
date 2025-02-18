@@ -1,7 +1,5 @@
 package com.overthecam.websocket.interceptor;
 
-import com.overthecam.common.dto.ErrorResponse;
-import com.overthecam.common.exception.GlobalException;
 import com.overthecam.security.jwt.JwtProperties;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
@@ -11,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.overthecam.websocket.dto.UserPrincipal;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -33,9 +32,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-//        if (accessor == null || accessor.getCommand() == null) {
-//            return message;
-//        }
+        if (accessor == null || accessor.getCommand() == null) {
+            return message;
+        }
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             log.debug("StompCommand.CONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
@@ -43,21 +42,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
         else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
-            log.debug("구독 요청 수신 - destination: {}, sessionId: {}, user: {}, headers: {}",
-                accessor.getDestination(),
-                accessor.getSessionId(),
-                accessor.getUser(),
-                accessor.getMessageHeaders());
-
-            // 구독 처리가 실제로 되는지 확인하기 위한 로깅
-            try {
-                Message<?> result = message;
-                log.debug("구독 처리 결과: {}", result);
-                return result;
-            } catch (Exception e) {
-                log.error("구독 처리 중 오류 발생", e);
-                throw e;
-            }
         }
         else if (StompCommand.SEND.equals(accessor.getCommand())) {
             log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
@@ -137,7 +121,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
 
         if (!bearerToken.startsWith(JwtProperties.TYPE)) {
-            throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_FORMAT,
+            throw new WebSocketException(WebSocketErrorCode.MALFORMED_TOKEN,
                 "Bearer 토큰 형식이 아닙니다");
         }
 
@@ -147,8 +131,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private UserPrincipal authenticateToken(String token) {
         try {
             if (!tokenProvider.validateToken(token)) {
-                throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN,
-                    "유효하지 않은 토큰입니다");
+                throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
+                        "유효하지 않은 토큰입니다");
             }
 
             String email = tokenProvider.getEmail(token);
@@ -156,10 +140,18 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             String nickname = tokenProvider.getNickname(token);
 
             return new UserPrincipal(userId, email, nickname);
+        } catch (ExpiredJwtException e) {
+            log.error("토큰이 만료됨", e);
+            throw new WebSocketException(WebSocketErrorCode.EXPIRED_ACCESS_TOKEN,
+                    "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요.");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            log.error("잘못된 형식의 토큰", e);
+            throw new WebSocketException(WebSocketErrorCode.MALFORMED_TOKEN,
+                    "잘못된 형식의 토큰입니다");
         } catch (Exception e) {
             log.error("토큰 검증 중 오류 발생", e);
-            throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN,
-                "토큰 검증 중 오류가 발생했습니다");
+            throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
+                    "토큰 검증 중 오류가 발생했습니다");
         }
     }
 
