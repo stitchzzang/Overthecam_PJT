@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useBattleStore } from "../../store/Battle/BattleStore";
+import { leaveRoom } from "../../service/BattleRoom/api";
 
 import { useWebSocketContext } from "../../hooks/useWebSocket";
 import BattleHeader from "../../components/BattleRoom/BattleHeader";
@@ -412,9 +413,18 @@ function BattleRoomPage() {
       setLocalTrack(null);
       setRemoteTracks([]);
 
-      // room 연결 종료
-      await room?.disconnect();
-      disconnectWS();
+      
+      // 방에서 나감 요청하기
+      try {
+        const response = await leaveRoom(battleInfo.battleId);
+        console.log("성공", response)
+        // room 연결 종료
+        room?.disconnect();
+        disconnectWS();
+      } catch (error) {
+        console.log("방에서 나가기 api 요청 실패")
+      }
+      
       setRoom(undefined);
       setLocalTrack(undefined);
       setRemoteTracks([]);
