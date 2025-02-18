@@ -13,11 +13,12 @@ public enum WebSocketErrorCode implements ErrorCode {
     UNAUTHORIZED_CHAT_ACCESS(403, "채팅방 접근 권한이 없습니다"),
     BATTLE_ROOM_INACTIVE(400, "이미 종료된 배틀방입니다."),
 
-    // WebSocket 인증 관련 에러
-    TOKEN_NOT_FOUND(403, "Authorization 헤더가 없습니다"),
-    INVALID_TOKEN_FORMAT(403, "잘못된 토큰 형식입니다"),
-    INVALID_TOKEN(403, "유효하지 않은 토큰입니다"),
-    EXPIRED_TOKEN(403, "만료된 토큰입니다"),
+    // WebSocket JWT 토큰 에러
+    TOKEN_NOT_FOUND(401, "토큰이 존재하지 않습니다"),
+    INVALID_TOKEN_SIGNATURE(401, "토큰 서명이 유효하지 않습니다"),
+    MALFORMED_TOKEN(401, "잘못된 형식의 토큰입니다"),
+    EXPIRED_ACCESS_TOKEN(401, "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요."),
+    EXPIRED_REFRESH_TOKEN(401, "리프레시 토큰이 만료되었습니다. 재로그인이 필요합니다."),
 
     UNAUTHORIZED_USER_ACCESS(400, "올바르지 않은 사용자 정보입니다"),
     INVALID_MESSAGE_FORMAT(400, "올바르지 않은 메시지 타입입니다."),
