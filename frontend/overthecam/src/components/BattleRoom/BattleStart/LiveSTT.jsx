@@ -4,7 +4,7 @@ import useUserStore from "../../../store/User/UserStore";
 import { sendSTT } from "../../../service/BattleRoom/api";
 
 const LiveSTT = ({ shouldStop }) => {
-  const [fullTranscript, setFullTranscript] = useState("안녕하세용가리리...");
+  const [fullTranscript, setFullTranscript] = useState("");
   const [listening, setListening] = useState(false);
   const { isStarted } = useWebSocketContext();
   const userId = useUserStore((s) => s.userId);
@@ -118,7 +118,7 @@ const LiveSTT = ({ shouldStop }) => {
 
   return (
     <div>
-      <p>🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
+      <p className="z-index">🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
       <p>📝 변환된 텍스트: {fullTranscript}</p>
     </div>
   );
