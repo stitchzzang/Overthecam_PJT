@@ -165,6 +165,9 @@ function BattleRoomPage() {
       switch (error.code) {
         case "permission_denied":
           failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
+          cleanup();
+          disconnectWS();
+          setTimeout(() => navigate("/main/battle-list"), 1500);
           break;
         case "disconnected":
           failTost.current?.showAlert("연결이 끊어졌습니다.");
