@@ -1,6 +1,7 @@
 package com.overthecam.battlereport.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.battlereport.domain.BattleReport;
 import com.overthecam.battlereport.repository.BattleReportRepository;
@@ -26,21 +27,43 @@ public class BattleReportService {
 
     @Transactional
     public BattleReport generateAndSaveBattleReport(Integer userId) {
+        log.info("Battle report 생성 시작 - userId: {}", userId);
         try {
+            log.debug("Redis에서 분석 데이터 조회 시도 - userId: {}", userId);
             Map<String, Object> analysisData = redisService.getRecentAnalysisResult(userId);
 
             if (analysisData == null) {
                 log.warn("사용자 {}에 대한 분석 데이터를 찾을 수 없습니다.", userId);
                 throw new EntityNotFoundException("사용자 " + userId + "에 대한 분석 데이터가 없습니다.");
             }
+            log.debug("분석 데이터 조회 성공 - data: {}", analysisData);
 
             // analysisData를 JSON 문자열로 변환
+            log.debug("분석 데이터 JSON 변환 시도");
             String analysisResultJson = objectMapper.writeValueAsString(analysisData);
+            log.debug("분석 데이터 JSON 변환 완료 - json: {}", analysisResultJson);
 
             // OpenAI로 리포트 생성
+            log.info("OpenAI 리포트 생성 시작");
             Map<String, Object> reportData = openAiService.generateReport(analysisResultJson, userId);
-            Map<String, Object> reportContent = (Map<String, Object>) reportData.get("report");
+            log.debug("OpenAI 응답 수신 - raw response: {}", reportData);
 
+            Map<String, Object> reportContent = (Map<String, Object>) reportData.get("report");
+            if (reportContent == null) {
+                log.error("OpenAI 응답에서 report 필드를 찾을 수 없습니다 - received data: {}", reportData);
+                throw new IllegalStateException("OpenAI 응답 형식이 올바르지 않습니다");
+            }
+
+            // 필수 필드 존재 확인
+            String[] requiredFields = {"title", "summary", "emotion_analysis", "key_arguments", "debate_analysis", "ai_evaluation"};
+            for (String field : requiredFields) {
+                if (!reportContent.containsKey(field)) {
+                    log.error("OpenAI 응답에서 필수 필드 누락: {} - received content: {}", field, reportContent);
+                    throw new IllegalStateException("OpenAI 응답에서 필수 필드가 누락되었습니다: " + field);
+                }
+            }
+
+            log.debug("BattleReport 엔티티 생성 시작");
             // BattleReport 엔티티 생성 및 저장
             BattleReport battleReport = BattleReport.builder()
                     .userId(userId)
@@ -51,15 +74,25 @@ public class BattleReportService {
                     .debateAnalysis(objectMapper.writeValueAsString(reportContent.get("debate_analysis")))
                     .aiEvaluation(objectMapper.writeValueAsString(reportContent.get("ai_evaluation")))
                     .build();
+            log.debug("BattleReport 엔티티 생성 완료 - entity: {}", battleReport);
 
-            return battleReportRepository.save(battleReport);
+            log.info("BattleReport 저장 시도");
+            BattleReport savedReport = battleReportRepository.save(battleReport);
+            log.info("BattleReport 저장 완료 - reportId: {}", savedReport.getId());
 
+            return savedReport;
+
+        } catch (JsonProcessingException e) {
+            log.error("JSON 처리 중 오류 발생 - userId: {}", userId, e);
+            throw new RuntimeException("JSON 처리 실패", e);
+        } catch (EntityNotFoundException e) {
+            log.error("엔티티를 찾을 수 없음 - userId: {}", userId, e);
+            throw e;
         } catch (Exception e) {
-            log.error("리포트 생성 중 오류 발생", e);
+            log.error("리포트 생성 중 예상치 못한 오류 발생 - userId: {}", userId, e);
             throw new RuntimeException("리포트 생성 실패", e);
         }
     }
-
 
     private String formatAnalysisData(Map<String, Object> analysisData, Integer userId) {
         try {
