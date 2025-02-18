@@ -188,8 +188,8 @@ export default function NavBar() {
         </defs>
       </svg>
 
-      <header className="h-[80px] mb-4 mt-6">
-        <div className="max-w-7xl mx-auto h-full px-1 relative flex items-center justify-between">
+      <header className="h-[80px] mb-3 mt-5">
+        <div className="max-w-7xl mx-auto h-full px-1 relative flex items-center">
           {/* Left Section - Logo & Menu Button */}
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -311,12 +311,12 @@ export default function NavBar() {
           </div>
 
           {/* Center Section - Search Bar */}
-          <div className={`hidden xl:block max-w-[550px] flex-1 ${isLoggedIn ? 'ml-4' : 'ml-4'}`}>
+          <div className="hidden xl:block w-[550px] ml-4">
             <SearchBar />
           </div>
 
-          {/* Right Section */}
-          <div className="hidden xl:flex items-center gap-4 ml-3">
+          {/* Right Section - 남은 공간을 차지하도록 수정 */}
+          <div className="hidden xl:flex items-center gap-4 flex-1 justify-end">
             {isLoggedIn && userNickname ? (
               <>
                 <div className="flex flex-col justify-center h-full gap-2">
@@ -382,7 +382,7 @@ export default function NavBar() {
       </header>
 
       {/* Mobile Search Bar */}
-      <div className="xl:hidden -ml-12 mb-2">
+      <div className="xl:hidden w-full px-4 max-w-[550px] mx-auto mb-2">
         <SearchBar />
       </div>
     </>
