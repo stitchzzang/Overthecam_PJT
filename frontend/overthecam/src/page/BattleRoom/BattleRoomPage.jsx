@@ -207,7 +207,7 @@ function BattleRoomPage() {
     } else if (status === "ERROR") {
       failTost.current?.showAlert(error);
     }
-  }, [status, connectWS, error]);
+  }, [status, error]);
 
   async function initializeRoom() {
     try {
