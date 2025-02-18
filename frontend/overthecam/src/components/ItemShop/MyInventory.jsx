@@ -125,12 +125,6 @@ function MyInventory() {
     }
   }
 
-  // 환전 이후 값 받기
-  const handleExchange = (convertedPoint, remainingScore) => {
-    setMyCheerScore(remainingScore)
-    setMyPoints(convertedPoint)
-  }
-
   return (
     <div className="bg-cusGray-light m-2 sm:m-5 rounded-2xl p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row gap-6">
@@ -218,7 +212,14 @@ function MyInventory() {
               ref={exchangeDialog}
               myCheerScore={myCheerScore}
               myPoints={myPoints}
-              onSuccess={handleExchange}
+              onSuccess={(totalPoints, totalSupportScore) => {
+                console.log("환전 후 전체 포인트:", totalPoints)
+                console.log("환전 후 전체 응원점수:", totalSupportScore)
+
+                // API가 반환하는 전체 값으로 직접 설정
+                setMyPoints(totalPoints)
+                setMyCheerScore(totalSupportScore)
+              }}
             />
           </div>
         </div>
