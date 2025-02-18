@@ -9,6 +9,7 @@ import PlayerReadyStatus from "./PlayerReadyStatus";
 import BattlerSettingModal from "./BattleWaitingModal/BattlerSettingModal";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 import useUserStore from "../../../store/User/UserStore";
+import FailAlertModal from "../../@common/FailAlertModal";
 
 function BattleWaiting({
   localTrack,
@@ -27,6 +28,13 @@ function BattleWaiting({
   const { isVoteSubmitted, readyList, readyForBattle, myReady } =
     useWebSocketContext();
 
+  const failToast = useRef();
+
+  const totalParticipants =
+    1 +
+    remoteTracks.filter((track) => track.trackPublication.kind === "video")
+      .length;
+
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
   };
@@ -37,10 +45,24 @@ function BattleWaiting({
     readyForBattle(userId, participantName, !myReady);
   };
 
-  const handleStart = (e) => {
-    onShowBattlerModal();
-  };
-
+const handleStart = (e) => {
+  if (totalParticipants > readyList.length) {
+    console.log(
+      "총 참가자 수: ",
+      totalParticipants,
+      "준비된 참가자 수: ",
+      readyList.length
+    );
+    failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+  } else if (totalParticipants <= 1) {
+    failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
+  } else {
+    // 깨끗한 상태 전환을 위해 작은 지연 추가
+    setTimeout(() => {
+      onShowBattlerModal();
+    }, 100);
+  }
+};
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
     .fill(null)
@@ -167,9 +189,7 @@ function BattleWaiting({
             {isMaster ? (
               <div className="w-1/4 flex flex-col mx-1 justify-center">
                 <button
-                  disabled={
-                    remoteTracks.length !== readyList.length || !isVoteSubmitted
-                  }
+                  disabled={!isVoteSubmitted}
                   className="h-1/3 bg-cusYellow mb-1 btn flex items-center justify-center !rounded-lg disabled:bg-cusGray disabled:cursor-not-allowed"
                   onClick={handleStart}
                 >
@@ -204,6 +224,7 @@ function BattleWaiting({
         ref={battlerSettingModal}
         participants={participants}
       />
+      <FailAlertModal ref={failToast}/>
     </>
   );
 }

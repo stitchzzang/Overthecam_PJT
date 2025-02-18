@@ -81,6 +81,7 @@ const useWebSocket = (battleId) => {
           setError(error); // 에러 메세지 .. 구조 분해 다시
           break;
         case "ROOM_STATUS":
+          console.log(data)
           if (data.readyUsers) {
             setReadyList((prev) => [...prev, data.readyUsers]);
           }
@@ -268,6 +269,7 @@ const useWebSocket = (battleId) => {
                   );
 
                 console.log("모든 구독 완료");
+                getRoomState(battleId);
               } catch (subscribeError) {
                 console.error("Subscription error:", subscribeError);
                 setError(subscribeError);
@@ -355,44 +357,44 @@ const useWebSocket = (battleId) => {
     [battleId]
   );
 
- const disconnectWS = useCallback(() => {
-   if (stompClientRef.current) {
-     setWsStatus(WS_STATUS.DISCONNECTED);
+  const disconnectWS = useCallback(() => {
+    if (stompClientRef.current) {
+      setWsStatus(WS_STATUS.DISCONNECTED);
 
-     try {
-       const unsubscribePromises = Object.values(subscriptionsRef.current).map(
-         (subscription) => {
-           return new Promise((resolve) => {
-             if (subscription) {
-               subscription.unsubscribe();
-               setTimeout(resolve, 100);
-             } else {
-               resolve();
-             }
-           });
-         }
-       );
+      try {
+        const unsubscribePromises = Object.values(subscriptionsRef.current).map(
+          (subscription) => {
+            return new Promise((resolve) => {
+              if (subscription) {
+                subscription.unsubscribe();
+                setTimeout(resolve, 100);
+              } else {
+                resolve();
+              }
+            });
+          }
+        );
 
-       Promise.all(unsubscribePromises).then(() => {
-         subscriptionsRef.current = {};
+        Promise.all(unsubscribePromises).then(() => {
+          subscriptionsRef.current = {};
 
-         setTimeout(() => {
-           // 여기서 한번 더 체크
-           if (stompClientRef.current) {
-             stompClientRef.current.deactivate();
-             stompClientRef.current = null;
-           }
-           setWsStatus(WS_STATUS.DISCONNECTED);
-           setError(null);
-         }, 200);
-       });
-     } catch (error) {
-       console.error("Disconnect error:", error);
-       setError("연결 종료 중 오류가 발생했습니다");
-       setWsStatus(WS_STATUS.ERROR);
-     }
-   }
- }, []);
+          setTimeout(() => {
+            // 여기서 한번 더 체크
+            if (stompClientRef.current) {
+              stompClientRef.current.deactivate();
+              stompClientRef.current = null;
+            }
+            setWsStatus(WS_STATUS.DISCONNECTED);
+            setError(null);
+          }, 200);
+        });
+      } catch (error) {
+        console.error("Disconnect error:", error);
+        setError("연결 종료 중 오류가 발생했습니다");
+        setWsStatus(WS_STATUS.ERROR);
+      }
+    }
+  }, []);
 
   const sendMessage = useCallback(
     (content) => {
@@ -451,6 +453,20 @@ const useWebSocket = (battleId) => {
     },
     [battleId, wsStatus]
   );
+
+  const getRoomState = useCallback(() => {
+    try {
+        stompClientRef.current?.send(
+          `/api/publish/battle/private/${battleId}`,
+          {},
+          JSON.stringify({
+            type: "ROOM_STATUS",
+          })
+        );} catch (error) {
+          console.error("방 정보 읽기 실패", error);
+          setError("방 정보 읽기 실패했습니다.");
+        }
+  }, [battleId, wsStatus]);
 
   const readyForBattle = useCallback(
     (userId, nickname, ready) => {
@@ -569,6 +585,7 @@ const useWebSocket = (battleId) => {
     myResult,
     isDraw,
     isBattleEnded,
+    getRoomState,
   };
 };
 

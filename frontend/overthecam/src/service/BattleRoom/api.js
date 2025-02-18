@@ -32,10 +32,9 @@ export const createRoom = async (newTitle, userNickname) => {
 
 export const joinRoom = async (battleId, userNickname) => {
   try {
-    const response = await authAxios.post(
-      `/battle/room/${battleId}/join`,
-      { participantName: userNickname }
-    );
+    const response = await authAxios.post(`/battle/room/${battleId}/join`, {
+      participantName: userNickname,
+    });
     console.log("세션 id", response);
     return response;
   } catch (error) {
@@ -48,8 +47,11 @@ export const joinRoom = async (battleId, userNickname) => {
 };
 
 export const leaveRoom = async (battleId) => {
-  try{
-    const response = await authAxios.delete(`/battle/room/${battleId}/leave`,{})
+  try {
+    const response = await authAxios.delete(
+      `/battle/room/${battleId}/leave`,
+      {}
+    );
     console.log("퇴장 성공 여부: ", response.success);
     return response;
   } catch (error) {
@@ -59,7 +61,7 @@ export const leaveRoom = async (battleId) => {
     console.error("퇴장 오류: ", errorStatus, errorCode, errorMessage);
     throw error.error;
   }
-}
+};
 
 export const selectbattler = async (
   battleId,
@@ -105,6 +107,37 @@ export const betSupportScore = async (battleId, optionId, supportScore) => {
     const errorCode = error.error.code;
     const errorStatus = error.error.status;
     console.error("배팅 오류: ", errorStatus, errorCode, errorMessage);
+    throw error.error;
+  }
+};
+
+export const sendSTT = async (userId, text) => {
+  try {
+    const response = await authAxios.post(`/report/text`, {
+      userId,
+      text,
+    });
+    console.log("대화 내용 보내기 성공 여부:", response.success);
+    console.log("대화 내용", response);
+  } catch (error) {
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;
+    const errorStatus = error.error.status;
+    console.error("배팅 오류: ", errorStatus, errorCode, errorMessage);
+    throw error.error;
+  }
+};
+
+export const getReport = async (userId) => {
+  try {
+    const response = await authAxios.post(`/report/generate/${userId}`, {});
+    console.log("발화분석 요청  보내기 성공 여부:", response.success);
+    console.log("발화분석 내용", response);
+  } catch (error) {
+    const errorMessage = error.error.message;
+    const errorCode = error.error.code;
+    const errorStatus = error.error.status;
+    console.error("발화분석 오류: ", errorStatus, errorCode, errorMessage);
     throw error.error;
   }
 };
