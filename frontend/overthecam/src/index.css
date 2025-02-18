@@ -1,8 +1,8 @@
 /* 폰트 설정 */
 @font-face {
   font-family: 'GmarketSansMedium';
-  src: url('./fonts/GmarketSansMedium.ttf') format('truetype'),
-       url('./fonts/GmarketSansMedium.otf') format('opentype');
+  src: url('/fonts/GmarketSansMedium.ttf') format('truetype'),
+       url('/fonts/GmarketSansMedium.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
@@ -22,12 +22,6 @@ html, body {
   html, body {
     font-size: 16px;
   }
-}
-
-/* 채팅 메시지 폰트 크기 설정 */
-.font-pretendard {
-  font-family: 'Pretendard', sans-serif;
-  font-size: 14px;
 }
 
 #root {
