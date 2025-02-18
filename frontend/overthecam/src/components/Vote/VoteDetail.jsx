@@ -167,7 +167,7 @@ const VoteDetail = ({ voteData, onDelete }) => {
   if (!currentVoteData) return <div>로딩 중...</div>;
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto mt-8">
+    <div className="w-full max-w-[1000px] mx-auto">
       <div className="clay bg-cusLightBlue-lighter rounded-lg shadow-lg p-6">
         <div className="mb-4">
           <button

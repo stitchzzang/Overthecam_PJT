@@ -351,23 +351,22 @@ const VotePage = () => {
               ))}
             </div>
             
-            {pageInfo.totalPages > 1 && (
-              <div className="flex justify-center mt-6">
-                <Pagination
-                  activePage={pages[voteStatus]}
-                  itemsCountPerPage={pageInfo.pageSize}
-                  totalItemsCount={pageInfo.totalElements}
-                  pageRangeDisplayed={5}
-                  prevPageText={"이전"}
-                  nextPageText={"다음"}
-                  onChange={handlePageChange}
-                  innerClass="flex gap-2"
-                  itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
-                  activeClass="bg-cusBlack-light !text-white"
-                  linkClass="block w-full h-full text-center"
-                />
-              </div>
-            )}
+            {/* 모든 상태에서 항상 페이지네이션 표시 */}
+            <div className="flex justify-center mt-6">
+              <Pagination
+                activePage={pages[voteStatus]}
+                itemsCountPerPage={10}
+                totalItemsCount={pageInfo.totalElements}
+                pageRangeDisplayed={5}
+                prevPageText={"이전"}
+                nextPageText={"다음"}
+                onChange={handlePageChange}
+                innerClass="flex gap-2"
+                itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+                activeClass="bg-cusBlack-light !text-white"
+                linkClass="block w-full h-full text-center"
+              />
+            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
