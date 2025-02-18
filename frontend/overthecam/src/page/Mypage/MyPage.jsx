@@ -440,75 +440,63 @@ function MyPage() {
     const file = e.target.files[0];
     if (file) {
       try {
-        // 파일 크기 제한을 1MB로 줄임
-        const maxSize = 1 * 1024 * 1024; // 1MB
+        const maxSize = 1 * 1024 * 1024;
         if (file.size > maxSize) {
           showToast('파일 크기는 1MB 이하여야 합니다.', 'error');
           return;
         }
 
-        // 파일 형식 체크
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!allowedTypes.includes(file.type)) {
           showToast('JPG, PNG 형식의 이미지만 업로드 가능합니다.', 'error');
           return;
         }
 
-        // FormData 직접 생성하여 원본 파일 사용
         const formData = new FormData();
         formData.append("file", file);
 
-        // FormData 내용 확인
-        console.log("FormData 내용:");
-        for (let [key, value] of formData.entries()) {
-          console.log(key, value);
-        }
-
-        const token = localStorage.getItem('token');
         const response = await authAxios.post("/mypage/upload", formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`
           }
         });
 
         console.log("업로드 응답:", response);
 
         if (response.success) {
-          setUserData(prev => ({
-            ...prev,
-            profileInfo: {
-              ...prev.profileInfo,
-              profileImage: URL.createObjectURL(file)
-            }
-          }));
+          // 파일을 Base64로 변환
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64String = reader.result;
+            
+            // Base64 문자열을 localStorage에 저장
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            localStorage.setItem('userInfo', JSON.stringify({
+              ...userInfo,
+              profileImage: base64String
+            }));
 
-          setToast({ 
-            show: true, 
-            message: '프로필 이미지가 업데이트되었습니다.', 
-            type: 'success' 
-          });
-          
-          // 2초 후 토스트 메시지 제거
-          setTimeout(() => {
-            setToast({ show: false, message: '', type: null });
-          }, 2000);
+            // 이벤트 발생
+            const event = new CustomEvent('profileImageUpdated', {
+              detail: { profileImage: base64String }
+            });
+            window.dispatchEvent(event);
 
-        } else {
-          setToast({ 
-            show: true, 
-            message: '이미지 업로드에 실패했습니다.', 
-            type: 'error' 
-          });
-          
-          // 2초 후 토스트 메시지 제거
-          setTimeout(() => {
-            setToast({ show: false, message: '', type: null });
-          }, 2000);
+            // UI 업데이트
+            setUserData(prev => ({
+              ...prev,
+              profileInfo: {
+                ...prev.profileInfo,
+                profileImage: base64String
+              }
+            }));
+
+            showToast('프로필 이미지가 업데이트되었습니다.', 'success');
+          };
+          reader.readAsDataURL(file);
         }
-
       } catch (error) {
-        console.error("이미지 업로드 실패:", error.response || error);
+        console.error("이미지 업로드 실패:", error);
         showToast(error.response?.data?.message || '이미지 업로드에 실패했습니다.', 'error');
       }
     }
