@@ -497,7 +497,7 @@ function MyPage() {
         }
       } catch (error) {
         console.error("이미지 업로드 실패:", error);
-        showToast(error.response?.data?.message || '이미지 업로드에 실패했습니다.', 'error');
+        showToast(error.response?.data?.message || '파일 제목에 한글이나 공백을 제거해주세요요.', 'error');
       }
     }
   };
