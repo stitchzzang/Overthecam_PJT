@@ -52,8 +52,8 @@ public class BattleBettingService {
      */
     public void voteBattler(Long battleId, Long userId, Long optionId) {
         // 투표 및 배틀러 유효성 검증
-        validateVote(battleId, optionId, userId);
         ParticipantRole role = validateUserRole(battleId, userId, ParticipantRole.BATTLER);
+        validateVote(battleId, optionId, userId);
 
         // 배틀러는 응원점수 없이 투표 정보만 저장
         BattleBettingInfo voteInfo = createVoteInfo(battleId, userId, optionId, 0, role);
@@ -66,8 +66,8 @@ public class BattleBettingService {
      */
     public UserScoreInfo vote(Long battleId, Long userId, Long optionId, int supportScore) {
         // 투표 및 판정단 유효성 검증
-        validateVote(battleId, optionId, userId);
         ParticipantRole role = validateUserRole(battleId, userId, ParticipantRole.PARTICIPANT);
+        validateVote(battleId, optionId, userId);
         validateScore(battleId, userId, supportScore);
 
         // 투표 정보 저장 및 점수 차감
