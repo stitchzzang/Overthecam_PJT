@@ -74,13 +74,13 @@ const SearchResultPage = () => {
 
   const handleSearch = async (query) => {
     try {
-      // 배틀 검색
-      const battleResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
+      // 배틀 검색 - public
+      const battleResponse = await publicAxios.get('/search/battle', {
         params: { keyword: query }
       });
 
-      // 유저 검색
-      const userResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/user`, {
+      // 유저 검색 - public
+      const userResponse = await publicAxios.get('/search/user', {
         params: { 
           keyword: query,
           size: 100

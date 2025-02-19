@@ -411,13 +411,20 @@ const MainPage = () => {
 
   const fetchBattles = async () => {
     try {
-      const response = await publicAxios.get('/battle/room/all', {
-        timeout: 5000
+      const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:8080';
+      
+      const response = await axios.get(`${baseURL}/battle/room/all`, {
+        timeout: 5000,
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
       
       if (response.data.success) {
+        // 상태값을 BattleListItem과 동일하게 처리
         const battles = response.data.data.battleInfo.map(battle => ({
           ...battle,
+          // 문자열 "WAITING"을 그대로 유지
           status: battle.status
         }));
         setBattleList(battles.slice(0, 6));
