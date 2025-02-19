@@ -4,7 +4,7 @@ import SearchBar from "./SearchBar";
 import useUserStore from "../../store/User/UserStore";
 import 'remixicon/fonts/remixicon.css';
 import { motion } from "framer-motion";
-
+import { authAxios } from "../../common/axiosinstance";
 // Logo 컴포넌트 수정
 const Logo = () => {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -209,28 +209,43 @@ export default function NavBar() {
     }
   }, [localStorage.getItem("userInfo")]);
 
-  const handleLogout = () => {
-    // localStorage 데이터 삭제
-    localStorage.removeItem("token");
-    localStorage.removeItem("rememberMe");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userInfo");
-    localStorage.removeItem("userId");
-    
-    // Zustand store 상태 초기화
-    useUserStore.setState({ 
-      isLoggedIn: false, 
-      userNickname: null,
-      userId: null 
-    });
-    
-    // 홈으로 이동
-    navigate("/main");
+  const handleLogout = async () => {
+    try {
+      // 서버에 로그아웃 요청
+      await authAxios.post('/auth/logout');
+      
+      // localStorage 데이터 삭제
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userInfo");
+      localStorage.removeItem("userId");
+      
+      // Zustand store 상태 초기화
+      useUserStore.setState({ 
+        isLoggedIn: false, 
+        userNickname: null,
+        userId: null 
+      });
+      
+      // 홈으로 이동
+      navigate("/main");
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+      // 에러 발생시에도 로컬 데이터는 삭제
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userInfo");
+      localStorage.removeItem("userId");
+      
+      useUserStore.setState({ 
+        isLoggedIn: false, 
+        userNickname: null,
+        userId: null 
+      });
+      
+      navigate("/main");
+    }
   };
-
-  if (isBattleRoomPage) {
-    return null;
-  }
 
   return (
     <>
