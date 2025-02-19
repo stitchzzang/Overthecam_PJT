@@ -30,10 +30,15 @@ function BattleRoomLoader() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-black/50 backdrop-blur-sm">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cusRed"></div>
-          <p className="text-gray-600">배틀 정보를 불러오는 중...</p>
+          <img
+            src="/assets/loading2.gif"
+            alt="Loading animation"
+            className="h-16 w-16"
+          />
+          <h3 className="text-xl font-bold">배틀 정보 불러오는 중</h3>
+          <p className="text-gray-600">잠시만 기다려주세요...</p>
         </div>
       </div>
     );

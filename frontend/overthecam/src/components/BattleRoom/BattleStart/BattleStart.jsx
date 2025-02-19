@@ -203,6 +203,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
                       track={slot.track}
                       participantIdentity={slot.participantName}
                       local={slot.type === "local"}
+                      watcher={true}
                       className="w-full h-full object-cover rounded-sm"
                     />
                   </div>
