@@ -48,7 +48,7 @@ public class MyPageController {
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @PageableDefault(size = 10, sort = "created_at", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long userId = targetUserId != null ?
                 targetUserId :
