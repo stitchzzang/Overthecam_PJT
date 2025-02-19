@@ -251,7 +251,7 @@ function MyPage() {
     const fetchUserData = async () => {
       try {
         // 프로필 정보 가져오기
-        const profileResponse = await authAxios.post("/mypage/profile");
+        const profileResponse = await authAxios.get("/mypage/profile");
         const profileData = profileResponse.data;
 
         // 통계 정보 가져오기
