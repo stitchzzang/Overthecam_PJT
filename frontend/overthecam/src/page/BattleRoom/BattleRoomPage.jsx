@@ -480,7 +480,7 @@ function BattleRoomPage() {
 
   const handleBattleStart = (e) => {
     // setIsWaiting(false);
-    readyForBattle(userId, battleInfo.participantName, true);
+    // readyForBattle(userId, battleInfo.participantName, true);
     startBattle();
   };
 

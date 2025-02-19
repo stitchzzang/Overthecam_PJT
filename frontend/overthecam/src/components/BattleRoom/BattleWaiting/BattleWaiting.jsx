@@ -46,6 +46,7 @@ function BattleWaiting({
   };
 
 const handleStart = (e) => {
+  readyForBattle(userId, participantName, true) // 방장은 무조건 ready ;
   if (totalParticipants > readyList.length) {
     console.log(
       "총 참가자 수: ",
