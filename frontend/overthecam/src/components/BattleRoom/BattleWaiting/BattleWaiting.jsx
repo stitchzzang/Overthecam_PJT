@@ -45,24 +45,33 @@ function BattleWaiting({
     readyForBattle(userId, participantName, !myReady);
   };
 
-const handleStart = (e) => {
-  if (totalParticipants > readyList.length) {
-    console.log(
-      "총 참가자 수: ",
-      totalParticipants,
-      "준비된 참가자 수: ",
-      readyList.length
-    );
-    failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
-  } else if (totalParticipants <= 1) {
-    failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
-  } else {
-    // 깨끗한 상태 전환을 위해 작은 지연 추가
+  const handleStart = (e) => {
+    // 방장 ready 상태 설정 (비동기 처리)
+    readyForBattle(userId, participantName, true);
+
+    // 상태 업데이트 후 처리를 위해 setTimeout 사용
     setTimeout(() => {
-      onShowBattlerModal();
-    }, 100);
-  }
-};
+      // 방장을 제외한 참가자 수
+      const nonHostParticipants = totalParticipants - 1;
+      // 방장을 제외한 준비된 참가자 수 (방장은 무조건 ready)
+      const readyNonHostParticipants = readyList.filter(
+        (participant) => participant !== participantName
+      ).length;
+
+      console.log("방장 제외 총 참가자:", nonHostParticipants);
+      console.log("방장 제외 준비된 참가자:", readyNonHostParticipants);
+
+      if (totalParticipants <= 1) {
+        failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
+      }
+      // // 방장 제외 모든 참가자가 준비되었는지 확인
+      // else if (nonHostParticipants !== readyNonHostParticipants) {
+      //   failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+      else {
+        onShowBattlerModal();
+      }
+    }, 100); // 상태 업데이트를 위한 짧은 지연
+  };
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
     .fill(null)
@@ -224,7 +233,7 @@ const handleStart = (e) => {
         ref={battlerSettingModal}
         participants={participants}
       />
-      <FailAlertModal ref={failToast}/>
+      <FailAlertModal ref={failToast} />
     </>
   );
 }

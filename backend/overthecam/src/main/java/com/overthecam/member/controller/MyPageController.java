@@ -147,7 +147,7 @@ public class MyPageController {
     }
 
     //
-    @PutMapping("/profile")
+    @PostMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> updateMyProfile(
             Authentication authentication,
             @RequestBody UserUpdateRequestDto request) {

@@ -2,7 +2,7 @@ import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { useWebSocketContext } from "../../../hooks/useWebSocket";
 import { useState, useRef, useEffect } from "react";
 
-const BattleChating = ({outHeight, innerHeight}) => {
+const BattleChating = () => {
   const [inputMessage, setInputMessage] = useState("");
   const { status, sendMessage, messageList } = useWebSocketContext();
   const [connectStatus, setConnectStatus] = useState("DISCONNECTED");
@@ -64,25 +64,22 @@ const BattleChating = ({outHeight, innerHeight}) => {
           {messageList.length > 0 ? (
             <ul className="space-y-2 w-full">
               {messageList.map((msg, index) => (
-                <li key={index} className="flex flex-col items-start">
+                <li key={index} className="flex flex-col items-start w-full">
                   {msg.nickname === "SYSTEM" ? (
-                    <>
-                      <span className="text-sm text-red-700">
-                        {msg.nickname}
+                    <div className="bg-black/30 w-full">
+                      <span className="text-sm text-white w-full font-semibold break-words">
+                        📣 {msg.content}
                       </span>
-                      <span className="text-sm text-red-900 max-w-36 font-semibold">
-                        {msg.content}
-                      </span>
-                    </>
+                    </div>
                   ) : (
-                    <>
+                    <div className="text-left">
                       <span className="text-sm text-gray-700">
-                        {msg.nickname}
+                        {msg.nickname} : {" "}
                       </span>
-                      <span className="text-sm text-gray-900 max-w-36 font-semibold">
+                      <span className="text-sm text-gray-900 w-full font-semibold break-words">
                         {msg.content}
                       </span>
-                    </>
+                    </div>
                   )}
                 </li>
               ))}

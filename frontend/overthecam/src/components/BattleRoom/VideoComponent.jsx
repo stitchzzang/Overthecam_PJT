@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-function VideoComponent({ track, local = false }) {
+function VideoComponent({ track, local = false, watcher = false }) {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ function VideoComponent({ track, local = false }) {
         ref={videoRef}
         autoPlay
         playsInline
-        muted={local}
+        muted={local || watcher}
         className="video-element w-full h-full object-cover"
       />
     </div>
