@@ -5,12 +5,9 @@ import com.overthecam.security.jwt.JwtProperties;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
-
 import com.overthecam.websocket.service.WebSocketSessionService;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.overthecam.websocket.dto.UserPrincipal;
+
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +19,9 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -40,25 +40,50 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             return message;
         }
 
+        // CONNECT 명령일 때는 초기 인증 수행
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             log.debug("StompCommand.CONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
             return handleConnect(message, accessor);
         }
-        else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            log.debug("StompCommand.SUBSCRIBE 요청 수신 - destination: {}", accessor.getDestination());
-        }
-        else if (StompCommand.SEND.equals(accessor.getCommand())) {
-            log.debug("StompCommand.SEND 요청 수신 - destination: {}", accessor.getDestination());
-            log.debug("메시지 내용: {}", message.getPayload());  // 추가
-            log.debug("메시지 헤더: {}", message.getHeaders());  // 추가
-            return handleSend(message);
-        }
-        else if(StompCommand.DISCONNECT.equals(accessor.getCommand())){
+
+        // DISCONNECT 명령일 때는 세션 정리
+        if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
             log.debug("StompCommand.DISCONNECT 요청 수신 - sessionId: {}", accessor.getSessionId());
             handleDisconnect(accessor);
+            return message;
+        }
+
+        // SUBSCRIBE와 SEND 명령에 대해 토큰 유효성 검증
+        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand()) ||
+            StompCommand.SEND.equals(accessor.getCommand())) {
+
+            log.debug("StompCommand.{} 요청 수신 - destination: {}",
+                accessor.getCommand(), accessor.getDestination());
+
+            // 세션에서 사용자 정보 복원 및 토큰 재검증
+            UserPrincipal user = validateSessionAndToken(accessor);
+            if (user == null) {
+                throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
+                    "토큰 서명이 유효하지 않습니다. 다시 로그인하세요.");
+            }
+
+            // SEND 명령일 경우 추가 로깅
+            if (StompCommand.SEND.equals(accessor.getCommand())) {
+                log.debug("메시지 내용: {}", message.getPayload());
+                log.debug("메시지 헤더: {}", message.getHeaders());
+            }
+
+            // 유효한 사용자로 메시지 재구성
+            accessor.setUser(user);
+            return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
         }
 
         return message;
+    }
+
+    private Message<?> handleConnect(Message<?> message, StompHeaderAccessor accessor) {
+        validateAndSetupUser(accessor);
+        return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
     }
 
     private void handleDisconnect(StompHeaderAccessor accessor) {
@@ -76,23 +101,31 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
     }
 
-    private Message<?> handleConnect(Message<?> message, StompHeaderAccessor accessor) {
-        validateAndSetupUser(accessor);
-        return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
-    }
-
-    private Message<?> handleSend(Message<?> message) {
-        StompHeaderAccessor existingAccessor = StompHeaderAccessor.wrap(message);
-        UserPrincipal user = (UserPrincipal) existingAccessor.getUser();
-
-        if (user == null) {
-            user = restoreUserFromSession(existingAccessor);
-            if (user != null) {
-                existingAccessor.setUser(user);
-                return MessageBuilder.createMessage(message.getPayload(), existingAccessor.getMessageHeaders());
-            }
+    private UserPrincipal validateSessionAndToken(StompHeaderAccessor accessor) {
+        Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+        if (sessionAttributes == null) {
+            return null;
         }
-        return message;
+
+        // 세션에서 토큰 정보 확인
+        String token = (String) sessionAttributes.get("token");
+        if (token == null) {
+            return null;
+        }
+
+        // 토큰 블랙리스트 확인
+        if (tokenService.isBlacklisted(token)) {
+            throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
+                "무효화된 토큰입니다. 다시 로그인해주세요.");
+        }
+
+        // 토큰 유효성 검증
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
+                "유효하지 않은 토큰입니다.");
+        }
+
+        return restoreUserFromSession(accessor);
     }
 
     private UserPrincipal restoreUserFromSession(StompHeaderAccessor accessor) {
@@ -121,7 +154,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
 
         UserPrincipal principal = authenticateToken(bearerToken);
-        setupUserSession(accessor, principal);
+        setupUserSession(accessor, principal, bearerToken); // 토큰도 세션에 저장
     }
 
     private String extractAndValidateToken(StompHeaderAccessor accessor) {
@@ -145,7 +178,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         try {
             if (!jwtTokenProvider.validateToken(token)) {
                 throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
-                        "유효하지 않은 토큰입니다");
+                    "유효하지 않은 토큰입니다");
             }
 
             String email = jwtTokenProvider.getEmail(token);
@@ -156,19 +189,19 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         } catch (ExpiredJwtException e) {
             log.error("토큰이 만료됨", e);
             throw new WebSocketException(WebSocketErrorCode.EXPIRED_ACCESS_TOKEN,
-                    "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요.");
+                "액세스 토큰이 만료되었습니다. 토큰을 갱신해주세요.");
         } catch (io.jsonwebtoken.MalformedJwtException e) {
             log.error("잘못된 형식의 토큰", e);
             throw new WebSocketException(WebSocketErrorCode.MALFORMED_TOKEN,
-                    "잘못된 형식의 토큰입니다");
+                "잘못된 형식의 토큰입니다");
         } catch (Exception e) {
             log.error("토큰 검증 중 오류 발생", e);
             throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
-                    "토큰 검증 중 오류가 발생했습니다");
+                "토큰 검증 중 오류가 발생했습니다");
         }
     }
 
-    private void setupUserSession(StompHeaderAccessor accessor, UserPrincipal principal) {
+    private void setupUserSession(StompHeaderAccessor accessor, UserPrincipal principal, String token) {
         // Principal 설정
         accessor.setUser(principal);
 
@@ -177,11 +210,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         attributes.put("userId", principal.getUserId());
         attributes.put("email", principal.getEmail());
         attributes.put("nickname", principal.getNickname());
+        attributes.put("token", token); // 토큰 저장
         accessor.setSessionAttributes(attributes);
 
         // WebSocketSession 등록
         webSocketSessionService.registerSession(accessor.getSessionId(), principal.getUserId());
-
 
         log.debug("WebSocket 인증 성공 - 사용자: {}, Principal: {}, SessionAttributes: {}",
             principal.getEmail(), principal, attributes);
