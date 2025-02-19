@@ -201,8 +201,13 @@ const VoteDetail = ({ voteData, onDelete }) => {
         <div className="flex flex-col items-center gap-2 text-base text-gray-500 mb-4">
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="currentColor" 
+                className="w-4 h-4"
+              >
+                <path d="M17 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H7V1H9V3H15V1H17V3ZM4 9V19H20V9H4ZM6 11H8V13H6V11ZM11 11H13V13H11V11ZM16 11H18V13H16V11Z" />
               </svg>
               <span className="font-medium">{new Date(currentVoteData.createdAt).toLocaleString('ko-KR', {
                 year: 'numeric',
