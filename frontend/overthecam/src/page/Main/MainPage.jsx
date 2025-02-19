@@ -37,7 +37,7 @@ const StatusBadge = ({ status, onClick }) => {
 };
 
 // 새로운 PopularVote 컴포넌트 추가
-const PopularVote = () => {
+const PopularVote = ({ vote }) => {
   const navigate = useNavigate();
   const [popularVotes, setPopularVotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -545,7 +545,7 @@ const MainPage = () => {
         </div>
         
         {/* PopularVote 컴포넌트에서 onVoteUpdate props 제거 */}
-        <PopularVote key={popularVoteKey} />
+        <PopularVote key={popularVoteKey} vote={voteList[popularVoteKey]} />
         
         <div className="container mx-auto px-4">
           <div className="container mx-auto px-14 pt-48 pb-12">
