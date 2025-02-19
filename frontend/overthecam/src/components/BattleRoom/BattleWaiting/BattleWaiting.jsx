@@ -30,10 +30,7 @@ function BattleWaiting({
 
   const failToast = useRef();
 
-  const totalParticipants =
-    1 +
-    remoteTracks.filter((track) => track.trackPublication.kind === "video")
-      .length;
+  const totalParticipants = participants.length
 
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
@@ -51,22 +48,16 @@ function BattleWaiting({
 
     // 상태 업데이트 후 처리를 위해 setTimeout 사용
     setTimeout(() => {
-      // 방장을 제외한 참가자 수
-      const nonHostParticipants = totalParticipants - 1;
-      // 방장을 제외한 준비된 참가자 수 (방장은 무조건 ready)
-      const readyNonHostParticipants = readyList.filter(
-        (participant) => participant !== participantName
-      ).length;
-
-      console.log("방장 제외 총 참가자:", nonHostParticipants);
-      console.log("방장 제외 준비된 참가자:", readyNonHostParticipants);
+      console.log("현재 참가자 수수: ", totalParticipants)
+      console.log("준비한 참가자: ", readyList.length)
 
       if (totalParticipants <= 1) {
         failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
       }
       // // 방장 제외 모든 참가자가 준비되었는지 확인
-      // else if (nonHostParticipants !== readyNonHostParticipants) {
-      //   failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+      else if (totalParticipants >= readyList.length) {
+         failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+      }
       else {
         onShowBattlerModal();
       }
