@@ -18,7 +18,7 @@ const FailAlertModal = forwardRef(function FailAlertModal(_, ref) {
         
         setTimeout(() => {
           modalRef.current?.close();
-        }, 1000);
+        }, 1500);
       } catch (error) {
         console.error("모달 표시 중 에러:", error);
       }

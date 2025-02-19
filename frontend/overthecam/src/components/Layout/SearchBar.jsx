@@ -30,9 +30,9 @@ function SearchBar({ value, onChange }) {
     };
 
     return (
-      <div className="flex-grow max-w-3xl mx-auto flex items-center gap-2 py-4">
+      <div className="flex-grow max-w-xl mx-auto flex items-center gap-2 py-4">
         <div 
-          className={`flex flex-1 items-center bg-white rounded-full h-[46px]
+          className={`flex w-[300px] items-center bg-white rounded-full h-[46px]
             border border-gray-200 px-3 transition-all duration-200
             ${isFocused ? 'border-gray-300 shadow-sm' : ''}`}
         >
@@ -40,7 +40,7 @@ function SearchBar({ value, onChange }) {
           <input
             type="text"
             className="border-0 bg-transparent flex-1 focus:outline-none text-gray-700 h-full text-sm mb-0"
-            placeholder=" 관심사나 배틀룸 검색"
+            placeholder=" 제목이나 사용자로 검색"
             value={searchValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}

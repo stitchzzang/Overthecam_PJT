@@ -28,6 +28,22 @@ const VotePage = () => {
   const userInfo = localStorage.getItem('userInfo');
   const userId = userInfo ? JSON.parse(userInfo).userId : null;
 
+  const createConfetti = (isFirstOption) => {
+    const emojis = isFirstOption 
+      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+      : ['💙', '🐠', '🥶', '💎','🐬','❄️'];
+
+    for (let i = 0; i < 15; i++) {
+      const confetti = document.createElement('div');
+      const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+      confetti.className = `confetti ${animationType}`;
+      confetti.style.left = `${Math.random() * window.innerWidth}px`;
+      confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2500);
+    }
+  };
+
   const fetchVotes = async () => {
     try {
       setLoading(true);
@@ -104,44 +120,44 @@ const VotePage = () => {
         return;
       }
 
-      // 즉시 UI 업데이트
-      setCurrentList(prevList => 
-        prevList.map(v => {
-          if (v.voteId === vote.voteId) {
-            const updatedOptions = v.options.map(option => ({
-              ...option,
-              voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
-            }));
-            
-            const totalVotes = updatedOptions.reduce((sum, opt) => sum + opt.voteCount, 0);
-            
-            const optionsWithPercentage = updatedOptions.map(option => ({
-              ...option,
-              votePercentage: (option.voteCount / totalVotes) * 100
-            }));
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
 
-            return {
-              ...v,
-              hasVoted: true,
-              options: optionsWithPercentage
-            };
-          }
-          return v;
-        })
-      );
+        // 컨페티 생성
+        const isFirstOption = optionId === vote.options[0].optionId;
+        createConfetti(isFirstOption);
 
-      // UI 업데이트 후 서버 요청
-      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
-      
-    } catch (err) {
-      console.error('Vote error:', err);
-      if (err.response?.status === 401) {
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
+
+        // 최신 데이터 가져오기
+        const response = await authAxios.get(`/vote/${vote.voteId}`);
+        if (response.data) {
+          const updatedVotes = currentList.map(v => 
+            v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
+          );
+          setCurrentList(updatedVotes);
+        }
+
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
+      }
+    } catch (error) {
+      console.error('투표 처리 중 오류 발생:', error);
+      if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
-        return;
       }
-      alert('투표 처리 중 오류가 발생했습니다.');
-      await fetchVotes();
     }
   };
 
@@ -311,13 +327,45 @@ const VotePage = () => {
                       <div className="flex gap-4 mb-4">
                         {vote.options.map((option) => (
                           <button
+                            id={`vote-button-${option.optionId}`}
                             key={option.optionId}
-                            onClick={() => handleVote(vote, option.optionId)}
-                            className={`clay flex-1 p-4 ${
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              
+                              // 로그인 체크
+                              if (!localStorage.getItem('token')) {
+                                alert('로그인이 필요합니다.');
+                                navigate('/main/login');
+                                return;
+                              }
+                              
+                              // 로그인된 경우에만 리플과 컨페티 효과
+                              const button = e.currentTarget;
+                              const ripple = document.createElement('div');
+                              ripple.className = 'ripple';
+                              
+                              const rect = button.getBoundingClientRect();
+                              const size = Math.max(rect.width, rect.height);
+                              ripple.style.width = ripple.style.height = `${size}px`;
+                              
+                              button.appendChild(ripple);
+                              ripple.classList.add('active');
+
+                              // 컨페티 생성
+                              const isFirstOption = option.optionId === vote.options[0].optionId;
+                              createConfetti(isFirstOption);
+
+                              // 투표 처리
+                              handleVote(vote, option.optionId);
+
+                              // 리플 제거
+                              setTimeout(() => ripple.remove(), 600);
+                            }}
+                            className={`vote-button ${
                               option.optionId === vote.options[0].optionId
-                                ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                                : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                            } rounded-lg transition-colors text-lg font-bold`}
+                                ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                                : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                            } clay flex-1 p-4 rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
                           >
                             {option.optionTitle}
                           </button>
@@ -351,23 +399,22 @@ const VotePage = () => {
               ))}
             </div>
             
-            {pageInfo.totalPages > 1 && (
-              <div className="flex justify-center mt-6">
-                <Pagination
-                  activePage={pages[voteStatus]}
-                  itemsCountPerPage={pageInfo.pageSize}
-                  totalItemsCount={pageInfo.totalElements}
-                  pageRangeDisplayed={5}
-                  prevPageText={"이전"}
-                  nextPageText={"다음"}
-                  onChange={handlePageChange}
-                  innerClass="flex gap-2"
-                  itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
-                  activeClass="bg-cusBlack-light !text-white"
-                  linkClass="block w-full h-full text-center"
-                />
-              </div>
-            )}
+            {/* 모든 상태에서 항상 페이지네이션 표시 */}
+            <div className="flex justify-center mt-6">
+              <Pagination
+                activePage={pages[voteStatus]}
+                itemsCountPerPage={10}
+                totalItemsCount={pageInfo.totalElements}
+                pageRangeDisplayed={5}
+                prevPageText={"이전"}
+                nextPageText={"다음"}
+                onChange={handlePageChange}
+                innerClass="flex gap-2"
+                itemClass="px-4 py-2 rounded-lg text-cusBlack-light hover:bg-gray-300 transition"
+                activeClass="bg-cusBlack-light !text-white"
+                linkClass="block w-full h-full text-center"
+              />
+            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-12">

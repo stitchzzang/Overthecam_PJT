@@ -1,17 +1,131 @@
 /* 폰트 설정 */
 @font-face {
   font-family: 'GmarketSansMedium';
-  src: url('../fonts/GmarketSansTTFMedium.ttf') format('truetype');
+  src: url('../fonts/GmarketSansTTFMedium.ttf') format('truetype'),
+       url('../fonts/GmarketSansMedium.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
-@font-face {
-  font-family: 'GmarketSansMedium';
-  src: url('../fonts/GmarketSansMedium.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+
+/* 기본 폰트 폴백 설정 */
+:root {
+  --font-fallback: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 전역 스타일에 폰트 적용 */
+* {
+  font-family: 'GmarketSansMedium', var(--font-fallback);
+}
+
+/* 투표 버튼 스타일 */
+.vote-button {
+  position: relative;
+  overflow: hidden;
+  font-family: 'GmarketSansMedium', var(--font-fallback) !important;
+}
+
+/* 리플 이펙트 애니메이션 */
+@keyframes ripple {
+  from {
+    transform: scale(0);
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+
+.vote-button .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0);
+  pointer-events: none;
+}
+
+.vote-button .ripple.active {
+  animation: ripple 0.6s linear;
+}
+
+/* 컨페티 애니메이션 - 여러 버전 */
+@keyframes fall-1 {
+  from {
+    top: -10px;
+    transform: rotate(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fall-2 {
+  from {
+    top: -10px;
+    transform: rotate(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes fall-3 {
+  from {
+    top: -10px;
+    transform: rotate(0) translateX(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(720deg) translateX(100px);
+  }
+}
+
+@keyframes fall-4 {
+  from {
+    top: -10px;
+    transform: rotate(0) translateX(0);
+  }
+  to {
+    top: 110vh;
+    transform: rotate(-720deg) translateX(-100px);
+  }
+}
+
+.confetti {
+  position: fixed;
+  pointer-events: none;
+  width: 10px;
+  height: 10px;
+  font-size: 30px;
+  z-index: 9999;
+}
+
+.confetti.type-1 {
+  animation: fall-1 2s cubic-bezier(.05,.46,1,1);
+}
+
+.confetti.type-2 {
+  animation: fall-2 2.5s cubic-bezier(.05,.46,.8,1);
+}
+
+.confetti.type-3 {
+  animation: fall-3 1.8s cubic-bezier(.05,.46,.9,1);
+}
+
+.confetti.type-4 {
+  animation: fall-4 2.2s cubic-bezier(.05,.46,.7,1);
+}
+
+/* 버튼 액티브 상태 */
+.vote-button-red:active {
+  background-color: rgb(254, 202, 202) !important;
+}
+
+.vote-button-blue:active {
+  background-color: rgb(191, 219, 254) !important;
 }
 
 html, body {
@@ -20,7 +134,6 @@ html, body {
   padding: 0;
   background-color: rgb(242, 247, 255);
   width: 100%;
-  font-family: 'GmarketSansMedium', sans-serif;
   font-size: 17px;
 }
 
@@ -113,60 +226,6 @@ footer {
   @apply w-10 h-10 border-4 border-gray-300 border-t-cusBlue rounded-full animate-spin
 }
 
-/* NavBar Gooey Effect Styles */
-.gooey-filter {
-  filter: url(#gooey);
-  z-index: 20;
-}
-
-.gooey-menu-item {
-  @apply absolute w-36 h-12 bg-cusGray rounded-full clay transition-all duration-300 ease-in-out;
-  box-shadow: 
-    4px 4px 10px rgba(0, 0, 0, 0.2),
-    -4px -4px 10px rgba(255, 255, 255, 0.7),
-    inset 2px 2px 4px rgba(255, 255, 255, 0.1),
-    inset -2px -2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.gooey-menu-item-1 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-1.active {
-  @apply translate-y-[10px] opacity-100;
-}
-
-.gooey-menu-item-2 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-2.active {
-  @apply translate-y-[77px] opacity-100;
-}
-
-.gooey-menu-item-3 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-3.active {
-  @apply translate-y-[144px] opacity-100;
-}
-
-.gooey-menu-item-4 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-4.active {
-  @apply translate-y-[211px] opacity-100;
-}
-
-.gooey-menu-item-5 {
-  @apply translate-y-0 opacity-0;
-}
-
-.gooey-menu-item-5.active {
-  @apply translate-y-[278px] opacity-100;
-}
 
 /* Popular Vote Carousel Styles */
 .popular-vote-carousel {
@@ -236,7 +295,63 @@ footer {
   padding-bottom: 8px;
 }
 
-/* 오버레이 스타일 추가 */
+
+/* NavBar Gooey Effect Styles */
+.gooey-filter {
+  filter: url(#gooey);
+  z-index: 20;
+}
+
+.gooey-menu-item {
+  @apply absolute w-36 h-12 bg-cusGray rounded-full clay transition-all duration-300 ease-in-out;
+  box-shadow: 
+    4px 4px 10px rgba(0, 0, 0, 0.2),
+    -4px -4px 10px rgba(255, 255, 255, 0.7),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gooey-menu-item-1 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-1.active {
+  @apply translate-y-[10px] opacity-100;
+}
+
+.gooey-menu-item-2 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-2.active {
+  @apply translate-y-[77px] opacity-100;
+}
+
+.gooey-menu-item-3 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-3.active {
+  @apply translate-y-[144px] opacity-100;
+}
+
+.gooey-menu-item-4 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-4.active {
+  @apply translate-y-[211px] opacity-100;
+}
+
+.gooey-menu-item-5 {
+  @apply translate-y-0 opacity-0;
+}
+
+.gooey-menu-item-5.active {
+  @apply translate-y-[278px] opacity-100;
+}
+
+/* 오버레이 스타일 수정 */
 .menu-overlay {
   @apply fixed inset-0 bg-black/5 backdrop-blur-[2px] opacity-0 pointer-events-none transition-opacity duration-300 z-10;
 }
@@ -245,7 +360,7 @@ footer {
   @apply opacity-100 pointer-events-auto;
 }
 
-/* 기존 menu-link 스타일 수정 */
+/* 메뉴 링크 z-index 수정 */
 .menu-link {
   @apply absolute w-36 h-12 flex items-center justify-start px-4 text-cusBlack-light 
     transition-all duration-300 ease-in-out translate-y-0 opacity-0 pointer-events-none z-30;

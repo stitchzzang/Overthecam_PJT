@@ -18,34 +18,46 @@ const SectionTitle = ({ title }) => (
   </h2>
 );
 
-const StatusBadge = ({ status, onClick }) => {
-  const baseClasses = "btn px-3 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
-  return status === 0 ? (
-    <span 
-      onClick={onClick}
-      className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black cursor-pointer`}
-    >
-      입장하기
-    </span>
-  ) : (
-    <div className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
-      진행 중
-    </div>
-  );
-};
-
-// 참가자 수를 위한 새로운 컴포넌트
-const ParticipantsBadge = ({ current, max }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
+const StatusBadge = ({ status, totalUsers, onClick }) => {
+  const baseClasses = "btn py-2 font-bold rounded-lg whitespace-nowrap";
+  
+  // status가 "WAITING" 문자열인 경우와 0인 경우를 모두 처리
+  const isWaiting = status === "WAITING" || status === 0;
+  
+  // 대기중이고 정원이 다 찼을 경우
+  if (isWaiting && totalUsers >= 6) {
+    return (
+      <button className={`${baseClasses} px-4 sm:px-6 bg-cusGray text-white pointer-events-none`}>
+        <span className="sm:inline hidden">입장 불가</span>
+        <span className="sm:hidden">만석</span>
+      </button>
+    );
+  }
+  
+  // 대기중이고 입장 가능한 경우
+  if (isWaiting) {
+    return (
+      <button 
+        onClick={onClick}
+        className={`${baseClasses} px-4 sm:px-6 bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black cursor-pointer`}
+      >
+        <span className="sm:inline hidden">입장하기</span>
+        <span className="sm:hidden">입장</span>
+      </button>
+    );
+  }
+  
+  // 진행중인 경우
   return (
-    <span className={`${baseClasses} bg-cusGray-light text-cusBlack`}>
-      {current} / {max}
-    </span>
+    <button className={`${baseClasses} px-4 sm:px-6 bg-cusGray text-white pointer-events-none`}>
+      <span className="sm:inline hidden">진행 중</span>
+      <span className="sm:hidden">진행</span>
+    </button>
   );
 };
 
 // 새로운 PopularVote 컴포넌트 추가
-const PopularVote = ({ onVoteUpdate }) => {
+const PopularVote = ({ vote }) => {
   const navigate = useNavigate();
   const [popularVotes, setPopularVotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +132,77 @@ const PopularVote = ({ onVoteUpdate }) => {
     }
   };
 
+  const createConfetti = (isFirstOption) => {
+    const emojis = isFirstOption 
+      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+      : ['💙', '🐠', '🌍', '💎','🐬','❄️'];
+
+    for (let i = 0; i < 15; i++) {
+      const confetti = document.createElement('div');
+      const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+      confetti.className = `confetti ${animationType}`;
+      confetti.style.left = `${Math.random() * window.innerWidth}px`;
+      confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2500);
+    }
+  };
+
+  const handleVoteUpdate = async (voteId, optionId, options) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+        return;
+      }
+
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
+
+        // 컨페티 생성 - options 배열을 사용하여 isFirstOption 확인
+        const isFirstOption = optionId === options[0].optionId;
+        createConfetti(isFirstOption);
+
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
+
+        // 투표 결과 가져오기
+        const response = await authAxios.get(`/vote/${voteId}`);
+        const updatedVote = response.data;
+
+        // 투표 결과 업데이트
+        setPopularVotes(prev => 
+          prev.map(v => v.voteId === voteId ? {
+            ...v,
+            hasVoted: true,
+            options: updatedVote.options,
+            totalVoteCount: updatedVote.totalVoteCount
+          } : v)
+        );
+
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
+      }
+    } catch (error) {
+      console.error('Vote error:', error);
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/main/login');
+      }
+    }
+  };
+
   if (loading || popularVotes.length === 0) return null;
 
   return (
@@ -132,114 +215,149 @@ const PopularVote = ({ onVoteUpdate }) => {
       
       <div className="popular-vote-carousel">
         <ul className="popular-vote-list">
-          {popularVotes.map((vote, index) => (
-            <li 
-              key={vote.voteId} 
-              className={`popular-vote-item ${getSlideClass(index)}`}
-              onClick={() => {
-                const slideClass = getSlideClass(index);
-                if (slideClass === 'prev') prevSlide();
-                if (slideClass === 'next') nextSlide();
-              }}
-            >
-              <div className="p-4">
-                <div className="clay bg-white rounded-lg shadow-lg p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="text-left">
-                      <Link 
-                        to={`/main/vote-detail/${vote.voteId}`}
-                        className="block"
-                        onClick={(e) => {
-                          if (!localStorage.getItem('token')) {
-                            e.preventDefault();
-                            alert('로그인이 필요합니다.');
-                            navigate('/main/login');
-                          }
-                        }}
-                      >
-                        <h2 className="text-xl font-bold mb-3 hover:text-blue-600 cursor-pointer line-clamp-1">
-                          <span className="mr-2 text-2xl">{getRankBadge(index)}</span>
-                          {vote.title}
-                        </h2>
-                      </Link>
-                      
-                      <p className="text-gray-600 mb-2 line-clamp-2 text-sm">
-                        {vote.content}
-                      </p>
-                    </div>
-
-                    <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0 ml-2">
-                      <span className="text-sm text-gray-600 whitespace-nowrap">
-                        {vote.totalVoteCount.toLocaleString()}명 참여중
-                      </span>
-                    </div>
-                  </div>
-
-                  {vote.hasVoted ? (
-                    <div>
-                      <div className="mb-2 flex justify-between">
-                        <div className="text-cusRed font-bold">
-                          A. {vote.options[0].optionTitle}
-                        </div>
-                        <div className="text-cusBlue font-bold">
-                          B. {vote.options[1].optionTitle}
-                        </div>
-                      </div>
-                      <div className="relative h-12 rounded-full overflow-hidden">
-                        {vote.options[0].votePercentage > 0 && (
-                          <div
-                            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-                            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
-                          >
-                            {vote.options[0].votePercentage < 25 ? (
-                              <div className="text-base flex flex-col">
-                                <div>{Math.round(vote.options[0].votePercentage)}%</div>
-                              </div>
-                            ) : (
-                              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
-                            )}
-                          </div>
-                        )}
-                        {vote.options[1].votePercentage > 0 && (
-                          <div
-                            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-                            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
-                          >
-                            {vote.options[1].votePercentage < 25 ? (
-                              <div className="text-base flex flex-col items-end">
-                                <div>{Math.round(vote.options[1].votePercentage)}%</div>
-                              </div>
-                            ) : (
-                              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex gap-4">
-                      {vote.options.map((option) => (
-                        <button
-                          key={option.optionId}
+          {popularVotes.map((vote, index) => {
+            const slideClass = getSlideClass(index);
+            const isActive = slideClass === 'active';
+            
+            return (
+              <li 
+                key={vote.voteId} 
+                className={`popular-vote-item ${slideClass}`}
+                onClick={() => {
+                  if (slideClass === 'prev') prevSlide();
+                  if (slideClass === 'next') nextSlide();
+                }}
+              >
+                <div className="p-4">
+                  <div className="clay bg-white rounded-lg shadow-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="text-left">
+                        <Link 
+                          to={`/main/vote-detail/${vote.voteId}`}
+                          className="block"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            onVoteUpdate(vote.voteId, option.optionId);
+                            // 중앙 카드가 아닐 경우 상세 페이지 이동 방지
+                            if (!isActive) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return;
+                            }
+                            if (!localStorage.getItem('token')) {
+                              e.preventDefault();
+                              alert('로그인이 필요합니다.');
+                              navigate('/main/login');
+                            }
                           }}
-                          className={`clay flex-1 p-4 ${
-                            option.optionId === vote.options[0].optionId
-                              ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                              : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                          } rounded-lg transition-colors text-lg font-bold`}
                         >
-                          {option.optionTitle}
-                        </button>
-                      ))}
+                          <h2 className={`text-xl font-bold mb-3 line-clamp-1 ${isActive ? 'hover:text-blue-600 cursor-pointer' : 'cursor-default'}`}>
+                            <span className="mr-2 text-2xl">{getRankBadge(index)}</span>
+                            {vote.title}
+                          </h2>
+                        </Link>
+                        
+                        <p className="text-gray-600 mb-2 line-clamp-2 text-sm">
+                          {vote.content}
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-100 px-3 py-1 rounded-full shrink-0 ml-2">
+                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                          {vote.totalVoteCount.toLocaleString()}명 참여중
+                        </span>
+                      </div>
                     </div>
-                  )}
+
+                    {vote.hasVoted ? (
+                      <div>
+                        <div className="mb-2 flex justify-between">
+                          <div className="text-cusRed font-bold">
+                            A. {vote.options[0].optionTitle}
+                          </div>
+                          <div className="text-cusBlue font-bold">
+                            B. {vote.options[1].optionTitle}
+                          </div>
+                        </div>
+                        <div className="relative h-12 rounded-full overflow-hidden">
+                          {vote.options[0].votePercentage > 0 && (
+                            <div
+                              className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
+                              style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
+                            >
+                              {vote.options[0].votePercentage < 25 ? (
+                                <div className="text-base flex flex-col">
+                                  <div>{Math.round(vote.options[0].votePercentage)}%</div>
+                                </div>
+                              ) : (
+                                <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
+                              )}
+                            </div>
+                          )}
+                          {vote.options[1].votePercentage > 0 && (
+                            <div
+                              className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
+                              style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
+                            >
+                              {vote.options[1].votePercentage < 25 ? (
+                                <div className="text-base flex flex-col items-end">
+                                  <div>{Math.round(vote.options[1].votePercentage)}%</div>
+                                </div>
+                              ) : (
+                                <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex gap-4">
+                        {vote.options.map((option) => (
+                          <button
+                            id={`vote-button-${option.optionId}`}
+                            key={option.optionId}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isActive) return;
+                              
+                              if (!localStorage.getItem('token')) {
+                                alert('로그인이 필요합니다.');
+                                navigate('/main/login');
+                                return;
+                              }
+                              
+                              const button = e.currentTarget;
+                              const ripple = document.createElement('div');
+                              ripple.className = 'ripple';
+                              
+                              const rect = button.getBoundingClientRect();
+                              const size = Math.max(rect.width, rect.height);
+                              ripple.style.width = ripple.style.height = `${size}px`;
+                              
+                              button.appendChild(ripple);
+                              ripple.classList.add('active');
+
+                              // handleVoteUpdate 호출 시 options 전달
+                              handleVoteUpdate(vote.voteId, option.optionId, vote.options);
+
+                              setTimeout(() => ripple.remove(), 600);
+                            }}
+                            className={`vote-button clay flex-1 p-4 ${
+                              option.optionId === vote.options[0].optionId
+                                ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                                : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                            } rounded-lg transition-colors text-lg font-bold relative overflow-hidden ${
+                              !isActive ? 'opacity-50 cursor-default pointer-events-none' : 'cursor-pointer'
+                            }`}
+                          >
+                            {option.optionTitle}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
@@ -249,7 +367,7 @@ const PopularVote = ({ onVoteUpdate }) => {
 const MainPage = () => {
   const [battleList, setBattleList] = useState([]);
   const [voteList, setVoteList] = useState([]);
-  const [popularVoteKey, setPopularVoteKey] = useState(0); // PopularVote 컴포넌트 리렌더링을 위한 key
+  const [popularVoteKey, setPopularVoteKey] = useState(0);
   const navigate = useNavigate();
   const userInfo = localStorage.getItem('userInfo');
   const userId = userInfo ? JSON.parse(userInfo).userId : null;
@@ -293,11 +411,9 @@ const MainPage = () => {
 
   const fetchBattles = async () => {
     try {
-      // baseURL 설정 확인
       const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:8080';
       
       const response = await axios.get(`${baseURL}/battle/room/all`, {
-        // timeout 설정 추가
         timeout: 5000,
         headers: {
           'Content-Type': 'application/json',
@@ -305,11 +421,11 @@ const MainPage = () => {
       });
       
       if (response.data.success) {
+        // 상태값을 BattleListItem과 동일하게 처리
         const battles = response.data.data.battleInfo.map(battle => ({
           ...battle,
-          status: typeof battle.status === 'string' 
-            ? battle.status === "WAITING" ? 0 : 1
-            : battle.status
+          // 문자열 "WAITING"을 그대로 유지
+          status: battle.status
         }));
         setBattleList(battles.slice(0, 6));
       } else {
@@ -318,7 +434,6 @@ const MainPage = () => {
       }
     } catch (error) {
       console.error("배틀 목록 조회 중 오류 발생:", error);
-      // 에러 발생시 빈 배열로 설정하여 UI가 깨지지 않도록 함
       setBattleList([]);
     }
   };
@@ -346,125 +461,8 @@ const MainPage = () => {
     }
   };
 
-  // 투표 처리 함수를 상위 컴포넌트로 이동
-  const handleVoteUpdate = async (voteId, optionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('로그인이 필요합니다.');
-        navigate('/main/login');
-        return;
-      }
-
-      // UI 즉시 업데이트 (일반 투표 목록)
-      setVoteList(prevList => 
-        prevList.map(v => {
-          if (v.voteId === voteId) {
-            const updatedOptions = v.options.map(option => ({
-              ...option,
-              voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
-            }));
-            
-            const totalVotes = updatedOptions.reduce((sum, opt) => sum + opt.voteCount, 0);
-            
-            const optionsWithPercentage = updatedOptions.map(option => ({
-              ...option,
-              votePercentage: (option.voteCount / totalVotes) * 100
-            }));
-
-            return {
-              ...v,
-              hasVoted: true,
-              options: optionsWithPercentage
-            };
-          }
-          return v;
-        })
-      );
-
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${voteId}/vote/${optionId}`);
-      
-      // PopularVote 컴포넌트 리렌더링
-      setPopularVoteKey(prev => prev + 1);
-      
-      // 투표 목록 새로고침
-      await fetchVotes();
-
-    } catch (err) {
-      console.error('Vote error:', err);
-      if (err.response?.status === 401) {
-        alert('로그인이 필요합니다.');
-        navigate('/main/login');
-        return;
-      }
-      if (err.response?.data?.error?.code === 'DUPLICATE_VOTE') {
-        // 이미 투표한 경우 UI 업데이트만 수행
-        await fetchVotes();
-        setPopularVoteKey(prev => prev + 1);
-      } else {
-        alert('투표 처리 중 오류가 발생했습니다.');
-      }
-    }
-  };
-
-  const handleVoteDetailClick = (voteId) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/main/login');
-      return;
-    }
-    navigate(`/main/vote-detail/${voteId}`);
-  };
-
-  const renderVoteResult = (vote) => (
-    <div className="mb-4">
-      <div className="flex justify-between mb-2">
-        <div className="text-cusRed font-bold">
-          A. {vote.options[0].optionTitle}
-        </div>
-        <div className="text-cusBlue font-bold">
-          B. {vote.options[1].optionTitle}
-        </div>
-      </div>
-      <div className="relative h-12 rounded-full overflow-hidden">
-        {vote.options[0].votePercentage > 0 && (
-          <div
-            className="absolute left-0 top-0 h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold"
-            style={{ width: `${vote.options[0].votePercentage >= 100 ? 100 : vote.options[0].votePercentage}%` }}
-          >
-            {vote.options[0].votePercentage < 25 ? (
-              <div className="text-base flex flex-col">
-                <div>{Math.round(vote.options[0].votePercentage)}%</div>
-              </div>
-            ) : (
-              <span className="text-lg">{Math.round(vote.options[0].votePercentage)}%</span>
-            )}
-          </div>
-        )}
-        {vote.options[1].votePercentage > 0 && (
-          <div
-            className="absolute right-0 top-0 h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold"
-            style={{ width: `${vote.options[1].votePercentage >= 100 ? 100 : vote.options[1].votePercentage}%` }}
-          >
-            {vote.options[1].votePercentage < 25 ? (
-              <div className="text-base flex flex-col items-end">
-                <div>{Math.round(vote.options[1].votePercentage)}%</div>
-              </div>
-            ) : (
-              <span className="text-lg">{Math.round(vote.options[1].votePercentage)}%</span>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   // 배틀룸 입장 처리 함수 수정
   const handleBattleEnter = async (battleId, status) => {
-    if (status !== 0) return;
-    
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -474,7 +472,8 @@ const MainPage = () => {
       }
 
       const response = await joinRoom(battleId, userNickname);
-      await new Promise((resolve) => {
+      
+      if (response.data) {  // 응답 데이터 확인
         const newBattleInfo = {
           battleId: response.data.battleId,
           participantName: userNickname,
@@ -484,13 +483,13 @@ const MainPage = () => {
         };
 
         setBattleInfo(newBattleInfo);
-        requestAnimationFrame(resolve);
-      });
-
-      navigate(`/main/battle-room/${battleId}`);
+        navigate(`/main/battle-room/${battleId}`);
+      } else {
+        throw new Error('배틀룸 입장 실패');
+      }
     } catch (error) {
-      console.error("Battle room navigation error:", error);
-      navigate('/main/battle-list');
+      console.error("Battle room error:", error);
+      alert('배틀룸 입장에 실패했습니다.');
     }
   };
 
@@ -544,16 +543,22 @@ const MainPage = () => {
 
       <div className="relative">
         {/* 그라데이션 배경 */}
-        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56" />
+        <div className="bg-gradient-to-r from-cusPink to-cusLightBlue h-56 relative">
+          {/* 투표 참여하기 버튼 추가 */}
+          <Link 
+            to="/main/vote"
+            className="absolute top-8 right-8 border-2 border-cusBlack-light text-cusBlack-light px-6 py-2.5 rounded-3xl 
+              bg-transparent hover:bg-cusBlack-light hover:text-white transition-all duration-300"
+          >
+            투표 참여하러 가기
+          </Link>
+        </div>
         
-        {/* PopularVote 컴포넌트에 key와 handleVoteUpdate 전달 */}
-        <PopularVote 
-          key={popularVoteKey} 
-          onVoteUpdate={handleVoteUpdate}
-        />
+        {/* PopularVote 컴포넌트에서 onVoteUpdate props 제거 */}
+        <PopularVote key={popularVoteKey} vote={voteList[popularVoteKey]} />
         
         <div className="container mx-auto px-4">
-          <div className="container mx-auto px-14 pt-52 pb-12">
+          <div className="container mx-auto px-14 pt-48 pb-12">
             {/* Battle Section */}
             <motion.section 
               initial={{ opacity: 0, x: 50 }}
@@ -567,12 +572,12 @@ const MainPage = () => {
               className="flex flex-col mb-16 battle-section"
             >
               <div className="flex justify-between items-center">
-                <SectionTitle title="Battle" />
+                <SectionTitle title="🗣️ 지금 바로 논쟁 배틀에 참여해보세요!" />
                 <Link
                   to="/main/battle-list"
                   className="text-cusBlack-light text-xl font-medium justify-end mr-5"
                 >
-                  + <span className="font-bold">more</span>
+                  + <span className="font-bold"> 더보기</span>
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -591,23 +596,38 @@ const MainPage = () => {
                               className="w-[100px] h-[100px] object-cover rounded-lg"
                             />
                           </div>
-                          <div className="flex-1 flex flex-col px-4">
+                          <div className="flex-1 flex flex-col px-1 xl:px-4">
                             <div className="flex-1 flex items-center mb-4">
                               <h3 className="text-lg font-semibold line-clamp-1 text-black">
                                 {battle.title}
                               </h3>
                             </div>
-                            <div className="flex justify-between items-center gap-4 mb-2">
-                              <span className="text-cusBlue font-bold">
-                                {battle.totalUsers}/6
-                              </span>
-                              <StatusBadge 
-                                status={battle.status} 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBattleEnter(battle.battleId, battle.status);
-                                }} 
-                              />
+                            <div className="flex justify-between items-center gap-4 mb-1">
+                              <span className="text-cusBlue font-bold">{battle.totalUsers}/6</span>
+                              {battle.status === "WAITING" ? (
+                                battle.totalUsers >= 6 ? (
+                                  <button className="btn px-4 sm:px-6 py-2 bg-cusGray text-white font-bold rounded-lg pointer-events-none whitespace-nowrap">
+                                    <span className="sm:inline hidden">입장 불가</span>
+                                    <span className="sm:hidden">만석</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="btn px-4 sm:px-6 py-2 bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold rounded-lg whitespace-nowrap"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleBattleEnter(battle.battleId, battle.status);
+                                    }}
+                                  >
+                                    <span className="sm:inline hidden">입장하기</span>
+                                    <span className="sm:hidden">입장</span>
+                                  </button>
+                                )
+                              ) : (
+                                <button className="btn px-4 sm:px-6 py-2 bg-cusGray text-white font-bold rounded-lg pointer-events-none whitespace-nowrap">
+                                  <span className="sm:inline hidden">진행 중</span>
+                                  <span className="sm:hidden">진행</span>
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -617,103 +637,6 @@ const MainPage = () => {
                 ) : (
                   [...Array(6)].map((_, index) => (
                     <Card key={`battle-${index}`} className="h-[160px]" />
-                  ))
-                )}
-              </div>
-            </motion.section>
-
-            {/* Vote Section */}
-            <motion.section 
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false }}
-              transition={{
-                ease: 'easeInOut',
-                duration: 2,
-                x: { duration: 2 },
-              }}
-              className="flex flex-col mb-32 vote-section"
-            >
-              <div className="flex justify-between items-center">
-                <SectionTitle title="Vote" />
-                <Link
-                  to="/main/vote"
-                  className="text-cusBlack-light text-xl font-medium justify-end mr-5"
-                >
-                  + <span className="font-bold">more</span>
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {voteList.length > 0 ? (
-                  voteList.map((vote) => (
-                    <div key={vote.voteId} className="clay bg-white rounded-lg shadow-lg p-4 hover:shadow-xl transition-shadow">
-                      <div 
-                        onClick={() => handleVoteDetailClick(vote.voteId)}
-                        className="cursor-pointer pt-2"
-                      >
-                        <h2 className="text-xl font-bold mb-4 hover:text-blue-600">
-                          {vote.title}
-                        </h2>
-                      </div>
-
-                      <div className="transition-all duration-300">
-                        {vote.hasVoted ? (
-                          renderVoteResult(vote)
-                        ) : (
-                          <div className="flex gap-4 mb-4">
-                            {vote.options.map((option) => (
-                              <button
-                                key={option.optionId}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleVoteUpdate(vote.voteId, option.optionId);
-                                }}
-                                className={`clay flex-1 p-3 ${
-                                  option.optionId === vote.options[0].optionId
-                                    ? 'bg-red-100 hover:bg-red-200 text-red-500'
-                                    : 'bg-blue-100 hover:bg-blue-200 text-blue-500'
-                                } rounded-lg transition-colors text-base font-bold`}
-                              >
-                                <span className="line-clamp-1">{option.optionTitle}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {/* 투표 여부와 관계없이 항상 표시되는 정보 */}
-                        <div className="flex justify-between items-center text-sm text-gray-500">
-                          <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                              </svg>
-                              {vote.creatorNickname}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                              </svg>
-                              댓글 {vote.commentCount}개
-                            </span>
-                          </div>
-                          <div className="bg-gray-100 px-3 py-1 rounded-full">
-                            <span className="text-sm text-gray-600 whitespace-nowrap">
-                              {vote.totalVoteCount.toLocaleString()}명 참여중
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  [...Array(6)].map((_, index) => (
-                    <div key={`vote-skeleton-${index}`} className="bg-white rounded-lg shadow-md p-6 h-64 animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
-                      <div className="space-y-4">
-                        <div className="h-10 bg-gray-200 rounded-lg"></div>
-                        <div className="h-10 bg-gray-200 rounded-lg"></div>
-                      </div>
-                    </div>
                   ))
                 )}
               </div>

@@ -90,8 +90,8 @@ pipeline {
                                string(credentialsId: 'LIVEKIT_API_KEY', variable: 'LIVEKIT_API_KEY'),
                                string(credentialsId: 'LIVEKIT_API_SECRET', variable: 'LIVEKIT_API_SECRET'),
                                string(credentialsId: 'SPRING_REDIS_PASSWORD', variable: 'SPRING_REDIS_PASSWORD'),
-                               string(credentialsId: 'secretkey-s3', variable:'secretkey-s3'),
-                               string(credentialsId: 'accesskey-s3', variable:'accesskey-s3'),
+                               string(credentialsId: 'S3_SECRET_KEY', variable:'S3_SECRET_KEY'),
+                               string(credentialsId: 'S3_ACCESS_KEY', variable:'S3_ACCESS_KEY'),
                                string(credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY'),
                                string(credentialsId: 'OPENAI_API_URL', variable: 'OPENAI_API_URL')
                            ]) {
@@ -130,8 +130,8 @@ pipeline {
                                        -e LIVEKIT_API_KEY='${LIVEKIT_API_KEY}' \
                                        -e LIVEKIT_API_SECRET='${LIVEKIT_API_SECRET}' \
                                        -e SPRING_REDIS_PASSWORD='${SPRING_REDIS_PASSWORD}' \
-                                       -e accesskey-s3='${accesskey-s3}'\
-                                       -e secretkey-s3='${secretkey-s3}'\
+                                       -e S3_ACCESS_KEY='${S3_ACCESS_KEY}'\
+                                       -e S3_SECRET_KEY='${S3_SECRET_KEY}'\
                                        -e OPENAI_API_KEY='${OPENAI_API_KEY}'\
                                        -e OPENAI_API_URL='${OPENAI_API_URL}'\
                                        ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} && \

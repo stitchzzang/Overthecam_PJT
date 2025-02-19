@@ -11,12 +11,14 @@ import com.overthecam.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -127,6 +129,8 @@ public class AuthService {
 
         tokenService.logout(user.getId(), accessToken);
         SecurityContextHolder.clearContext();
+        log.info("로그아웃 완료 - User ID: {}, Email: {}", user.getId(), email);
+
     }
 
 

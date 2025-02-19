@@ -59,8 +59,8 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   return (
     <dialog ref={ref} className="random-topic-modal rounded-[30px] overflow-hidden">
       <div className="random-topic-modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[800px] random-topic-clay" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-2 mb-6 mt-2">
-          <h3 className="text-2xl font-bold">오늘의 추천 주제는...</h3>
+        <div className="flex items-center justify-center w-full gap-2 mb-6 mt-2">
+          <h3 className="text-3xl font-bold text-center">오늘의 추천 주제는...</h3>
         </div>
         
         <div className="w-full flex items-center gap-4 mb-6">
@@ -114,15 +114,15 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           </button>
         </div>
         
-        <p className="text-lg font-bold mb-6">즐거운 배틀 되세요 :)</p>
+        <p className="text-xl font-bold mt-2 mb-6 text-center w-full">즐거운 배틀 되세요 !</p>
 
-        <form method="dialog" className="modal-backdrop">
-          <button className="random-topic-close-btn px-4 py-1.5 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
+        <form method="dialog" className="modal-backdrop w-full flex justify-center">
+          <button className="random-topic-close-btn px-6 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
             닫기
           </button>
         </form>
 
-        <style jsx>{`
+        <style>{`
           .random-topic-modal {
             border: none;
             background: rgba(0, 0, 0, 0.5);

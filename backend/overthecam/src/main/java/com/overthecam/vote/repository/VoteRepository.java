@@ -69,6 +69,10 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     Optional<Vote> findByBattleId(Long battleId);
 
+
+    @Query("SELECT v FROM Vote v LEFT JOIN FETCH v.options WHERE v.battle.id = :battleId")
+    Optional<Vote> findByBattleIdWithOptions(@Param("battleId") Long battleId);
+
     @Query("SELECT v FROM Vote v WHERE v.user.id = :userId ORDER BY v.createdAt DESC")
     Page<Vote> findByUserId(@Param("userId") Long userId, Pageable pageable);
 

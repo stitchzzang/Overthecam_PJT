@@ -4,14 +4,6 @@ import { publicAxios } from "../../common/axiosinstance"
 import CursorMotionEffect from "../../components/Layout/CusorMotionDesign"
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
-// 프로필 이미지 배열 추가
-const defaultProfileImages = [
-  "https://d26tym50939cjl.cloudfront.net/profiles/profile_bear.jpg",
-  "https://d26tym50939cjl.cloudfront.net/profiles/profile_cat.jpg",
-  "https://d26tym50939cjl.cloudfront.net/profiles/profile_person.jpg",
-  "https://d26tym50939cjl.cloudfront.net/profiles/profile_rabbit.jpg"
-];
-
 const Signup = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -119,7 +111,7 @@ const Signup = () => {
         gender: formData.gender === "male" ? 0 : 1,
         birth: formData.birth,
         phoneNumber: `${formData.phoneNumber1}-${formData.phoneNumber2}-${formData.phoneNumber3}`,
-        profileImage: defaultProfileImages[Math.floor(Math.random() * defaultProfileImages.length)]
+        
       };
 
       const response = await publicAxios.post("/auth/signup", signupData);
@@ -150,7 +142,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex justify-center mt-8">
+    <div className="flex justify-center mt-16">
       <div className="flex bg-white rounded-lg h-[600px] w-[1000px] shadow-[inset_0px_2px_4px_rgba(255,255,255,0.2),inset_-0px_-2px_4px_rgba(0,0,0,0.2)]">
         {/* Left Side - Motion Design */}
         <div className="w-1/2 overflow-hidden">
@@ -336,7 +328,7 @@ const Signup = () => {
             </button>
 
             <div className="flex justify-center items-center space-x-6 text-sm text-gray-500 mt-2">
-              <Link to="/login" className="hover:text-gray-700">
+              <Link to="/main/login" className="hover:text-gray-700">
                 이미 계정이 있으신가요? 로그인하기
               </Link>
             </div>

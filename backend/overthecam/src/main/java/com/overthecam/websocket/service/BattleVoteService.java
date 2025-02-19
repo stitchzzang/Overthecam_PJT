@@ -34,7 +34,7 @@ public class BattleVoteService {
 
     // 초기 상태 조회용 - null 허용
     public VoteInfo getCurrentVote(Long battleId) {
-        return voteRepository.findByBattleId(battleId)
+        return voteRepository.findByBattleIdWithOptions(battleId)
             .map(vote -> VoteInfo.builder()
                 .voteId(vote.getVoteId())
                 .title(vote.getTitle())

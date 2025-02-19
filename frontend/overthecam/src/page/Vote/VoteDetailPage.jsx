@@ -79,8 +79,11 @@ export default function VoteDetailPage() {
         </h1>
       </div>
       
-      <VoteDetail voteData={voteData} onDelete={handleDelete} />
-      <VoteDetailComment voteId={voteId} />
+      <div className="clay max-w-4xl mx-auto my-8 bg-white rounded-2xl py-8 px-8 space-y-6
+                      transition-transform duration-300 border border-gray-100">
+        <VoteDetail voteData={voteData} onDelete={handleDelete} />
+        <VoteDetailComment voteId={voteId} />
+      </div>
     </div>
   );
 }

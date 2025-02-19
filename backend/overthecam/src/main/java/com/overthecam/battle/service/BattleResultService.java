@@ -106,8 +106,8 @@ public class BattleResultService {
         battle.updateStatus(Status.END);
 
         // 총 방송 시간 계산 (현재 시간 - 생성 시간)
-        long totalTimeInMinutes = ChronoUnit.MINUTES.between(battle.getCreatedAt(), LocalDateTime.now());
-        battle.updateTotalTime((int) totalTimeInMinutes);
+        long totalTimeInSeconds = ChronoUnit.SECONDS.between(battle.getUpdatedAt(), LocalDateTime.now());
+        battle.updateTotalTime((int) totalTimeInSeconds);
         battleRepository.save(battle);
 
         // 투표 비활성화

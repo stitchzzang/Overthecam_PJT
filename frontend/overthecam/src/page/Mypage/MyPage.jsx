@@ -395,7 +395,7 @@ function MyPage() {
         phoneNumber: editedData.phoneNumber
       };
 
-      const response = await authAxios.put("/mypage/profile", updateData);
+      const response = await authAxios.post("/mypage/profile", updateData);
       
       setUserData(prev => ({
         ...prev,
@@ -439,92 +439,65 @@ function MyPage() {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // 파일 크기 제한을 1MB로 줄임
-      const maxSize = 1 * 1024 * 1024; // 1MB
-      if (file.size > maxSize) {
-        setToast({ 
-          show: true, 
-          message: '파일 크기는 1MB 이하여야 합니다.', 
-          type: 'error' 
-        });
-        return;
-      }
-
-      // 파일 형식 체크
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-      if (!allowedTypes.includes(file.type)) {
-        setToast({ 
-          show: true, 
-          message: 'JPG, PNG 형식의 이미지만 업로드 가능합니다.', 
-          type: 'error' 
-        });
-        return;
-      }
-
-      // 이미지 리사이징
       try {
-        const resizedImage = await resizeImage(file, 800); // 최대 너비 800px
-        const formData = new FormData();
-        formData.append("image", resizedImage);
+        const maxSize = 1 * 1024 * 1024;
+        if (file.size > maxSize) {
+          showToast('파일 크기는 1MB 이하여야 합니다.', 'error');
+          return;
+        }
 
-        console.log("업로드 시도:", {
-          fileName: resizedImage.name,
-          fileSize: resizedImage.size,
-          fileType: resizedImage.type
-        });
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+          showToast('JPG, PNG 형식의 이미지만 업로드 가능합니다.', 'error');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
 
         const response = await authAxios.post("/mypage/upload", formData, {
           headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            console.log('업로드 진행률:', percentCompleted);
-          },
+            'Content-Type': 'multipart/form-data',
+          }
         });
 
-        console.log("서버 응답:", response); // 응답 로깅 추가
+        console.log("업로드 응답:", response);
 
         if (response.success) {
-          // 이미지 URL이 response.data.imageUrl 또는 response.data.profileImage에 있을 수 있음
-          const imageUrl = response.data?.imageUrl || response.data?.profileImage;
-          
-          if (imageUrl) {
+          // 파일을 Base64로 변환
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64String = reader.result;
+            
+            // Base64 문자열을 localStorage에 저장
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            localStorage.setItem('userInfo', JSON.stringify({
+              ...userInfo,
+              profileImage: base64String
+            }));
+
+            // 이벤트 발생
+            const event = new CustomEvent('profileImageUpdated', {
+              detail: { profileImage: base64String }
+            });
+            window.dispatchEvent(event);
+
+            // UI 업데이트
             setUserData(prev => ({
               ...prev,
               profileInfo: {
                 ...prev.profileInfo,
-                profileImage: imageUrl
+                profileImage: base64String
               }
             }));
-            setToast({ 
-              show: true, 
-              message: '프로필 이미지가 성공적으로 업데이트되었습니다.', 
-              type: 'success' 
-            });
-          } else {
-            throw new Error('이미지 URL이 응답에 포함되지 않았습니다.');
-          }
-        } else {
-          throw new Error(response.error?.message || '이미지 업로드에 실패했습니다.');
+
+            showToast('프로필 이미지가 업데이트되었습니다.', 'success');
+          };
+          reader.readAsDataURL(file);
         }
       } catch (error) {
         console.error("이미지 업로드 실패:", error);
-        
-        // 에러 메시지 추출 로직 개선
-        let errorMessage = '이미지 업로드에 실패했습니다. 다시 시도해주세요.';
-        
-        if (error.response?.data?.error?.message) {
-          errorMessage = error.response.data.error.message;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-
-        setToast({ 
-          show: true, 
-          message: errorMessage, 
-          type: 'error' 
-        });
+        showToast(error.response?.data?.message || '파일 제목에 한글이나 공백을 제거해주세요요.', 'error');
       }
     }
   };
@@ -541,9 +514,10 @@ function MyPage() {
       type 
     });
     
+    // 2초 후 토스트 메시지 제거
     setTimeout(() => {
       setToast({ show: false, message: '', type: null });
-    }, 1000);
+    }, 2000);
   };
 
   // 모달 열기

@@ -218,7 +218,7 @@ const FakeMainPage = () => {
             className="text-center space-y-8 text-white"
           >
             <h2 className="text-5xl font-bold text-cusBlue-light">
-              A vs B,<br />당신의 선택은?
+              A vs B  ,<br />당신의 선택은?
             </h2>
             <motion.div
               initial={{ y: 50, opacity: 0 }}
@@ -321,9 +321,9 @@ const FakeMainPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              className="text-6xl font-bold bg-gradient-to-r from-cusRed-light to-cusBlue-light bg-clip-text text-transparent leading-[1.3]"
+              className="text-7xl font-bold bg-gradient-to-r from-cusRed-light to-cusBlue-light bg-clip-text text-transparent leading-[1.3]"
             >
-              캠 건너 불구경에서<br />당신의 논리가 빛나는 순간을<br />경험하세요!
+              캠 건너 불구경에서<br />논리가 빛나는 순간을<br />경험해보세요!
             </motion.h2>
             <motion.button
               initial={{ y: 50, opacity: 0 }}

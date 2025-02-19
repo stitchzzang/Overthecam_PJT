@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAxios } from '../../common/axiosinstance';
-import Swal from 'sweetalert2';
+import VoteDeleteModal from './VoteModal/VoteDeleteModal';
 
-const VoteDetail = ({ voteData, onDelete }) => {
+const VoteDetail = ({ voteData }) => {
   const navigate = useNavigate();
   const [hasVoted, setHasVoted] = useState(false);
   const [currentVoteData, setCurrentVoteData] = useState(voteData);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const deleteModalRef = useRef();
 
   // creatorUserId로 비교 로직 수정
   const userInfo = localStorage.getItem('userInfo');
@@ -59,115 +61,88 @@ const VoteDetail = ({ voteData, onDelete }) => {
     try {
       if (!userInfo) {
         alert('로그인이 필요합니다.');
+        navigate('/main/login');
         return;
       }
 
-      const userInfoObj = JSON.parse(userInfo);
-      const age = calculateAge(userInfoObj.birth);
-      const ageGroup = getAgeGroup(age);
-      const gender = userInfoObj.gender === 0 ? 'male' : 'female';
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
 
-      // 먼저 UI 업데이트
-      setHasVoted(true);
-      
-      // 현재 투표 데이터를 복사하여 업데이트
-      const updatedVoteData = JSON.parse(JSON.stringify(currentVoteData));
-      
-      // 선택한 옵션의 투표 수 증가
-      updatedVoteData.options = updatedVoteData.options.map(option => ({
-        ...option,
-        voteCount: option.optionId === optionId ? option.voteCount + 1 : option.voteCount
-      }));
+        // 컨페티 생성
+        const isFirstOption = optionId === currentVoteData.options[0].optionId;
+        createConfetti(isFirstOption);
 
-      // 총 투표수 계산
-      const newTotalVotes = updatedVoteData.options.reduce((sum, opt) => sum + opt.voteCount, 0);
+        const userInfoObj = JSON.parse(userInfo);
+        const age = calculateAge(userInfoObj.birth);
+        const ageGroup = getAgeGroup(age);
+        const gender = userInfoObj.gender === 0 ? 'male' : 'female';
 
-      // 퍼센티지 업데이트
-      updatedVoteData.options = updatedVoteData.options.map(option => ({
-        ...option,
-        votePercentage: (option.voteCount / newTotalVotes) * 100,
-        genderDistribution: {
-          ...option.genderDistribution,
-          [userInfoObj.gender === 0 ? '남성' : '여성']: 
-            option.optionId === optionId ? 100 : 0
-        },
-        ageDistribution: {
-          ...option.ageDistribution,
-          [`${ageGroup}대${ageGroup === '50' ? ' 이상' : ''}`]: 
-            option.optionId === optionId ? 100 : 0
+        // 먼저 UI 업데이트
+        setHasVoted(true);
+        
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${voteData.voteId}/vote/${optionId}`, {
+          age: ageGroup,
+          gender: gender
+        });
+
+        // 서버에서 최신 데이터 가져오기
+        const voteResponse = await authAxios.get(`/vote/${voteData.voteId}`);
+        if (voteResponse.data) {
+          setCurrentVoteData(voteResponse.data);
         }
-      }));
 
-      // UI 즉시 업데이트
-      setCurrentVoteData(updatedVoteData);
-
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${voteData.voteId}/vote/${optionId}`, {
-        age: ageGroup,
-        gender: gender
-      });
-
-      // 서버에서 최신 데이터 가져오기
-      const voteResponse = await authAxios.get(`/vote/${voteData.voteId}`);
-      if (voteResponse.data) {
-        setCurrentVoteData(voteResponse.data);
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
       }
-
     } catch (error) {
       console.error('투표 처리 중 오류 발생:', error);
       if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
+        navigate('/main/login');
         setHasVoted(false); // UI 롤백
-      } else {
-        // 다른 에러는 무시하고 UI는 업데이트된 상태 유지
-        console.log('투표 처리 중 오류가 발생했지만 UI는 유지됩니다.');
       }
+    }
+  };
+
+  const createConfetti = (isFirstOption) => {
+    const emojis = isFirstOption 
+      ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+      : ['💙', '🐠', '🥶', '💎','🐬','❄️'];
+
+    for (let i = 0; i < 15; i++) {
+      const confetti = document.createElement('div');
+      const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+      confetti.className = `confetti ${animationType}`;
+      confetti.style.left = `${Math.random() * window.innerWidth}px`;
+      confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2500);
     }
   };
 
   // 총 투표 수 계산
   const totalVotes = currentVoteData.options.reduce((sum, option) => sum + option.voteCount, 0);
 
-  // handleDelete 함수 추가
-  const handleDelete = async () => {
-    try {
-      const result = await Swal.fire({
-        title: '투표를 삭제하시겠습니까?',
-        text: "삭제된 투표는 복구할 수 없습니다.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: '삭제',
-        cancelButtonText: '취소'
-      });
-
-      if (result.isConfirmed) {
-        await onDelete();
-        
-        await Swal.fire({
-          title: '삭제되었습니다!',
-          icon: 'success',
-          confirmButtonColor: '#3085d6'
-        });
-        
-        navigate('/main/vote');
-      }
-    } catch (error) {
-      console.error('삭제 실패:', error);
-      await Swal.fire({
-        title: '삭제 실패',
-        text: '투표 삭제에 실패했습니다.',
-        icon: 'error',
-        confirmButtonColor: '#3085d6'
-      });
-    }
+  // handleDelete 함수 수정
+  const handleDelete = () => {
+    deleteModalRef.current.showModal();
   };
 
   if (!currentVoteData) return <div>로딩 중...</div>;
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto mt-8">
+    <div className="w-full max-w-[1000px] mx-auto">
       <div className="clay bg-cusLightBlue-lighter rounded-lg shadow-lg p-6">
         <div className="mb-4">
           <button
@@ -197,8 +172,13 @@ const VoteDetail = ({ voteData, onDelete }) => {
         <div className="flex flex-col items-center gap-2 text-base text-gray-500 mb-4">
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="currentColor" 
+                className="w-4 h-4"
+              >
+                <path d="M17 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H7V1H9V3H15V1H17V3ZM4 9V19H20V9H4ZM6 11H8V13H6V11ZM11 11H13V13H11V11ZM16 11H18V13H16V11Z" />
               </svg>
               <span className="font-medium">{new Date(currentVoteData.createdAt).toLocaleString('ko-KR', {
                 year: 'numeric',
@@ -240,13 +220,14 @@ const VoteDetail = ({ voteData, onDelete }) => {
           <div className="flex gap-4 mb-8">
             {currentVoteData.options.map((option) => (
               <button
+                id={`vote-button-${option.optionId}`}
                 key={option.optionId}
                 onClick={() => handleVote(option.optionId)}
-                className={`clay flex-1 p-4 ${
+                className={`vote-button ${
                   option.optionId === currentVoteData.options[0].optionId
-                    ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                    : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                } rounded-lg transition-colors text-lg font-bold`}
+                    ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                    : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                } clay flex-1 p-4 rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
               >
                 {option.optionTitle}
               </button>
@@ -398,6 +379,12 @@ const VoteDetail = ({ voteData, onDelete }) => {
           )}
         </div>
       </div>
+
+      {/* Delete Modal */}
+      <VoteDeleteModal 
+        ref={deleteModalRef}
+        voteId={voteData.voteId}
+      />
     </div>
   );
 };

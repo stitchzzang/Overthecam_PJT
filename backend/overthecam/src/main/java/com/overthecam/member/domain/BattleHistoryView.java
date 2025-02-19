@@ -1,5 +1,6 @@
 package com.overthecam.member.domain;
 
+import com.overthecam.battle.domain.ParticipantRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -23,6 +24,9 @@ public class BattleHistoryView {
 
     @Column(name = "user_id")
     private Long userId;
+
+    @Column(name = "role")
+    private ParticipantRole role;
 
     @Column(name = "vote_id")
     private Long voteId;

@@ -70,17 +70,43 @@ function MyPageBattle() {
 
   // 승패 결과 텍스트 및 스타일 결정 함수
   const getBattleResult = (battle) => {
+    const isBattler = battle.role === 'BATTLER' || 
+                      battle.role === 'HOST_BATTLER' || 
+                      battle.role === 'PARTICIPANT_BATTLER';
+
     if (battle.winner) {
       return {
         text: '승',
         style: 'text-green-600'
       };
-    } else if (!battle.winner && battle.earnedScore === 0) {
+    }
+
+    // 배틀러인 경우
+    if (isBattler) {
+      if (!battle.winner && battle.earnedScore > 0) {
+        // 무승부인 경우 (배틀러)
+        return {
+          text: '무',
+          style: 'text-gray-600'
+        };
+      } else {
+        // 패배인 경우 (배틀러)
+        return {
+          text: '패',
+          style: 'text-red-600'
+        };
+      }
+    }
+    
+    // 일반 참가자인 경우
+    if (!battle.winner && battle.earnedScore === 0) {
+      // 무승부인 경우 (일반 참가자)
       return {
         text: '무',
         style: 'text-gray-600'
       };
     } else {
+      // 패배인 경우 (일반 참가자)
       return {
         text: '패',
         style: 'text-red-600'

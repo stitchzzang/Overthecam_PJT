@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 import { publicAxios } from '../../common/axiosinstance';
@@ -8,24 +8,27 @@ import { joinRoom } from "../../service/BattleRoom/api";
 import { useBattleStore } from "../../store/Battle/BattleStore";
 import useUserStore from "../../store/User/UserStore";
 
-const Card = ({ children }) => (
-  <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
-);
+const createConfetti = (isFirstOption) => {
+  const emojis = isFirstOption 
+    ? ['🍎', '❤️', '🍒', '🎀','🍬','👺']
+    : ['💙', '🐠', '🌍', '💎','🐬','❄️'];
+
+  for (let i = 0; i < 15; i++) {
+    const confetti = document.createElement('div');
+    const animationType = `type-${Math.floor(Math.random() * 4) + 1}`;
+    confetti.className = `confetti ${animationType}`;
+    confetti.style.left = `${Math.random() * window.innerWidth}px`;
+    confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+    document.body.appendChild(confetti);
+    setTimeout(() => confetti.remove(), 2500);
+  }
+};
 
 const SectionTitle = ({ title }) => (
   <h2 className="text-3xl font-bold mb-4 pl-8 text-start justify-start">
     {title}
   </h2>
 );
-
-const ParticipantsBadge = ({ current, max }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
-  return (
-    <span className={`${baseClasses} bg-cusGray-light text-cusBlack`}>
-      {current} / {max}
-    </span>
-  );
-};
 
 const SearchResultPage = () => {
   const navigate = useNavigate();
@@ -177,36 +180,46 @@ const SearchResultPage = () => {
         return;
       }
 
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      const age = calculateAge(userInfo.birth);
-      const ageGroup = getAgeGroup(age);
-      const gender = userInfo.gender === 0 ? 'male' : 'female';
+      // 리플 이펙트 생성
+      const button = document.querySelector(`#vote-button-${optionId}`);
+      if (button) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        
+        button.appendChild(ripple);
+        ripple.classList.add('active');
 
-      // 서버에 투표 요청
-      await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`, {
-        age: ageGroup,
-        gender: gender
-      });
+        // 컨페티 생성
+        const isFirstOption = optionId === vote.options[0].optionId;
+        createConfetti(isFirstOption);
 
-      // 최신 데이터 가져오기
-      const response = await authAxios.get(`/vote/${vote.voteId}`);
-      if (response.data) {
-        const updatedVotes = searchResults.votes.map(v => 
-          v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
-        );
-        setSearchResults(prev => ({
-          ...prev,
-          votes: updatedVotes
-        }));
+        // 서버에 투표 요청
+        await authAxios.post(`/vote/${vote.voteId}/vote/${optionId}`);
+
+        // 최신 데이터 가져오기
+        const response = await authAxios.get(`/vote/${vote.voteId}`);
+        if (response.data) {
+          const updatedVotes = searchResults.votes.map(v => 
+            v.voteId === vote.voteId ? { ...response.data, hasVoted: true } : v
+          );
+          setSearchResults(prev => ({
+            ...prev,
+            votes: updatedVotes
+          }));
+        }
+
+        // 리플 제거
+        setTimeout(() => ripple.remove(), 600);
       }
-
     } catch (error) {
       console.error('투표 처리 중 오류 발생:', error);
       if (error.response?.status === 401) {
         alert('로그인이 필요합니다.');
         navigate('/main/login');
-      } else {
-        console.log('투표 처리 중 오류가 발생했습니다.');
       }
     }
   };
@@ -420,16 +433,17 @@ const SearchResultPage = () => {
                           <div className="flex gap-4">
                             {vote.options.map((option) => (
                               <button
+                                id={`vote-button-${option.optionId}`}
                                 key={option.optionId}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleVote(vote, option.optionId);
                                 }}
-                                className={`clay flex-1 p-4 ${
+                                className={`vote-button clay flex-1 p-4 ${
                                   option.optionId === vote.options[0].optionId
-                                    ? 'bg-red-100 hover:bg-red-200 text-cusRed'
-                                    : 'bg-blue-100 hover:bg-blue-200 text-cusBlue'
-                                } rounded-lg transition-colors text-lg font-bold`}
+                                    ? 'vote-button-red bg-red-100 hover:bg-red-200 text-cusRed'
+                                    : 'vote-button-blue bg-blue-100 hover:bg-blue-200 text-cusBlue'
+                                } rounded-lg transition-colors text-lg font-bold relative overflow-hidden`}
                               >
                                 {option.optionTitle}
                               </button>
