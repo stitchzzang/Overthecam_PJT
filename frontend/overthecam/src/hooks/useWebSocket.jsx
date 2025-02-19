@@ -81,9 +81,9 @@ const useWebSocket = (battleId) => {
           setError(error); // 에러 메세지 .. 구조 분해 다시
           break;
         case "ROOM_STATUS":
-          console.log(data)
+          console.log(data);
           if (data.readyUsers) {
-            setReadyList((prev) => [...prev, data.readyUsers]);
+            setReadyList(data.readyUsers);
           }
           if (data.voteInfo) {
             setVote({
@@ -132,7 +132,9 @@ const useWebSocket = (battleId) => {
             setReadyList((prev) => [...prev, data]);
           } else {
             setReadyList((prev) =>
-              prev.filter((p) => p.nickname !== data.nickname)
+              prev.filter((p) => {
+                return p.nickname !== data.nickname;
+              })
             );
           }
           if (data.nickname === battleInfo.participantName) {
@@ -153,12 +155,13 @@ const useWebSocket = (battleId) => {
             setIsVoteSubmitted(true);
             setIsStarted(success);
             const me = data.participants.filter((p) => {
-              p.userId === userId;
+              return p.userId === userId;
             });
             setMyScores({
-              supportScore: me.supportScore,
-              point: me.point,
+              supportScore: me[0].supportScore,
+              point: me[0].point,
             });
+            console.log(me, myScores, "내 유저 아이디", me.userId, userId);
             setMyRole(me.role);
           }
           break;
@@ -188,15 +191,23 @@ const useWebSocket = (battleId) => {
               const newList = [...prev, newMsg];
               return newList;
             });
+            if (data.userId === userId) {
+              setMyScores({
+                supportScore: data.userScore.supportScore,
+                point: data.userScore.point,
+              });
+            }
+          } else {
+            setError(error);
           }
           break;
         case "BATTLE_END":
           if (success) {
             setGameResult(data);
             const me = data.userResults.filter((p) => {
-              p.userId === userId;
+              return p.userId === userId;
             });
-            setMyResult(me);
+            setMyResult(me[0]);
             setIsDraw(data.winningInfo.draw);
             setIsBattleEnded(true);
           }
@@ -456,16 +467,17 @@ const useWebSocket = (battleId) => {
 
   const getRoomState = useCallback(() => {
     try {
-        stompClientRef.current?.send(
-          `/api/publish/battle/private/${battleId}`,
-          {},
-          JSON.stringify({
-            type: "ROOM_STATUS",
-          })
-        );} catch (error) {
-          console.error("방 정보 읽기 실패", error);
-          setError("방 정보 읽기 실패했습니다.");
-        }
+      stompClientRef.current?.send(
+        `/api/publish/battle/private/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "ROOM_STATUS",
+        })
+      );
+    } catch (error) {
+      console.error("방 정보 읽기 실패", error);
+      setError("방 정보 읽기 실패했습니다.");
+    }
   }, [battleId, wsStatus]);
 
   const readyForBattle = useCallback(
