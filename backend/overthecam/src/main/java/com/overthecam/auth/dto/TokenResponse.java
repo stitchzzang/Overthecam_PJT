@@ -16,4 +16,11 @@ public class TokenResponse {
     private String profileImage;
     private int supportScore;
     private int point;
+
+    @Builder.Default
+    private boolean hasExistingSession = false;
+
+    public void updateSessionInfo(boolean sessionInfo){
+        this.hasExistingSession = sessionInfo;
+    }
 }

@@ -1,10 +1,12 @@
 package com.overthecam.websocket.interceptor;
 
+import com.overthecam.auth.service.TokenService;
 import com.overthecam.security.jwt.JwtProperties;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.websocket.exception.WebSocketErrorCode;
 import com.overthecam.websocket.exception.WebSocketException;
 
+import com.overthecam.websocket.service.WebSocketSessionService;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
-    private final JwtTokenProvider tokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
+    private final WebSocketSessionService webSocketSessionService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -60,6 +64,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private void handleDisconnect(StompHeaderAccessor accessor) {
         try {
             String sessionId = accessor.getSessionId();
+            webSocketSessionService.removeSession(sessionId);  // 세션 제거
+
             Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
             if (sessionAttributes != null) {
                 sessionAttributes.clear();
@@ -107,6 +113,13 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private void validateAndSetupUser(StompHeaderAccessor accessor) {
         String bearerToken = extractAndValidateToken(accessor);
+
+        // 토큰 유효성 및 블랙리스트 확인
+        if (!jwtTokenProvider.validateToken(bearerToken) || tokenService.isBlacklisted(bearerToken)) {
+            throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
+                "무효화된 토큰입니다. 다시 로그인해주세요.");
+        }
+
         UserPrincipal principal = authenticateToken(bearerToken);
         setupUserSession(accessor, principal);
     }
@@ -130,14 +143,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private UserPrincipal authenticateToken(String token) {
         try {
-            if (!tokenProvider.validateToken(token)) {
+            if (!jwtTokenProvider.validateToken(token)) {
                 throw new WebSocketException(WebSocketErrorCode.INVALID_TOKEN_SIGNATURE,
                         "유효하지 않은 토큰입니다");
             }
 
-            String email = tokenProvider.getEmail(token);
-            Long userId = tokenProvider.getUserId(token);
-            String nickname = tokenProvider.getNickname(token);
+            String email = jwtTokenProvider.getEmail(token);
+            Long userId = jwtTokenProvider.getUserId(token);
+            String nickname = jwtTokenProvider.getNickname(token);
 
             return new UserPrincipal(userId, email, nickname);
         } catch (ExpiredJwtException e) {
@@ -165,6 +178,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         attributes.put("email", principal.getEmail());
         attributes.put("nickname", principal.getNickname());
         accessor.setSessionAttributes(attributes);
+
+        // WebSocketSession 등록
+        webSocketSessionService.registerSession(accessor.getSessionId(), principal.getUserId());
+
 
         log.debug("WebSocket 인증 성공 - 사용자: {}, Principal: {}, SessionAttributes: {}",
             principal.getEmail(), principal, attributes);
