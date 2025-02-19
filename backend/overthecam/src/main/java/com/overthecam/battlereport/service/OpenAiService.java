@@ -3,14 +3,13 @@ package com.overthecam.battlereport.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
@@ -18,14 +17,12 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class OpenAiService {
-    @Value("${openai.api.key}")
-    private String apiKey;
-
-    @Value("${openai.api.url}")
-    private String apiUrl;
-
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    @Value("${openai.api.key}")
+    private String apiKey;
+    @Value("${openai.api.url}")
+    private String apiUrl;
 
     private String buildReportPrompt(List<Map<String, Object>> analysisResults, Integer userId) {
 
@@ -99,7 +96,11 @@ public class OpenAiService {
         prompt.append("{\n");
         prompt.append("  \"report\": {\n");
         prompt.append("    \"userId\": ").append(userId).append(",\n");
-        prompt.append("    \"title\": \"토론 분석 리포트 제목 (이모지를 포함해 주세요)\",\n");
+        prompt.append("    \"title\": \"토론의 주된 논쟁 내용을 반영한 분석 리포트 제목 (이모지를 포함하는데 위치 맨 앞에 넣어줘). " +
+                "그리고 아래에 주장이라고 쓰여져 있는 곳에는 vert에서 가져온 토론 summary 를 참고해줘. 예시:\n");
+        prompt.append("      - '🔥 주장 1 vs 주장 2'\n");
+        prompt.append("      - '💡 주장 1이 더 나은가 주장 2가 더 나은가'\n");
+        prompt.append("      주제와 주요 발언을 반영하여 제목을 다양하게 생성해 주세요.\"\n");
         prompt.append("    \"summary\": \"개인화된 토론 내용 요약 (이모지와 정중한 말투를 사용해 주세요)\",\n");
         prompt.append("    \"emotion_analysis\": {\n");
         prompt.append("      \"기쁨\": \"정확한 비율%\",\n");

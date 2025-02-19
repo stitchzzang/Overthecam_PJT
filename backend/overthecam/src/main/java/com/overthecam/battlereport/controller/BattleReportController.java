@@ -74,7 +74,7 @@ public class BattleReportController {
     }
 
     @PostMapping("/generate/{userId}")
-    public CommonResponseDto<Map<String, Object>> generateReport(@PathVariable Integer userId) {
+    public CommonResponseDto<Map<String, Object>> generateReport(@PathVariable(name = "userId") Integer userId) {
         try {
 
             Map<String, Object> recentAnalysis = redisService.getRecentAnalysisResult(userId);
