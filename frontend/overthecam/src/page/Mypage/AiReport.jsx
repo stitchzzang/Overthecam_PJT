@@ -1,35 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { authAxios } from "../../common/axiosinstance";
+import { authAxios } from '../../common/axiosinstance';
+import ReportDetail from './Modal/ReportDetail';
 
 const AiReport = () => {
-  const [reportData, setReportData] = useState(null);
+  const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const reportsPerPage = 9;
 
   useEffect(() => {
-    const fetchReport = async () => {
+    const fetchReports = async () => {
       try {
-        // 테스트를 위해 userId 1로 고정
-        const response = await authAxios.post(`/report/generate/1`, {
-          userId: 1
-        });
+        setIsLoading(true);
+        const response = await authAxios.get("/mypage/reports");
         
         if (response.success) {
-          console.log('Report Data:', response.data.report);
-          setReportData(response.data.report);
+          setReports(response.data);
         } else {
           setError(response.error?.message || '리포트를 불러오는데 실패했습니다.');
         }
       } catch (error) {
-        console.error('Error fetching report:', error);
-        setError(error.error?.message || '리포트를 불러오는데 실패했습니다.');
+        console.error('Error fetching reports:', error);
+        setError(error?.message || '리포트를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchReport();
+    fetchReports();
   }, []);
+
+  const handleReportClick = async (reportId) => {
+    try {
+      setIsLoading(true);
+      const response = await authAxios.post(`/mypage/reports/${reportId}`);
+      
+      if (response.success) {
+        setSelectedReport(response.data);
+        setIsModalOpen(true);
+      } else {
+        setError(response.error?.message || '리포트를 불러오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error fetching report details:', error);
+      setError(error?.message || '리포트를 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 페이지네이션 계산
+  const indexOfLastReport = currentPage * reportsPerPage;
+  const indexOfFirstReport = indexOfLastReport - reportsPerPage;
+  const currentReports = reports.slice(indexOfFirstReport, indexOfLastReport);
+  const totalPages = Math.ceil(reports.length / reportsPerPage);
 
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-[400px]">
@@ -43,54 +70,57 @@ const AiReport = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {reportData && (
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* 제목 */}
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-            {reportData.title}
-          </h1>
-
-          {/* 요약 */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">요약</h2>
-            <p className="text-gray-700">{reportData.summary}</p>
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
+        논쟁 분석 리포트
+      </h1>
+      
+      {reports.length === 0 ? (
+        <div className="text-center text-gray-500 mt-8">
+          <p>아직 생성된 리포트가 없습니다.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {currentReports.map((report) => (
+              <div 
+                key={report.id} 
+                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleReportClick(report.id)}
+              >
+                <h3 className="text-lg font-semibold mb-2">{report.title}</h3>
+                <p className="text-gray-500 text-sm">
+                  {new Date(report.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
           </div>
 
-          {/* 감정 분석 */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">감정 분석</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {Object.entries(reportData.emotion_analysis).map(([emotion, value]) => (
-                <div key={emotion} className="bg-gray-50 p-4 rounded-lg text-center">
-                  <div className="font-medium text-gray-700">{emotion}</div>
-                  <div className="text-lg font-bold text-cusBlue">{value}</div>
-                </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8 gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                <button
+                  key={number}
+                  onClick={() => setCurrentPage(number)}
+                  className={`w-8 h-8 rounded-full ${
+                    currentPage === number 
+                      ? "bg-cusBlue text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {number}
+                </button>
               ))}
             </div>
-          </div>
+          )}
+        </>
+      )}
 
-          {/* 주요 주장 */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">주요 주장</h2>
-            <ul className="list-disc pl-6 space-y-2">
-              {reportData.key_arguments.map((argument, index) => (
-                <li key={index} className="text-gray-700">{argument}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* 토론 스타일 */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">토론 스타일</h2>
-            <p className="text-gray-700">{reportData.debate_style}</p>
-          </div>
-
-          {/* 제안 */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">개선 제안</h2>
-            <p className="text-gray-700">{reportData.suggestions}</p>
-          </div>
-        </div>
+      {selectedReport && (
+        <ReportDetail
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          report={selectedReport}
+        />
       )}
     </div>
   );
