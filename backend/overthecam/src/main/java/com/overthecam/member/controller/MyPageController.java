@@ -136,7 +136,7 @@ public class MyPageController {
     }
 
 
-    @GetMapping("/profile")
+    @PostMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> getMyProfile(
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId) {
