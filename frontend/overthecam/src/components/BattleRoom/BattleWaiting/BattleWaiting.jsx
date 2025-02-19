@@ -64,10 +64,10 @@ function BattleWaiting({
       if (totalParticipants <= 1) {
         failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
       }
-      // 방장 제외 모든 참가자가 준비되었는지 확인
-      else if (nonHostParticipants !== readyNonHostParticipants) {
-        failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
-      } else {
+      // // 방장 제외 모든 참가자가 준비되었는지 확인
+      // else if (nonHostParticipants !== readyNonHostParticipants) {
+      //   failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+      else {
         onShowBattlerModal();
       }
     }, 100); // 상태 업데이트를 위한 짧은 지연
