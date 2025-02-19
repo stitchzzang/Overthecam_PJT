@@ -572,7 +572,7 @@ const MainPage = () => {
               className="flex flex-col mb-16 battle-section"
             >
               <div className="flex justify-between items-center">
-                <SectionTitle title="지금 바로 논쟁 배틀에 참여해보세요!" />
+                <SectionTitle title="🗣️ 지금 바로 논쟁 배틀에 참여해보세요!" />
                 <Link
                   to="/main/battle-list"
                   className="text-cusBlack-light text-xl font-medium justify-end mr-5"
