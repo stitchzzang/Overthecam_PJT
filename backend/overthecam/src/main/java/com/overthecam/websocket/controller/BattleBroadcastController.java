@@ -86,6 +86,10 @@ public class BattleBroadcastController {
                     return WebSocketResponseDto.ok(MessageType.VOTE_CREATE,
                             voteService.createVote(voteRequest, user.getUserId()));
 
+                case VOTE_STAT:
+                    return WebSocketResponseDto.ok(MessageType.VOTE_STAT,
+                        battleVoteService.getVoteStats(battleId));
+
                 case TIME_EXTENSION:
                     UserScoreInfo updatedScore = battleBettingService.purchaseTime(
                             battleId, user.getUserId(), TIME_EXTENSION_COST);
