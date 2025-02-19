@@ -140,12 +140,18 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
                 <div className="relative w-full aspect-[4/3] bg-cusGray">
                   <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
                     {battler1 && (
-                      <VideoComponent
-                        track={battler1.track}
-                        participantIdentity={battler1.participantName}
-                        local={battler1.type === "local"}
-                        className="w-full h-full object-cover rounded-sm"
-                      />
+                      <>
+                        <VideoComponent
+                          track={battler1.track}
+                          participantIdentity={battler1.participantName}
+                          local={battler1.type === "local"}
+                          className="w-full h-full object-cover rounded-sm"
+                        />
+                        <AudioComponent
+                          track={battler1.audioTrack}
+                          local={battler1.type === "local"}
+                        />
+                      </>
                     )}
                   </div>
                 </div>
@@ -166,12 +172,18 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
                 <div className="relative w-full aspect-[4/3] bg-cusGray">
                   <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
                     {battler2 && (
-                      <VideoComponent
-                        track={battler2.track}
-                        participantIdentity={battler2.participantName}
-                        local={battler2.type === "local"}
-                        className="w-full h-full object-cover rounded-sm"
-                      />
+                      <>
+                        <VideoComponent
+                          track={battler2.track}
+                          participantIdentity={battler2.participantName}
+                          local={battler2.type === "local"}
+                          className="w-full h-full object-cover rounded-sm"
+                        />
+                        <AudioComponent
+                          track={battler2.audioTrack}
+                          local={battler2.type === "local"}
+                        />
+                      </>
                     )}
                   </div>
                 </div>
@@ -193,12 +205,6 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
                       local={slot.type === "local"}
                       className="w-full h-full object-cover rounded-sm"
                     />
-                    {slot.audioTrack && (
-                      <AudioComponent
-                        track={slot.audioTrack}
-                        participantIdentity={slot.participantName}
-                      />
-                    )}
                   </div>
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">

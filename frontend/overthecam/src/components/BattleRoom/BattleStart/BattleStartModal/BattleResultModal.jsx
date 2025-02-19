@@ -47,7 +47,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
       await onFinish(); // cleanup + 배틀 종료 요청
       await getReport(userId);
     }
-    setTimeout(navigate("/main/battle-list"), 1000);
+    setTimeout(() => navigate("/main/battle-list"), 1000);
   };
 
   return (
