@@ -32,7 +32,7 @@ function BattleVote({ isWaiting }) {
         {isWaiting ? (
           <>
             {/* 투표 제목 */}
-            <div className="w-1/3 ml-5  flex flex-col items-center justify-center text-center item-center">
+            <div className="w-2/3 ml-5  flex flex-col items-center justify-center text-center item-center">
               <div className="">
                 <h1 className="text-2xl font-bold text-gray-800">
                   {vote.title}
@@ -40,12 +40,12 @@ function BattleVote({ isWaiting }) {
                 <h4>{vote.content}</h4>
               </div>
             </div>
-            <div className="flex justify-between mx-10 gap-6 w-2/3">
+            <div className="flex flex-col justify-center mx-10 gap-1 w-1/3">
               <button
                 onClick={() => handleVote(vote.option1Id)}
                 disabled={true}
                 className={
-                  "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300 disabled:cursor-not-allowed"
+                  "option1 btn py-2 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300 disabled:cursor-not-allowed"
                 }
               >
                 {vote.option1}
@@ -54,7 +54,7 @@ function BattleVote({ isWaiting }) {
                 onClick={() => handleVote(vote.option2Id)}
                 disabled={true}
                 className={
-                  "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300 disabled:cursor-not-allowed"
+                  "option1 btn py-2 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300 disabled:cursor-not-allowed"
                 }
               >
                 {vote.option2}
