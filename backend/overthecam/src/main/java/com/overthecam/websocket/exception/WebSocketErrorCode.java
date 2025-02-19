@@ -35,8 +35,7 @@ public enum WebSocketErrorCode implements ErrorCode {
     INSUFFICIENT_SCORE(400, "응원점수가 부족합니다"),
     INSUFFICIENT_POINT(400, "포인트가 부족합니다"),
 
-    INTERNAL_SERVER_ERROR(500, "서버 내부 오류가 발생했습니다."),
-    INVALID_SESSION(500, "배틀방 세션이 만료되었습니다. 다시 연결해주세요.");
+    INTERNAL_SERVER_ERROR(500, "서버 내부 오류가 발생했습니다.");
 
     private final int status;
     private final String message;
