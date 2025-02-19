@@ -136,7 +136,7 @@ public class MyPageController {
     }
 
 
-    @PostMapping("/profile")
+    @GetMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> getMyProfile(
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId) {
@@ -147,7 +147,7 @@ public class MyPageController {
     }
 
     //
-    @PutMapping("/profile")
+    @PostMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> updateMyProfile(
             Authentication authentication,
             @RequestBody UserUpdateRequestDto request) {
