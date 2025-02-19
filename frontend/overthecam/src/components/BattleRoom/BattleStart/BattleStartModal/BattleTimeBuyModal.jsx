@@ -1,14 +1,11 @@
-import { forwardRef, useRef, useEffect } from "react"
+import { forwardRef, useRef, useEffect } from "react";
 import SuccessAlertModal from "../../../@common/SuccessAlertModal";
 import FailAlertModal from "../../../@common/FailAlertModal";
 import { useWebSocketContext } from "../../../../hooks/useWebSocket";
 import NoticeAlertModal from "../../../@common/NoticeAlertModal";
 
-const TimeBuyModal = forwardRef(function TimeBuyModal(
-  _,
-  ref
-) {
-  const { timeExtention, isTimeExtended, error } = useWebSocketContext();
+const TimeBuyModal = forwardRef(function TimeBuyModal(_, ref) {
+  const { timeExtention, isTimeExtended } = useWebSocketContext();
   const successAlertRef = useRef();
   const noticeToast = useRef();
   const failAlertRef = useRef();
@@ -24,24 +21,10 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
 
   const onPurchase = async () => {
     try {
-      // 시간 구매
-        timeExtention();
-    } catch (error) {
-      // 현재 모달 닫기
-      if (ref.current) {
-        ref.current.close();
-      }
-
-      // 에러 타입에 따른 메시지 설정
-      let errorMessage = "구매에 실패했습니다.";
-      if (error.code === "ERR_NETWORK") {
-        errorMessage =
-          "서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.";
-      }
-
-      // 실패 알림 표시 시도
+      await timeExtention();
+    } catch (e) {
       if (failAlertRef.current && failAlertRef.current.showAlert) {
-        failAlertRef.current.showAlert(errorMessage);
+        failAlertRef.current.showAlert("시간 연장 요청 실패 했습니다.");
       } else {
         console.error("failAlertRef.current나 showAlert 메서드가 없습니다.");
       }
@@ -67,8 +50,8 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
 
           {/* Confirmation Text */}
           <h5 className="text-lg font-semibold text-cusBlack">
-            구매 시 5분이 추가 됩니다. 구매 하시겠습니까? 
-            구매 시 300 포인트가 차감됩니다.
+            구매 시 5분이 추가 됩니다. 구매 하시겠습니까? 구매 시 300 포인트가
+            차감됩니다.
           </h5>
 
           {/* Buttons */}
@@ -92,7 +75,7 @@ const TimeBuyModal = forwardRef(function TimeBuyModal(
       </dialog>
       <SuccessAlertModal ref={successAlertRef} />
       <FailAlertModal ref={failAlertRef} />
-      <NoticeAlertModal ref={noticeToast}/>
+      <NoticeAlertModal ref={noticeToast} />
     </>
   );
 });
