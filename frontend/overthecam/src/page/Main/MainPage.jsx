@@ -128,7 +128,7 @@ const PopularVote = ({ vote }) => {
     }
   };
 
-  const handleVoteUpdate = async (voteId, optionId) => {
+  const handleVoteUpdate = async (voteId, optionId, options) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -150,8 +150,8 @@ const PopularVote = ({ vote }) => {
         button.appendChild(ripple);
         ripple.classList.add('active');
 
-        // 컨페티 생성
-        const isFirstOption = optionId === vote.options[0].optionId;
+        // 컨페티 생성 - options 배열을 사용하여 isFirstOption 확인
+        const isFirstOption = optionId === options[0].optionId;
         createConfetti(isFirstOption);
 
         // 서버에 투표 요청
@@ -161,6 +161,7 @@ const PopularVote = ({ vote }) => {
         const response = await authAxios.get(`/vote/${voteId}`);
         const updatedVote = response.data;
 
+        // 투표 결과 업데이트
         setPopularVotes(prev => 
           prev.map(v => v.voteId === voteId ? {
             ...v,
@@ -297,14 +298,12 @@ const PopularVote = ({ vote }) => {
                               e.stopPropagation();
                               if (!isActive) return;
                               
-                              // 로그인 체크
                               if (!localStorage.getItem('token')) {
                                 alert('로그인이 필요합니다.');
                                 navigate('/main/login');
                                 return;
                               }
                               
-                              // 로그인된 경우에만 리플과 컨페티 효과
                               const button = e.currentTarget;
                               const ripple = document.createElement('div');
                               ripple.className = 'ripple';
@@ -316,14 +315,9 @@ const PopularVote = ({ vote }) => {
                               button.appendChild(ripple);
                               ripple.classList.add('active');
 
-                              // 컨페티 생성
-                              const isFirstOption = option.optionId === vote.options[0].optionId;
-                              createConfetti(isFirstOption);
+                              // handleVoteUpdate 호출 시 options 전달
+                              handleVoteUpdate(vote.voteId, option.optionId, vote.options);
 
-                              // 투표 처리
-                              handleVoteUpdate(vote.voteId, option.optionId);
-
-                              // 리플 제거
                               setTimeout(() => ripple.remove(), 600);
                             }}
                             className={`vote-button clay flex-1 p-4 ${
