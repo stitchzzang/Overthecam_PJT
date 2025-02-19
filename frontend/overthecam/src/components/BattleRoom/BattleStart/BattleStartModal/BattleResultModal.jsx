@@ -38,7 +38,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
 
   // gameResult가 없을 때의 처리 추가
   if (!gameResult || !gameResult.options) {
-    return null; // 또는 로딩 상태를 보여줄 수 있습니다
+    return null;
   }
 
   const onLeaveRoom = async () => {
@@ -80,7 +80,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
                   width: `${options[1]?.percentage || 50}%`,
                 }}
               >
-                {options[0]?.optionTitle} {options[1]?.percentage || 0}%
+                {options[1]?.optionTitle} {options[1]?.percentage || 0}%
               </div>
             </div>
           </div>
