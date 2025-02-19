@@ -165,19 +165,19 @@ function BattleRoomPage() {
       switch (error.code) {
         case "permission_denied":
           failTost.current?.showAlert("카메라 마이크 권한을 확인 해주세요");
-          cleanup();
+          abnoramlLeaving();
           disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
           break;
         case "disconnected":
           failTost.current?.showAlert("연결이 끊어졌습니다.");
-          cleanup();
+          abnoramlLeaving();
           disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
           break;
         default:
           failTost.current?.showAlert("오류가 발생했습니다.");
-          cleanup();
+          abnoramlLeaving();
           disconnectWS();
           setTimeout(() => navigate("/main/battle-list"), 1500);
       }
@@ -379,7 +379,7 @@ function BattleRoomPage() {
     } catch (error) {
       console.error("Room connection error:", error);
       failTost.current?.showAlert("방 연결에 실패했습니다.");
-      cleanup();
+      abnoramlLeaving();
       setTimeout(() => navigate("/main/battle-list"), 1500);
     }
 
@@ -416,18 +416,6 @@ function BattleRoomPage() {
       setLocalTrack(null);
       setRemoteTracks([]);
 
-      
-      // 방에서 나감 요청하기
-      try {
-        const response = await leaveRoom(battleInfo.battleId);
-        console.log("성공", response)
-        // room 연결 종료
-        room?.disconnect();
-        disconnectWS();
-      } catch (error) {
-        console.log("방에서 나가기 api 요청 실패")
-      }
-      
       setRoom(undefined);
       setLocalTrack(undefined);
       setRemoteTracks([]);
@@ -444,12 +432,41 @@ function BattleRoomPage() {
     }
   }
 
+  async function abnoramlLeaving() {
+    // 방에서 나감 요청하기
+    try {
+      const response = await leaveRoom(battleInfo.battleId);
+      console.log("성공", response);
+      // room 연결 종료
+      room?.disconnect();
+      disconnectWS();
+    } catch (error) {
+      console.log("방에서 나가기 api 요청 실패");
+    }
+    await cleanup();
+  }
+
   async function handleLeavRoom() {
     leaveConfirmModal.current?.showModal();
   }
 
   // 모달 확인 하면 클린업 함수 사용
   const handleConfirmLeave = async () => {
+    // 방에서 나감 요청하기
+    try {
+      const response = await leaveRoom(battleInfo.battleId);
+      console.log("성공", response);
+      // room 연결 종료
+      room?.disconnect();
+      disconnectWS();
+    } catch (error) {
+      console.log("방에서 나가기 api 요청 실패");
+    }
+    await cleanup(room);
+  };
+
+  // 모달 확인 하면 클린업 함수 사용
+  const handleConfirmEnd = async () => {
     await cleanup(room);
   };
 
@@ -552,9 +569,7 @@ function BattleRoomPage() {
           </>
         )}
       </div>
-      <LiveSTT
-        shouldStop={isBattleEnded}
-      />
+      <LiveSTT shouldStop={isBattleEnded} />
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
@@ -567,7 +582,7 @@ function BattleRoomPage() {
         onConfirm={handleConfirmLeave}
       />
       <BattleEndModal ref={endBattleModal} />
-      <BattleResultModal ref={resultModal} onFinish={handleConfirmLeave} />
+      <BattleResultModal ref={resultModal} onFinish={handleConfirmEnd} />
     </div>
   );
 }
