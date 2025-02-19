@@ -46,7 +46,6 @@ export default function NavBar() {
   const navigate = useNavigate();
   const isBattleRoomPage = location.pathname.startsWith("/main/battle-room");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);  // 사이드바용 ref 추가
   const mobileDropdownRef = useRef(null);
 
@@ -361,10 +360,10 @@ export default function NavBar() {
                 </div>
               ) : (
                 <div className="flex gap-3">
-                  <Link to="/main/login" className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
+                  <Link to="/main/login" className="btn px-6 py-4 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
                     로그인
                   </Link>
-                  <Link to="/main/signup" className="btn px-4 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
+                  <Link to="/main/signup" className="btn px-6 py-4 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center">
                     회원가입
                   </Link>
                 </div>

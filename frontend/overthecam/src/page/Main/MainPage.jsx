@@ -18,21 +18,41 @@ const SectionTitle = ({ title }) => (
   </h2>
 );
 
-const StatusBadge = ({ status, onClick }) => {
-  const baseClasses = "btn text-sm font-bold rounded-lg whitespace-nowrap";
-  return status === 0 ? (
-    <span 
-      onClick={onClick}
-      className={`${baseClasses} py-2 px-2 xl:px-6 bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black cursor-pointer`}
-    >
-      <span className="hidden xl:inline">입장하기</span>
-      <span className="xl:hidden">입장</span>
-    </span>
-  ) : (
-    <div className={`${baseClasses} py-2 px-2 xl:px-6 bg-cusGray-dark text-white pointer-events-none`}>
-      <span className="hidden xl:inline">진행 중</span>
-      <span className="xl:hidden">진행</span>
-    </div>
+const StatusBadge = ({ status, totalUsers, onClick }) => {
+  const baseClasses = "btn py-2 font-bold rounded-lg whitespace-nowrap";
+  
+  // status가 "WAITING" 문자열인 경우와 0인 경우를 모두 처리
+  const isWaiting = status === "WAITING" || status === 0;
+  
+  // 대기중이고 정원이 다 찼을 경우
+  if (isWaiting && totalUsers >= 6) {
+    return (
+      <button className={`${baseClasses} px-4 sm:px-6 bg-cusGray text-white pointer-events-none`}>
+        <span className="sm:inline hidden">입장 불가</span>
+        <span className="sm:hidden">만석</span>
+      </button>
+    );
+  }
+  
+  // 대기중이고 입장 가능한 경우
+  if (isWaiting) {
+    return (
+      <button 
+        onClick={onClick}
+        className={`${baseClasses} px-4 sm:px-6 bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black cursor-pointer`}
+      >
+        <span className="sm:inline hidden">입장하기</span>
+        <span className="sm:hidden">입장</span>
+      </button>
+    );
+  }
+  
+  // 진행중인 경우
+  return (
+    <button className={`${baseClasses} px-4 sm:px-6 bg-cusGray text-white pointer-events-none`}>
+      <span className="sm:inline hidden">진행 중</span>
+      <span className="sm:hidden">진행</span>
+    </button>
   );
 };
 
@@ -391,11 +411,9 @@ const MainPage = () => {
 
   const fetchBattles = async () => {
     try {
-      // baseURL 설정 확인
       const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:8080';
       
       const response = await axios.get(`${baseURL}/battle/room/all`, {
-        // timeout 설정 추가
         timeout: 5000,
         headers: {
           'Content-Type': 'application/json',
@@ -403,11 +421,11 @@ const MainPage = () => {
       });
       
       if (response.data.success) {
+        // 상태값을 BattleListItem과 동일하게 처리
         const battles = response.data.data.battleInfo.map(battle => ({
           ...battle,
-          status: typeof battle.status === 'string' 
-            ? battle.status === "WAITING" ? 0 : 1
-            : battle.status
+          // 문자열 "WAITING"을 그대로 유지
+          status: battle.status
         }));
         setBattleList(battles.slice(0, 6));
       } else {
@@ -416,7 +434,6 @@ const MainPage = () => {
       }
     } catch (error) {
       console.error("배틀 목록 조회 중 오류 발생:", error);
-      // 에러 발생시 빈 배열로 설정하여 UI가 깨지지 않도록 함
       setBattleList([]);
     }
   };
@@ -446,8 +463,6 @@ const MainPage = () => {
 
   // 배틀룸 입장 처리 함수 수정
   const handleBattleEnter = async (battleId, status) => {
-    if (status !== 0) return;
-    
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -457,7 +472,8 @@ const MainPage = () => {
       }
 
       const response = await joinRoom(battleId, userNickname);
-      await new Promise((resolve) => {
+      
+      if (response.data) {  // 응답 데이터 확인
         const newBattleInfo = {
           battleId: response.data.battleId,
           participantName: userNickname,
@@ -467,13 +483,13 @@ const MainPage = () => {
         };
 
         setBattleInfo(newBattleInfo);
-        requestAnimationFrame(resolve);
-      });
-
-      navigate(`/main/battle-room/${battleId}`);
+        navigate(`/main/battle-room/${battleId}`);
+      } else {
+        throw new Error('배틀룸 입장 실패');
+      }
     } catch (error) {
-      console.error("Battle room navigation error:", error);
-      navigate('/main/battle-list');
+      console.error("Battle room error:", error);
+      alert('배틀룸 입장에 실패했습니다.');
     }
   };
 
@@ -532,7 +548,7 @@ const MainPage = () => {
           <Link 
             to="/main/vote"
             className="absolute top-8 right-8 border-2 border-cusBlack-light text-cusBlack-light px-6 py-2.5 rounded-3xl 
-              bg-transparent hover:bg-cusBlack-light hover:text-white transition-all duration-300 "
+              bg-transparent hover:bg-cusBlack-light hover:text-white transition-all duration-300"
           >
             투표 참여하러 가기
           </Link>
@@ -586,17 +602,32 @@ const MainPage = () => {
                                 {battle.title}
                               </h3>
                             </div>
-                            <div className="flex justify-between items-center gap-2 xl:gap-4 mb-2">
-                              <span className="text-cusBlue font-bold">
-                                {battle.totalUsers}/6
-                              </span>
-                              <StatusBadge 
-                                status={battle.status} 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBattleEnter(battle.battleId, battle.status);
-                                }} 
-                              />
+                            <div className="flex justify-between items-center gap-4 mb-1">
+                              <span className="text-cusBlue font-bold">{battle.totalUsers}/6</span>
+                              {battle.status === "WAITING" ? (
+                                battle.totalUsers >= 6 ? (
+                                  <button className="btn px-4 sm:px-6 py-2 bg-cusGray text-white font-bold rounded-lg pointer-events-none whitespace-nowrap">
+                                    <span className="sm:inline hidden">입장 불가</span>
+                                    <span className="sm:hidden">만석</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="btn px-4 sm:px-6 py-2 bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold rounded-lg whitespace-nowrap"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleBattleEnter(battle.battleId, battle.status);
+                                    }}
+                                  >
+                                    <span className="sm:inline hidden">입장하기</span>
+                                    <span className="sm:hidden">입장</span>
+                                  </button>
+                                )
+                              ) : (
+                                <button className="btn px-4 sm:px-6 py-2 bg-cusGray text-white font-bold rounded-lg pointer-events-none whitespace-nowrap">
+                                  <span className="sm:inline hidden">진행 중</span>
+                                  <span className="sm:hidden">진행</span>
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
