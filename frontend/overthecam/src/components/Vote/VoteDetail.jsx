@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAxios } from '../../common/axiosinstance';
-import Swal from 'sweetalert2';
+import VoteDeleteModal from './VoteModal/VoteDeleteModal';
 
-const VoteDetail = ({ voteData, onDelete }) => {
+const VoteDetail = ({ voteData }) => {
   const navigate = useNavigate();
   const [hasVoted, setHasVoted] = useState(false);
   const [currentVoteData, setCurrentVoteData] = useState(voteData);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const deleteModalRef = useRef();
 
   // creatorUserId로 비교 로직 수정
   const userInfo = localStorage.getItem('userInfo');
@@ -132,40 +134,9 @@ const VoteDetail = ({ voteData, onDelete }) => {
   // 총 투표 수 계산
   const totalVotes = currentVoteData.options.reduce((sum, option) => sum + option.voteCount, 0);
 
-  // handleDelete 함수 추가
-  const handleDelete = async () => {
-    try {
-      const result = await Swal.fire({
-        title: '투표를 삭제하시겠습니까?',
-        text: "삭제된 투표는 복구할 수 없습니다.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: '삭제',
-        cancelButtonText: '취소'
-      });
-
-      if (result.isConfirmed) {
-        await onDelete();
-        
-        await Swal.fire({
-          title: '삭제되었습니다!',
-          icon: 'success',
-          confirmButtonColor: '#3085d6'
-        });
-        
-        navigate('/main/vote');
-      }
-    } catch (error) {
-      console.error('삭제 실패:', error);
-      await Swal.fire({
-        title: '삭제 실패',
-        text: '투표 삭제에 실패했습니다.',
-        icon: 'error',
-        confirmButtonColor: '#3085d6'
-      });
-    }
+  // handleDelete 함수 수정
+  const handleDelete = () => {
+    deleteModalRef.current.showModal();
   };
 
   if (!currentVoteData) return <div>로딩 중...</div>;
@@ -408,6 +379,12 @@ const VoteDetail = ({ voteData, onDelete }) => {
           )}
         </div>
       </div>
+
+      {/* Delete Modal */}
+      <VoteDeleteModal 
+        ref={deleteModalRef}
+        voteId={voteData.voteId}
+      />
     </div>
   );
 };
