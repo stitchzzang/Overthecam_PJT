@@ -32,13 +32,33 @@ function BattleVote({ isWaiting }) {
         {isWaiting ? (
           <>
             {/* 투표 제목 */}
-            <div className="flex flex-col justify-center  w-full">
-              <div className="items-center  text-center">
+            <div className="w-1/3 ml-5  flex flex-col items-center justify-center text-center item-center">
+              <div className="">
                 <h1 className="text-2xl font-bold text-gray-800">
                   {vote.title}
                 </h1>
                 <h4>{vote.content}</h4>
               </div>
+            </div>
+            <div className="flex justify-between mx-10 gap-6 w-2/3">
+              <button
+                onClick={() => handleVote(vote.option1Id)}
+                disabled={true}
+                className={
+                  "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300 disabled:cursor-not-allowed"
+                }
+              >
+                {vote.option1}
+              </button>
+              <button
+                onClick={() => handleVote(vote.option2Id)}
+                disabled={true}
+                className={
+                  "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300 disabled:cursor-not-allowed"
+                }
+              >
+                {vote.option2}
+              </button>
             </div>
           </>
         ) : (
