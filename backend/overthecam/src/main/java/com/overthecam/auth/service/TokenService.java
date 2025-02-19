@@ -1,11 +1,13 @@
 package com.overthecam.auth.service;
 
+import com.overthecam.auth.dto.TokenInvalidatedEvent;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class TokenService {
     private final StringRedisTemplate redisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     private static class RedisKeys {
         private static final String REFRESH_TOKEN = "auth:refresh:";
@@ -48,6 +52,9 @@ public class TokenService {
                 // 기존 Access Token 조회 후 블랙리스트 추가
                 String oldAccessToken = redisTemplate.opsForValue().get(RedisKeys.accessToken(userId));
                 if (oldAccessToken != null) {
+                    // 이벤트 발행으로 웹소켓 연결 종료 요청
+                    eventPublisher.publishEvent(new TokenInvalidatedEvent(oldAccessToken, userId));
+
                     addToBlacklist(oldAccessToken);
                     redisTemplate.delete(RedisKeys.accessToken(userId));
 
@@ -69,6 +76,32 @@ public class TokenService {
         } catch (Exception e) {
             log.error("새로운 로그인 처리 실패 - User ID: {}", userId, e);
             throw new GlobalException(AuthErrorCode.SERVER_ERROR, "로그인 처리에 실패했습니다");
+        }
+    }
+
+    /**
+     * 로그아웃 처리
+     * - Refresh Token 삭제
+     * - Access Token 삭제
+     * - Access Token 블랙리스트 추가
+     */
+    public void logout(Long userId, String accessToken) {
+        try {
+
+            // 웹소켓 연결 종료 이벤트 발행
+            eventPublisher.publishEvent(new TokenInvalidatedEvent(accessToken, userId));
+
+            // Access Token 관련 정리
+            redisTemplate.delete(RedisKeys.accessToken(userId));
+            addToBlacklist(accessToken);
+            log.info("로그아웃 - Access Token 처리 완료 - User ID: {}", userId);
+
+            // Refresh Token 삭제
+            redisTemplate.delete(RedisKeys.refreshToken(userId));
+            log.info("로그아웃 - Refresh Token 삭제 완료 - User ID: {}", userId);
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 오류 발생 - User ID: {}", userId, e);
+            throw new GlobalException(AuthErrorCode.LOGOUT_FAILED, "로그아웃 처리에 실패했습니다");
         }
     }
 
@@ -230,25 +263,5 @@ public class TokenService {
         }
     }
 
-    /**
-     * 로그아웃 처리
-     * - Refresh Token 삭제
-     * - Access Token 삭제
-     * - Access Token 블랙리스트 추가
-     */
-    public void logout(Long userId, String accessToken) {
-        try {
-            // Access Token 관련 정리
-            redisTemplate.delete(RedisKeys.accessToken(userId));
-            addToBlacklist(accessToken);
-            log.info("로그아웃 - Access Token 처리 완료 - User ID: {}", userId);
 
-            // Refresh Token 삭제
-            redisTemplate.delete(RedisKeys.refreshToken(userId));
-            log.info("로그아웃 - Refresh Token 삭제 완료 - User ID: {}", userId);
-        } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류 발생 - User ID: {}", userId, e);
-            throw new GlobalException(AuthErrorCode.LOGOUT_FAILED, "로그아웃 처리에 실패했습니다");
-        }
-    }
 }
