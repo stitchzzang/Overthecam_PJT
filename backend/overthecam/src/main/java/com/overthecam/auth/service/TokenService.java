@@ -3,8 +3,6 @@ package com.overthecam.auth.service;
 import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.security.jwt.JwtTokenProvider;
-import com.overthecam.websocket.service.WebSocketSessionService;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class TokenService {
     private final StringRedisTemplate redisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
-    private final WebSocketSessionService webSocketSessionService;
 
     private static class RedisKeys {
         private static final String REFRESH_TOKEN = "auth:refresh:";
@@ -60,12 +57,6 @@ public class TokenService {
                 // 기존 Refresh Token 삭제
                 redisTemplate.delete(RedisKeys.refreshToken(userId));
                 log.info("기존 Refresh Token 삭제 완료 - User ID: {}", userId);
-
-                // 기존 웹소켓 세션들 확인 및 종료 처리
-                List<String> existingSessions = webSocketSessionService.findSessionsByUserId(userId);
-                if (!existingSessions.isEmpty()) {
-                    log.info("기존 웹소켓 세션 발견 - User ID: {}, Sessions: {}", userId, existingSessions.size());
-                }
             }
 
             // 새 토큰 저장
