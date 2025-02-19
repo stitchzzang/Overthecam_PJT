@@ -16,66 +16,65 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
   const [isLoading, setIsLoading] = useState(false);
   const { setMyScores } = useWebSocketContext();
 
-  const onBet = async () => {
-    if (!inputScore || isWrongInput) {
-      failAlertRef.current?.showAlert("올바른 배팅 점수를 입력해주세요.");
-      return;
-    }
+ const onBet = async () => {
+   if (!inputScore || isWrongInput) {
+     failAlertRef.current?.showAlert("올바른 배팅 점수를 입력해주세요.");
+     return;
+   }
 
-    setIsLoading(true);
+   setIsLoading(true);
 
-    try {
-      console.log(inputScore)
-      const response = await betSupportScore(battleId, optionId, inputScore);
-      if (response.success && response.data) {
-      // 성공적인 응답일 때만 점수 업데이트
-      setMyScores({
-        supportScore: response.data.supportScore,
-        point: response.data.point,
-      });
-    }
+   try {
+     const response = await betSupportScore(battleId, optionId, inputScore);
+     if (response.success && response.data) {
+       // 성공적인 응답일 때만 점수 업데이트
+       setMyScores({
+         supportScore: response.data.supportScore,
+         point: response.data.point,
+       });
+     }
 
-      // 현재 모달 닫기
-      if (ref.current) {
-        ref.current.close();
-      }
+     // 현재 모달 닫기
+     if (ref.current) {
+       ref.current.close();
+     }
 
-      // 성공 알림 표시
-      if (successAlertRef.current?.showAlert) {
-        successAlertRef.current.showAlert("배팅이 완료되었습니다!");
-      }
-    } catch (error) {
-      // 현재 모달 닫기
-      if (ref.current) {
-        ref.current.close();
-      }
+     // 성공 알림 표시
+     setTimeout(() => {
+       if (successAlertRef.current?.showAlert) {
+         successAlertRef.current.showAlert("배팅이 완료되었습니다!");
+       }
+     }, 100);
+   } catch (error) {
+     // 에러 메시지 설정
+     let errorMessage = "배팅에 실패했습니다.";
 
-      // 에러 메시지 설정
-      let errorMessage = "배팅에 실패했습니다.";
+     if (error.code === "ERR_NETWORK") {
+       errorMessage = "서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.";
+     } else if (error.code === "INSUFFICIENT_SCORE") {
+       errorMessage = error.message || "보유 점수가 부족합니다.";
+     } else if (error.code === "INVALID_SCORE") {
+       errorMessage = "올바르지 않은 배팅 점수입니다.";
+     } else if (error.message) {
+       // 서버에서 전달한 에러 메시지가 있다면 사용
+       errorMessage = error.message;
+     }
 
-      if (error.code === "ERR_NETWORK") {
-        errorMessage =
-          "서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.";
-      } else if (error.code === "INSUFFICIENT_SCORE") {
-        errorMessage = error.message || "보유 점수가 부족합니다.";
-      } else if (error.code === "INVALID_SCORE") {
-        errorMessage = "올바르지 않은 배팅 점수입니다.";
-      } else if (error.message) {
-        // 서버에서 전달한 에러 메시지가 있다면 사용
-        errorMessage = error.message;
-      }
+     // 현재 모달 닫기
+     if (ref.current) {
+       ref.current.close();
+     }
 
-      // 실패 알림 표시
-      if (failAlertRef.current?.showAlert) {
-        failAlertRef.current.showAlert(errorMessage);
-      } else {
-        console.error("failAlertRef.current나 showAlert 메서드가 없습니다.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+     // 실패 알림 표시 - 약간의 지연을 주어 모달 닫힘과 알림 표시 사이에 간격을 둠
+     setTimeout(() => {
+       if (failAlertRef.current?.showAlert) {
+         failAlertRef.current.showAlert(errorMessage);
+       }
+     }, 100);
+   } finally {
+     setIsLoading(false);
+   }
+ };
   const handleChange = (event) => {
     const inputValue = event.target.value;
     if (inputValue >= 1000) {

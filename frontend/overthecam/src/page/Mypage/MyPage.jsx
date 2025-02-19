@@ -251,7 +251,7 @@ function MyPage() {
     const fetchUserData = async () => {
       try {
         // 프로필 정보 가져오기
-        const profileResponse = await authAxios.post("/mypage/profile");
+        const profileResponse = await authAxios.get("/mypage/profile");
         const profileData = profileResponse.data;
 
         // 통계 정보 가져오기
@@ -497,7 +497,7 @@ function MyPage() {
         }
       } catch (error) {
         console.error("이미지 업로드 실패:", error);
-        showToast(error.response?.data?.message || '이미지 업로드에 실패했습니다.', 'error');
+        showToast(error.response?.data?.message || '파일 제목에 한글이나 공백을 제거해주세요요.', 'error');
       }
     }
   };

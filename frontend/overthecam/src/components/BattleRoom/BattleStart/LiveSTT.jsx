@@ -51,6 +51,9 @@ const LiveSTT = ({ shouldStop }) => {
       // 치명적이지 않은 오류에서 인식 재시작 시도
       if (event.error !== "aborted" && event.error !== "not-allowed") {
         try {
+          if (fullTranscript && fullTranscript.trim() !== "") {
+            sendDataToServer(userId, fullTranscript);
+          }
           recognition.start();
         } catch (e) {
           console.error("인식 재시작 실패:", e);

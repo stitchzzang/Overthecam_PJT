@@ -14,7 +14,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
   { onFinish },
   ref
 ) {
-  const { myResult, isDraw, gameResult } = useWebSocketContext();
+  const { myResult, isDraw, gameResult, myRole } = useWebSocketContext();
   const navigate = useNavigate();
   const [options, setOptions] = useState([
     { percentage: 0 },
@@ -38,7 +38,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
 
   // gameResult가 없을 때의 처리 추가
   if (!gameResult || !gameResult.options) {
-    return null; // 또는 로딩 상태를 보여줄 수 있습니다
+    return null;
   }
 
   const onLeaveRoom = async () => {
@@ -47,7 +47,11 @@ const BattleResultModal = forwardRef(function BattleResultModal(
       await onFinish(); // cleanup + 배틀 종료 요청
       await getReport(userId);
     }
-    setTimeout(() => navigate("/main/battle-list"), 1000);
+    if (myRole === "PARTICIPANT") {
+      setTimeout(() => navigate("/main/battle-list"), 1000);
+    } else {
+      setTimeout(() => navigate("/main/mypage"), 1000); // 내가 배틀러면 내 페이지 보러가기 발화 리포트 보기
+    }
   };
 
   return (
@@ -80,7 +84,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
                   width: `${options[1]?.percentage || 50}%`,
                 }}
               >
-                {options[0]?.optionTitle} {options[1]?.percentage || 0}%
+                {options[1]?.optionTitle} {options[1]?.percentage || 0}%
               </div>
             </div>
           </div>

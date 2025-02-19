@@ -40,7 +40,7 @@ function SearchBar({ value, onChange }) {
           <input
             type="text"
             className="border-0 bg-transparent flex-1 focus:outline-none text-gray-700 h-full text-sm mb-0"
-            placeholder=" 관심사나 배틀룸 검색"
+            placeholder=" 제목이나 사용자로 검색"
             value={searchValue}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
