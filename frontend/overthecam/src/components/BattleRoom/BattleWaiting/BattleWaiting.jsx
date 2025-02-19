@@ -45,25 +45,32 @@ function BattleWaiting({
     readyForBattle(userId, participantName, !myReady);
   };
 
-const handleStart = (e) => {
-  readyForBattle(userId, participantName, true) // 방장은 무조건 ready ;
-  if (totalParticipants > readyList.length) {
-    console.log(
-      "총 참가자 수: ",
-      totalParticipants,
-      "준비된 참가자 수: ",
-      readyList.length
-    );
-    failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
-  } else if (totalParticipants <= 1) {
-    failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
-  } else {
-    // 깨끗한 상태 전환을 위해 작은 지연 추가
+  const handleStart = (e) => {
+    readyForBattle(userId, participantName, true); // 방장은 무조건 ready
+
+    // 먼저 최소 참가자 수 체크
+    if (totalParticipants <= 1) {
+      failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
+      return;
+    }
+
+    // 모든 참가자가 준비되었는지 체크
+    if (totalParticipants > readyList.length) {
+      console.log(
+        "총 참가자 수: ",
+        totalParticipants,
+        "준비된 참가자 수: ",
+        readyList.length
+      );
+      failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+      return;
+    }
+
+    // 모든 조건을 통과했을 때만 실행
     setTimeout(() => {
       onShowBattlerModal();
     }, 100);
-  }
-};
+  };
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
     .fill(null)
@@ -225,7 +232,7 @@ const handleStart = (e) => {
         ref={battlerSettingModal}
         participants={participants}
       />
-      <FailAlertModal ref={failToast}/>
+      <FailAlertModal ref={failToast} />
     </>
   );
 }
