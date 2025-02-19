@@ -83,15 +83,22 @@ public class AuthService {
         TokenResponse tokenResponse = jwtTokenProvider.createToken(user);
 
         // 새로운 로그인 처리 (기존 토큰 무효화 포함)
-        tokenService.handleNewLogin(
+        boolean hadExistingSession = tokenService.handleNewLogin(
             user.getId(),
             tokenResponse.getRefreshToken(),
+            tokenResponse.getAccessToken(),
             tokenResponse.getAccessTokenExpiresIn()
         );
 
-        log.info("로그인 성공 - User ID: {}, Email: {}", user.getId(), user.getEmail());
+        TokenResponse response = buildTokenResponse(tokenResponse, user);
+        if (hadExistingSession) {
+            response.updateSessionInfo(true);
+        }
 
-        return buildTokenResponse(tokenResponse, user);
+        log.info("로그인 성공 - User ID: {}, Email: {}, 기존 세션 종료: {}",
+            user.getId(), user.getEmail(), hadExistingSession);
+
+        return response;
     }
 
     private void validatePassword(String rawPassword, User user) {
@@ -163,11 +170,16 @@ public class AuthService {
         validateStoredRefreshToken(user.getId(), refreshToken);
 
         String newAccessToken = jwtTokenProvider.recreateAccessToken(user);
+        long expirationTime = System.currentTimeMillis() + 1800000;
+
+        // 기존 토큰 삭제하고 새 토큰 저장
+        tokenService.updateAccessToken(user.getId(), newAccessToken, expirationTime);
+
         TokenResponse tokenResponse = TokenResponse.builder()
             .accessToken(newAccessToken)
             .refreshToken(refreshToken)
             .grantType("Bearer")
-            .accessTokenExpiresIn(System.currentTimeMillis() + 1800000)
+            .accessTokenExpiresIn(expirationTime)
             .build();
 
         log.info("Access Token 갱신 완료 - User ID: {}, Email: {}", user.getId(), email);
@@ -186,6 +198,23 @@ public class AuthService {
             throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE, "유효하지 않은 토큰입니다");
         }
     }
+
+    /**
+     * 이메일 찾기
+     * - 이름과 전화번호로 사용자 확인
+     */
+    @Transactional(readOnly = true)
+    public UserResponse findEmail(FindEmailRequest request) {
+        User user = userRepository.findByUsernameAndPhoneNumberAndBirth(
+                request.getUsername(),
+                request.getPhoneNumber(),
+                request.getBirth())
+            .orElseThrow(() -> new GlobalException(AuthErrorCode.USER_NOT_FOUND,
+                String.format("일치하는 사용자 정보가 없습니다. (이름: %s)", request.getUsername())));
+
+        return UserResponse.from(user);
+    }
+
 
     /**
      * 비밀번호 재설정 검증
@@ -218,6 +247,7 @@ public class AuthService {
         tokenService.handleNewLogin(
             user.getId(),
             tokenResponse.getRefreshToken(),
+            tokenResponse.getAccessToken(),
             tokenResponse.getAccessTokenExpiresIn()
         );
 
