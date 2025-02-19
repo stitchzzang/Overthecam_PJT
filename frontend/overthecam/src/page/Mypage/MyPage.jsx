@@ -395,7 +395,7 @@ function MyPage() {
         phoneNumber: editedData.phoneNumber
       };
 
-      const response = await authAxios.put("/mypage/profile", updateData);
+      const response = await authAxios.post("/mypage/profile", updateData);
       
       setUserData(prev => ({
         ...prev,
