@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 import { publicAxios } from '../../common/axiosinstance';
@@ -24,24 +24,11 @@ const createConfetti = (isFirstOption) => {
   }
 };
 
-const Card = ({ children }) => (
-  <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
-);
-
 const SectionTitle = ({ title }) => (
   <h2 className="text-3xl font-bold mb-4 pl-8 text-start justify-start">
     {title}
   </h2>
 );
-
-const ParticipantsBadge = ({ current, max }) => {
-  const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
-  return (
-    <span className={`${baseClasses} bg-cusGray-light text-cusBlack`}>
-      {current} / {max}
-    </span>
-  );
-};
 
 const SearchResultPage = () => {
   const navigate = useNavigate();

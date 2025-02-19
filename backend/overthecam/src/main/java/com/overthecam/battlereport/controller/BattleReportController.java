@@ -1,10 +1,8 @@
 package com.overthecam.battlereport.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.overthecam.battlereport.domain.BattleReport;
 import com.overthecam.battlereport.dto.ReportRealTimeRequest;
 import com.overthecam.battlereport.exception.BattleReportErrorCode;
-import com.overthecam.battlereport.repository.BattleReportRepository;
 import com.overthecam.battlereport.service.BattleReportService;
 import com.overthecam.battlereport.service.FlaskService;
 import com.overthecam.battlereport.service.OpenAiService;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,7 +27,6 @@ public class BattleReportController {
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
     private final BattleReportService battleReportService;
-
 
 
     @PostMapping("/text")
@@ -80,6 +76,7 @@ public class BattleReportController {
     @PostMapping("/generate/{userId}")
     public CommonResponseDto<Map<String, Object>> generateReport(@PathVariable Integer userId) {
         try {
+
             Map<String, Object> recentAnalysis = redisService.getRecentAnalysisResult(userId);
             String analysisResultJson = objectMapper.writeValueAsString(recentAnalysis);
             Map<String, Object> report = openAiService.generateReport(analysisResultJson, userId);
