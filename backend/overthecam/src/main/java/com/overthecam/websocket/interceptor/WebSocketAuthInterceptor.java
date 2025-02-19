@@ -30,7 +30,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenService tokenService;
-    private final WebSocketSessionService webSocketSessionService;
+    //private final WebSocketSessionService webSocketSessionService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -64,7 +64,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private void handleDisconnect(StompHeaderAccessor accessor) {
         try {
             String sessionId = accessor.getSessionId();
-            webSocketSessionService.removeSession(sessionId);  // 세션 제거
+            //webSocketSessionService.removeSession(sessionId);  // 세션 제거
 
             Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
             if (sessionAttributes != null) {
@@ -180,7 +180,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         accessor.setSessionAttributes(attributes);
 
         // WebSocketSession 등록
-        webSocketSessionService.registerSession(accessor.getSessionId(), principal.getUserId());
+        //webSocketSessionService.registerSession(accessor.getSessionId(), principal.getUserId());
 
 
         log.debug("WebSocket 인증 성공 - 사용자: {}, Principal: {}, SessionAttributes: {}",
