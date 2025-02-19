@@ -156,4 +156,15 @@ public class JwtTokenProvider {
             return false;  // 만료가 아닌 다른 이유로 유효하지 않은 경우
         }
     }
+
+    // Refresh Token으로부터 Access Token 추출을 위한 메서드 추가
+    public String extractTokenFromClaims(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return claims.get("accessToken", String.class);
+        } catch (JwtException e) {
+            log.error("토큰에서 정보 추출 실패", e);
+            return null;
+        }
+    }
 }

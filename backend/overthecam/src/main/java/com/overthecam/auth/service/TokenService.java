@@ -29,6 +29,29 @@ public class TokenService {
         }
     }
 
+    /**
+     * 새로운 로그인 처리
+     * - 기존 토큰 무효화
+     * - 새로운 Refresh Token 저장
+     */
+    public void handleNewLogin(Long userId, String refreshToken, long expirationTime) {
+        try {
+            // 기존 토큰 무효화
+            invalidateExistingTokens(userId);
+
+            // 새 Refresh Token 저장
+            saveRefreshToken(userId, refreshToken, expirationTime);
+
+            log.info("새로운 로그인 처리 완료 - User ID: {}", userId);
+        } catch (Exception e) {
+            log.error("새로운 로그인 처리 실패 - User ID: {}", userId, e);
+            throw new GlobalException(AuthErrorCode.SERVER_ERROR, "로그인 처리에 실패했습니다");
+        }
+    }
+
+    /**
+     * Refresh Token을 Redis에 저장
+     */
     public void saveRefreshToken(Long userId, String refreshToken, long expirationTime) {
         try {
             String key = RedisKeys.refreshToken(userId);
@@ -38,12 +61,37 @@ public class TokenService {
                 expirationTime,
                 TimeUnit.MILLISECONDS
             );
+            log.info("Refresh Token 저장 완료 - User ID: {}", userId);
         } catch (Exception e) {
-            log.error("Redis에 Refresh Token 저장 실패", e);
+            log.error("Redis에 Refresh Token 저장 실패 - User ID: {}", userId, e);
             throw new GlobalException(AuthErrorCode.SERVER_ERROR, "토큰 저장에 실패했습니다");
         }
     }
 
+    /**
+     * 기존 토큰 무효화
+     * - Refresh Token 삭제
+     * - 기존 Access Token이 있다면 블랙리스트에 추가
+     */
+    public void invalidateExistingTokens(Long userId) {
+        try {
+            String key = RedisKeys.refreshToken(userId);
+            String existingRefreshToken = redisTemplate.opsForValue().get(key);
+
+            if (existingRefreshToken != null) {
+                // Refresh Token 삭제
+                redisTemplate.delete(key);
+                log.info("기존 Refresh Token 삭제 완료 - User ID: {}", userId);
+            }
+        } catch (Exception e) {
+            log.error("기존 토큰 무효화 실패 - User ID: {}", userId, e);
+            throw new GlobalException(AuthErrorCode.SERVER_ERROR, "토큰 무효화에 실패했습니다");
+        }
+    }
+
+    /**
+     * Access Token을 블랙리스트에 추가
+     */
     public void addToBlacklist(String accessToken) {
         try {
             if (accessToken != null) {
@@ -55,6 +103,7 @@ public class TokenService {
                     expiration,
                     TimeUnit.MILLISECONDS
                 );
+                log.info("Access Token 블랙리스트 추가 완료");
             }
         } catch (Exception e) {
             log.error("Redis에 Access Token 블랙리스트 추가 실패", e);
@@ -62,6 +111,9 @@ public class TokenService {
         }
     }
 
+    /**
+     * Access Token이 블랙리스트에 있는지 확인
+     */
     public boolean isBlacklisted(String accessToken) {
         try {
             String key = RedisKeys.blacklist(accessToken);
@@ -72,26 +124,59 @@ public class TokenService {
         }
     }
 
+    /**
+     * Refresh Token 유효성 검증
+     */
     public boolean validateRefreshToken(Long userId, String refreshToken) {
         try {
             String key = RedisKeys.refreshToken(userId);
             String storedToken = redisTemplate.opsForValue().get(key);
-            return refreshToken.equals(storedToken);
+            boolean isValid = refreshToken.equals(storedToken);
+
+            if (!isValid) {
+                log.warn("Refresh Token 불일치 - User ID: {}", userId);
+            }
+
+            return isValid;
         } catch (Exception e) {
-            log.error("Redis에서 Refresh Token 검증 실패", e);
+            log.error("Redis에서 Refresh Token 검증 실패 - User ID: {}", userId, e);
             return false;
         }
     }
 
+    /**
+     * 토큰의 종합적인 유효성 검증
+     */
+    public boolean validateAndCheckBlacklist(String token) {
+        if (!jwtTokenProvider.validateToken(token)) {
+            log.debug("토큰 기본 검증 실패");
+            return false;
+        }
+
+        if (isBlacklisted(token)) {
+            log.debug("블랙리스트에 존재하는 토큰");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 로그아웃 처리
+     * - Refresh Token 삭제
+     * - Access Token 블랙리스트 추가
+     */
     public void logout(Long userId, String accessToken) {
         try {
             // Refresh Token 삭제
             redisTemplate.delete(RedisKeys.refreshToken(userId));
+            log.info("로그아웃 - Refresh Token 삭제 완료 - User ID: {}", userId);
 
             // Access Token 블랙리스트 추가
             addToBlacklist(accessToken);
+            log.info("로그아웃 - Access Token 블랙리스트 추가 완료 - User ID: {}", userId);
         } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류 발생", e);
+            log.error("로그아웃 처리 중 오류 발생 - User ID: {}", userId, e);
             throw new GlobalException(AuthErrorCode.LOGOUT_FAILED, "로그아웃 처리에 실패했습니다");
         }
     }
