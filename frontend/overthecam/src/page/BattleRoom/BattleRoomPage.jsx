@@ -37,9 +37,9 @@ function BattleRoomPage() {
     disconnectWS,
     vote,
     startBattle,
-    readyForBattle,
     isStarted,
     isBattleEnded,
+    myRole
   } = useWebSocketContext();
   // openvidu 관련 설정
   const [room, setRoom] = useState(null);
@@ -569,7 +569,7 @@ function BattleRoomPage() {
           </>
         )}
       </div>
-      <LiveSTT shouldStop={isBattleEnded} />
+      {myRole !== "PARTICIPANT" && <LiveSTT shouldStop={isBattleEnded} />}
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
