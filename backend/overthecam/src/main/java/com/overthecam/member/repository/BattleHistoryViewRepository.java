@@ -20,19 +20,24 @@ public interface BattleHistoryViewRepository extends JpaRepository<BattleHistory
     List<BattleHistoryView> findByUserId(@Param("userId") Long userId);
 
     // 페이지네이션 메서드 추가
-    @Query(value = "SELECT * FROM battle_history_view WHERE user_id = :userId ORDER BY created_at DESC",
-        countQuery = "SELECT count(*) FROM battle_history_view WHERE user_id = :userId",
-        nativeQuery = true)
+    @Query(value = """
+    SELECT battle_id, title, user_id, vote_id, vote_option_id, 
+           option_title, is_winner, earned_score, created_at 
+    FROM battle_history_view 
+    WHERE user_id = :userId 
+    ORDER BY created_at DESC""",
+            countQuery = "SELECT count(*) FROM battle_history_view WHERE user_id = :userId",
+            nativeQuery = true)
     Page<BattleHistoryView> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
     @Query(value = "SELECT user_id, " +
-        "COUNT(*) as total, " +
-        "SUM(CASE WHEN is_winner = true AND earned_score >= 0 THEN 1 ELSE 0 END) as wins, " +
-        "SUM(CASE WHEN is_winner = false AND earned_score < 0 THEN 1 ELSE 0 END) as losses, " +
-        "SUM(CASE WHEN is_winner = false AND earned_score >= 0 THEN 1 ELSE 0 END) as draws " +
-        "FROM battle_history_view " +
-        "WHERE user_id = :userId GROUP BY user_id",
-        nativeQuery = true)
+            "COUNT(*) as totalGames, " +  // total -> totalGames
+            "SUM(CASE WHEN is_winner = true AND earned_score >= 0 THEN 1 ELSE 0 END) as win, " +  // wins -> win
+            "SUM(CASE WHEN is_winner = false AND earned_score < 0 THEN 1 ELSE 0 END) as loss, " +  // losses -> loss
+            "SUM(CASE WHEN is_winner = false AND earned_score >= 0 THEN 1 ELSE 0 END) as draw " +  // draws -> draw
+            "FROM battle_history_view " +
+            "WHERE user_id = :userId GROUP BY user_id",
+            nativeQuery = true)
     BattleStatsInfo findBattleStatsByUserId(@Param("userId") Long userId);
 
     @Query(value = "SELECT vo.option_title as optionTitle, vo.is_winner as isWinner, br.earned_score as earnedScore " +
