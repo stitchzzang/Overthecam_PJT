@@ -130,7 +130,11 @@ function BattleWaiting({
                           : "bg-cusLightBlue"
                       }`}
                     >
-                      {slot ? slot.participantName : "대기중..."}
+                      {slot
+                        ? slot.type === "local"
+                          ? `${slot.participantName} (Me)`
+                          : slot.participantName
+                        : "대기중..."}
                     </div>
                   </div>
                   {/* Video container with fixed aspect ratio */}
