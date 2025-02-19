@@ -2,8 +2,11 @@ package com.overthecam.member.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.overthecam.auth.domain.User;
+import com.overthecam.auth.exception.AuthErrorCode;
 import com.overthecam.auth.repository.UserRepository;
+import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.dto.UserScoreInfo;
+import com.overthecam.member.dto.UserUpdateRequestDto;
 import com.overthecam.member.dto.UserUpdateResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -78,38 +81,38 @@ public class MyPageService {
         return UserUpdateResponseDto.from(user);
     }
 
-//    public UserUpdateResponseDto updateUserProfile(Long userId, UserUpdateRequestDto request) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
-//
-//        // 비밀번호가 제공되고 비어있지 않은 경우에만 업데이트
-//        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
-//            user.updatePassword(passwordEncoder.encode(request.getPassword()));
-//        }
-//
-//        // 닉네임 중복 검사 및 업데이트
-//        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
-//            if (userRepository.existsByNicknameAndIdNot(request.getNickname(), userId)) {
-//                throw new GlobalException(AuthErrorCode.DUPLICATE_NICKNAME,
-//                        String.format("이미 등록된 닉네임입니다: %s", request.getNickname()));
-//            }
-//        }
-//
-//        // 전화번호 중복 검사 및 업데이트
-//        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-//            if (userRepository.existsByPhoneNumberAndIdNot(request.getPhoneNumber(), userId)) {
-//                throw new GlobalException(AuthErrorCode.DUPLICATE_PHONE_NUMBER,
-//                        String.format("이미 등록된 전화번호입니다: %s", request.getPhoneNumber()));
-//            }
-//        }
-//
-//        // 검증이 완료된 후 프로필 업데이트
-//        user.updateProfile(
-//                request.getNickname() != null && !request.getNickname().trim().isEmpty() ? request.getNickname() : null,
-//                request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty() ? request.getPhoneNumber() : null
-//        );
-//
-//        User savedUser = userRepository.save(user);
-//        return UserUpdateResponseDto.from(savedUser);
-//    }
+    public UserUpdateResponseDto updateUserProfile(Long userId, UserUpdateRequestDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 비밀번호가 제공되고 비어있지 않은 경우에만 업데이트
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            user.updatePassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        // 닉네임 중복 검사 및 업데이트
+        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+            if (userRepository.existsByNicknameAndIdNot(request.getNickname(), userId)) {
+                throw new GlobalException(AuthErrorCode.DUPLICATE_NICKNAME,
+                        String.format("이미 등록된 닉네임입니다: %s", request.getNickname()));
+            }
+        }
+
+        // 전화번호 중복 검사 및 업데이트
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            if (userRepository.existsByPhoneNumberAndIdNot(request.getPhoneNumber(), userId)) {
+                throw new GlobalException(AuthErrorCode.DUPLICATE_PHONE_NUMBER,
+                        String.format("이미 등록된 전화번호입니다: %s", request.getPhoneNumber()));
+            }
+        }
+
+        // 검증이 완료된 후 프로필 업데이트
+        user.updateProfile(
+                request.getNickname() != null && !request.getNickname().trim().isEmpty() ? request.getNickname() : null,
+                request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty() ? request.getPhoneNumber() : null
+        );
+
+        User savedUser = userRepository.save(user);
+        return UserUpdateResponseDto.from(savedUser);
+    }
 }

@@ -2,7 +2,6 @@ package com.overthecam.member.controller;
 
 import com.overthecam.auth.domain.User;
 import com.overthecam.battlereport.domain.BattleReport;
-import com.overthecam.battlereport.exception.BattleReportErrorCode;
 import com.overthecam.battlereport.repository.BattleReportRepository;
 import com.overthecam.common.dto.CommonResponseDto;
 import com.overthecam.member.dto.*;
@@ -137,7 +136,7 @@ public class MyPageController {
     }
 
 
-    @PostMapping("/profile")
+    @GetMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> getMyProfile(
             Authentication authentication,
             @RequestParam(value = "userId", required = false) Long targetUserId) {
@@ -146,15 +145,17 @@ public class MyPageController {
                 securityUtils.getCurrentUserId(authentication);
         return CommonResponseDto.ok(myPageService.getUserProfile(userId));
     }
-//
-//    @PutMapping("/profile")
-//    public CommonResponseDto<UserUpdateResponseDto> updateMyProfile(
-//            Authentication authentication,
-//            @RequestBody UserUpdateRequestDto request) {
-//        Long userId = securityUtils.getCurrentUserId(authentication);
-//        return CommonResponseDto.ok(myPageService.updateUserProfile(userId, request));
-//    }
-// 사용자의 모든 리포트 목록 조회
+
+    //
+    @PutMapping("/profile")
+    public CommonResponseDto<UserUpdateResponseDto> updateMyProfile(
+            Authentication authentication,
+            @RequestBody UserUpdateRequestDto request) {
+        Long userId = securityUtils.getCurrentUserId(authentication);
+        return CommonResponseDto.ok(myPageService.updateUserProfile(userId, request));
+    }
+
+    // 사용자의 모든 리포트 목록 조회
     // 내 리포트 목록 조회
     @GetMapping("/reports")
     public CommonResponseDto<Map<String, List<BattleReportDTO>>> getMyReports(
