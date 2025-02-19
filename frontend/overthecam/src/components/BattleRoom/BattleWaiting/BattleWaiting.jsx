@@ -30,7 +30,7 @@ function BattleWaiting({
 
   const failToast = useRef();
 
-  const totalParticipants = participants.length
+  const totalParticipants = participants.length;
 
   const onShowVoteCreate = (event) => {
     voteCreateModal.current.showModal();
@@ -48,17 +48,16 @@ function BattleWaiting({
 
     // 상태 업데이트 후 처리를 위해 setTimeout 사용
     setTimeout(() => {
-      console.log("현재 참가자 수: ", totalParticipants)
-      console.log("준비한 참가자: ", readyList.length)
+      console.log("현재 참가자 수: ", totalParticipants);
+      console.log("준비한 참가자: ", readyList.length);
 
       if (totalParticipants <= 1) {
         failToast.current?.showAlert("혼자서 배틀을 진행할 수 없습니다.");
       }
       // 방장 제외 모든 참가자가 준비되었는지 확인
-      else if (totalParticipants >= readyList.length) {
-         failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
-      }
-      else {
+      else if (totalParticipants > readyList.length) {
+        failToast.current?.showAlert("모든 참가자가 준비되지 않았습니다.");
+      } else {
         onShowBattlerModal();
       }
     }, 100); // 상태 업데이트를 위한 짧은 지연
@@ -122,9 +121,12 @@ function BattleWaiting({
                   <div className="flex-none px-6">
                     <div
                       className={`text-sm text-black rounded-t-lg ${
-                        slot &&
-                        host === slot.participantName.replace(" (Me)", "")
-                          ? "bg-cusPink"
+                        slot
+                          ? host ===
+                              slot.participantName.replace(" (Me)", "") ||
+                            (isMaster && slot.type === "local")
+                            ? "bg-cusPink"
+                            : "bg-cusLightBlue"
                           : "bg-cusLightBlue"
                       }`}
                     >
