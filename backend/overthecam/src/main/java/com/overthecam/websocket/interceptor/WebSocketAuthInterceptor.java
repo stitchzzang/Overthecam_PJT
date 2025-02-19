@@ -256,9 +256,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
 
         accessor.setSessionAttributes(attributes);
-        webSocketSessionService.registerSession(accessor.getSessionId(), principal.getUserId());
+        // 토큰 정보도 함께 저장
+        webSocketSessionService.registerSession(accessor.getSessionId(), principal.getUserId(), token);
 
-        log.debug("WebSocket 세션 설정 완료 - sessionId: {}, attributes: {}",
-            accessor.getSessionId(), attributes);
+        log.debug("WebSocket 세션 설정 완료 - sessionId: {}, userId: {}",
+            accessor.getSessionId(), principal.getUserId());
     }
 }

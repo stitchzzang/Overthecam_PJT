@@ -1,14 +1,15 @@
 package com.overthecam.websocket.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.overthecam.websocket.interceptor.WebSocketAuthInterceptor;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -19,30 +20,18 @@ import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker // 메시지 브로커가 지원하는 WebSocket 메시지 처리를 활성화
-@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final WebSocketAuthInterceptor webSocketAuthInterceptor;
+    @Autowired
+    private ApplicationContext applicationContext;
+
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config){
         config.enableSimpleBroker("/api/subscribe", "/queue"); // 구독(브로드캐스트)용 prefix
-            //.setHeartbeatValue(new long[]{10000, 10000})  // heartbeat 간격 설정
-            //.setTaskScheduler(taskScheduler());  // 메시지 스케줄러 설정
-
         config.setApplicationDestinationPrefixes("/api/publish"); // 클라이언트에서 서버로 발행하는 메시지의 prefix
         config.setUserDestinationPrefix("/api/user"); // 사용자별 메시지 라우팅을 위한 prefix
     }
-
-//    @Bean
-//    public TaskScheduler taskScheduler() {
-//        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-//        scheduler.setPoolSize(2);
-//        scheduler.setThreadNamePrefix("websocket-heartbeat-");
-//        scheduler.initialize();
-//        return scheduler;
-//    }
-
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -71,7 +60,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketAuthInterceptor);
+        // 인터셉터를 지연 생성하여 순환 참조 방지
+        registration.interceptors((ChannelInterceptor) applicationContext
+            .getBean("webSocketAuthInterceptor"));
         registration.taskExecutor()
             .corePoolSize(2)
             .maxPoolSize(4);
