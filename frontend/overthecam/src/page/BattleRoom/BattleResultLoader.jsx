@@ -5,7 +5,7 @@ function BattleResultLoader({ isLoading }) {
         <img
           src="/assets/loading2.gif"
           alt="Loading animation"
-          className="h-16 w-16"
+          className="h-24 w-40"
         />
         <h3 className="text-xl font-bold">결과 집계 중</h3>
         <p className="text-gray-600">잠시만 기다려주세요...</p>
