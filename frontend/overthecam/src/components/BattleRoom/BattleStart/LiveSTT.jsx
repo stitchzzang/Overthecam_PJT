@@ -121,8 +121,8 @@ const LiveSTT = ({ shouldStop }) => {
 
   return (
     <div>
-      <p className="z-index">🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
-      <p>📝 변환된 텍스트: {fullTranscript}</p>
+      {/* <p className="z-index">🎤 STT 상태: {listening ? "Listening..." : "Idle"}</p>
+      <p>📝 변환된 텍스트: {fullTranscript}</p> */}
     </div>
   );
 };

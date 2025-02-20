@@ -162,7 +162,7 @@ const useWebSocket = (battleId) => {
               point: me[0].point,
             });
             console.log(me, myScores, "내 유저 아이디", me.userId, userId);
-            setMyRole(me.role);
+            setMyRole(me[0].role);
           }
           break;
         case "BATTLER_SELECT":

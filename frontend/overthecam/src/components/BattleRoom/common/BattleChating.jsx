@@ -20,14 +20,24 @@ const BattleChating = () => {
   };
 
   // 최신 메세지 스크롤 바닥 고정 =
-  const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    requestAnimationFrame(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop =
+          chatContainerRef.current.scrollHeight;
+      }
+    });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // setTimeout을 사용하여 DOM 업데이트 후에 스크롤 실행
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [messageList]);
 
   useEffect(() => {
@@ -53,6 +63,7 @@ const BattleChating = () => {
       {/* 채팅 메시지 영역 - 최대 높이 및 오버플로우 스크롤 적용 */}
       <div className="flex-1 bg-white overflow-hidden">
         <div
+          ref={chatContainerRef}
           className="h-full overflow-y-scroll p-4
         [&::-webkit-scrollbar]:w-2
         [&::-webkit-scrollbar-track]:bg-white
@@ -74,7 +85,7 @@ const BattleChating = () => {
                   ) : (
                     <div className="text-left">
                       <span className="text-sm text-gray-700">
-                        {msg.nickname} : {" "}
+                        {msg.nickname} :{" "}
                       </span>
                       <span className="text-sm text-gray-900 w-full font-semibold break-words">
                         {msg.content}
@@ -83,7 +94,7 @@ const BattleChating = () => {
                   )}
                 </li>
               ))}
-              <div ref={messagesEndRef} />
+              <div />
             </ul>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">

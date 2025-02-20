@@ -22,12 +22,19 @@ const BattleResultModal = forwardRef(function BattleResultModal(
   ]);
   const dialogRef = useRef(null); // 내부 ref 추가
   const userId = useUserStore((s) => s.userId);
+  const [isLoading, setIsLoading] = useState(false);
+  const [resultHighlightColor, setResultHighlightColor] = useState(null);
 
   useEffect(() => {
     if (gameResult?.options?.length > 0) {
       setOptions(gameResult.options);
     }
   }, [gameResult]);
+
+  useEffect(() => {
+    const color = myResult?.winner ? "bg-green-200/70" : "bg-red-200/70";
+    setResultHighlightColor(color);
+  }, [myResult]);
 
   // useImperativeHandle을 통해 외부에서 사용할 메서드 노출
   useImperativeHandle(ref, () => ({
@@ -42,22 +49,46 @@ const BattleResultModal = forwardRef(function BattleResultModal(
   }
 
   const onLeaveRoom = async () => {
+    console.log("내 역할", myRole);
     dialogRef.current.close();
-    if (onFinish) {
-      await onFinish(); // cleanup + 배틀 종료 요청
-      await getReport(userId);
-    }
-    if (myRole === "PARTICIPANT") {
-      setTimeout(() => navigate("/main/battle-list"), 1000);
-    } else {
-      setTimeout(() => navigate("/main/mypage/#my-report"), 1000); // 내가 배틀러면 내 페이지 보러가기 발화 리포트 보기
+    setIsLoading(true); // 로딩 상태 활성화
+    try {
+      if (onFinish) {
+        await onFinish(); // cleanup + 배틀 종료 요청
+        await getReport(userId);
+      }
+
+      // 모든 정리 작업이 완료된 후 페이지 이동
+      setIsLoading(false);
+      if (myRole.includes("BATTLER")) {
+        // window.location.href = "/main/mypage";
+        navigate("/main/mypage");
+      } else {
+        // window.location.href = "/main/battle-list";
+        navigate("/main/battle-list");
+      }
+    } catch (error) {
+      console.error("세션 정리 중 오류:", error);
+      setIsLoading(false);
+      // 오류 처리 로직 (선택사항)
     }
   };
 
-  const resultHighlightColor = myResult.winner ? "bg-green-200/70" : "bg-red-200/70";
-
   return (
     <>
+      {isLoading && (
+        <div className="flex items-center justify-center h-screen bg-black/20 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
+            <img
+              src="/assets/loading2.gif"
+              alt="Loading animation"
+              className="h-24 w-40"
+            />
+            <h3 className="text-xl font-bold">이동 중</h3>
+            <p className="text-gray-600">잠시만 기다려주세요...</p>
+          </div>
+        </div>
+      )}
       <dialog
         ref={dialogRef}
         className="rounded-xl shadow-2xl p-6 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm"
@@ -108,7 +139,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
                 <span
                   className={`${resultHighlightColor} px-2 py-1 rounded text-xl font-bold`}
                 >
-                  {myResult.winner ? "승리" : "패배"}
+                  {myResult?.winner ? "승리" : "패배"}
                 </span>{" "}
                 하셨습니다.
               </h5>
@@ -136,9 +167,9 @@ const BattleResultModal = forwardRef(function BattleResultModal(
               <button
                 type="button"
                 onClick={onLeaveRoom}
-                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
+                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold"
               >
-                내 발화분석 리포트 보러가기
+                내 발화 분석 리포트 보러가기
               </button>
             )}
           </div>
