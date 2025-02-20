@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchBar from '../../components/Main/SearchBar';
 import { publicAxios } from '../../common/axiosinstance';
@@ -24,11 +24,24 @@ const createConfetti = (isFirstOption) => {
   }
 };
 
+const Card = ({ children }) => (
+  <div className="bg-white rounded-lg shadow-md p-4 h-32">{children}</div>
+);
+
 const SectionTitle = ({ title }) => (
   <h2 className="text-3xl font-bold mb-4 pl-8 text-start justify-start">
     {title}
   </h2>
 );
+
+const ParticipantsBadge = ({ current, max }) => {
+  const baseClasses = "btn px-4 py-1.5 text-sm font-bold pointer-events-none";
+  return (
+    <span className={`${baseClasses} bg-cusGray-light text-cusBlack`}>
+      {current} / {max}
+    </span>
+  );
+};
 
 const SearchResultPage = () => {
   const navigate = useNavigate();
@@ -74,13 +87,13 @@ const SearchResultPage = () => {
 
   const handleSearch = async (query) => {
     try {
-      // 배틀 검색 - public
-      const battleResponse = await publicAxios.get('/search/battle', {
+      // 배틀 검색
+      const battleResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/battle`, {
         params: { keyword: query }
       });
 
-      // 유저 검색 - public
-      const userResponse = await publicAxios.get('/search/user', {
+      // 유저 검색
+      const userResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/search/user`, {
         params: { 
           keyword: query,
           size: 100
@@ -278,18 +291,34 @@ const SearchResultPage = () => {
   };
 
   // StatusBadge 컴포넌트 수정
-  const StatusBadge = ({ status, battleId }) => {
-    const baseClasses = "btn px-3 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
-    return status === 0 ? (
-      <button
-        className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold cursor-pointer`}
-        onClick={() => gotoBattleRoom(battleId)}
-      >
-        입장
-      </button>
-    ) : (
+  const StatusBadge = ({ status, totalUsers, battleId }) => {
+    const baseClasses = "btn px-4 sm:px-6 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
+    
+    if (status === 0) { // WAITING 상태
+      if (totalUsers >= 6) {
+        return (
+          <button className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
+            <span className="sm:inline hidden">입장 불가</span>
+            <span className="sm:hidden">만석</span>
+          </button>
+        );
+      }
+      return (
+        <button
+          className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold cursor-pointer`}
+          onClick={() => gotoBattleRoom(battleId)}
+        >
+          <span className="sm:inline hidden">입장하기</span>
+          <span className="sm:hidden">입장</span>
+        </button>
+      );
+    }
+    
+    // 진행 중인 상태
+    return (
       <button className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
-        진행
+        <span className="sm:inline hidden">진행 중</span>
+        <span className="sm:hidden">진행</span>
       </button>
     );
   };
@@ -344,6 +373,7 @@ const SearchResultPage = () => {
                               </span>
                               <StatusBadge 
                                 status={battle.status} 
+                                totalUsers={battle.totalUsers}
                                 battleId={battle.battleId}
                               />
                             </div>
