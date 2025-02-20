@@ -65,8 +65,32 @@ function VoteDetailModal({ voteData, isLoading, onClose, clickedElement }) {
           {/* 메인 투표 그래프 */}
           <div className="mb-6">
             <div className="flex justify-between mb-2">
-              <span className="text-cusRed text-lg font-bold">A. {voteData.options[0].optionTitle}</span>
-              <span className="text-cusBlue text-lg font-bold">B. {voteData.options[1].optionTitle}</span>
+              <div className="text-cusRed text-lg font-bold flex items-center gap-2">
+                A. {voteData.options[0].optionTitle}
+                {voteData.options[0].selected && (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="#00d899" 
+                    className="w-8 h-8 check-animation"
+                  >
+                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </div>
+              <div className="text-cusBlue text-lg font-bold flex items-center gap-2">
+                {voteData.options[1].selected && (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="#00d899" 
+                    className="w-8 h-8 check-animation"
+                  >
+                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                  </svg>
+                )}
+                B. {voteData.options[1].optionTitle}
+              </div>
             </div>
             <div className="h-12 rounded-[1rem] flex overflow-hidden relative">
               {voteData.options[0].votePercentage > 0 && (

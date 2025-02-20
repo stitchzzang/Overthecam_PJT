@@ -412,3 +412,19 @@ footer {
 .menu-link-5.active {
   @apply translate-y-[275px];
 }
+
+/* 체크 애니메이션 관련 스타일 */
+@keyframes scaleCheck {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.check-animation {
+  animation: scaleCheck 0.5s ease-out forwards;
+}

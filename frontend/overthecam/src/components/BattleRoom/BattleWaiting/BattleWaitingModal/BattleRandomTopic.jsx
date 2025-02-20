@@ -15,20 +15,19 @@ const BattleRandomTopic = forwardRef((props, ref) => {
         return;
       }
 
-      const response = await authAxios.get(`/battle/random`);
+      const response = await authAxios.get('/battle/random');
 
       if (response.data.success) {
         setTopic(response.data.data.title);
       } else {
         setTopic(
           response.data.error?.message ||
-            "주제 생성에 실패했습니다. 다시 시도해주세요."
+          "주제 생성에 실패했습니다. 다시 시도해주세요."
         );
       }
     } catch (error) {
-      console.error("랜덤 주제 가져오기 실패:", error);
+      console.error("랜덤 주제 가져오기 실패:", error.response || error);
 
-      // 에러 상태 코드에 따른 구체적인 메시지
       if (error.response) {
         switch (error.response.status) {
           case 401:
@@ -40,7 +39,7 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           default:
             setTopic(
               error.response.data?.error?.message ||
-                "알 수 없는 오류가 발생했습니다. 다시 시도해주세요."
+              "알 수 없는 오류가 발생했습니다. 다시 시도해주세요."
             );
         }
       } else if (error.request) {
@@ -50,7 +49,6 @@ const BattleRandomTopic = forwardRef((props, ref) => {
       }
     } finally {
       setIsLoading(false);
-      // 애니메이션이 끝나고 나서 spinning 상태를 false로 변경
       setTimeout(() => setIsSpinning(false), 2000);
     }
   };
