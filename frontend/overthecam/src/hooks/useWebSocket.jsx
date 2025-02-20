@@ -59,7 +59,7 @@ const useWebSocket = (battleId) => {
   const [gameInfo, setGameInfo] = useState({});
   const [participants, setParticipants] = useState([]);
   const [myScores, setMyScores] = useState({});
-  const [myRole, setMyRole] = useState(null);
+  const [myRole, setMyRole] = useState("");
   const [isTimeExtended, setIsTimeExtended] = useState(false);
   const [gameResult, setGameResult] = useState({});
   const [myResult, setMyResult] = useState(null);

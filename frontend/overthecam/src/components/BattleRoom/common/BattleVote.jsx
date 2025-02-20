@@ -18,7 +18,11 @@ function BattleVote({ isWaiting }) {
   };
 
   useEffect(() => {
-    if (myRole?.includes("BATTLER")) {
+    if (
+      myRole === "HOST_BATTLER" ||
+      myRole === "BATTLER" ||
+      myRole === "PARTICIPANT_BATTLER"
+    ) {
       setIsBattler(true);
     } else {
       setIsBattler(false);
