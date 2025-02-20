@@ -168,6 +168,7 @@ public class MyPageController {
                 .map(report -> BattleReportDTO.builder()
                         .id(report.getId())
                         .title(report.getTitle())
+                        .createdAt(report.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
 
@@ -181,7 +182,7 @@ public class MyPageController {
     @GetMapping("/reports/{reportId}")
     public CommonResponseDto<BattleReportDetailDTO> getReportDetail(
             Authentication authentication,
-            @PathVariable Long reportId
+            @PathVariable(name = "reportId") Long reportId
     ) {
         Integer userId = securityUtils.getCurrentUserId(authentication).intValue();
 

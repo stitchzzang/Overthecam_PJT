@@ -1,12 +1,15 @@
 package com.overthecam.websocket.service;
 
+import com.overthecam.battle.repository.BattleParticipantRepository;
 import com.overthecam.common.exception.GlobalException;
+import com.overthecam.redis.service.BattleVoteRedisService;
 import com.overthecam.vote.domain.Vote;
 import com.overthecam.vote.exception.VoteErrorCode;
 import com.overthecam.vote.repository.VoteOptionRepository;
 import com.overthecam.vote.repository.VoteRepository;
 import com.overthecam.websocket.dto.VoteInfo;
 import com.overthecam.websocket.dto.VoteInfo.VoteOptionInfo;
+import com.overthecam.websocket.dto.VoteStats;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class BattleVoteService {
     private final VoteRepository voteRepository;
     private final VoteOptionRepository voteOptionRepository;
+
+    private final BattleVoteRedisService battleVoteRedisService;
+    private final BattleParticipantRepository battleParticipantRepository;
+
 
     @Transactional
     public void deleteVote(Long battleId) {
@@ -64,5 +71,15 @@ public class BattleVoteService {
                 .optionTitle(option.getOptionTitle())
                 .build())
             .collect(Collectors.toList());
+    }
+
+    public VoteStats getVoteStats(Long battleId) {
+        int participantCount = (int) battleParticipantRepository.countByBattleId(battleId);
+        int votedCount = battleVoteRedisService.getAllVotes(battleId).size();
+
+        return VoteStats.builder()
+            .participantCount(participantCount)
+            .votedCount(votedCount)
+            .build();
     }
 }

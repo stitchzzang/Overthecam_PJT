@@ -50,9 +50,11 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     if (myRole === "PARTICIPANT") {
       setTimeout(() => navigate("/main/battle-list"), 1000);
     } else {
-      setTimeout(() => navigate("/main/mypage"), 1000); // 내가 배틀러면 내 페이지 보러가기 발화 리포트 보기
+      setTimeout(() => navigate("/main/mypage/#my-report"), 1000); // 내가 배틀러면 내 페이지 보러가기 발화 리포트 보기
     }
   };
+
+  const resultHighlightColor = myResult.winner ? "bg-green-200/70" : "bg-red-200/70";
 
   return (
     <>
@@ -68,10 +70,10 @@ const BattleResultModal = forwardRef(function BattleResultModal(
             {gameResult.battleTitle}
           </h4>
           {/* 투표 결과 그래프 */}
-          <div className="relative h-12 clay bg-gray-200 !rounded-full overflow-hidden mb-8">
+          <div className="relative h-12 !rounded-full overflow-hidden mb-8">
             <div className="flex h-full w-[350px]">
               <div
-                className="h-full clay bg-red-400 flex items-center justify-start pl-4 text-white font-bold transition-all duration-300"
+                className="h-full clay bg-cusRed flex items-center justify-start pl-4 text-white font-bold transition-all duration-300"
                 style={{
                   width: `${options[0]?.percentage || 50}%`,
                 }}
@@ -79,7 +81,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
                 {options[0]?.percentage || 0}% {options[0]?.optionTitle}
               </div>
               <div
-                className="h-full clay bg-blue-400 flex items-center justify-end pr-4 text-white font-bold transition-all duration-300"
+                className="h-full clay bg-cusBlue flex items-center justify-end pr-4 text-white font-bold transition-all duration-300"
                 style={{
                   width: `${options[1]?.percentage || 50}%`,
                 }}
@@ -102,24 +104,43 @@ const BattleResultModal = forwardRef(function BattleResultModal(
           ) : (
             <>
               <h5 className="text-lg font-semibold text-cusBlack">
-                {myResult.nickname} 님은 {myResult.winner ? "승리" : "패배"}{" "}
+                {myResult.nickname} 님은{" "}
+                <span
+                  className={`${resultHighlightColor} px-2 py-1 rounded text-xl font-bold`}
+                >
+                  {myResult.winner ? "승리" : "패배"}
+                </span>{" "}
                 하셨습니다.
               </h5>
               <h5 className="text-lg font-semibold text-cusBlack">
-                응원 점수 {myResult.resultScore} 점을 획득 하셨습니다.
+                응원 점수{" "}
+                <span className="bg-yellow-200/70 px-2 py-1 rounded text-xl font-bold">
+                  {myResult.resultScore}
+                </span>{" "}
+                점을 획득 하셨습니다.
               </h5>
             </>
           )}
 
           {/* Buttons */}
           <div className="flex w-full mt-2 justify-center">
-            <button
-              type="button"
-              onClick={onLeaveRoom}
-              className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
-            >
-              확인
-            </button>
+            {myRole === "PARTICIPANT" ? (
+              <button
+                type="button"
+                onClick={onLeaveRoom}
+                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
+              >
+                확인
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onLeaveRoom}
+                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
+              >
+                내 발화분석 리포트 보러가기
+              </button>
+            )}
           </div>
         </div>
       </dialog>

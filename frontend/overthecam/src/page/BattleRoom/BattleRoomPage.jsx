@@ -433,6 +433,14 @@ function BattleRoomPage() {
     }
   }
 
+  // ws 에러 발생 시 토스트 알림 띄우기
+  useEffect(() => {
+    if (error) {
+      const errorMessage = error.message;
+      failTost.current?.showAlert(errorMessage);
+    }
+  }, [error]);
+
   async function abnoramlLeaving() {
     // 방에서 나감 요청하기
     try {

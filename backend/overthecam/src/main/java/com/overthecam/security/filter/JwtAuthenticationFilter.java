@@ -3,6 +3,7 @@ package com.overthecam.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.overthecam.auth.exception.AuthErrorCode;
+import com.overthecam.auth.service.TokenService;
 import com.overthecam.common.dto.ErrorResponse;
 import com.overthecam.security.jwt.JwtTokenProvider;
 import com.overthecam.security.config.SecurityPath;
@@ -31,6 +32,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // 필수 의존성 주입
+    private final TokenService tokenService;
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -57,6 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 토큰이 있는 경우 -> permitAll 경로여도 토큰 검증 진행
             if (accessToken != null) {
                 try {
+                    // 블랙리스트 확인 추가
+                    if (tokenService.isBlacklisted(accessToken)) {
+                        throw new GlobalException(AuthErrorCode.INVALID_TOKEN_SIGNATURE,
+                            "무효화된 토큰입니다. 다시 로그인해주세요.");
+                    }
+
                     if (tokenProvider.validateToken(accessToken)) {
                         setAuthentication(accessToken);
                     }

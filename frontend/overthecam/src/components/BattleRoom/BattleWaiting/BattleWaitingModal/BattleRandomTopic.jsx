@@ -1,8 +1,7 @@
-import React, { forwardRef, useState } from 'react';
-import axios from 'axios';
-
+import React, { forwardRef, useState } from "react";
+import { authAxios } from "../../../../common/axiosinstance";
 const BattleRandomTopic = forwardRef((props, ref) => {
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
 
@@ -10,44 +9,44 @@ const BattleRandomTopic = forwardRef((props, ref) => {
     setIsLoading(true);
     setIsSpinning(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        setTopic('로그인이 필요한 서비스입니다.');
+        setTopic("로그인이 필요한 서비스입니다.");
         return;
       }
 
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/battle/random`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await authAxios.get(`/battle/random`);
+
       if (response.data.success) {
         setTopic(response.data.data.title);
       } else {
-        setTopic(response.data.error?.message || '주제 생성에 실패했습니다. 다시 시도해주세요.');
+        setTopic(
+          response.data.error?.message ||
+            "주제 생성에 실패했습니다. 다시 시도해주세요."
+        );
       }
     } catch (error) {
-      console.error('랜덤 주제 가져오기 실패:', error);
-      
+      console.error("랜덤 주제 가져오기 실패:", error);
+
       // 에러 상태 코드에 따른 구체적인 메시지
       if (error.response) {
         switch (error.response.status) {
           case 401:
-            setTopic('인증이 만료되었습니다. 다시 로그인해주세요.');
+            setTopic("인증이 만료되었습니다. 다시 로그인해주세요.");
             break;
           case 500:
-            setTopic('서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            setTopic("서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
             break;
           default:
-            setTopic(error.response.data?.error?.message || 
-                    '알 수 없는 오류가 발생했습니다. 다시 시도해주세요.');
+            setTopic(
+              error.response.data?.error?.message ||
+                "알 수 없는 오류가 발생했습니다. 다시 시도해주세요."
+            );
         }
       } else if (error.request) {
-        setTopic('서버와 통신할 수 없습니다. 인터넷 연결을 확인해주세요.');
+        setTopic("서버와 통신할 수 없습니다. 인터넷 연결을 확인해주세요.");
       } else {
-        setTopic('요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+        setTopic("요청 중 오류가 발생했습니다. 다시 시도해주세요.");
       }
     } finally {
       setIsLoading(false);
@@ -57,16 +56,28 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   };
 
   return (
-    <dialog ref={ref} className="random-topic-modal rounded-[30px] overflow-hidden">
-      <div className="random-topic-modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[800px] random-topic-clay" onClick={(e) => e.stopPropagation()}>
+    <dialog
+      ref={ref}
+      className="random-topic-modal rounded-[30px] overflow-hidden"
+    >
+      <div
+        className="random-topic-modal-box flex flex-col items-center p-8 bg-white rounded-[30px] w-[800px] random-topic-clay"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-center w-full gap-2 mb-6 mt-2">
-          <h3 className="text-3xl font-bold text-center">오늘의 추천 주제는...</h3>
+          <h3 className="text-3xl font-bold text-center">
+            오늘의 추천 주제는...
+          </h3>
         </div>
-        
+
         <div className="w-full flex items-center gap-4 mb-6">
           <div className="flex-1 random-topic-clay bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
             <div className="slot-machine bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg overflow-hidden min-h-[120px] h-auto">
-              <div className={`slot-wrapper flex items-center justify-center ${isSpinning ? 'spinning' : ''}`}>
+              <div
+                className={`slot-wrapper flex items-center justify-center ${
+                  isSpinning ? "spinning" : ""
+                }`}
+              >
                 {isLoading ? (
                   <div className="animate-pulse">
                     <div className="h-6 w-32 bg-gray-200 rounded"></div>
@@ -77,19 +88,24 @@ const BattleRandomTopic = forwardRef((props, ref) => {
                       {topic ? (
                         <>
                           <span className="block text-black mb-2">
-                            {topic.split('\n')[0]}
+                            {topic.split("\n")[0]}
                           </span>
-                          {topic.split('\n').slice(1).map((line, index) => (
-                            <span 
-                              key={index} 
-                              className={`block ${index === 0 ? 'text-cusRed' : 'text-cusBlue'}`}
-                            >
-                              {line}
-                            </span>
-                          ))}
+                          {topic
+                            .split("\n")
+                            .slice(1)
+                            .map((line, index) => (
+                              <span
+                                key={index}
+                                className={`block ${
+                                  index === 0 ? "text-cusRed" : "text-cusBlue"
+                                }`}
+                              >
+                                {line}
+                              </span>
+                            ))}
                         </>
                       ) : (
-                        '주제를 생성해보세요!'
+                        "주제를 생성해보세요!"
                       )}
                     </p>
                   </div>
@@ -97,15 +113,15 @@ const BattleRandomTopic = forwardRef((props, ref) => {
               </div>
             </div>
           </div>
-          
-          <button 
+
+          <button
             className="random-topic-btn w-16 h-16 bg-cusYellowLight hover:bg-cusYellow rounded-[20px] flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 random-topic-clay"
             onClick={fetchRandomTopic}
             disabled={isLoading}
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 24 24" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
               fill="currentColor"
               className="w-8 h-8"
             >
@@ -113,10 +129,15 @@ const BattleRandomTopic = forwardRef((props, ref) => {
             </svg>
           </button>
         </div>
-        
-        <p className="text-xl font-bold mt-2 mb-6 text-center w-full">즐거운 배틀 되세요 !</p>
 
-        <form method="dialog" className="modal-backdrop w-full flex justify-center">
+        <p className="text-xl font-bold mt-2 mb-6 text-center w-full">
+          즐거운 배틀 되세요 !
+        </p>
+
+        <form
+          method="dialog"
+          className="modal-backdrop w-full flex justify-center"
+        >
           <button className="random-topic-close-btn px-6 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
             닫기
           </button>
@@ -206,6 +227,6 @@ const BattleRandomTopic = forwardRef((props, ref) => {
   );
 });
 
-BattleRandomTopic.displayName = 'BattleRandomTopic';
+BattleRandomTopic.displayName = "BattleRandomTopic";
 
 export default BattleRandomTopic;
