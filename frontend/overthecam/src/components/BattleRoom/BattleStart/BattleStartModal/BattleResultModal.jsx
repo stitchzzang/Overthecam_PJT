@@ -159,21 +159,23 @@ const BattleResultModal = forwardRef(function BattleResultModal(
 
           {/* Buttons */}
           <div className="flex w-full mt-2 justify-center">
-            {myRole === "PARTICIPANT" ? (
+            {myRole === "HOST_BATTLER" ||
+            myRole === "BATTLER" ||
+            myRole === "PARTICIPANT_BATTLER" ? (
+              <button
+                type="button"
+                onClick={onLeaveRoom}
+                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold "
+              >
+                내 발화 분석 리포트 보러가기
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={onLeaveRoom}
                 className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
               >
                 확인
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onLeaveRoom}
-                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold"
-              >
-                내 발화 분석 리포트 보러가기
               </button>
             )}
           </div>
