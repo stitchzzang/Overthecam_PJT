@@ -1,5 +1,6 @@
 package com.overthecam.member.service;
 
+import com.overthecam.battle.domain.BattleParticipant;
 import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.dto.BattleHostDto;
 import com.overthecam.battle.dto.BattleResultDto;
@@ -78,10 +79,14 @@ public class BattleHIstoryService {
 
     public BattleCombinedStatusDto getBattleDetail(Long battleId, Long userId) {
 
-
         // 1. 배틀 기본 정보랑 호스트 정보 조회  (쿼리-1)
         BattleHostDto battleHost = battleRepository.findBattleWithHost(battleId)
                 .orElseThrow(() -> new GlobalException(BattleErrorCode.BATTLE_NOT_FOUND, battleId + "번 배틀방이 존재하지 않습니다."));
+
+        // 4. 현재 유저 또는 검색 유저의 role 조회
+        // 사용할 때
+        BattleParticipant participant = battleParticipantRepository.findByUser_IdAndBattle_Id(userId, battleId);
+        ParticipantRole role = participant.getRole();
 
         // 2. 참여자들의 닉네임 목록 조회 (쿼리-2)
         List<String> participantNicknames = battleParticipantRepository.findParticipantNicknamesByBattleId(battleId);
@@ -89,6 +94,8 @@ public class BattleHIstoryService {
         // 3. 현재 유저의 배틀 결과 조회 (쿼리-3)
         BattleResultDto battleResult = battleHistoryViewRepository.findBattleResult(userId, battleId);
 
+
+        // 3. 현재 유저의 배틀 결과 조회 (쿼리-3)
         List<VoteStatsProjection> voteResult = voteRepository.findVoteStatsByBattleId(battleId);
 
 
@@ -96,6 +103,7 @@ public class BattleHIstoryService {
         return BattleCombinedStatusDto.builder()
                 .battleId(battleId)
                 .title(battleHost.getTitle())
+                .role(role)
                 .totalTime(battleHost.getTotalTime())
                 .hostNickname(battleHost.getHostNickname())
                 .participants(participantNicknames)
