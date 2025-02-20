@@ -113,8 +113,8 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
           <div className="flex gap-6">
             {/* 선택지 1 */}
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
-              <h2 className="text-lg font-semibold mb-4">
-                선택지 1 {options.option1}
+              <h2 className="text-lg font-semibold mb-4 text-cusRed">
+                {options.option1}
               </h2>
               <select
                 value={selectedBattlers.option1}
@@ -144,8 +144,8 @@ const BattlerSettingModal = forwardRef(function BattlerSettingModal(
 
             {/* 선택지 2 */}
             <div className="flex-1 p-4 border rounded-lg bg-gray-50">
-              <h2 className="text-lg font-semibold mb-4">
-                선택지 2 {options.option2}
+              <h2 className="text-lg font-semibold mb-4 text-cusBlue">
+                {options.option2}
               </h2>
               <select
                 value={selectedBattlers.option2}
