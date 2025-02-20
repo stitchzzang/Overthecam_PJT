@@ -108,20 +108,14 @@ function ItemList() {
   const handlePurchaseSuccess = async (itemId, price) => {
     try {
       // 즉시 포인트 차감 및 구매 목록 업데이트
-      setMyPoints(prev => {
-        console.log('이전 포인트:', prev);
-        console.log('차감할 금액:', price);
-        return prev - price;
-      });
+      setMyPoints(prev => prev - price);
       setPurchasedItems(prev => new Set([...prev, itemId]));
       
-      // 백그라운드에서 데이터 동기화
-      await Promise.all([
-        fetchMyItems(),
-        fetchUserStats()
-      ]);
+      successAlertRef.current?.showModal("아이템 구매에 성공했습니다!");
       
-      successAlertRef.current?.showAlert("아이템 구매에 성공했습니다!");
+      // 페이지 새로고침
+      window.location.reload();
+      
     } catch (error) {
       console.error('구매 후 데이터 업데이트 실패:', error);
     }
