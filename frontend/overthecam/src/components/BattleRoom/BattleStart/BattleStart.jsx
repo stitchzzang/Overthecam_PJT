@@ -5,7 +5,7 @@ import VideoComponent from "../VideoComponent";
 import AudioComponent from "../AudioComponent";
 
 function BattleStart({ remoteTracks, localTrack, participantName }) {
-  const { battlers } = useWebSocketContext();
+  const { battlers,  } = useWebSocketContext();
   let remainingTracks = [...remoteTracks]; // remoteTracks 복사본 생성
 
   // 배틀러1 처리
@@ -135,7 +135,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
           <div className="grid grid-cols-3 gap-4 h-full">
             {/* 배틀러 1 */}
             <div className="flex flex-col">
-              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusRed-light clay">
+              <div className="text-sm text-black font-bold rounded-t-lg p-1.5 bg-cusRed-light clay">
                 {battlers[0].nickname}
                 <div className="relative w-full aspect-[4/3] bg-cusGray">
                   <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
@@ -167,7 +167,7 @@ function BattleStart({ remoteTracks, localTrack, participantName }) {
 
             {/* 배틀러 2 */}
             <div className="flex flex-col">
-              <div className="text-sm text-black rounded-t-lg p-1.5 bg-cusBlue-light clay">
+              <div className="text-sm text-black font-bold rounded-t-lg p-1.5 bg-cusBlue-light clay">
                 {battlers[1].nickname}
                 <div className="relative w-full aspect-[4/3] bg-cusGray">
                   <div className="absolute inset-0 border rounded-lg flex items-center justify-center">
