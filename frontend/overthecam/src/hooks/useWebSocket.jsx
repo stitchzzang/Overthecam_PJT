@@ -649,8 +649,6 @@ const useWebSocket = (battleId) => {
     isDraw,
     isBattleEnded,
     getRoomState,
-    participantCount,
-    votedCount,
     voteCount,
   };
 };
