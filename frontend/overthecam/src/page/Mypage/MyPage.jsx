@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import NavBar from "../../components/Layout/NavBar"
 import { authAxios } from "../../common/axiosinstance"
-import MyPageReport from './MyPageReport'
 import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
 import { useLocation, useNavigate } from 'react-router-dom';
 import useUserStore from '../../store/User/UserStore';
 import AiReport from './AiReport';  // 새로운 AiReport import
+
 
 // 팔로워/팔로잉 모달 컴포넌트
 const FollowModal = ({ isOpen, onClose, title, users, onFollowToggle, currentUserFollowing }) => {
@@ -204,6 +203,7 @@ const checkPhoneNumberDuplicate = async (phoneNumber) => {
 function MyPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'vote');
+  const navigate = useNavigate();
 
   const [userData, setUserData] = useState({
     id: "",
@@ -323,6 +323,23 @@ function MyPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      // 서버에 로그아웃 요청 보내기
+      await authAxios.post('/auth/logout');
+      // 로컬 스토리지 토큰 제거
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userInfo");
+      localStorage.removeItem("userId");
+      // return true;
+      navigate("/main/login");
+    } catch (error) {
+      console.error('로그아웃 처리 중 오류:', error);
+      return false;
+    }
+  };
+
   // 제출 핸들러 수정
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -389,50 +406,26 @@ function MyPage() {
     }
 
     try {
-      const updateData = {
-        password: isChangingPassword ? editedData.password : "",
-        nickname: editedData.nickname,
-        phoneNumber: editedData.phoneNumber
-      };
-
-      const response = await authAxios.post("/mypage/profile", updateData);
+      const response = await authAxios.post("/mypage/profile", editedData);
       
-      setUserData(prev => ({
-        ...prev,
-        ...response.data
-      }));
-
-      // Zustand store 닉네임 업데이트
-      setUserNickname(editedData.nickname);
-      
-      // localStorage 업데이트
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      localStorage.setItem('userInfo', JSON.stringify({
-        ...userInfo,
-        nickname: editedData.nickname
-      }));
-      
-      setIsEditing(false);
-      setToast({ 
-        show: true, 
-        message: '프로필이 성공적으로 수정되었습니다.', 
-        type: 'success' 
-      });
-      setTimeout(() => setToast({ show: false, message: '', type: null }), 1000);
-
+      if (response.status === 200) {
+        if (isChangingPassword) {
+          // 서버에 로그아웃 요청 및 로컬 스토리지 토큰 제거
+          const logoutSuccess = await handleLogout();
+          if (logoutSuccess) {
+            alert('비밀번호가 변경되었습니다. 다시 로그인해주세요.');
+            navigate('/main/login');
+          } else {
+            alert('로그아웃 처리 중 오류가 발생했습니다.');
+          }
+        } else {
+          setIsEditing(false);
+          fetchUserData();
+        }
+      }
     } catch (error) {
-      console.error('프로필 수정 에러:', error);
-      
-      // 서버에서 전달된 에러 메시지 사용
-      const errorMessage = error.response?.data?.error?.message || 
-                          error.response?.data?.message || 
-                          '프로필 수정에 실패했습니다.';
-      
-      setToast({ 
-        show: true, 
-        message: errorMessage,
-        type: 'error' 
-      });
+      console.error('Error updating profile:', error);
+      alert('프로필 업데이트 중 오류가 발생했습니다.');
     }
   };
 
