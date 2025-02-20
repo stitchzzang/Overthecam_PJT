@@ -61,9 +61,11 @@ const BattleResultModal = forwardRef(function BattleResultModal(
       // 모든 정리 작업이 완료된 후 페이지 이동
       setIsLoading(false);
       if (myRole.includes("BATTLER")) {
-        window.location.href = "/main/mypage";
+        // window.location.href = "/main/mypage";
+        navigate("/main/mypage");
       } else {
-        window.location.href = "/main/battle-list";
+        // window.location.href = "/main/battle-list";
+        navigate("/main/battle-list");
       }
     } catch (error) {
       console.error("세션 정리 중 오류:", error);
@@ -76,7 +78,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     <>
       {isLoading && (
         <div className="flex items-center justify-center h-screen bg-black/50 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4">
+          <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
             <img
               src="/assets/loading2.gif"
               alt="Loading animation"
