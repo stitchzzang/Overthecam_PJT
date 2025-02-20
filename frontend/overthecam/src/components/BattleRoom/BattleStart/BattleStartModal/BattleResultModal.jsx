@@ -11,7 +11,7 @@ import { getReport } from "../../../../service/BattleRoom/api";
 import useUserStore from "../../../../store/User/UserStore";
 
 const BattleResultModal = forwardRef(function BattleResultModal(
-  { onFinish },
+  { onFinish, leaveLoaderRef },
   ref
 ) {
   const { myResult, isDraw, gameResult, myRole } = useWebSocketContext();
@@ -41,6 +41,8 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     showAlert: () => {
       dialogRef.current?.showModal();
     },
+    getLoading: () => isLoading,
+    setLoading: (state) => setIsLoading(state),
   }));
 
   // gameResult가 없을 때의 처리 추가
@@ -51,44 +53,46 @@ const BattleResultModal = forwardRef(function BattleResultModal(
   const onLeaveRoom = async () => {
     console.log("내 역할", myRole);
     dialogRef.current.close();
-    setIsLoading(true); // 로딩 상태 활성화
+
+    // leaveLoaderRef를 통해 로딩 상태 활성화
+    if (leaveLoaderRef?.current) {
+      leaveLoaderRef.current.setLoading(true);
+    }
     try {
       if (onFinish) {
         await onFinish(); // cleanup + 배틀 종료 요청
-        await getReport(userId);
+        // console.log("getReport 시작");
+      }
+      
+      getReport(userId);
+      
+      // 모든 정리 작업이 완료된 후
+      if (leaveLoaderRef?.current) {
+        leaveLoaderRef.current.setLoading(false);
       }
 
-      // 모든 정리 작업이 완료된 후 페이지 이동
-      setIsLoading(false);
-      if (myRole.includes("BATTLER")) {
-        // window.location.href = "/main/mypage";
-        navigate("/main/mypage");
+      if (
+        myRole === "HOST_BATTLER" ||
+        myRole === "BATTLER" ||
+        myRole === "PARTICIPANT_BATTLER"
+      ) {
+        // console.log("getReport 완료");
+        window.location.href = "/main/mypage";
+        // navigate("/main/mypage");
       } else {
-        // window.location.href = "/main/battle-list";
-        navigate("/main/battle-list");
+        window.location.href = "/main/battle-list";
+        // navigate("/main/battle-list");
       }
     } catch (error) {
       console.error("세션 정리 중 오류:", error);
-      setIsLoading(false);
-      // 오류 처리 로직 (선택사항)
+      if (leaveLoaderRef?.current) {
+        leaveLoaderRef.current.setLoading(false);
+      }
     }
   };
 
   return (
     <>
-      {isLoading && (
-        <div className="flex items-center justify-center h-screen bg-black/20 backdrop-blur-sm">
-          <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
-            <img
-              src="/assets/loading2.gif"
-              alt="Loading animation"
-              className="h-24 w-40"
-            />
-            <h3 className="text-xl font-bold">이동 중</h3>
-            <p className="text-gray-600">잠시만 기다려주세요...</p>
-          </div>
-        </div>
-      )}
       <dialog
         ref={dialogRef}
         className="rounded-xl shadow-2xl p-6 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm"
@@ -155,21 +159,23 @@ const BattleResultModal = forwardRef(function BattleResultModal(
 
           {/* Buttons */}
           <div className="flex w-full mt-2 justify-center">
-            {myRole === "PARTICIPANT" ? (
+            {myRole === "HOST_BATTLER" ||
+            myRole === "BATTLER" ||
+            myRole === "PARTICIPANT_BATTLER" ? (
+              <button
+                type="button"
+                onClick={onLeaveRoom}
+                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold "
+              >
+                내 발화 분석 리포트 보러가기
+              </button>
+            ) : (
               <button
                 type="button"
                 onClick={onLeaveRoom}
                 className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
               >
                 확인
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onLeaveRoom}
-                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold"
-              >
-                내 발화 분석 리포트 보러가기
               </button>
             )}
           </div>

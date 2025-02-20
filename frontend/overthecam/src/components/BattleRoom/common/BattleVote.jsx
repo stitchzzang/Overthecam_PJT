@@ -18,12 +18,17 @@ function BattleVote({ isWaiting }) {
   };
 
   useEffect(() => {
-    if (myRole === "PARTICIPANT") {
-      setIsBattler(false);
-    } else {
+    if (
+      myRole === "HOST_BATTLER" ||
+      myRole === "BATTLER" ||
+      myRole === "PARTICIPANT_BATTLER"
+    ) {
       setIsBattler(true);
+    } else {
+      setIsBattler(false);
     }
   }, []);
+  
   // 배틀방 안에서 띄울 투표 시스템
   return (
     <div className="w-full h-32 bg-cusGray rounded-lg clay flex items-center justify-center">
@@ -75,7 +80,7 @@ function BattleVote({ isWaiting }) {
             <div className="flex justify-between mx-10 gap-6 w-2/3">
               <button
                 onClick={() => handleVote(vote.option1Id)}
-                disabled={isVoted}
+                disabled={isBattler}
                 className={
                   "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusRed text-white transition-all duration-300 disabled:cursor-not-allowed"
                 }
@@ -84,7 +89,7 @@ function BattleVote({ isWaiting }) {
               </button>
               <button
                 onClick={() => handleVote(vote.option2Id)}
-                disabled={isVoted}
+                disabled={isBattler}
                 className={
                   "option1 btn w-[45%] py-4 px-6 !rounded-xl text-lg font-medium bg-cusBlue text-white transition-all duration-300 disabled:cursor-not-allowed"
                 }

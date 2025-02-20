@@ -18,6 +18,7 @@ import BattleEndModal from "../../components/BattleRoom/BattleStart/BattleStartM
 import useUserStore from "../../store/User/UserStore";
 import LiveSTT from "../../components/BattleRoom/BattleStart/LiveSTT";
 import BattleResultLoader from "./BattleResultLoader";
+import BattleLeaveLoader from "./BattleLeaveLoader";
 
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -69,6 +70,7 @@ function BattleRoomPage() {
 
   // 로딩
   const [isResultLoading, setIsResultLoading] = useState(false);
+  const leaveLoaderRef = useRef(null);
 
   // 새로고침 버튼누르면 브라우저 보안 정책에 의해서 기본 alret 뜸
   const handleRefreshAttempt = (e) => {
@@ -539,7 +541,7 @@ function BattleRoomPage() {
       />
 
       <div className="render-change flex-1 h-0 relative">
-        <BattleResultLoader isLoading={isResultLoading}/>
+        <BattleResultLoader isLoading={isResultLoading} />
 
         {!isStarted ? (
           <div className="flex h-full">
@@ -570,7 +572,7 @@ function BattleRoomPage() {
           </>
         )}
       </div>
-      {myRole !== "PARTICIPANT" && <LiveSTT shouldStop={isBattleEnded} />}
+      {myRole?.includes("BATTLER") && <LiveSTT shouldStop={isBattleEnded} />}
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
@@ -583,7 +585,12 @@ function BattleRoomPage() {
         onConfirm={handleConfirmLeave}
       />
       <BattleEndModal ref={endBattleModal} />
-      <BattleResultModal ref={resultModal} onFinish={handleConfirmEnd} />
+      <BattleResultModal
+        ref={resultModal}
+        onFinish={handleConfirmEnd}
+        leaveLoaderRef={leaveLoaderRef}
+      />
+      <BattleLeaveLoader ref={leaveLoaderRef} />
     </div>
   );
 }
