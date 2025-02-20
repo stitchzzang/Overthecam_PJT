@@ -2,6 +2,7 @@ package com.overthecam.member.repository;
 
 import com.overthecam.battle.dto.BattleResultDto;
 import com.overthecam.member.domain.BattleHistoryView;
+import com.overthecam.member.dto.BattleStatProjection;
 import com.overthecam.member.dto.BattleStatsInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,13 +23,10 @@ public interface BattleHistoryViewRepository extends JpaRepository<BattleHistory
     Page<BattleHistoryView> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
 
-    @Query("SELECT new com.overthecam.member.dto.BattleStatsInfo(" +
-            "b.userId, COUNT(*), " +
-            "SUM(CASE WHEN b.isWinner = true AND b.earnedScore >= 0 THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN b.isWinner = false AND b.earnedScore < 0 THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN b.isWinner = false AND b.earnedScore >= 0 THEN 1 ELSE 0 END)) " +
-            "FROM BattleHistoryView b WHERE b.userId = :userId GROUP BY b.userId")
-    BattleStatsInfo findBattleStatsByUserId(@Param("userId") Long userId);
+    @Query("SELECT new com.overthecam.member.dto.BattleStatProjection(" +
+            "b.userId, b.role, b.isWinner, b.earnedScore) " +
+            "FROM BattleHistoryView b WHERE b.userId = :userId")
+    List<BattleStatProjection> findBattleStatsDataByUserId(@Param("userId") Long userId);
 
     @Query("SELECT new com.overthecam.battle.dto.BattleResultDto(vo.optionTitle, vo.isWinner, br.earnedScore) " +
             "FROM VoteRecord vr " +

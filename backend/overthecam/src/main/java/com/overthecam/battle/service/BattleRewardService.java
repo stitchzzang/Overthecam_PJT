@@ -120,6 +120,20 @@ public class BattleRewardService {
      */
     private void settleDraw(List<BattleBettingInfo> votes, int totalBattleScore,
                             Map<Long, Integer> rewardResults) {
+        // 배틀러만 있는 경우 (무조건 2명)
+        if (votes.stream().allMatch(BattleBettingInfo::isBattler)) {
+            // 두 배틀러 모두에게 1000점씩 지급
+            votes.forEach(vote -> {
+                userScoreService.updateSupportScore(vote.getUserId(), REWARD_PER_PARTICIPANT);
+                rewardResults.put(vote.getUserId(), REWARD_PER_PARTICIPANT);
+
+                log.info("Battler only battle draw settlement - User: {}, Reward: {}",
+                        vote.getUserId(), REWARD_PER_PARTICIPANT);
+            });
+            return;
+        }
+
+        // 기존 로직 (일반적인 경우)
         votes.forEach(vote -> {
             if (vote.isBattler()) {
                 // 배틀러: 총 응원점수의 1배
