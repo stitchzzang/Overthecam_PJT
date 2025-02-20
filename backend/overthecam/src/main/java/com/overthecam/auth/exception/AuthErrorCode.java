@@ -21,6 +21,7 @@ public enum AuthErrorCode implements ErrorCode {
     // 로그인 에러
     USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다"),
     INVALID_PASSWORD(401, "비밀번호가 일치하지 않습니다"),
+    CONCURRENT_LOGIN(400, "다른 기기에서 로그인이 감지되어 로그아웃됩니다."),
 
     //로그아웃 에러
     LOGOUT_UNAUTHORIZED(401, "로그아웃을 위해서는 로그인이 필요합니다"),

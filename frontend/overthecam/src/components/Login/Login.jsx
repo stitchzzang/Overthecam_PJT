@@ -69,6 +69,11 @@ const Login = () => {
           supportScore: response.data.supportScore
         };
 
+        if (response.data.hasExistingSession) {
+          window.alert(
+            "중복 로그인이 감지되었습니다. 이전 세션은 자동 로그아웃됩니다."
+          );
+        }
         localStorage.setItem("token", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("tokenType", grantType);

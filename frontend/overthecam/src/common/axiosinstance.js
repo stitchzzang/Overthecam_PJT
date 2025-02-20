@@ -51,6 +51,26 @@ authAxios.interceptors.response.use(
     )) {
       originalRequest._retry = true;
 
+      // 중복 알림 방지
+      if (!isToastShown) {
+        isToastShown = true;
+        
+        // 알림 표시
+        window.alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        // 또는 토스트 메시지 사용: toast.error("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        
+        // 로컬 스토리지 클리어
+        localStorage.clear();
+        
+        // 로그인 페이지로 리다이렉트
+        window.location.href = '/main/login';
+        
+        // 5초 후 토스트 상태 초기화 (다른 페이지에서 필요할 경우)
+        setTimeout(() => {
+          isToastShown = false;
+        }, 5000);
+      }
+
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {

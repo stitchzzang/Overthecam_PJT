@@ -253,6 +253,9 @@ public class BattleResultService {
         // 무승부 여부 확인
         boolean isDraw = winningOptionId == null;
 
+        // 전체 득표수 계산
+        long totalVoters = voterCountByOption.values().stream().mapToLong(Long::longValue).sum();
+
         return optionScores.entrySet().stream()
             .map(entry -> {
                 VoteOption option = voteOptionRepository.findById(entry.getKey())
@@ -260,6 +263,8 @@ public class BattleResultService {
 
                 // 무승부일 때는 모든 옵션이 isWinner = false
                 boolean isWinner = !isDraw && option.getVoteOptionId().equals(winningOptionId);
+
+                long voterCount = voterCountByOption.get(option.getVoteOptionId());
 
                 // VoteOption 엔티티의 voteCount, isWinner 업데이트
                 option.updateWinnerStatus(isWinner);
@@ -269,7 +274,7 @@ public class BattleResultService {
                 return OptionResult.builder()
                     .optionId(option.getVoteOptionId())
                     .optionTitle(option.getOptionTitle())
-                    .percentage(calculatePercentage(entry.getValue(), totalScore))
+                    .percentage(calculatePercentage(voterCount, totalVoters))
                     .totalScore(entry.getValue())
                     .isWinner(isWinner)
                     .build();
@@ -325,7 +330,7 @@ public class BattleResultService {
     /**
      * 득표율 계산 (소수점 첫째자리까지)
      */
-    private double calculatePercentage(int score, int total) {
+    private double calculatePercentage(long score, long total) {
         if (total == 0) return 0.0;
         return Math.round((score * 100.0 / total) * 10.0) / 10.0;
     }

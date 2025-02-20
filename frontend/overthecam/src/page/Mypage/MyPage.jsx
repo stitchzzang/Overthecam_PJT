@@ -202,8 +202,7 @@ const checkPhoneNumberDuplicate = async (phoneNumber) => {
 
 function MyPage() {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'vote');
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'report');
 
   const [userData, setUserData] = useState({
     id: "",
@@ -867,7 +866,7 @@ function MyPage() {
           </div>
         </div>
 
-        <div className="bg-cusGray-light rounded-lg shadow-sm clay">
+        <div className="bg-cusGray-light rounded-lg shadow-sm clay" id="my-report">
           <div className="flex border-b">
             <button
               className={`flex-1 py-4 text-center font-medium ${

@@ -78,7 +78,7 @@ const useWebSocket = (battleId) => {
 
       switch (type) {
         case "ERROR":
-          setError(error); // 에러 메세지 .. 구조 분해 다시
+          setError(error); // 에러 발생 알림용
           break;
         case "ROOM_STATUS":
           console.log(data);
@@ -197,8 +197,6 @@ const useWebSocket = (battleId) => {
                 point: data.userScore.point,
               });
             }
-          } else {
-            setError(error);
           }
           break;
         case "BATTLE_END":
@@ -218,7 +216,6 @@ const useWebSocket = (battleId) => {
       }
     } catch (error) {
       console.error("[WS] 응답 처리 중 에러:", error);
-      setError("응답이 없습니다.");
     }
   }, []);
 
@@ -244,8 +241,6 @@ const useWebSocket = (battleId) => {
             onConnect: async (frame) => {
               console.log("Connected successfully:", frame);
               setWsStatus(WS_STATUS.CONNECTED);
-              setError(null);
-
               // 구독 설정을 더 안정적으로 처리
               try {
                 // 연결 후 잠시 대기
@@ -283,7 +278,6 @@ const useWebSocket = (battleId) => {
                 getRoomState(battleId);
               } catch (subscribeError) {
                 console.error("Subscription error:", subscribeError);
-                setError(subscribeError);
                 // 구독 실패 시 재연결 시도
                 if (retryCount < maxRetries) {
                   console.log(
@@ -297,7 +291,6 @@ const useWebSocket = (battleId) => {
             onStompError: (frame) => {
               const errorMessage = frame.headers["message"];
               console.error("Broker reported error:", errorMessage);
-              setError(new Error(errorMessage));
               setWsStatus(WS_STATUS.ERROR);
 
               // 에러 발생 시 현재 구독 정리
@@ -318,7 +311,6 @@ const useWebSocket = (battleId) => {
             },
             onWebSocketError: async (error) => {
               console.error("WebSocket 연결 오류:", error);
-              setError(error);
               setWsStatus(WS_STATUS.ERROR);
 
               // 현재 구독 정리
@@ -343,7 +335,6 @@ const useWebSocket = (battleId) => {
           stomp.activate();
         } catch (error) {
           console.error("연결 시도 중 오류:", error);
-          setError(error);
           setWsStatus(WS_STATUS.ERROR);
 
           // 현재 구독 정리
@@ -368,44 +359,82 @@ const useWebSocket = (battleId) => {
     [battleId]
   );
 
-  const disconnectWS = useCallback(() => {
-    if (stompClientRef.current) {
+const disconnectWS = useCallback(() => {
+  return new Promise((resolveDisconnect, rejectDisconnect) => {
+    if (!stompClientRef.current) {
+      console.log("이미 연결이 해제되었거나 연결되지 않았습니다.");
       setWsStatus(WS_STATUS.DISCONNECTED);
+      resolveDisconnect(true);
+      return;
+    }
 
-      try {
-        const unsubscribePromises = Object.values(subscriptionsRef.current).map(
-          (subscription) => {
-            return new Promise((resolve) => {
-              if (subscription) {
+    setWsStatus(WS_STATUS.DISCONNECTING); // 연결 해제 중 상태 추가
+
+    try {
+      // 구독 해제 처리
+      const unsubscribePromises = Object.entries(subscriptionsRef.current).map(
+        ([key, subscription]) => {
+          return new Promise((resolve) => {
+            if (subscription) {
+              try {
+                console.log(`구독 해제 시도: ${key}`);
                 subscription.unsubscribe();
-                setTimeout(resolve, 100);
-              } else {
-                resolve();
+                console.log(`구독 해제 성공: ${key}`);
+              } catch (subError) {
+                console.error(`구독 해제 오류(${key}):`, subError);
               }
-            });
-          }
-        );
+            }
+            // 구독 해제는 실패해도 진행
+            resolve();
+          });
+        }
+      );
 
-        Promise.all(unsubscribePromises).then(() => {
+      // 모든 구독 해제 후 처리
+      Promise.all(unsubscribePromises)
+        .then(() => {
           subscriptionsRef.current = {};
+          console.log("모든 구독 해제 완료");
 
-          setTimeout(() => {
-            // 여기서 한번 더 체크
-            if (stompClientRef.current) {
+          // STOMP 클라이언트 비활성화
+          if (stompClientRef.current) {
+            try {
+              stompClientRef.current.deactivate();
+              console.log("STOMP 클라이언트 비활성화 완료");
+              stompClientRef.current = null;
+              setWsStatus(WS_STATUS.DISCONNECTED);
+              resolveDisconnect(true);
+            } catch (deactivateError) {
+              console.error("STOMP 비활성화 오류:", deactivateError);
+              setWsStatus(WS_STATUS.ERROR);
+              rejectDisconnect(deactivateError);
+            }
+          } else {
+            setWsStatus(WS_STATUS.DISCONNECTED);
+            resolveDisconnect(true);
+          }
+        })
+        .catch((promiseError) => {
+          console.error("구독 해제 프로세스 오류:", promiseError);
+          // 오류가 발생해도 연결 해제 시도
+          if (stompClientRef.current) {
+            try {
               stompClientRef.current.deactivate();
               stompClientRef.current = null;
+            } catch (e) {
+              console.error("오류 후 강제 연결 해제 실패:", e);
             }
-            setWsStatus(WS_STATUS.DISCONNECTED);
-            setError(null);
-          }, 200);
+          }
+          setWsStatus(WS_STATUS.ERROR);
+          rejectDisconnect(promiseError);
         });
-      } catch (error) {
-        console.error("Disconnect error:", error);
-        setError("연결 종료 중 오류가 발생했습니다");
-        setWsStatus(WS_STATUS.ERROR);
-      }
+    } catch (error) {
+      console.error("Disconnect 전체 오류:", error);
+      setWsStatus(WS_STATUS.ERROR);
+      rejectDisconnect(error);
     }
-  }, []);
+  });
+}, []);
 
   const sendMessage = useCallback(
     (content) => {
@@ -428,7 +457,6 @@ const useWebSocket = (battleId) => {
         );
       } catch (error) {
         console.error("메시지 전송 실패:", error);
-        setError("메세지 전송에 실패했습니다.");
       }
     },
     [battleId, wsStatus]
@@ -459,7 +487,6 @@ const useWebSocket = (battleId) => {
         setIsVoteSubmitted(true);
       } catch (error) {
         console.error("투표 등록 실패:", error);
-        setError("투표 등록에 실패했습니다.");
       }
     },
     [battleId, wsStatus]
@@ -476,7 +503,6 @@ const useWebSocket = (battleId) => {
       );
     } catch (error) {
       console.error("방 정보 읽기 실패", error);
-      setError("방 정보 읽기 실패했습니다.");
     }
   }, [battleId, wsStatus]);
 
@@ -497,7 +523,6 @@ const useWebSocket = (battleId) => {
         );
       } catch (error) {
         console.error("준비 실패:", error);
-        setError("준비에 실패했습니다.");
       }
     },
     [battleId, wsStatus]
@@ -514,7 +539,6 @@ const useWebSocket = (battleId) => {
       );
     } catch (error) {
       console.error("시작 실패:", error);
-      setError("배틀 시작 실패했습니다.");
     }
   }, [battleId, wsStatus]);
 
@@ -529,7 +553,6 @@ const useWebSocket = (battleId) => {
       );
     } catch (error) {
       console.error("알림 실패:", error);
-      setError("배틀러 알림 실패했습니다.");
     }
   }, [battleId, wsStatus]);
 
@@ -544,7 +567,6 @@ const useWebSocket = (battleId) => {
       );
     } catch (error) {
       console.error("시간 연장 실패:", error);
-      setError("시간 연장에 실패했습니다.");
     }
   }, [battleId, wsStatus]);
 
@@ -559,7 +581,6 @@ const useWebSocket = (battleId) => {
       );
     } catch (error) {
       console.error("종료 실패:", error);
-      setError("배틀 종료 실패했습니다.");
     }
   }, [battleId, wsStatus]);
 

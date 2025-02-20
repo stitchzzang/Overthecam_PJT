@@ -34,15 +34,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.setUserDestinationPrefix("/api/user"); // 사용자별 메시지 라우팅을 위한 prefix
     }
 
-//    @Bean
-//    public TaskScheduler taskScheduler() {
-//        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-//        scheduler.setPoolSize(2);
-//        scheduler.setThreadNamePrefix("websocket-heartbeat-");
-//        scheduler.initialize();
-//        return scheduler;
-//    }
-
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
