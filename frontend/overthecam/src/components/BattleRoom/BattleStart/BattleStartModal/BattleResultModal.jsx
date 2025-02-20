@@ -23,12 +23,18 @@ const BattleResultModal = forwardRef(function BattleResultModal(
   const dialogRef = useRef(null); // 내부 ref 추가
   const userId = useUserStore((s) => s.userId);
   const [isLoading, setIsLoading] = useState(false);
+  const [resultHighlightColor, setResultHighlightColor] = useState(null);
 
   useEffect(() => {
     if (gameResult?.options?.length > 0) {
       setOptions(gameResult.options);
     }
   }, [gameResult]);
+
+  useEffect(() => {
+    const color = myResult?.winner ? "bg-green-200/70" : "bg-red-200/70";
+    setResultHighlightColor(color);
+  }, [myResult]);
 
   // useImperativeHandle을 통해 외부에서 사용할 메서드 노출
   useImperativeHandle(ref, () => ({
@@ -46,29 +52,25 @@ const BattleResultModal = forwardRef(function BattleResultModal(
     console.log("내 역할", myRole);
     dialogRef.current.close();
     setIsLoading(true); // 로딩 상태 활성화
-      try {
-        if (onFinish) {
-          await onFinish(); // cleanup + 배틀 종료 요청
-          await getReport(userId);
-        }
-
-        // 모든 정리 작업이 완료된 후 페이지 이동
-        setIsLoading(false);
-        if (myRole.includes("BATTLER")) {
-          navigate("/main/mypage");
-        } else {
-          navigate("/main/battle-list");
-        }
-      } catch (error) {
-        console.error("세션 정리 중 오류:", error);
-        setIsLoading(false);
-        // 오류 처리 로직 (선택사항)
+    try {
+      if (onFinish) {
+        await onFinish(); // cleanup + 배틀 종료 요청
+        await getReport(userId);
       }
-  };
 
-  const resultHighlightColor = myResult.winner
-    ? "bg-green-200/70"
-    : "bg-red-200/70";
+      // 모든 정리 작업이 완료된 후 페이지 이동
+      setIsLoading(false);
+      if (myRole.includes("BATTLER")) {
+        window.location.href = "/main/mypage";
+      } else {
+        window.location.href = "/main/battle-list";
+      }
+    } catch (error) {
+      console.error("세션 정리 중 오류:", error);
+      setIsLoading(false);
+      // 오류 처리 로직 (선택사항)
+    }
+  };
 
   return (
     <>
@@ -135,7 +137,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
                 <span
                   className={`${resultHighlightColor} px-2 py-1 rounded text-xl font-bold`}
                 >
-                  {myResult.winner ? "승리" : "패배"}
+                  {myResult?.winner ? "승리" : "패배"}
                 </span>{" "}
                 하셨습니다.
               </h5>
