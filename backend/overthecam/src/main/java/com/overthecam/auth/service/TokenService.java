@@ -144,13 +144,20 @@ public class TokenService {
     public void addToBlacklist(String accessToken) {
         try {
             if (accessToken != null) {
+                // 토큰이 이미 만료되었는지 먼저 확인
+                if (jwtTokenProvider.isExpiredToken(accessToken)) {
+                    log.info("만료된 토큰이므로 블랙리스트 추가를 건너뜁니다.");
+                    return;
+                }
+
                 String key = RedisKeys.blacklist(accessToken);
                 long expiration = jwtTokenProvider.getExpirationTime(accessToken);
+
                 redisTemplate.opsForValue().set(
-                    key,
-                    "blacklisted",
-                    expiration,
-                    TimeUnit.MILLISECONDS
+                        key,
+                        "blacklisted",
+                        expiration,
+                        TimeUnit.MILLISECONDS
                 );
                 log.info("Access Token 블랙리스트 추가 완료");
             }
