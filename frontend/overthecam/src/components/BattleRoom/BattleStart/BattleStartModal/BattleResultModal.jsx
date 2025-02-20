@@ -60,7 +60,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
 
       // 모든 정리 작업이 완료된 후 페이지 이동
       setIsLoading(false);
-      if (myRole.includes("BATTLER")) {
+      if (myRole?.includes("BATTLER")) {
         // window.location.href = "/main/mypage";
         navigate("/main/mypage");
       } else {

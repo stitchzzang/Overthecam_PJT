@@ -570,7 +570,7 @@ function BattleRoomPage() {
           </>
         )}
       </div>
-      {myRole.includes("BATTLER") && <LiveSTT shouldStop={isBattleEnded} />}
+      {myRole?.includes("BATTLER") && <LiveSTT shouldStop={isBattleEnded} />}
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
