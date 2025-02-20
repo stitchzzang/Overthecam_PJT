@@ -26,7 +26,7 @@ public class SearchService {
     public BattleRoomAllResponse searchBattles(String keyword, int page, int size) {
         log.info("검색 키워드: {}", keyword);
         // 빈 문자열이 아니라면
-        if (keyword != null && keyword.trim().isEmpty()) {
+        if (keyword == null && keyword.trim().isEmpty()) {
             throw new GlobalException(SearchErrorCode.EMPTY_KEYWORD, "검색어를 입력해주세요.");
         }
 
@@ -44,7 +44,7 @@ public class SearchService {
 
         log.info("검색 키워드: {}", keyword);
         // 빈 문자열 체크
-        if (keyword != null && keyword.trim().isEmpty()) {
+        if (keyword == null && keyword.trim().isEmpty()) {
             throw new GlobalException(SearchErrorCode.EMPTY_KEYWORD, "검색어를 입력해주세요");
         }
 
