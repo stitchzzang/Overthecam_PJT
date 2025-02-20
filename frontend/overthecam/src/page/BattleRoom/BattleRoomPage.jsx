@@ -539,7 +539,7 @@ function BattleRoomPage() {
       />
 
       <div className="render-change flex-1 h-0 relative">
-        <BattleResultLoader isLoading={isResultLoading}/>
+        <BattleResultLoader isLoading={isResultLoading} />
 
         {!isStarted ? (
           <div className="flex h-full">
@@ -570,7 +570,7 @@ function BattleRoomPage() {
           </>
         )}
       </div>
-      {myRole !== "PARTICIPANT" && <LiveSTT shouldStop={isBattleEnded} />}
+      {myRole.includes("BATTLER") && <LiveSTT shouldStop={isBattleEnded} />}
       <BattlerSettingModal
         ref={battlerSettingModal}
         participants={participants}
