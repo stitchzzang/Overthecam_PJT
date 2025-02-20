@@ -77,7 +77,7 @@ const BattleResultModal = forwardRef(function BattleResultModal(
   return (
     <>
       {isLoading && (
-        <div className="flex items-center justify-center h-screen bg-black/50 backdrop-blur-sm">
+        <div className="flex items-center justify-center h-screen bg-black/20 backdrop-blur-sm">
           <div className="bg-white p-8 rounded-xl flex flex-col items-center gap-4">
             <img
               src="/assets/loading2.gif"
