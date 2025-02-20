@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Pagination from 'react-js-pagination';
 import BattleList from './Modal/BattleList';
 
-function MyPageBattle() {
+function MyPageBattle({ userId }) {
   const [battles, setBattles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageInfo, setPageInfo] = useState({
@@ -25,18 +25,19 @@ function MyPageBattle() {
         setIsLoading(true);
         setError(null);
         
-        const response = await authAxios.get(`/mypage/battle/history?page=${currentPage - 1}`);
-        console.log('전체 응답:', response);
-        console.log('응답 데이터:', response.data);
-        console.log('배틀 목록:', response.data.content);
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', currentPage - 1);
+        if (userId) {
+          queryParams.append('userId', userId);
+        }
+        
+        const response = await authAxios.get(
+          `/mypage/battle/history?${queryParams.toString()}`
+        );
         
         if (response && response.success) {
-          console.log('setBattles 호출 전:', response.data.content);
           setBattles(response.data.content);
-          console.log('setBattles 호출 후');
-          
           if (response.data.pageInfo) {
-            console.log('페이지 정보:', response.data.pageInfo);
             setPageInfo({
               totalPages: response.data.pageInfo.totalPages,
               totalElements: response.data.pageInfo.totalElements,
@@ -54,7 +55,7 @@ function MyPageBattle() {
     };
 
     fetchBattleHistory();
-  }, [currentPage]);
+  }, [currentPage, userId]);
 
   // 디버깅을 위한 추가 useEffect
   useEffect(() => {

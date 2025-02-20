@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { authAxios } from "../../common/axiosinstance"
 import MyPageBattle from './MyPageBattle'
 import MyPageVote from './MyPageVote'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import useUserStore from '../../store/User/UserStore';
 import AiReport from './AiReport';  // 새로운 AiReport import
 
@@ -202,6 +202,7 @@ const checkPhoneNumberDuplicate = async (phoneNumber) => {
 
 function MyPage() {
   const location = useLocation();
+  const { userId } = useParams();
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'vote');
   const navigate = useNavigate();
 
@@ -1004,8 +1005,8 @@ function MyPage() {
               </div>
             )}
             {activeTab === 'report' && <AiReport />}
-            {activeTab === 'battle' && <MyPageBattle />}
-            {activeTab === 'vote' && <MyPageVote />}
+            {activeTab === 'battle' && <MyPageBattle userId={userId} />}
+            {activeTab === 'vote' && <MyPageVote userId={userId} />}
           </div>
         </div>
       </div>
