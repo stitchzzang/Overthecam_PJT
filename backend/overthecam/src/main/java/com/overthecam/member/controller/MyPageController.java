@@ -135,7 +135,6 @@ public class MyPageController {
 
     }
 
-
     @GetMapping("/profile")
     public CommonResponseDto<UserUpdateResponseDto> getMyProfile(
             Authentication authentication,
