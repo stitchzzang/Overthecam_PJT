@@ -210,6 +210,21 @@ const useWebSocket = (battleId) => {
             setIsBattleEnded(true);
           }
           break;
+        case "VOTE_STAT":
+          if (success) {
+            const content = `현재 ${data.participantCount - 2}명 중 ${
+              data.votedCount - 2
+            }명이 투표 완료 했습니다.`;
+            const newMsg = {
+              nickname: "SYSTEM",
+              content,
+            };
+            setMessageList((prev) => {
+              const newList = [...prev, newMsg];
+              return newList;
+            });
+          }
+          break;
         default:
           console.log(`[WS] 처리되지 않은 메시지 타입: ${type}`);
           break;
@@ -359,21 +374,22 @@ const useWebSocket = (battleId) => {
     [battleId]
   );
 
-const disconnectWS = useCallback(() => {
-  return new Promise((resolveDisconnect, rejectDisconnect) => {
-    if (!stompClientRef.current) {
-      console.log("이미 연결이 해제되었거나 연결되지 않았습니다.");
-      setWsStatus(WS_STATUS.DISCONNECTED);
-      resolveDisconnect(true);
-      return;
-    }
+  const disconnectWS = useCallback(() => {
+    return new Promise((resolveDisconnect, rejectDisconnect) => {
+      if (!stompClientRef.current) {
+        console.log("이미 연결이 해제되었거나 연결되지 않았습니다.");
+        setWsStatus(WS_STATUS.DISCONNECTED);
+        resolveDisconnect(true);
+        return;
+      }
 
-    setWsStatus(WS_STATUS.DISCONNECTING); // 연결 해제 중 상태 추가
+      setWsStatus(WS_STATUS.DISCONNECTING); // 연결 해제 중 상태 추가
 
-    try {
-      // 구독 해제 처리
-      const unsubscribePromises = Object.entries(subscriptionsRef.current).map(
-        ([key, subscription]) => {
+      try {
+        // 구독 해제 처리
+        const unsubscribePromises = Object.entries(
+          subscriptionsRef.current
+        ).map(([key, subscription]) => {
           return new Promise((resolve) => {
             if (subscription) {
               try {
@@ -387,54 +403,53 @@ const disconnectWS = useCallback(() => {
             // 구독 해제는 실패해도 진행
             resolve();
           });
-        }
-      );
+        });
 
-      // 모든 구독 해제 후 처리
-      Promise.all(unsubscribePromises)
-        .then(() => {
-          subscriptionsRef.current = {};
-          console.log("모든 구독 해제 완료");
+        // 모든 구독 해제 후 처리
+        Promise.all(unsubscribePromises)
+          .then(() => {
+            subscriptionsRef.current = {};
+            console.log("모든 구독 해제 완료");
 
-          // STOMP 클라이언트 비활성화
-          if (stompClientRef.current) {
-            try {
-              stompClientRef.current.deactivate();
-              console.log("STOMP 클라이언트 비활성화 완료");
-              stompClientRef.current = null;
+            // STOMP 클라이언트 비활성화
+            if (stompClientRef.current) {
+              try {
+                stompClientRef.current.deactivate();
+                console.log("STOMP 클라이언트 비활성화 완료");
+                stompClientRef.current = null;
+                setWsStatus(WS_STATUS.DISCONNECTED);
+                resolveDisconnect(true);
+              } catch (deactivateError) {
+                console.error("STOMP 비활성화 오류:", deactivateError);
+                setWsStatus(WS_STATUS.ERROR);
+                rejectDisconnect(deactivateError);
+              }
+            } else {
               setWsStatus(WS_STATUS.DISCONNECTED);
               resolveDisconnect(true);
-            } catch (deactivateError) {
-              console.error("STOMP 비활성화 오류:", deactivateError);
-              setWsStatus(WS_STATUS.ERROR);
-              rejectDisconnect(deactivateError);
             }
-          } else {
-            setWsStatus(WS_STATUS.DISCONNECTED);
-            resolveDisconnect(true);
-          }
-        })
-        .catch((promiseError) => {
-          console.error("구독 해제 프로세스 오류:", promiseError);
-          // 오류가 발생해도 연결 해제 시도
-          if (stompClientRef.current) {
-            try {
-              stompClientRef.current.deactivate();
-              stompClientRef.current = null;
-            } catch (e) {
-              console.error("오류 후 강제 연결 해제 실패:", e);
+          })
+          .catch((promiseError) => {
+            console.error("구독 해제 프로세스 오류:", promiseError);
+            // 오류가 발생해도 연결 해제 시도
+            if (stompClientRef.current) {
+              try {
+                stompClientRef.current.deactivate();
+                stompClientRef.current = null;
+              } catch (e) {
+                console.error("오류 후 강제 연결 해제 실패:", e);
+              }
             }
-          }
-          setWsStatus(WS_STATUS.ERROR);
-          rejectDisconnect(promiseError);
-        });
-    } catch (error) {
-      console.error("Disconnect 전체 오류:", error);
-      setWsStatus(WS_STATUS.ERROR);
-      rejectDisconnect(error);
-    }
-  });
-}, []);
+            setWsStatus(WS_STATUS.ERROR);
+            rejectDisconnect(promiseError);
+          });
+      } catch (error) {
+        console.error("Disconnect 전체 오류:", error);
+        setWsStatus(WS_STATUS.ERROR);
+        rejectDisconnect(error);
+      }
+    });
+  }, []);
 
   const sendMessage = useCallback(
     (content) => {
@@ -584,6 +599,21 @@ const disconnectWS = useCallback(() => {
     }
   }, [battleId, wsStatus]);
 
+  const voteCount = useCallback(() => {
+    try {
+      stompClientRef.current?.send(
+        `/api/publish/battle/${battleId}`,
+        {},
+        JSON.stringify({
+          type: "VOTE_STAT",
+          data: null,
+        })
+      );
+    } catch (error) {
+      console.error("종료 실패:", error);
+    }
+  }, [battleId, wsStatus]);
+
   useEffect(() => {
     return () => {
       disconnectWS();
@@ -619,6 +649,9 @@ const disconnectWS = useCallback(() => {
     isDraw,
     isBattleEnded,
     getRoomState,
+    participantCount,
+    votedCount,
+    voteCount,
   };
 };
 
