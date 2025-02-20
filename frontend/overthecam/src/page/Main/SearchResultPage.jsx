@@ -291,18 +291,34 @@ const SearchResultPage = () => {
   };
 
   // StatusBadge 컴포넌트 수정
-  const StatusBadge = ({ status, battleId }) => {
-    const baseClasses = "btn px-3 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
-    return status === 0 ? (
-      <button
-        className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold cursor-pointer`}
-        onClick={() => gotoBattleRoom(battleId)}
-      >
-        입장
-      </button>
-    ) : (
+  const StatusBadge = ({ status, totalUsers, battleId }) => {
+    const baseClasses = "btn px-4 sm:px-6 py-2 text-sm font-bold rounded-lg whitespace-nowrap";
+    
+    if (status === 0) { // WAITING 상태
+      if (totalUsers >= 6) {
+        return (
+          <button className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
+            <span className="sm:inline hidden">입장 불가</span>
+            <span className="sm:hidden">만석</span>
+          </button>
+        );
+      }
+      return (
+        <button
+          className={`${baseClasses} bg-gradient-to-r from-cusPink to-cusLightBlue hover:from-cusLightBlue hover:to-cusPink text-black font-bold cursor-pointer`}
+          onClick={() => gotoBattleRoom(battleId)}
+        >
+          <span className="sm:inline hidden">입장하기</span>
+          <span className="sm:hidden">입장</span>
+        </button>
+      );
+    }
+    
+    // 진행 중인 상태
+    return (
       <button className={`${baseClasses} bg-cusGray text-white pointer-events-none`}>
-        진행
+        <span className="sm:inline hidden">진행 중</span>
+        <span className="sm:hidden">진행</span>
       </button>
     );
   };
@@ -357,6 +373,7 @@ const SearchResultPage = () => {
                               </span>
                               <StatusBadge 
                                 status={battle.status} 
+                                totalUsers={battle.totalUsers}
                                 battleId={battle.battleId}
                               />
                             </div>

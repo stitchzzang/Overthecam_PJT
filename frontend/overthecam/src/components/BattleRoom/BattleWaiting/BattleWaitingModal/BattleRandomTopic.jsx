@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from "react";
 import { authAxios } from "../../../../common/axiosinstance";
+
 const BattleRandomTopic = forwardRef((props, ref) => {
   const [topic, setTopic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -16,37 +17,18 @@ const BattleRandomTopic = forwardRef((props, ref) => {
       }
 
       const response = await authAxios.get('/battle/random');
-
-      if (response.data.success) {
-        setTopic(response.data.data.title);
+      console.log('서버 응답:', response.data.title);
+      
+      // 응답에서 바로 title을 가져옵니다
+      if (response.data && response.data.title) {
+        setTopic(response.data.title);
       } else {
-        setTopic(
-          response.data.error?.message ||
-          "주제 생성에 실패했습니다. 다시 시도해주세요."
-        );
+        setTopic("주제 생성에 실패했습니다. 다시 시도해주세요.");
       }
+
     } catch (error) {
-      console.error("랜덤 주제 가져오기 실패:", error.response || error);
-
-      if (error.response) {
-        switch (error.response.status) {
-          case 401:
-            setTopic("인증이 만료되었습니다. 다시 로그인해주세요.");
-            break;
-          case 500:
-            setTopic("서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
-            break;
-          default:
-            setTopic(
-              error.response.data?.error?.message ||
-              "알 수 없는 오류가 발생했습니다. 다시 시도해주세요."
-            );
-        }
-      } else if (error.request) {
-        setTopic("서버와 통신할 수 없습니다. 인터넷 연결을 확인해주세요.");
-      } else {
-        setTopic("요청 중 오류가 발생했습니다. 다시 시도해주세요.");
-      }
+      console.error("상세 에러 정보:", error);
+      setTopic("주제 생성에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
       setTimeout(() => setIsSpinning(false), 2000);
@@ -85,22 +67,18 @@ const BattleRandomTopic = forwardRef((props, ref) => {
                     <p className="text-xl font-bold text-center whitespace-pre-line">
                       {topic ? (
                         <>
+                          {/* 첫 번째 줄: 질문 (검정색) */}
                           <span className="block text-black mb-2">
                             {topic.split("\n")[0]}
                           </span>
-                          {topic
-                            .split("\n")
-                            .slice(1)
-                            .map((line, index) => (
-                              <span
-                                key={index}
-                                className={`block ${
-                                  index === 0 ? "text-cusRed" : "text-cusBlue"
-                                }`}
-                              >
-                                {line}
-                              </span>
-                            ))}
+                          {/* 두 번째 줄: 첫 번째 선택지 (빨간색) */}
+                          <span className="block text-cusRed">
+                            {topic.split("\n")[1]}
+                          </span>
+                          {/* 세 번째 줄: 두 번째 선택지 (파란색) */}
+                          <span className="block text-cusBlue">
+                            {topic.split("\n")[2]}
+                          </span>
                         </>
                       ) : (
                         "주제를 생성해보세요!"
@@ -132,95 +110,92 @@ const BattleRandomTopic = forwardRef((props, ref) => {
           즐거운 배틀 되세요 !
         </p>
 
-        <form
-          method="dialog"
-          className="modal-backdrop w-full flex justify-center"
-        >
+        <form method="dialog" className="modal-backdrop w-full flex justify-center">
           <button className="random-topic-close-btn px-6 py-2 text-md bg-btnLightBlue text-btnLightBlue-hover rounded-full hover:bg-btnLightBlue-hover hover:text-btnLightBlue text-center clay">
             닫기
           </button>
         </form>
-
-        <style>{`
-          .random-topic-modal {
-            border: none;
-            background: rgba(0, 0, 0, 0.5);
-          }
-          
-          .random-topic-clay {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 
-              8px 8px 16px rgba(0, 0, 0, 0.1),
-              -8px -8px 16px rgba(255, 255, 255, 0.8),
-              inset 2px 2px 4px rgba(255, 255, 255, 0.8),
-              inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-          }
-          
-          .slot-machine {
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-          }
-          
-          .slot-wrapper {
-            position: relative;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-          
-          .slot-wrapper.spinning {
-            animation: spin 2.5s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
-          }
-          
-          .slot-content {
-            position: relative;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            border-radius: 8px;
-          }
-          
-          @keyframes spin {
-            0% { 
-              transform: translateY(0);
-              opacity: 1;
-            }
-            15% {
-              transform: translateY(-80%);
-              opacity: 0.2;
-            }
-            30% {
-              transform: translateY(-160%);
-              opacity: 0;
-            }
-            45% {
-              transform: translateY(-240%);
-              opacity: 0;
-            }
-            60% {
-              transform: translateY(40%);
-              opacity: 0.2;
-            }
-            75% {
-              transform: translateY(20%);
-              opacity: 0.6;
-            }
-            100% { 
-              transform: translateY(0);
-              opacity: 1;
-            }
-          }
-
-          .random-topic-btn {
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-          }
-
-          .random-topic-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          }
-        `}</style>
       </div>
+
+      <style>{`
+        .random-topic-modal {
+          border: none;
+          background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .random-topic-clay {
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 
+            8px 8px 16px rgba(0, 0, 0, 0.1),
+            -8px -8px 16px rgba(255, 255, 255, 0.8),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.8),
+            inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .slot-machine {
+          position: relative;
+          box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .slot-wrapper {
+          position: relative;
+          transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .slot-wrapper.spinning {
+          animation: spin 2.5s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+        }
+        
+        .slot-content {
+          position: relative;
+          background: rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(5px);
+          border-radius: 8px;
+        }
+        
+        @keyframes spin {
+          0% { 
+            transform: translateY(0);
+            opacity: 1;
+          }
+          15% {
+            transform: translateY(-80%);
+            opacity: 0.2;
+          }
+          30% {
+            transform: translateY(-160%);
+            opacity: 0;
+          }
+          45% {
+            transform: translateY(-240%);
+            opacity: 0;
+          }
+          60% {
+            transform: translateY(40%);
+            opacity: 0.2;
+          }
+          75% {
+            transform: translateY(20%);
+            opacity: 0.6;
+          }
+          100% { 
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .random-topic-btn {
+          font-weight: 500;
+          border: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .random-topic-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+      `}</style>
     </dialog>
   );
 });
