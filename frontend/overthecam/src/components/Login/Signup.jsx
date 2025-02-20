@@ -119,7 +119,7 @@ const Signup = () => {
       if (response.success) {
         setMessage("회원가입이 완료되었습니다");
         setIsError(false);
-        window.location.replace("/");
+        window.location.replace("/main/login");
       }
     } catch (error) {
       setIsError(true);
