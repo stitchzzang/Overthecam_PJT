@@ -1,5 +1,6 @@
 package com.overthecam.member.dto;
 
+import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.vote.dto.VoteStatsProjection;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +15,7 @@ public class BattleCombinedStatusDto {
     private final String title;
     private final Integer totalTime;
     private final String hostNickname;
+    private final ParticipantRole role;
     private final List<String> participants;
     private final String selectedOption;
     private final boolean isWinner;

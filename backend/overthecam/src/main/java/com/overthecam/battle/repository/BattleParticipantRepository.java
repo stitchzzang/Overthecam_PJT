@@ -25,9 +25,11 @@ public interface BattleParticipantRepository extends JpaRepository<BattlePartici
 
     long countByBattleId(Long battleId);
 
-    @Query("SELECT u.nickname, bp.role " +
+    @Query("SELECT u.nickname " +
             "FROM BattleParticipant bp " +
             "JOIN User u ON bp.user.id = u.id " +
             "WHERE bp.battle.id = :battleId")
     List<String> findParticipantNicknamesByBattleId(@Param("battleId") Long battleId);
+
+    BattleParticipant findByUser_IdAndBattle_Id(Long userId, Long battleId);
 }
