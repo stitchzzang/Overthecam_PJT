@@ -42,12 +42,11 @@ function BattleWaiting({
     readyForBattle(userId, participantName, !myReady);
   };
 
-  const handleStart = (e) => {
-    // 방장 ready 상태 설정 (비동기 처리)
-    readyForBattle(userId, participantName, true);
-
-    // 상태 업데이트 후 처리를 위해 setTimeout 사용
-    setTimeout(() => {
+  const [startCheckRequested, setStartCheckRequested] = useState(false);
+  
+  // 컴포넌트 내에 useEffect 추가
+  useEffect(() => {
+    if (startCheckRequested) {
       console.log("현재 참가자 수: ", totalParticipants);
       console.log("준비한 참가자: ", readyList.length);
 
@@ -60,7 +59,18 @@ function BattleWaiting({
       } else {
         onShowBattlerModal();
       }
-    }, 100); // 상태 업데이트를 위한 짧은 지연
+
+      // 확인 완료 후 플래그 초기화
+      setStartCheckRequested(false);
+    }
+  }, [startCheckRequested, totalParticipants, readyList]);
+
+  const handleStart = (e) => {
+    // 방장 ready 상태 설정 (비동기 처리)
+    readyForBattle(userId, participantName, true);
+    setTimeout(() => {
+      setStartCheckRequested(true);
+    }, 300); // 웹소켓 응답 시간을 고려한 지연
   };
   // 6개의 고정 슬롯 생성
   const slots = Array(6)
