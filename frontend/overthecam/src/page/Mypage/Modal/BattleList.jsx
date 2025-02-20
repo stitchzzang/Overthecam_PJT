@@ -42,9 +42,37 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // 무승부 판별 함수 추가
-  const isDraw = (voteStats) => {
-    return Math.abs(voteStats[0].votePercentage - voteStats[1].votePercentage) < 1;  // 1% 미만 차이면 무승부
+  const getBattleResult = (battle) => {
+    const isBattler = battle.role === 'BATTLER' || 
+                      battle.role === 'HOST_BATTLER' || 
+                      battle.role === 'PARTICIPANT_BATTLER';
+
+    // 무승부 체크를 가장 먼저
+    if ((!battle.winner && battle.earnedScore > 0 && isBattler) || 
+        (!battle.winner && battle.earnedScore === 0 && !isBattler)) {
+      return {
+        text: '무',
+        style: 'text-gray-700'  // 무승부는 무조건 회색
+      };
+    }
+
+    // 내가 선택한 옵션의 색상 (voteStats 배열에서 선택한 옵션의 인덱스를 확인)
+    const selectedIndex = battleDetail.voteStats.findIndex(
+      option => option.optionTitle === battle.selectedOption
+    );
+    const myChoiceColor = selectedIndex === 0 ? "text-cusRed" : "text-cusBlue";
+
+    if (battle.winner) {
+      return {
+        text: '승',
+        style: myChoiceColor
+      };
+    }
+    
+    return {
+      text: '패',
+      style: myChoiceColor
+    };
   };
 
   if (!isOpen || !battleDetail) return null;
@@ -124,14 +152,13 @@ const BattleList = ({ isOpen, onClose, battleId, battleDate }) => {
                 {/* 승패 및 점수 카드 */}
                 <div className="bg-cusYellow-light p-6 rounded-[1rem] text-center shadow-md w-[200px]">
                   <div className="text-4xl mb-2">
-                    {isDraw(battleDetail.voteStats) ? '🤝' : 
+                    {getBattleResult(battleDetail).text === '무 🤝' ? '🤝' : 
                      battleDetail.winner ? '🏆' : '💀'}
                   </div>
-                  <div className="text-4xl font-bold text-red-500 mb-2">
-                    {isDraw(battleDetail.voteStats) ? '무' : 
-                     battleDetail.winner ? '승' : '패'}
+                  <div className={`text-4xl font-bold mb-2 ${getBattleResult(battleDetail).style}`}>
+                    {getBattleResult(battleDetail).text}
                   </div>
-                  <div className="text-xl text-red-500">
+                  <div className="text-xl text-gray-700">
                     (+{battleDetail.earnedScore})
                   </div>
                 </div>
