@@ -83,14 +83,16 @@ public class BattleResultService {
             // 3. 투표 기록 및 배팅 기록 저장
             saveRecords(votes, rewardResults);
 
-            // 4. Redis 데이터 정리 - 투표, 사용자 점수 삭제
+            // 4. 배틀과 투표 종료 처리
+            finalizeBattleAndVote(battle);
+
+            BattleResultResponse response = createBattleResult(battle, votes, optionScores, rewardResults);
+
+            // 5. redis 데이터 정리 - 투표, 사용자 점수 삭제
             battleVoteRedisService.clearBattleData(battleId);
             userScoreRedisService.clearBattleScores(battleId);
 
-            // 5. 배틀과 투표 종료 처리
-            finalizeBattleAndVote(battle);
-
-            return createBattleResult(battle, votes, optionScores, rewardResults);
+            return response;
         } catch (Exception e) {
             log.error("Failed to finalize battle votes for battleId: {}", battleId, e);
             throw e;
