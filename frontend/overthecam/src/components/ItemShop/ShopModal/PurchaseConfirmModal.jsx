@@ -48,6 +48,10 @@ const PurchaseConfirmModal = forwardRef(function PurchaseConfirmModal(
         if (onPurchaseSuccess) {
           onPurchaseSuccess(itemId, itemPrice);
         }
+
+        // 여기에 새로고침 추가
+        window.location.reload();
+        
       } else {
         // API 응답이 success: false인 경우
         failAlertRef.current?.showAlert(response.error?.message || "구매에 실패했습니다.");

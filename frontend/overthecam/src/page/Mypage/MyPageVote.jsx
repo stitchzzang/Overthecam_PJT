@@ -25,43 +25,43 @@ function MyPageVote({ userId, isOtherProfile }) {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   useEffect(() => {
-    const fetchVotes = async () => {
+    const fetchVoteHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
-        // 내가 만든 투표 또는 내가 투표한 투표만 보기
-        let url = `/mypage/vote/history?page=${currentPage - 1}`;
         
-        // 현재 로그인한 사용자의 ID로 필터링
-        url += `&userId=${currentUserId}`;  // 내가 투표한 것들
-        
-        if (showMyVotesOnly) {
-          url += '&createdByMe=true';  // 내가 만든 것들
+        // 쿼리 파라미터 구성
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', currentPage - 1);
+        if (userId) {
+          queryParams.append('userId', userId);
         }
-
-        const response = await authAxios.get(url);
         
-        if (response.data) {
-          // 받아온 투표 중에서 내가 만들었거나 투표한 것만 필터링
-          const filteredVotes = response.data.content.filter(vote => 
-            vote.creatorUserId === currentUserId ||  // 내가 만든 투표
-            vote.options.some(option => option.selected)  // 내가 투표한 투표
-          );
-          
-          setVotes(filteredVotes);
-          setPageInfo(response.data.pageInfo);
+        const response = await authAxios.get(
+          `/mypage/vote/history?${queryParams.toString()}`
+        );
+        
+        if (response && response.success) {
+          setVotes(response.data.content);
+          if (response.data.pageInfo) {
+            setPageInfo({
+              totalPages: response.data.pageInfo.totalPages,
+              totalElements: response.data.pageInfo.totalElements,
+              pageSize: response.data.pageInfo.pageSize
+            });
+          }
         }
       } catch (err) {
+        console.error('Error fetching votes:', err);
         setError('투표 기록을 불러오는데 실패했습니다.');
-        console.error('Failed to fetch votes:', err);
+        setVotes([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchVotes();
-  }, [id, currentPage, showMyVotesOnly, currentUserId]);
+    fetchVoteHistory();
+  }, [currentPage, userId]);
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);

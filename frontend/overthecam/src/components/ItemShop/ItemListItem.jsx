@@ -107,7 +107,10 @@ function ItemListItem({ itemInfo, isPurchased, onPurchaseSuccess, myPoints }) {
         itemImg={itemInfo.imageUrl}
         itemType={itemInfo.type}
         itemPrice={itemInfo.price}
-        onPurchaseSuccess={onPurchaseSuccess}
+        onPurchaseSuccess={(itemId, price) => {
+          onPurchaseSuccess(itemId, price);
+          window.location.reload();
+        }}
       />
       <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 clay group hover:-translate-y-1">
         <div className="flex flex-col gap-2">
