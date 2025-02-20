@@ -157,7 +157,7 @@ const ReportDetail = ({ isOpen, onClose, report }) => {
               year: 'numeric',
               month: '2-digit',
               day: '2-digit'
-            }).replace(/\. /g, '.').replace('.', '') : '날짜 정보 없음'}
+            }).replace(/\. /g, '.').split('.').filter(Boolean).join('.') : '날짜 정보 없음'}
           </p>
         </div>
 
