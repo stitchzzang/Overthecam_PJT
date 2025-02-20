@@ -163,9 +163,9 @@ const BattleResultModal = forwardRef(function BattleResultModal(
               <button
                 type="button"
                 onClick={onLeaveRoom}
-                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold w-24"
+                className="btn py-2 px-4 bg-cusYellow hover:bg-cusYellow rounded-lg transition-all duration-300 font-semibold"
               >
-                내 발화분석 리포트 보러가기
+                내 발화 분석 리포트 보러가기
               </button>
             )}
           </div>
