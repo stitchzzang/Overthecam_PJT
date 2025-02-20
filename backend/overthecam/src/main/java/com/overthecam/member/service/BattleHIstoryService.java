@@ -70,6 +70,7 @@ public class BattleHIstoryService {
                 .isWinner(battleResult != null ? battleResult.isWinner() : false)
                 .earnedScore(battleResult != null ? battleResult.getEarnedScore() : 0)
                 .voteStats(voteResult)
+                .createdAt(battleHost.getCreatedAt())
                 .build();
 
     }

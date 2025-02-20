@@ -4,6 +4,7 @@ import com.overthecam.vote.dto.VoteStatsProjection;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -17,5 +18,6 @@ public class BattleCombinedStatusDto {
     private final String selectedOption;
     private final boolean isWinner;
     private final Integer earnedScore;
+    private final LocalDateTime createdAt;
     private final List<VoteStatsProjection> voteStats;
 }
