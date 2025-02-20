@@ -1,5 +1,6 @@
 package com.overthecam.member.service;
 
+import com.overthecam.battle.domain.ParticipantRole;
 import com.overthecam.battle.dto.BattleHostDto;
 import com.overthecam.battle.dto.BattleResultDto;
 import com.overthecam.battle.exception.BattleErrorCode;
@@ -8,6 +9,7 @@ import com.overthecam.battle.repository.BattleRepository;
 import com.overthecam.common.exception.GlobalException;
 import com.overthecam.member.domain.BattleHistoryView;
 import com.overthecam.member.dto.BattleCombinedStatusDto;
+import com.overthecam.member.dto.BattleStatProjection;
 import com.overthecam.member.dto.BattleStatsInfo;
 import com.overthecam.member.repository.BattleHistoryPageResponse;
 import com.overthecam.member.repository.BattleHistoryViewRepository;
@@ -40,7 +42,38 @@ public class BattleHIstoryService {
 
     // 전적 통계를 위한 메서드 추가
     public BattleStatsInfo getBattleStats(Long userId) {
-        return battleHistoryViewRepository.findBattleStatsByUserId(userId);
+        List<BattleStatProjection> statsData = battleHistoryViewRepository.findBattleStatsDataByUserId(userId);
+
+        long totalGames = statsData.size();
+        long win = 0;
+        long loss = 0;
+        long draw = 0;
+
+        for (BattleStatProjection stat : statsData) {
+            boolean isBattler = stat.getRole() == ParticipantRole.BATTLER ||
+                    stat.getRole() == ParticipantRole.HOST_BATTLER ||
+                    stat.getRole() == ParticipantRole.PARTICIPANT_BATTLER;
+
+            if (stat.isWinner()) {
+                win++;
+            } else {
+                if (isBattler) {
+                    if (stat.getEarnedScore() > 0) {
+                        draw++;  // 배틀러 무승부
+                    } else {
+                        loss++;  // 배틀러 패배
+                    }
+                } else {
+                    if (stat.getEarnedScore() == 0) {
+                        draw++;  // 일반 참가자 무승부
+                    } else {
+                        loss++;  // 일반 참가자 패배
+                    }
+                }
+            }
+        }
+
+        return new BattleStatsInfo(userId, totalGames, win, loss, draw);
     }
 
     public BattleCombinedStatusDto getBattleDetail(Long battleId, Long userId) {
