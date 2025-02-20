@@ -11,7 +11,7 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
   const successAlertRef = useRef();
   const failAlertRef = useRef();
 
-  const [inputScore, setInputScore] = useState(null);
+  const [inputScore, setInputScore] = useState(0);
   const [isWrongInput, setIsWrongInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setMyScores } = useWebSocketContext();
@@ -81,7 +81,7 @@ const BattleVoteBettingModal = forwardRef(function BattleVoteBettingModal(
       setInputScore(inputValue);
       setIsWrongInput(false);
     } else if (inputValue < 1000) {
-      setInputScore(null);
+      setInputScore(0);
       setIsWrongInput(true);
     }
   };
