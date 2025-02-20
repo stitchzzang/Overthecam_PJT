@@ -26,7 +26,7 @@ public interface BattleRepository extends JpaRepository<Battle, Long> {
 
     Battle findBattleById(Long battleId);
 
-    @Query("SELECT new com.overthecam.battle.dto.BattleHostDto(b.id, b.title, b.totalTime, u.nickname) " +
+    @Query("SELECT new com.overthecam.battle.dto.BattleHostDto(b.id, b.title, b.totalTime, u.nickname, b.createdAt) " +
             "FROM Battle b " +
             "JOIN BattleParticipant bp ON b.id = bp.battle.id " +
             "JOIN User u ON bp.user.id = u.id " +
