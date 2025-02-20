@@ -62,9 +62,10 @@ const BattleResultModal = forwardRef(function BattleResultModal(
       if (onFinish) {
         await onFinish(); // cleanup + 배틀 종료 요청
         // console.log("getReport 시작");
-        await getReport(userId);
       }
-
+      
+      getReport(userId);
+      
       // 모든 정리 작업이 완료된 후
       if (leaveLoaderRef?.current) {
         leaveLoaderRef.current.setLoading(false);
