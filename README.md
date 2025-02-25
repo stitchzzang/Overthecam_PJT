@@ -15,45 +15,45 @@
 
 ## **👥 Team YES204**  
 
-
+![image](https://d26tym50939cjl.cloudfront.net/uploads/%EC%A0%9C%EB%AA%A9%EC%9D%84-%EC%9E%85%EB%A0%A5%ED%95%B4%EC%A3%BC%EC%84%B8%EC%9A%94_-001.png)
 
 ---
 
 ## 🎯 기능 소개
 
-✅ **온보딩**
+### ✅ **온보딩**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%99%94%EB%A9%B4%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
-✅ **회원가입**
+### ✅ **회원가입**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85.gif)
 
-✅ **홈 화면**  
+### ✅ **홈 화면**  
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A9%94%EC%9D%B8%ED%99%94%EB%A9%B4+%ED%88%AC%ED%91%9C%2C+%EB%B0%B0%ED%8B%80.gif)
 
-✅ **커뮤니티 투표**
+### ✅ **커뮤니티 투표**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%ED%88%AC%ED%91%9C.gif)
 
-✅ **배틀방에서 투표 생성** 
+### ✅ **배틀방에서 투표 생성** 
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%B0%B0%ED%8B%80_%ED%88%AC%ED%91%9C+%EC%83%9D%EC%84%B1.gif)
 
-✅ **배틀**  
+### ✅ **배틀**  
 
 
 
-✅ **배틀방, 투표 맟 사용자 검색**
+### ✅ **배틀방, 투표 맟 사용자 검색**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EA%B2%80%EC%83%89%EA%B3%BC+%ED%8C%94%EB%A1%9C%EC%9A%B0+%EC%98%81%EC%83%81%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
-✅ **상점**
+### ✅ **상점**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%83%81%EC%A0%90.gif)
 
-✅ **마이페이지**
+### ✅ **마이페이지**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A7%88%EC%9D%B4%ED%8E%98%EC%9D%B4%EC%A7%80+%ED%8C%94%EB%A1%9C%EC%9A%B0.gif)
 
