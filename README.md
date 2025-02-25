@@ -1,15 +1,18 @@
 # YES204 팀의 "캠건너 불구경" 서비스 입니다.
 
-## **🔥 캠 건너 불구경 (OVER THE CAM)**  
+## **🔥 캠 건너 불구경 (OVER THE CAM)**
+
+2025.01.13 ~ 2025.02.21 (6주)
+
 > **재미에 의한, 재미를 위한.**  
 > 실시간 논쟁이 필요한 사람들을 위한 화상 배틀 플랫폼  
 >  
 > 친구와 의견이 다를 때, 동료와 입장이 갈릴 때,  
 > **실시간 화상 배틀 + 투표 & 배팅으로 승자를 가려보세요!**  
 
-🔗 [캠 건너 불구경 바로가기](https://overthecam.site)  
-📽 [시연 영상 바로가기]()  
-📝 [회의록 보기](https://romantic-blanket-13b.notion.site/YES-204-OverTheCam-1739cee6017880c89ac1fa8ccee63de8?pvs=4)  
+🔗 [**캠 건너 불구경 바로가기**](https://overthecam.site)  
+📽 [**시연 영상 바로가기**](https://youtu.be/7E-xV0dhKd4)  
+📝 [**회의록 보기**](https://romantic-blanket-13b.notion.site/YES-204-OverTheCam-1739cee6017880c89ac1fa8ccee63de8?pvs=4)  
 
 ---
 
@@ -19,9 +22,11 @@
 
 ---
 
-## 🎯 기능 소개
+## 🔧 기능 소개
 
-### ✅ **온보딩**
+서비스의 주요 기능들을 소개합니다.
+
+### ✅ 온보딩
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%99%94%EB%A9%B4%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
@@ -60,13 +65,23 @@
 
 ---
 
-## **📌 주요 기술**  
+## 📌 기술 소개  
 
+### OpenVidu
 
+OpenVidu는 WebRTC 기술을 기반으로 실시간 애플리케이션을 구현할 수 있는 플랫폼입니다. 
+
+OpenVidu 아키텍쳐는 아래와 같습니다.
+
+![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A4%ED%94%88%EB%B9%84%EB%91%90.png)
+
+실시간 미디어 스트리밍 인프라와 클라이언트, 서버로 구성됩니다.
+
+우리 서비스는 WebRTC 기술을 직접 구현하지 않고, Openvidu 플랫폼을을 커스텀하여 배틀방 기능을 구현했습니다.
 
 ---
 
-# **🚀 Tech Stack**  
+# **📢 Tech Stack**  
 
 ### **Frontend**  
 - React.js | JavaScript (Vanilla 포함)  
