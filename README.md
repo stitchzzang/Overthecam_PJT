@@ -1,5 +1,10 @@
 # YES204 팀의 "캠건너 불구경" 서비스 입니다.
 
+<div align="center">
+  <img src="/uploads/8e1822113513723c7b5e8d90efb915b1/Logo2.png" alt="logo" width=30%>
+</div>
+
+
 > **재미에 의한, 재미를 위한.**  
 > 실시간 논쟁이 필요한 사람들을 위한 화상 배틀 플랫폼  
 >  
@@ -125,7 +130,9 @@ OpenVidu는 WebRTC 기술을 기반으로 실시간 애플리케이션을 구현
 
 OpenVidu 아키텍쳐는 아래와 같습니다.
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A4%ED%94%88%EB%B9%84%EB%91%90.png)
+<div align="center">
+  <img src="https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A4%ED%94%88%EB%B9%84%EB%91%90.png" alt="openvidu" width=70%>
+</div>
 
 실시간 미디어 스트리밍 인프라와 클라이언트, 서버로 구성됩니다.
 
@@ -172,10 +179,14 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 
 ## **🔍 시스템 아키텍처**  
-![image](/uploads/34c19640155cef1083f4d5615317336e/image.png)  
+<div align="center">
+  <img src="/uploads/34c19640155cef1083f4d5615317336e/image.png" alt="architecture" width=80%>
+</div>
 
 ## **💾 ERD Diagram**  
-![image](/uploads/c5052d4a7336c62f6c5fc97c34ac1f6b/image.png)  
+<div align="center">
+  <img src="/uploads/c5052d4a7336c62f6c5fc97c34ac1f6b/image.png" alt="diagram" width=80%>
+</div>
 
 ---
 
@@ -185,13 +196,15 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 팀 YES204는 프론트엔드 3명, 백엔드 3명으로 구성된 팀입니다!
 
-<img src="https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png" width=80%>
+# YES204 팀의 "캠건너 불구경" 서비스 입니다.
 
+![team](https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png)
 
-| 👑Frontend| Frontend | Frontend | 👑Backend | Backend | Backend |
+| 👑Frontend | Frontend | Frontend | 👑Backend | Backend | Backend |
 |----------|----------|----------|----------|----------|----------|
 | [순화](https://github.com/SunaS2) (팀장) | [해인](https://github.com/stitchzzang) | [민수](https://github.com/parkminsu6421) | [수진](https://github.com/ssuzyn) (팀장) | [수비](https://github.com/SubiHwang) | [예지](https://github.com/ygjeong5) |
 
+<br>
 
 ## 👥 팀원 별 역할
 
