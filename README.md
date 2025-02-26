@@ -30,7 +30,7 @@
 
 ## **👥 Team YES204**  
 
-![image](https://d26tym50939cjl.cloudfront.net/uploads/%EC%A0%9C%EB%AA%A9%EC%9D%84-%EC%9E%85%EB%A0%A5%ED%95%B4%EC%A3%BC%EC%84%B8%EC%9A%94_-001.png)
+![image](https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png)
 
 ---
 
