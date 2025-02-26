@@ -77,7 +77,7 @@
 
 간편한 회원가입 절차로 빠르게 서비스에 참여 가능능
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85.gif)
+![images](/uploads/112ec50062cf444ae999d10ca61f32dc/회원가입__1_.gif)
 
 ### ✅ **홈 화면**  
 
@@ -89,7 +89,7 @@
 
 다양한 주제에 대한 실시간 투표 참여와 결과 시각화, 댓글 기능을 통한 활발한 의견 교환
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%ED%88%AC%ED%91%9C.gif)
+![images](/uploads/3e6ab1956eaa1806fec86052d580b57f/투표_-_Clipchamp로_제작.gif)
 
 ### ✅ **배틀방에서 투표 생성** 
 
