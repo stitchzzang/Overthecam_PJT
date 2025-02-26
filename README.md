@@ -27,7 +27,13 @@
 
 ## **👥 Team YES204**  
 
-![image](https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png)
+<img src="https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png" width=80%>
+
+
+| 👑Frontend| Frontend | Frontend | 👑Backend | Backend | Backend |
+|----------|----------|----------|----------|----------|----------|
+| [순화](https://github.com/SunaS2) (팀장) | [해인](https://github.com/stitchzzang) | [민수](https://github.com/parkminsu6421) | [수진](https://github.com/ssuzyn) (팀장) | [수비](https://github.com/SubiHwang) | [예지](https://github.com/ygjeong5) |
+
 
 ## ⏰ 개발 기간
 2025.01.06~2025.01.26 (3주) 기획, 설계
