@@ -198,7 +198,7 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 # YES204 팀의 "캠건너 불구경" 서비스 입니다.
 
-<img src="https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png" alt="diagram" width=70%>
+<img src="/uploads/7d55d722e32e58ec5fac7c7343308e69/image.png" alt="diagram" width=70%>
 
 | 👑Frontend | Frontend | Frontend | 👑Backend | Backend | Backend |
 |----------|----------|----------|----------|----------|----------|
