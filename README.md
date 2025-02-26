@@ -21,7 +21,7 @@
 - [💡 기획 배경](#-기획-배경)
 - [🎯 목표 및 주요 기능](#-목표-및-주요-기능)
 - [🔧 기능 소개](#-기능-소개)
-- [📢 기술 스택](#-기술-스택)
+- [📢 기술 스택 소개](#-기술-스택-소개)
 - [🔍 시스템 아키텍처](#-시스템-아키텍처)
 - [💾 ERD 다이어그램](#-erd-다이어그램)
 - [👥 팀원 별 역할](#-팀원-별-역할)
@@ -106,7 +106,7 @@
 
 ---
 
-## 📌기술 소개
+## 📌 기술 스택 소개
 
 ### OpenVidu
 
@@ -123,12 +123,12 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 ### **📢 Tech Stack**  
 
 #### **Frontend**  
-- React.js | JavaScript (Vanilla 포함)  
-- Socket.io Client | Axios  
+- React.js | JavaScript (Vanilla 포함) | tailwind CSS
+- Zustand | Socket.io Client | Axios  
 
 #### **Backend**  
 - Java 17 | Spring Boot 3.2.3  
-- Spring Data JPA | Spring WebSocket (STOMP) | Spring Cloud AWS  
+- Spring Data JPA | Spring WebSocket (STOMP) | Spring Cloud AWS
 
 #### **Build & Deployment**  
 - Gradle | npm | Docker | Jenkins  
