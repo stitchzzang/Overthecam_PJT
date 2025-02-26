@@ -15,17 +15,23 @@
 
 ## 🗂️ 서비스 둘러보기
 
-- [🔥 캠건너 불구경 서비스 소개](#-캠-건너-불구경-over-the-cam)
+- [🔥 캠건너 불구경 서비스 소개](#캠건너-불구경-서비스-소개)
 - [👥 팀 소개](#-team-yes204)
+- [⏰ 개발 기간](#-개발-기간)
+- [💡 기획 배경](#-기획-배경)
+- [🎯 목표 및 주요 기능](#-목표-및-주요-기능)
 - [🔧 기능 소개](#-기능-소개)
-- [📌 기술 소개](#-기술-소개)
-- [📢 기술 스택](#-tech-stack)
+- [📢 기술 스택](#-기술-스택)
 - [🔍 시스템 아키텍처](#-시스템-아키텍처)
-- [💾 ERD 다이어그램](#-erd-diagram)
+- [💾 ERD 다이어그램](#-erd-다이어그램)
+- [👥 팀원 별 역할](#-팀원-별-역할)
+
 
 ---
 
 ## **👥 Team YES204**  
+
+팀 YES204는 프론트엔드 3명, 백엔드 3명으로 구성된 팀입니다!
 
 <img src="https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png" width=80%>
 
@@ -85,7 +91,7 @@
 
 
 
-### ✅ **배틀방, 투표 맟 사용자 검색**
+### ✅ **배틀방, 투표 및 사용자 검색**
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EA%B2%80%EC%83%89%EA%B3%BC+%ED%8C%94%EB%A1%9C%EC%9A%B0+%EC%98%81%EC%83%81%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
@@ -100,7 +106,7 @@
 
 ---
 
-## 📌 기술 소개  
+## 📌기술 소개
 
 ### OpenVidu
 
@@ -114,25 +120,23 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 우리 서비스는 WebRTC 기술을 직접 구현하지 않고, Openvidu 플랫폼을을 커스텀하여 배틀방 기능을 구현했습니다.
 
----
+### **📢 Tech Stack**  
 
-## **📢 Tech Stack**  
-
-### **Frontend**  
+#### **Frontend**  
 - React.js | JavaScript (Vanilla 포함)  
 - Socket.io Client | Axios  
 
-### **Backend**  
+#### **Backend**  
 - Java 17 | Spring Boot 3.2.3  
 - Spring Data JPA | Spring WebSocket (STOMP) | Spring Cloud AWS  
 
-### **Build & Deployment**  
+#### **Build & Deployment**  
 - Gradle | npm | Docker | Jenkins  
 
-### **Database & Cache**  
+#### **Database & Cache**  
 - MySQL 8.0.4 | Redis  
 
-### **Infrastructure**  
+#### **Infrastructure**  
 - Ubuntu | Docker | Nginx  
 - AWS EC2 | S3  
 
@@ -145,3 +149,54 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 ![image](/uploads/c5052d4a7336c62f6c5fc97c34ac1f6b/image.png)  
 
 ---
+
+## 👥 팀원 별 역할
+
+### 프론트엔드
+
+#### 🧑‍💻 순화 - 프론트 팀장
+
+- OpenVidu 3, Stomp & SockJS 활용 실시간 화상 논쟁 배틀방 구현
+- 발화 분석 리포트를 위한 React Speech Recognition 기반 STT 구현
+- 상점 시스템 구현
+- 사용자 경험 최적화를 위한 UI/UX 설계 및 개발
+
+#### 🧑‍💻 해인
+
+- Figma를 활용한 프로토타입 제작, 로고 및 테마 컬러 선정
+- 온보딩 / 메인 페이지 - Framer Motion 애니메이션 적용 및 이미지 프리로딩 최적화
+- 커뮤니티 투표 - 투표 및 댓글 CRUD 기능, 실시간 투표 시각화(Progress Bar, Confetti)
+- 검색 페이지 - 멀티 엔드포인트 통합 검색 및 Zustand 상태 관리 구현
+- 배틀 방 랜덤 주제 생성기 구현 - 슬롯 머신 효과 및 keyframes 애니메이션 구현
+- 회원가입, 로그인, 배틀/투표 생성 폼 - SVG 그래피킹 및 CSS 애니메이션 적용
+
+#### 🧑‍💻 민수
+
+- 사용자 인증 시스템 (로그인, 회원가입, 정보 관리) 구현
+- 마이페이지 탭 UI 및 팔로워/팔로잉 실시간 업데이트
+- 발화 리포트 및 감정 분석 결과 시각화
+- 상점 시스템 및 인벤토리 관리 구현
+
+### 백엔드
+
+#### 🧑‍💻 수진 - 백엔드 팀장
+
+- 배틀방 투표/정산 시스템 구현 (Redis 락 기반 동시성 제어)
+- 실시간 논쟁 배틀방 통신 시스템 설계 (WebSocket+STOMP 프로토콜)
+- 비속어 필터링 시스템 개발 (Aho-Corasick 알고리즘)
+- 사용자 팔로우 기능 및 통계 시스템 개발
+- 토큰 관리 및 다중 로그인 제한 시스템 개발 (Redis 기반 세션 관리 및 블랙리스트 적용)
+
+#### 🧑‍💻 수비
+
+- Docker, Jenkins CI/CD, AWS EC2, Nginx를 활용한 통합 인프라 구축
+- OpenVidu 프레임워크 기반 실시간 배틀방 구현
+- BERT 모델 활용 실시간 발화 분석 시스템 구축
+- AWS S3와 CloudFront CDN 연동 이미지 관리 시스템 구현
+
+#### 🧑‍💻 예지
+
+- JWT 기반 로그인 및 로그아웃 구현
+- AI 허브 감정 태깅 데이터셋 활용한 5만여 개 학습 데이터 전처리
+- BERT 모델 기반 화상 토론 실시간 감정 분석 시스템 구축
+- 커뮤니티 투표 CRUD 구현
