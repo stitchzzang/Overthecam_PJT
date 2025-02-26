@@ -69,37 +69,53 @@
 
 ### ✅ 온보딩
 
+서비스의 핵심 가치와 사용법을 애니메이션으로 소개하여 신규 사용자의 이해도 향상
+
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%99%94%EB%A9%B4%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
 ### ✅ **회원가입**
+
+간편한 회원가입 절차로 빠르게 서비스에 참여 가능능
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%ED%9A%8C%EC%9B%90%EA%B0%80%EC%9E%85.gif)
 
 ### ✅ **홈 화면**  
 
+인기 있는 투표와 실시간 논쟁 배틀방을 한눈에 볼 수 있는 대시보드 형태의 메인화면
+
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A9%94%EC%9D%B8%ED%99%94%EB%A9%B4+%ED%88%AC%ED%91%9C%2C+%EB%B0%B0%ED%8B%80.gif)
 
 ### ✅ **커뮤니티 투표**
+
+다양한 주제에 대한 실시간 투표 참여와 결과 시각화, 댓글 기능을 통한 활발한 의견 교환
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%ED%88%AC%ED%91%9C.gif)
 
 ### ✅ **배틀방에서 투표 생성** 
 
+논쟁 중 즉각적인 청중 반응을 확인할 수 있는 실시간 투표 시스템 생성
+
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%B0%B0%ED%8B%80_%ED%88%AC%ED%91%9C+%EC%83%9D%EC%84%B1.gif)
 
 ### ✅ **배틀**  
 
+WebRTC 기반 화상 논쟁 플랫폼으로 실시간 발화 분석과 청중 투표를 통한 객관적 승패 판정
 
+### ✅ **검색 및 팔로우 기능**
 
-### ✅ **배틀방, 투표 및 사용자 검색**
+키워드 기반으로 배틀방, 투표, 사용자를 통합 검색하여 원하는 콘텐츠에 빠르게 접근하고, 관심 있는 사용자를 팔로우하여 지속적으로 활동을 확인할 수 있는 소셜 네트워크 기능
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EA%B2%80%EC%83%89%EA%B3%BC+%ED%8C%94%EB%A1%9C%EC%9A%B0+%EC%98%81%EC%83%81%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
 ### ✅ **상점**
 
+배틀에서 획득한 포인트로 프로필 아이템과 배틀 효과를 구매할 수 있는 인게임 상점
+
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%83%81%EC%A0%90.gif)
 
 ### ✅ **마이페이지**
+
+개인 배틀 전적, 참여 내역, 팔로워 관리 및 맞춤형 발화 분석 리포트를 제공하는 사용자 대시보드
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A7%88%EC%9D%B4%ED%8E%98%EC%9D%B4%EC%A7%80+%ED%8C%94%EB%A1%9C%EC%9A%B0.gif)
 
