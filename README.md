@@ -16,7 +16,6 @@
 ## 🗂️ 서비스 둘러보기
 
 - [🔥 캠건너 불구경 서비스 소개](#캠건너-불구경-서비스-소개)
-- [👥 팀 소개](#-team-yes204)
 - [⏰ 개발 기간](#-개발-기간)
 - [💡 기획 배경](#-기획-배경)
 - [🎯 목표 및 주요 기능](#-목표-및-주요-기능)
@@ -24,21 +23,10 @@
 - [📢 기술 스택 소개](#-기술-스택-소개)
 - [🔍 시스템 아키텍처](#-시스템-아키텍처)
 - [💾 ERD 다이어그램](#-erd-다이어그램)
-- [👥 팀원 별 역할](#-팀원-별-역할)
+- [👥 팀 소개 및 역할](#-team-yes204)
 
 
 ---
-
-## **👥 Team YES204**  
-
-팀 YES204는 프론트엔드 3명, 백엔드 3명으로 구성된 팀입니다!
-
-<img src="https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png" width=80%>
-
-
-| 👑Frontend| Frontend | Frontend | 👑Backend | Backend | Backend |
-|----------|----------|----------|----------|----------|----------|
-| [순화](https://github.com/SunaS2) (팀장) | [해인](https://github.com/stitchzzang) | [민수](https://github.com/parkminsu6421) | [수진](https://github.com/ssuzyn) (팀장) | [수비](https://github.com/SubiHwang) | [예지](https://github.com/ygjeong5) |
 
 
 ## ⏰ 개발 기간
@@ -47,7 +35,10 @@
 2025.01.27~2025.02.21 (4주) 개발
 
 ## 💡 기획 배경
-누구나 살아가면서 주변 사람들과 논쟁을 하게 됩니다. 가벼운 밸런스 게임부터 인간관계에서 부딪히는 문제까지, 사람들은 서로 다른 의견을 주장하며 상대를 설득하려 합니다. 하지만 의견 조율이 되지 않고, 오랜 시간 논쟁을 진행할 때도 있습니다. 이런 경우 제삼자의 의견을 통해서 서로의 입장을 조율 하기도 합니다.
+누구나 살아가면서 주변 사람들과 논쟁을 하게 됩니다. 가벼운 밸런스 게임부터 인간관계에서 부딪히는 문제까지, 사람들은 서로 다른 의견을 주장하며 상대를 설득하려 합니다.
+
+하지만 의견 조율이 되지 않고, 오랜 시간 논쟁을 진행할 때도 있습니다. 이런 경우 제삼자의 의견을 통해서 서로의 입장을 조율 하기도 합니다.
+
 논쟁을 통해 서로 더 가까워지고, 보다 즐겁게 해결하기 위해서 실시간 판정단 시스템이 결합된 화상 채팅 기반 논쟁 배틀 서비스를 기획했습니다.
 
 ## 🎯 목표 및 주요 기능
@@ -69,58 +60,62 @@
 
 ### ✅ 온보딩
 
-서비스의 핵심 가치와 사용법을 애니메이션으로 소개하여 신규 사용자의 이해도 향상
+- 서비스의 핵심 가치와 사용법을 애니메이션으로 소개하여 신규 사용자의 이해도 향상
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%99%94%EB%A9%B4%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
 ### ✅ **회원가입**
 
-간편한 회원가입 절차로 빠르게 서비스에 참여 가능능
+- 간편한 회원가입 절차로 빠르게 서비스에 참여 가능능
 
 ![images](/uploads/112ec50062cf444ae999d10ca61f32dc/회원가입__1_.gif)
 
 ### ✅ **홈 화면**  
 
-인기 있는 투표와 실시간 논쟁 배틀방을 한눈에 볼 수 있는 대시보드 형태의 메인화면
+- 인기 있는 투표와 실시간 논쟁 배틀방을 한눈에 볼 수 있는 대시보드 형태의 메인화면
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A9%94%EC%9D%B8%ED%99%94%EB%A9%B4+%ED%88%AC%ED%91%9C%2C+%EB%B0%B0%ED%8B%80.gif)
 
 ### ✅ **커뮤니티 투표**
 
-다양한 주제에 대한 실시간 투표 참여와 결과 시각화, 댓글 기능을 통한 활발한 의견 교환
+- 다양한 주제에 대한 실시간 투표 참여와 결과 시각화, 댓글 기능을 통한 활발한 의견 교환
 
 ![images](/uploads/3e6ab1956eaa1806fec86052d580b57f/투표_-_Clipchamp로_제작.gif)
 
 ### ✅ **배틀방에서 투표 생성** 
 
-논쟁 중 즉각적인 청중 반응을 확인할 수 있는 실시간 투표 시스템 생성
+- 논쟁 중 즉각적인 청중 반응을 확인할 수 있는 실시간 투표 시스템 생성
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%B0%B0%ED%8B%80_%ED%88%AC%ED%91%9C+%EC%83%9D%EC%84%B1.gif)
 
 ### ✅ **배틀**  
 
-WebRTC 기반 화상 논쟁 플랫폼으로 실시간 발화 분석과 청중 투표를 통한 객관적 승패 판정
+- WebRTC 기반 화상 논쟁 플랫폼으로 실시간 발화 분석과 청중 투표를 통한 객관적 승패 판정
 
 ### ✅ **검색 및 팔로우 기능**
 
-키워드 기반으로 배틀방, 투표, 사용자를 통합 검색하여 원하는 콘텐츠에 빠르게 접근하고, 관심 있는 사용자를 팔로우하여 지속적으로 활동을 확인할 수 있는 소셜 네트워크 기능
+- 키워드 기반으로 배틀방, 투표, 사용자를 통합 검색하여 원하는 콘텐츠에 빠르게 접근 가능
+
+- 관심 있는 사용자를 팔로우하여 지속적으로 활동을 확인할 수 있는 소셜 네트워크 기능
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EA%B2%80%EC%83%89%EA%B3%BC+%ED%8C%94%EB%A1%9C%EC%9A%B0+%EC%98%81%EC%83%81%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
 
 ### ✅ **상점**
 
-배틀에서 획득한 포인트로 프로필 아이템과 배틀 효과를 구매할 수 있는 인게임 상점
+- 배틀에서 획득한 포인트로 프로필 아이템과 배틀 효과를 구매할 수 있는 인게임 상점
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%83%81%EC%A0%90.gif)
 
 ### ✅ **마이페이지**
 
-개인 배틀 전적, 참여 내역, 팔로워 관리 및 맞춤형 발화 분석 리포트를 제공하는 사용자 대시보드
+- 개인 배틀 전적, 참여 내역, 팔로워 관리 및 맞춤형 발화 분석 리포트를 제공하는 사용자 대시보드
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A7%88%EC%9D%B4%ED%8E%98%EC%9D%B4%EC%A7%80+%ED%8C%94%EB%A1%9C%EC%9A%B0.gif)
 
 
 ---
+
+<br>
 
 ## 📌 기술 스택 소개
 
@@ -136,27 +131,45 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 우리 서비스는 WebRTC 기술을 직접 구현하지 않고, Openvidu 플랫폼을을 커스텀하여 배틀방 기능을 구현했습니다.
 
+<br>
+
 ### **📢 Tech Stack**  
 
 #### **Frontend**  
-- React.js | JavaScript (Vanilla 포함) | tailwind CSS
-- Zustand | Socket.io Client | Axios  
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-000000?style=for-the-badge&logo=zustand&logoColor=white)
+![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
 
 #### **Backend**  
-- Java 17 | Spring Boot 3.2.3  
-- Spring Data JPA | Spring WebSocket (STOMP) | Spring Cloud AWS
+![Java](https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.2.3-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Spring Data JPA](https://img.shields.io/badge/Spring_Data_JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Spring WebSocket](https://img.shields.io/badge/Spring_WebSocket-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Spring Cloud AWS](https://img.shields.io/badge/Spring_Cloud_AWS-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 
 #### **Build & Deployment**  
-- Gradle | npm | Docker | Jenkins  
+![Gradle](https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white)
+![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white)
 
 #### **Database & Cache**  
-- MySQL 8.0.4 | Redis  
+![MySQL](https://img.shields.io/badge/MySQL_8.0.4-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
 #### **Infrastructure**  
-- Ubuntu | Docker | Nginx  
-- AWS EC2 | S3  
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![AWS EC2](https://img.shields.io/badge/AWS_EC2-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white)
 
 ---
+
+<br>
+
 
 ## **🔍 시스템 아키텍처**  
 ![image](/uploads/34c19640155cef1083f4d5615317336e/image.png)  
@@ -166,9 +179,23 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 ---
 
+<br>
+
+## **👥 Team YES204**  
+
+팀 YES204는 프론트엔드 3명, 백엔드 3명으로 구성된 팀입니다!
+
+<img src="https://d26tym50939cjl.cloudfront.net/uploads/제목을-입력해주세요_-001+(2).png" width=80%>
+
+
+| 👑Frontend| Frontend | Frontend | 👑Backend | Backend | Backend |
+|----------|----------|----------|----------|----------|----------|
+| [순화](https://github.com/SunaS2) (팀장) | [해인](https://github.com/stitchzzang) | [민수](https://github.com/parkminsu6421) | [수진](https://github.com/ssuzyn) (팀장) | [수비](https://github.com/SubiHwang) | [예지](https://github.com/ygjeong5) |
+
+
 ## 👥 팀원 별 역할
 
-### 프론트엔드
+### FrontEnd Developer
 
 #### 🧑‍💻 순화 - 프론트 팀장
 
@@ -193,7 +220,7 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 - 발화 리포트 및 감정 분석 결과 시각화
 - 상점 시스템 및 인벤토리 관리 구현
 
-### 백엔드
+### BackEnd Developer
 
 #### 🧑‍💻 수진 - 백엔드 팀장
 
