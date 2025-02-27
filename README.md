@@ -93,7 +93,7 @@
 
 ![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%B0%B0%ED%8B%80_%ED%88%AC%ED%91%9C+%EC%83%9D%EC%84%B1.gif)
 
-### ✅ **배틀 (참가자 모드) **  
+### ✅ **배틀 (참가자 모드)**  
 
 - WebRTC 기반 화상 논쟁 플랫폼으로 실시간 발화 분석과 청중 투표를 통한 객관적 승패 판정
 
