@@ -105,6 +105,10 @@
 
 ![메인_배틀](/uploads/0a9f9f7ee0e4c77f36df7a2761b0986f/메인_배틀.gif)
 
+### ✅ **배팅 화면**
+
+![제목_없는_동영상_-_Clipchamp로_제작](/uploads/634b60d3630dc66f4674c26dd12efc48/제목_없는_동영상_-_Clipchamp로_제작.gif)
+
 ### ✅ **승패 판정 및 실시간 발화분석 리포트**  
 
 ![제목_없음__2_](/uploads/dc99dc1f06646d0ae1ed3735dbded770/제목_없음__2_.gif)
