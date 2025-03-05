@@ -1,7 +1,7 @@
 # YES204 팀의 "캠건너 불구경" 서비스 입니다.
 
 <div align="center">
-  <img src="/uploads/8e1822113513723c7b5e8d90efb915b1/Logo2.png" alt="logo" width=30%>
+  <img src="./assets/Logo.png" alt="logo" width=30%>
 </div>
 
 
@@ -67,84 +67,85 @@
 
 - 서비스의 핵심 가치와 사용법을 애니메이션으로 소개하여 신규 사용자의 이해도 향상
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%99%94%EB%A9%B4%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
+![온보딩](/assets/온보딩.gif)
 
 ### ✅ **회원가입**
 
 - 간편한 회원가입 절차로 빠르게 서비스에 참여 가능
 
-![images](/uploads/112ec50062cf444ae999d10ca61f32dc/회원가입__1_.gif)
+![회원가입](/assets/회원가입.gif)
 
 ### ✅ **홈 화면**  
 
 - 인기 있는 투표와 실시간 논쟁 배틀방을 한눈에 볼 수 있는 대시보드 형태의 메인화면
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%A9%94%EC%9D%B8%ED%99%94%EB%A9%B4+%ED%88%AC%ED%91%9C%2C+%EB%B0%B0%ED%8B%80.gif)
+![홈화면](/assets/홈화면.gif)
+
 
 ### ✅ **커뮤니티 투표**
 
 - 다양한 주제에 대한 실시간 투표 참여와 결과 시각화, 댓글 기능을 통한 활발한 의견 교환
 - 댓글 작성 시 비속어 필터링이 적용되어 건전한 커뮤니티 환경 유지
 
-![images](/uploads/3e6ab1956eaa1806fec86052d580b57f/투표_-_Clipchamp로_제작.gif)
+![커뮤니티_투표](/assets/커뮤니티_투표.gif)
 
 ### ✅ **배틀 대기 화면**  
 
 - 배틀방 입장 후 참여자들과 채팅을 통한 소통 및 배틀 주제 선정
 - 투표 생성 후 배틀러 역할 분배 및 준비 과정 진행
 
-![사전_배틀방](/uploads/3629f197b6cb97b2a207024ad4ce89bc/사전_배틀방.gif)
+![배틀_대기방](/assets/배틀_대기_화면.gif)
 
 ### 👑 **투표 생성 화면 (방장 모드)** 
 
 - 논쟁 전 즉각적인 청중 반응을 확인할 수 있는 실시간 투표 시스템 생성
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%EB%B0%B0%ED%8B%80_%ED%88%AC%ED%91%9C+%EC%83%9D%EC%84%B1.gif)
+![배틀방_투표_생성](/assets/투표_생성_화면.gif)
 
 
 ### 👑 **배틀러 선정 화면 (방장 모드)**
 
-- 논쟁 전 논쟁할 배틀러를 선정 
+- 논쟁 전 논쟁할 배틀러를 선정
 
-![배틀러_선정_-_Clipchamp로_제작](/uploads/feb70391057def31563ef4f2217fb74b/배틀러_선정_-_Clipchamp로_제작.gif)
+![배틀러_선정](/assets/배틀러_선정_화면.gif)
 
 ### ✅ **랜덤 주제 생성 화면**  
 
 - 추천받은 랜덤 주제가 마음에 들 경우 해당 주제로 투표 생성 가능 
 
-![랜덤주제_생성기_-_Clipchamp로_제작](/uploads/34983fa07d0f7c466107cf278a800c8f/랜덤주제_생성기_-_Clipchamp로_제작.gif)
+![랜덤주제_생성기](/assets/랜덤주제_생성_화면.gif)
 
 
 ### ✅ **배틀 진행 화면**  
 
 - 배틀러 선정 완료 후 방장의 시작 버튼으로 실시간 화상 논쟁 시작
 
-![메인_배틀](/uploads/0a9f9f7ee0e4c77f36df7a2761b0986f/메인_배틀.gif)
+![배틀_진행_화면](/assets/배틀_진행_화면.gif)
 
 ### ✅ **배팅 화면 (판정단 모드)**
 
 - 판정단은 선호하는 배틀러에게 응원점수를 배팅하여 논쟁 참여도 향상
 - 전체 판정단 중 현재 배팅 완료한 인원수 확인 가능
 
-![제목_없는_동영상_-_Clipchamp로_제작](/uploads/634b60d3630dc66f4674c26dd12efc48/제목_없는_동영상_-_Clipchamp로_제작.gif)
+![배팅_화면_판정단](/assets/배팅화면(판정단).gif)
 
 ### ✅ **승패 판정 및 실시간 발화분석 리포트 (배틀러 모드)**  
 
 - 배틀 종료 시 판정단 투표 결과에 따른 승패 결정 및 응원점수 정산 결과 확인
 
-![제목_없음__2_](/uploads/dc99dc1f06646d0ae1ed3735dbded770/제목_없음__2_.gif)
+![승패판정_및_발분리](/assets/승패판정_및_발분리.gif)
 
 - 배틀러에게는 BERT 모델 기반 실시간 발화 분석 리포트 제공(토론 요약, 감정 분석, 종합 평가 등)
 
-![발분리](/uploads/27c0498f134c081466ac00f7444bd732/발분리.gif)
+![발분리_마이페이지](/assets/발분리_마이페이지.gif)
 
 ### ✅ **비속어 필터링**
 
 - Aho-Corasick 알고리즘 기반 실시간 비속어 필터링으로 클린한 서비스 환경 제공
 - 채팅과 커뮤니티 투표 댓글에 적용되어 건전한 토론 문화 조성
 
-![채팅_욕설_필터링__1_](/uploads/a0e57852ac60c27cd3b130daa1127043/채팅_욕설_필터링__1_.gif)
-![댓글_욕설_필터링__2_](/uploads/5e36ef03375bcdceb542854bd879dfba/댓글_욕설_필터링__2_.gif)
+![채팅_욕설_필터링](/assets/비속어_필터링_채팅.gif)
+![댓글_욕설_필터링](/assets/비속어_필터링_댓글.gif)
 
 
 ### ✅ **검색 및 팔로우 기능**
@@ -153,20 +154,20 @@
 
 - 관심 있는 사용자를 팔로우하여 지속적으로 활동을 확인할 수 있는 소셜 네트워크 기능
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%EA%B2%80%EC%83%89%EA%B3%BC+%ED%8C%94%EB%A1%9C%EC%9A%B0+%EC%98%81%EC%83%81%EB%85%B9%ED%99%94+%EC%B5%9C%EC%A2%85.gif)
+![검색_및_팔로우](/assets/검색_및_팔로우_기능.gif)
 
 ### ✅ **상점**
 
 - 배틀에서 획득한 포인트로 프로필 아이템과 배틀 효과를 구매할 수 있는 인게임 상점
 
-![images](https://d26tym50939cjl.cloudfront.net/uploads/%EC%83%81%EC%A0%90.gif)
+![상점](/assets/상점.gif)
 
 ### ✅ **마이페이지**
 
 - 개인 배틀 전적, 참여 내역, 팔로워 관리 기능 제공
 - 참여한 배틀의 맞춤형 발화 분석 리포트로 토론 스타일 개선 지원
 
-![마이페이지_발분리__배틀__투표_조회](/uploads/6425a86eba6c2c8c80ec8f91d429cede/마이페이지_발분리__배틀__투표_조회.gif)
+![마이페이지_발분리__배틀__투표_조회](/assets/마이페이지.gif)
 
 
 ---
@@ -182,7 +183,7 @@ OpenVidu는 WebRTC 기술을 기반으로 실시간 애플리케이션을 구현
 OpenVidu 아키텍쳐는 아래와 같습니다.
 
 <div align="center">
-  <img src="https://d26tym50939cjl.cloudfront.net/uploads/%EC%98%A4%ED%94%88%EB%B9%84%EB%91%90.png" alt="openvidu" width=70%>
+  <img src="./assets/openvidu.png" alt="openvidu" width=70%>
 </div>
 
 실시간 미디어 스트리밍 인프라와 클라이언트, 서버로 구성됩니다.
@@ -231,12 +232,12 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 ## **🔍 시스템 아키텍처**  
 <div align="center">
-  <img src="/uploads/34c19640155cef1083f4d5615317336e/image.png" alt="architecture" width=80%>
+  <img src="./assets/시스템_아키텍처.png" alt="architecture" width=80%>
 </div>
 
 ## **💾 ERD Diagram**  
 <div align="center">
-  <img src="/uploads/c5052d4a7336c62f6c5fc97c34ac1f6b/image.png" alt="diagram" width=80%>
+  <img src="./assets/ERD_Diagram.png" alt="diagram" width=80%>
 </div>
 
 ---
@@ -249,7 +250,7 @@ OpenVidu 아키텍쳐는 아래와 같습니다.
 
 # YES204 팀의 "캠건너 불구경" 서비스 입니다.
 
-<img src="/uploads/7d55d722e32e58ec5fac7c7343308e69/image.png" alt="diagram" width=70%>
+<img src="./assets/팀_단체_사진.png" alt="diagram" width=70%>
 
 | 👑Frontend | Frontend | Frontend | 👑Backend | Backend | Backend |
 |----------|----------|----------|----------|----------|----------|
