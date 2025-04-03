@@ -1,4 +1,4 @@
-# 팀 YES204 "캠건너 불구경" 서비스 | 🏆SSAFY 12기 공통프로젝트 우수상🏆
+# YES204 "캠건너 불구경" | 🏆SSAFY 12기 공통프로젝트 우수상🏆
 
 <div align="center">
   <img src="./assets/Logo.png" alt="logo" width=30%>
