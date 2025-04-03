@@ -1,7 +1,7 @@
 # TEAM YES204 "캠건너 불구경"
 ## 🏆SSAFY 12기 공통프로젝트(웹기술) 우수상🏆    
 
-<div align="center">
+<div align="left">
   <img src="./assets/Logo.png" alt="logo" width=30%>
 </div>
 
